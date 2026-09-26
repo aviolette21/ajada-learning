@@ -100,6 +100,8 @@ describe('ProgressProvider', () => {
     await act(() => a.result.current.recordAnswer(a.content.questionById.get('q-beta-1')!, 'a', 'quiz'));
     let text = '';
     await act(async () => { text = await a.result.current.exportBackup(); });
+    expect(a.result.current.settings.lastBackupAt).toBeUndefined();
+    await act(() => a.result.current.markBackedUp());
     expect(a.result.current.settings.lastBackupAt).toBe(NOW.getTime());
     const b = await setup();
     await act(() => b.result.current.importBackup(text));

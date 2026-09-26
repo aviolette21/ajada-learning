@@ -28,7 +28,10 @@ export interface ProgressApi extends Progress {
   updateSettings(patch: Partial<Settings>): Promise<void>;
   saveMockSession(session: MockSession): Promise<void>;
   submitMock(session: MockSession): Promise<MockSession>;
+  /** Serializes all progress; does not count as a backup until `markBackedUp` is called. */
   exportBackup(): Promise<string>;
+  /** Records that a backup file was actually saved (sets `lastBackupAt` to now). */
+  markBackedUp(): Promise<void>;
   importBackup(text: string): Promise<void>;
 }
 
@@ -151,9 +154,10 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         return run;
       },
       async exportBackup() {
-        const text = serializeBackup(await db.exportAll(), now());
+        return serializeBackup(await db.exportAll(), now());
+      },
+      async markBackedUp() {
         await saveSettings({ lastBackupAt: now().getTime() });
-        return text;
       },
       async importBackup(text) {
         await db.replaceAll(parseBackup(text));

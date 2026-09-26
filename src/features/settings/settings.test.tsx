@@ -1,11 +1,11 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
 import { serializeBackup } from '../../storage/backup';
 import { SettingsPage } from './SettingsPage';
 
-vi.mock('../../storage/share', () => ({ shareOrDownload: vi.fn(async () => {}) }));
+vi.mock('../../storage/share', () => ({ shareOrDownload: vi.fn(async () => true) }));
 
 const NOW = new Date('2026-09-26T10:00:00');
 const now = () => NOW;
@@ -27,6 +27,28 @@ describe('SettingsPage', () => {
     expect(await screen.findByText('Backup created.')).toBeInTheDocument();
     expect(shareOrDownload).toHaveBeenCalledWith(expect.stringContaining('"app":"ajada-learning"'), 'ajada-backup-2026-09-26.json');
     expect(screen.getByText(/Last backup:/)).toBeInTheDocument();
+  });
+
+  it('does not record a backup when the share sheet is cancelled', async () => {
+    const { shareOrDownload } = await import('../../storage/share');
+    vi.mocked(shareOrDownload).mockResolvedValueOnce(false);
+    const { db } = await open();
+    const before = vi.mocked(shareOrDownload).mock.calls.length;
+    await userEvent.click(await screen.findByRole('button', { name: 'Export backup' }));
+    await waitFor(() => expect(vi.mocked(shareOrDownload).mock.calls.length).toBe(before + 1));
+    await act(async () => {});
+    expect(screen.queryByText('Backup created.')).toBeNull();
+    expect(screen.queryByText(/Last backup:/)).toBeNull();
+    expect((await db.getKv<{ lastBackupAt?: number }>('settings'))?.lastBackupAt).toBeUndefined();
+  });
+
+  it('reports a failed export', async () => {
+    const { shareOrDownload } = await import('../../storage/share');
+    vi.mocked(shareOrDownload).mockRejectedValueOnce(new Error('boom'));
+    await open();
+    await userEvent.click(await screen.findByRole('button', { name: 'Export backup' }));
+    expect(await screen.findByText('Could not create a backup.')).toBeInTheDocument();
+    expect(screen.queryByText(/Last backup:/)).toBeNull();
   });
 
   it('imports a backup after confirmation', async () => {

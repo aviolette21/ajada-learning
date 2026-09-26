@@ -17,9 +17,15 @@ export function SettingsPage() {
   const unofficial = domains.some((d) => d.subSkills.some((s) => !s.official));
 
   const exportNow = async () => {
-    const text = await p.exportBackup();
-    await shareOrDownload(text, backupFileName(now()));
-    setMessage('Backup created.');
+    setMessage(null);
+    try {
+      const text = await p.exportBackup();
+      if (!(await shareOrDownload(text, backupFileName(now())))) return;
+      await p.markBackedUp();
+      setMessage('Backup created.');
+    } catch {
+      setMessage('Could not create a backup.');
+    }
   };
 
   const onFile = async (e: ChangeEvent<HTMLInputElement>) => {
