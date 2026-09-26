@@ -1,7 +1,9 @@
 import { AnimatePresence, MotionConfig } from 'motion/react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { Content } from '../content/schema';
+import { BrowsePage } from '../features/cards/BrowsePage';
 import { CardsPage } from '../features/cards/CardsPage';
+import { GlossaryPage } from '../features/cards/GlossaryPage';
 import { ReviewPage } from '../features/cards/ReviewPage';
 import { LearnPage } from '../features/learn/LearnPage';
 import { PracticePage } from '../features/practice/PracticePage';
@@ -34,6 +36,8 @@ export function Shell() {
           <Route path="/practice/quiz" element={<QuizPage />} />
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
           <Route path="/cards/review" element={<ReviewPage />} />
+          <Route path="/cards/browse/:domainId" element={<BrowsePage />} />
+          <Route path="/cards/glossary" element={<GlossaryPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>

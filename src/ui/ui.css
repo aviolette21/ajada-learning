@@ -107,3 +107,4 @@
   background: var(--surface); color: var(--text); font-size: 16px;
 }
 .fatal { padding: 24px; white-space: pre-wrap; color: var(--error-text); }
+.section-title { margin: 22px 0 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
