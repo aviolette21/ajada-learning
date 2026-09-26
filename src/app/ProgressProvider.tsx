@@ -54,8 +54,11 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
   const { now } = useClock();
   const { questionById } = useContent();
   const [state, setState] = useState<Progress | null>(null);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const ref = useRef(state);
   ref.current = state;
+  /** Submissions in flight or done, by session id, so a timer auto-submit racing a tap records once. */
+  const submits = useRef(new Map<string, Promise<MockSession>>());
 
   const load = useCallback(async () => {
     const [attempts, cardStates, lessonsDone, flags, mockSessions, settings] = await Promise.all([
@@ -71,7 +74,9 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
     });
   }, [db]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    load().catch((err: unknown) => setLoadError(err ?? new Error('unknown error')));
+  }, [load]);
 
   const api = useMemo<ProgressApi | null>(() => {
     if (!state) return null;
@@ -127,15 +132,23 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         await db.putMockSession(session);
         setState((p) => p && { ...p, mockSessions: upsert(p.mockSessions, session) });
       },
-      async submitMock(session) {
+      submitMock(session) {
+        const pending = submits.current.get(session.id);
+        if (pending) return pending;
         const existing = current().mockSessions.find((s) => s.id === session.id);
-        if (existing?.submittedAt) return existing;
-        const at = now().getTime();
-        const submitted: MockSession = { ...session, submittedAt: at };
-        await db.putMockSession(submitted);
-        const attempts = await db.addAttempts(mockAttempts(submitted, questionById, at));
-        setState((p) => p && { ...p, mockSessions: upsert(p.mockSessions, submitted), attempts: [...p.attempts, ...attempts] });
-        return submitted;
+        if (existing?.submittedAt) return Promise.resolve(existing);
+        const run = (async () => {
+          const at = now().getTime();
+          const submitted: MockSession = { ...session, submittedAt: at };
+          await db.putMockSession(submitted);
+          const attempts = await db.addAttempts(mockAttempts(submitted, questionById, at));
+          setState((p) => p && { ...p, mockSessions: upsert(p.mockSessions, submitted), attempts: [...p.attempts, ...attempts] });
+          return submitted;
+        })();
+        submits.current.set(session.id, run);
+        // Keep a successful submission cached; forget a failed one so it can be retried.
+        run.catch(() => submits.current.delete(session.id));
+        return run;
       },
       async exportBackup() {
         const text = serializeBackup(await db.exportAll(), now());
@@ -144,11 +157,15 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
       },
       async importBackup(text) {
         await db.replaceAll(parseBackup(text));
+        submits.current.clear();
         await load();
       },
     };
   }, [state, db, now, questionById, load]);
 
+  if (loadError) {
+    return <pre className="fatal">Ajada could not load your progress on this device.{'\n'}{String(loadError)}</pre>;
+  }
   if (!api) return null;
   return <ProgressContext.Provider value={api}>{children}</ProgressContext.Provider>;
 }

@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { openTestDb } from '../../tests/renderWithApp';
@@ -79,6 +79,21 @@ describe('ProgressProvider', () => {
     expect(result.current.mockSessions[0].submittedAt).toBe(NOW.getTime());
     expect(result.current.attempts).toMatchObject([{ questionId: 'q-alpha-1', correct: true, mode: 'mock' }]);
   });
+  it('records a mock exam once when two submits race', async () => {
+    const { result, db } = await setup();
+    const session: MockSession = {
+      id: 'm2', startedAt: 0, durationMs: 1000, questionIds: ['q-alpha-1', 'q-beta-1'],
+      answers: { 'q-alpha-1': 'a', 'q-beta-1': 'a' }, flagged: [], currentIndex: 1,
+    };
+    await act(() => result.current.saveMockSession(session));
+    let pair: MockSession[] = [];
+    await act(async () => {
+      pair = await Promise.all([result.current.submitMock(session), result.current.submitMock(session)]);
+    });
+    expect(pair[0]).toBe(pair[1]);
+    expect(result.current.attempts).toHaveLength(2);
+    expect(await db.getAttempts()).toHaveLength(2);
+  });
 
   it('exports a backup and restores it on another device', async () => {
     const a = await setup();
@@ -89,5 +104,25 @@ describe('ProgressProvider', () => {
     const b = await setup();
     await act(() => b.result.current.importBackup(text));
     await waitFor(() => expect(b.result.current.attempts).toHaveLength(1));
+  });
+
+  it('shows an error instead of a blank screen when progress cannot load', async () => {
+    const broken = {
+      getAttempts: () => Promise.reject(new Error('disk on fire')),
+      getCardStates: () => Promise.resolve([]),
+      getLessonsDone: () => Promise.resolve([]),
+      getFlags: () => Promise.resolve([]),
+      getMockSessions: () => Promise.resolve([]),
+      getKv: () => Promise.resolve(undefined),
+    } as unknown as AppDb;
+    render(
+      <ClockProvider now={() => NOW}>
+        <ContentProvider content={fixtureContent()}>
+          <ProgressProvider db={broken}><p>child</p></ProgressProvider>
+        </ContentProvider>
+      </ClockProvider>,
+    );
+    expect(await screen.findByText(/could not load your progress/)).toHaveTextContent('disk on fire');
+    expect(screen.queryByText('child')).toBeNull();
   });
 });
