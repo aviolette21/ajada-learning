@@ -6,6 +6,10 @@ import { CardsPage } from '../features/cards/CardsPage';
 import { GlossaryPage } from '../features/cards/GlossaryPage';
 import { ReviewPage } from '../features/cards/ReviewPage';
 import { LearnPage } from '../features/learn/LearnPage';
+import { HistoryPage } from '../features/mock/HistoryPage';
+import { MockExamPage } from '../features/mock/MockExamPage';
+import { MockIntroPage } from '../features/mock/MockIntroPage';
+import { MockResultsPage } from '../features/mock/MockResultsPage';
 import { PracticePage } from '../features/practice/PracticePage';
 import { QuizPage } from '../features/practice/QuizPage';
 import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
@@ -38,6 +42,10 @@ export function Shell() {
           <Route path="/cards/review" element={<ReviewPage />} />
           <Route path="/cards/browse/:domainId" element={<BrowsePage />} />
           <Route path="/cards/glossary" element={<GlossaryPage />} />
+          <Route path="/practice/mock" element={<MockIntroPage />} />
+          <Route path="/practice/mock/:sessionId" element={<MockExamPage />} />
+          <Route path="/practice/mock/:sessionId/results" element={<MockResultsPage />} />
+          <Route path="/practice/history" element={<HistoryPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>

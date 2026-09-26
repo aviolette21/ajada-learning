@@ -1,0 +1,45 @@
+import { useNavigate } from 'react-router-dom';
+import { useClock } from '../../app/clock';
+import { useContent } from '../../app/ContentContext';
+import { useProgress } from '../../app/ProgressProvider';
+import { buildMockExam, MOCK_QUESTION_COUNT, remainingMs } from '../../study/mockExam';
+import { PASS_SCORE } from '../../study/readiness';
+import { Button } from '../../ui/Button';
+import { Screen } from '../../ui/Screen';
+import './mock.css';
+
+export function MockIntroPage() {
+  const navigate = useNavigate();
+  const { questions, domains } = useContent();
+  const { attempts, mockSessions, saveMockSession } = useProgress();
+  const { now } = useClock();
+  const active = mockSessions.find((s) => !s.submittedAt && remainingMs(s, now().getTime()) > 0);
+  const count = Math.min(MOCK_QUESTION_COUNT, questions.length);
+
+  const start = async () => {
+    const t = now().getTime();
+    const s = buildMockExam({ id: `mock-${t}`, domains, questions, attempts, rng: Math.random, now: t });
+    await saveMockSession(s);
+    navigate(`/practice/mock/${s.id}`);
+  };
+
+  return (
+    <Screen title="Mock exam" back="/practice">
+      <section className="panel">
+        <h2>Exam conditions</h2>
+        <ul className="rules">
+          <li>{MOCK_QUESTION_COUNT} questions, weighted by domain like the real exam</li>
+          <li>120-minute timer; it keeps running if you leave</li>
+          <li>No explanations until you submit</li>
+          <li>Flag questions to revisit; unanswered questions count as wrong</li>
+          <li>Pass mark: {PASS_SCORE} / 1000</li>
+        </ul>
+      </section>
+      {count < MOCK_QUESTION_COUNT && (
+        <p className="banner">The question bank has {questions.length} questions so far, so this mock uses {count}. Full 53-question mocks arrive with the content update.</p>
+      )}
+      {active && <Button block variant="secondary" onClick={() => navigate(`/practice/mock/${active.id}`)}>Resume exam in progress</Button>}
+      <Button block onClick={() => void start()}>Start a new mock exam</Button>
+    </Screen>
+  );
+}
