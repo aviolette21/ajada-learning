@@ -17,6 +17,7 @@ import { PracticePage } from '../features/practice/PracticePage';
 import { QuizPage } from '../features/practice/QuizPage';
 import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { SessionPage } from '../features/today/SessionPage';
 import { TodayPage } from '../features/today/TodayPage';
 import type { AppDb } from '../storage/db';
 import { TabBar } from '../ui/TabBar';
@@ -52,6 +53,7 @@ export function Shell() {
           <Route path="/learn/:domainId" element={<DomainPage />} />
           <Route path="/learn/lesson/:lessonId" element={<LessonPage />} />
           <Route path="/learn/lesson/:lessonId/check" element={<LessonCheckPage />} />
+          <Route path="/session" element={<SessionPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>

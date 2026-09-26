@@ -108,3 +108,10 @@
 }
 .fatal { padding: 24px; white-space: pre-wrap; color: var(--error-text); }
 .section-title { margin: 22px 0 4px; font-size: 12px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.stepper-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stepper { display: flex; align-items: center; gap: 4px; }
+.stepper output { min-width: 32px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stepper .icon-btn { border: 1px solid var(--border); color: var(--text); font-size: 20px; }
+.flag-list { margin: 0; padding: 0; list-style: none; }
+.flag-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+.flag-list .grow { flex: 1; min-width: 0; }
