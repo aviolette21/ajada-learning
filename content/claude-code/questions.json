@@ -1,0 +1,21 @@
+[
+  {
+    "id": "q-cc-claude-md",
+    "domainId": "claude-code",
+    "subSkillId": "cc-config",
+    "topic": "CLAUDE.md",
+    "stem": "A team wants every developer's Claude Code sessions to know the project's build commands and coding conventions, kept in source control with the code. Where should these instructions go?",
+    "choices": [
+      { "id": "a", "text": "`~/.claude/CLAUDE.md` on each developer's machine", "reason": "That's user scope: personal preferences for all your projects, shared with no one else." },
+      { "id": "b", "text": "`./CLAUDE.local.md` in the repo", "reason": "Local instructions are personal, project-specific preferences meant to be added to `.gitignore`." },
+      { "id": "c", "text": "`./CLAUDE.md` (or `./.claude/CLAUDE.md`) committed to the repository", "reason": "Correct: project instructions are shared with the team via source control, and Claude reads them at the start of every session." },
+      { "id": "d", "text": "Type them into the chat at the start of each session", "reason": "Each session begins with a fresh context window; CLAUDE.md is where you write down what you'd otherwise re-explain." }
+    ],
+    "answer": "c",
+    "takeaway": "Team-shared project instructions live in a committed **`./CLAUDE.md`**; personal ones go in `~/.claude/CLAUDE.md` or `CLAUDE.local.md`.",
+    "mnemonic": "Team → ./CLAUDE.md; me everywhere → ~/.claude; me here → .local.",
+    "difficulty": "easy",
+    "source": { "url": "https://code.claude.com/docs/en/memory", "title": "How Claude remembers your project", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-claude-md"]
+  }
+]

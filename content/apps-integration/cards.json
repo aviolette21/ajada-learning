@@ -1,0 +1,46 @@
+[
+  {
+    "id": "c-stop-reason",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "stop_reason",
+    "definition": "A response field saying why Claude stopped: `end_turn` (finished naturally), `max_tokens` (hit your limit), `stop_sequence` (emitted one of your stop sequences), `tool_use` (calling a tool), `pause_turn`, `refusal`, and others.",
+    "whyItMatters": "Your code must branch on it: use the reply on `end_turn`, run tools on `tool_use`, raise the limit or continue on `max_tokens`.",
+    "example": "`if response.stop_reason == \"tool_use\":` run the tool and send back a `tool_result`.",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  },
+  {
+    "id": "c-system-parameter",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "system (parameter)",
+    "definition": "The top-level Messages API parameter for context and instructions, such as a goal or role. There is no `\"system\"` role for input messages.",
+    "whyItMatters": "Exam distractors put instructions in a `role: \"system\"` message; on the Messages API they belong in the top-level `system` field.",
+    "example": "`\"system\": \"You are a helpful coding assistant specializing in Python.\"`",
+    "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  },
+  {
+    "id": "c-max-tokens",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "max_tokens",
+    "definition": "The maximum number of tokens to generate before stopping. The model may stop **before** reaching it; it is only an absolute ceiling on output.",
+    "whyItMatters": "If a reply ends with `stop_reason: \"max_tokens\"` it was truncated: raise the limit or continue the response.",
+    "example": "`\"max_tokens\": 1024` caps the reply at 1,024 output tokens.",
+    "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  },
+  {
+    "id": "c-streaming",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Streaming (\"stream\": true)",
+    "definition": "Setting `\"stream\": true` on a Messages request returns the response incrementally as server-sent events (SSE): `message_start`, content block events with `content_block_delta`s, `message_delta`, then `message_stop`.",
+    "whyItMatters": "Streaming lets a UI show text as it is generated, and the SDKs require streaming for requests with large `max_tokens` values to avoid HTTP timeouts.",
+    "example": "Append each `text_delta` from a `content_block_delta` event to the chat bubble.",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/streaming", "title": "Streaming messages", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  }
+]

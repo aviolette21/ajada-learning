@@ -1,0 +1,42 @@
+[
+  {
+    "id": "l-prompt-caching",
+    "domainId": "model-selection",
+    "subSkillId": "prompt-caching",
+    "title": "Prompt caching",
+    "summary": "Prompt caching lets a request resume from a prefix the API has already processed, so repeated content is cheaper and faster. You mark where the reusable prefix ends with `cache_control`, and the cache lives 5 minutes by default.",
+    "keyPoints": [
+      "Cache reads cost **0.1×** base input; 5-minute writes cost 1.25×, 1-hour writes 2×.",
+      "The prefix is built in order: `tools` → `system` → `messages`, up to and including the `cache_control` block.",
+      "Put static content first and the breakpoint on the **last identical block**, never on content that varies.",
+      "Default lifetime is **5 minutes**, refreshed at no cost on every hit; `\"ttl\": \"1h\"` extends it.",
+      "Up to **4** breakpoints; each model has a minimum cacheable prompt length."
+    ],
+    "sections": [
+      {
+        "heading": "What caching buys you",
+        "body": "When a request starts with the same content as a recent one, the API can resume from that cached prefix instead of processing it again. This significantly reduces processing time and cost for prompts with consistent elements, and long documents generally see better time-to-first-token.\n\nPricing is relative to the base input price:\n- Cache read: 0.1×\n- 5-minute cache write: 1.25×\n- 1-hour cache write: 2×",
+        "diagram": {
+          "kind": "segmented-bar",
+          "caption": "A cached prefix is billed at the read rate; only the new part costs full price.",
+          "segments": [
+            { "label": "Cached prefix", "sublabel": "0.1× read", "weight": 3, "tone": "success" },
+            { "label": "New content", "sublabel": "full price", "weight": 1, "tone": "neutral" }
+          ]
+        }
+      },
+      {
+        "heading": "Placing the breakpoint",
+        "body": "Caching covers the whole prompt (`tools`, `system`, then `messages`) up to and including the block marked with `cache_control`. Place static content such as tool definitions, instructions and examples at the beginning.\n\nPut `cache_control` on the last block whose prefix is identical across the requests you want to share a cache. If the prompt ends with something that varies (a timestamp, per-request context, the incoming message), put the breakpoint at the end of the static prefix, not on the varying block.\n\nChanges at one level invalidate that level and everything after it, so editing a tool definition invalidates the cached system prompt and messages too."
+      },
+      {
+        "heading": "Lifetime and limits",
+        "body": "By default the cache has a 5-minute lifetime, refreshed at no extra cost each time the cached content is used. If traffic has longer gaps, set `\"ttl\": \"1h\"` on `cache_control` for the 1-hour duration, at a higher write price.\n\nYou can define up to 4 breakpoints, for example to cache sections that change at different rates. Prompts shorter than the model's minimum cacheable length are not cached."
+      }
+    ],
+    "checkQuestionIds": ["q-cache-repeated-system-prompt", "q-cache-breakpoint-placement", "q-cache-lifetime"],
+    "sources": [
+      { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" }
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "q-prompt-xml-tags",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-techniques",
+    "topic": "XML tags",
+    "stem": "Your prompt mixes instructions, a long contract and a few examples in plain paragraphs, and Claude sometimes treats clauses from the contract as instructions. What's the best fix?",
+    "choices": [
+      { "id": "a", "text": "Wrap each kind of content in its own descriptive XML tag, such as `<instructions>` and `<contract>`", "reason": "Correct: XML tags help Claude parse prompts that mix instructions, context, examples and inputs, reducing misinterpretation." },
+      { "id": "b", "text": "Move the contract below your question at the end of the prompt", "reason": "The reverse of the guidance: put long documents near the top, above the query and instructions." },
+      { "id": "c", "text": "Use a different tag name for the contract in every request", "reason": "The guidance is to use consistent, descriptive tag names across your prompts." },
+      { "id": "d", "text": "Delete the examples to shorten the prompt", "reason": "Examples help; the guidance suggests 3–5 of them. The problem is ambiguous structure, not length." }
+    ],
+    "answer": "a",
+    "takeaway": "When a prompt mixes content types, give each its own **consistent XML tag** so instructions and data can't blur.",
+    "mnemonic": "Tag it so Claude can tell it apart.",
+    "difficulty": "easy",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-xml-tags"]
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "q-eval-regression-set",
+    "domainId": "eval-testing",
+    "subSkillId": "evals-debugging",
+    "topic": "Building evals",
+    "stem": "A team tunes a support-bot prompt by eyeballing a handful of chats, and each fix seems to break some other case. What should they do first?",
+    "choices": [
+      { "id": "a", "text": "Hand-grade ten ideal conversations in depth before every change", "reason": "The guidance prioritizes volume: more automatically graded questions beat fewer high-quality hand-graded ones." },
+      { "id": "b", "text": "Test only typical, well-formed customer messages", "reason": "Evals should mirror the real task distribution, and the guidance says not to forget edge cases." },
+      { "id": "c", "text": "Define success criteria, then build a task-specific eval set with edge cases and automated grading to score each prompt version", "reason": "Correct: defining success criteria and designing evaluations to measure against them is the cycle central to prompt engineering." },
+      { "id": "d", "text": "Keep rewording the prompt until the handful of chats look right", "reason": "A few eyeballed chats don't mirror the real task distribution, so you can't tell whether a change helped overall." }
+    ],
+    "answer": "c",
+    "takeaway": "Measure, don't eyeball: set **success criteria**, then build an **automated, task-specific** eval set that includes edge cases.",
+    "mnemonic": "Criteria first, then many automated tests.",
+    "difficulty": "medium",
+    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests", "title": "Define success criteria and build evaluations", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-eval-set"]
+  }
+]

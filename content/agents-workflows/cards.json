@@ -1,0 +1,24 @@
+[
+  {
+    "id": "c-workflow-vs-agent",
+    "domainId": "agents-workflows",
+    "subSkillId": "workflow-patterns",
+    "term": "Workflow vs agent",
+    "definition": "**Workflows** orchestrate LLMs and tools through predefined code paths. **Agents** are systems where LLMs dynamically direct their own processes and tool usage.",
+    "whyItMatters": "Workflows give predictability and consistency for well-defined tasks; agents suit tasks that need flexibility, at the cost of latency and spend. Start with the simplest solution.",
+    "example": "A fixed translate → check → format pipeline is a workflow; an assistant that decides which files to edit is an agent.",
+    "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  },
+  {
+    "id": "c-stopping-condition",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-loops",
+    "term": "Stopping condition",
+    "definition": "A rule that ends an agent loop even if the task isn't finished, such as a maximum number of iterations.",
+    "whyItMatters": "Agent tasks often end on completion, but Anthropic's guidance says it's common to add stopping conditions to maintain control.",
+    "example": "Stop the loop and report back after 20 tool calls.",
+    "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  }
+]

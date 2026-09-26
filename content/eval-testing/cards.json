@@ -1,0 +1,13 @@
+[
+  {
+    "id": "c-eval-set",
+    "domainId": "eval-testing",
+    "subSkillId": "evals-debugging",
+    "term": "Eval set",
+    "definition": "A set of test cases designed to measure an LLM application's performance against clearly defined success criteria.",
+    "whyItMatters": "Design principles: be task-specific (mirror the real task distribution, include edge cases), automate grading when possible, and prioritize volume over hand-graded quality.",
+    "example": "Grade sentiment labels by exact match; use LLM-based grading on a Likert scale for tone.",
+    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests", "title": "Define success criteria and build evaluations", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  }
+]

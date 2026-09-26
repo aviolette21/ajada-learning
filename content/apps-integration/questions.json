@@ -1,0 +1,90 @@
+[
+  {
+    "id": "q-api-tool-use-stop-reason",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Tool use loop",
+    "stem": "Your app defines a `get_weather` tool. Claude's response comes back with `stop_reason: \"tool_use\"` and a `tool_use` block. What should your code do next?",
+    "choices": [
+      { "id": "a", "text": "Run the tool, then send a new request whose last message is a `user` turn containing a `tool_result` block", "reason": "Correct: Claude is calling a tool and expects you to run it; the continuation is a user message of `tool_result` blocks." },
+      { "id": "b", "text": "Show the response to the user as the final answer", "reason": "`tool_use` is not a finished answer; `end_turn` is the stop reason for a natural finish." },
+      { "id": "c", "text": "Wait and poll the API until Claude finishes running the tool", "reason": "For your own (client) tools the model never executes anything itself; your code must run the tool." },
+      { "id": "d", "text": "Retry the same request with a higher `max_tokens`", "reason": "Raising `max_tokens` is the fix for `max_tokens` truncation, not for a tool call." }
+    ],
+    "answer": "a",
+    "takeaway": "`tool_use` means **your turn**: execute the tool and return a `tool_result`, then loop while `stop_reason` is `tool_use`.",
+    "mnemonic": "Claude asks, you run, you report back.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The client-tool loop repeats while stop_reason is tool_use.",
+      "steps": [
+        { "label": "Request", "sublabel": "tools + user message" },
+        { "label": "stop_reason: tool_use", "sublabel": "tool_use block" },
+        { "label": "Your code runs the tool" },
+        { "label": "Send tool_result", "sublabel": "in a user turn" }
+      ]
+    },
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-stop-reason"],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-api-system-prompt-param",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "System prompt",
+    "stem": "A team is porting a chatbot to the Claude Messages API and wants to give Claude a persona and standing instructions. How should they send them?",
+    "choices": [
+      { "id": "a", "text": "Add a message with `role: \"system\"` at the start of the `messages` array", "reason": "The Messages API has no `\"system\"` role for input messages; this is the most common porting mistake." },
+      { "id": "b", "text": "Put them in the top-level `system` parameter", "reason": "Correct: the top-level `system` parameter is how you provide context and instructions such as a goal or role." },
+      { "id": "c", "text": "Put them in an `assistant` message so Claude thinks it already agreed", "reason": "`assistant` turns represent Claude's prior replies, not the place for standing instructions." },
+      { "id": "d", "text": "List them in `stop_sequences`", "reason": "`stop_sequences` are strings that make generation stop; they carry no instructions." }
+    ],
+    "answer": "b",
+    "takeaway": "Instructions and roles go in the top-level **`system`** parameter; `messages` holds `user`/`assistant` turns.",
+    "mnemonic": "System sits on top, not in the stack.",
+    "difficulty": "easy",
+    "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-system-parameter"],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-api-max-tokens-stop",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "max_tokens",
+    "stem": "Your report generator's outputs sometimes end mid-sentence, and those responses have `stop_reason: \"max_tokens\"`. What is the right fix?",
+    "choices": [
+      { "id": "a", "text": "Treat it as a refusal and retry on another model", "reason": "A refusal has its own stop reason, `refusal`; `max_tokens` means the length limit was hit." },
+      { "id": "b", "text": "Add a stop sequence at the end of the expected report", "reason": "Stop sequences end generation **earlier**; they can't make a truncated response longer." },
+      { "id": "c", "text": "Raise `max_tokens`, or continue the response in a follow-up request", "reason": "Correct: the docs' guidance for `max_tokens` is to raise the limit or continue the response." },
+      { "id": "d", "text": "Enable prompt caching on the prompt", "reason": "Caching changes how the input prefix is processed and billed; it doesn't raise the output limit." }
+    ],
+    "answer": "c",
+    "takeaway": "`max_tokens` is a hard **output** cap; hitting it truncates the reply, so raise it or continue.",
+    "mnemonic": "Cut off? Check the cap.",
+    "difficulty": "medium",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-max-tokens", "c-stop-reason"],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-app-streaming-ux",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Streaming",
+    "stem": "Your chat UI shows nothing for many seconds while Claude writes long answers, and users think the app has frozen. What should you change?",
+    "choices": [
+      { "id": "a", "text": "Send requests through the Message Batches API", "reason": "Batches are asynchronous and most finish within an hour; that's for bulk work, not live chat." },
+      { "id": "b", "text": "Raise `max_tokens`", "reason": "`max_tokens` only caps how much is generated; it doesn't change when text reaches the UI." },
+      { "id": "c", "text": "Enable prompt caching", "reason": "Caching can speed up a repeated prefix, but without streaming the UI still waits for the whole response." },
+      { "id": "d", "text": "Set `\"stream\": true` and render text deltas as the events arrive", "reason": "Correct: streaming sends the response incrementally as server-sent events, so text appears as it is generated." }
+    ],
+    "answer": "d",
+    "takeaway": "For live UX, **stream**: `\"stream\": true` delivers the reply incrementally over server-sent events.",
+    "difficulty": "easy",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/streaming", "title": "Streaming messages", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-streaming"]
+  }
+]

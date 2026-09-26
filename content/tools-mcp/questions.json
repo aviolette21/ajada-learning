@@ -1,0 +1,21 @@
+[
+  {
+    "id": "q-mcp-primitives",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-servers",
+    "topic": "MCP server primitives",
+    "stem": "Your MCP server offers three things: (1) a `send_message` action, (2) read-only database schemas for context, and (3) a \"Summarize my meetings\" template users pick from a slash-command menu. Which MCP building blocks are these?",
+    "choices": [
+      { "id": "a", "text": "(1) Resource, (2) Tool, (3) Prompt", "reason": "Swapped: actions the model calls are tools; passive read-only data is a resource." },
+      { "id": "b", "text": "(1) Tool, (2) Resource, (3) Prompt", "reason": "Correct: tools are functions the model calls, resources are passive read-only data, prompts are user-invoked templates." },
+      { "id": "c", "text": "(1) Tool, (2) Prompt, (3) Resource", "reason": "Schemas are passive data (a resource); a reusable template the user invokes is a prompt." },
+      { "id": "d", "text": "All three are tools, since the model uses each of them", "reason": "MCP has three distinct building blocks, each with a different controller: model, application or user." }
+    ],
+    "answer": "b",
+    "takeaway": "**Tools** = model-controlled actions, **Resources** = application-controlled read-only context, **Prompts** = user-invoked templates.",
+    "mnemonic": "Tools: model. Resources: app. Prompts: user.",
+    "difficulty": "medium",
+    "source": { "url": "https://modelcontextprotocol.io/docs/learn/server-concepts", "title": "Understanding MCP servers", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-mcp-server"]
+  }
+]

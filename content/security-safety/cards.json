@@ -1,0 +1,13 @@
+[
+  {
+    "id": "c-prompt-injection",
+    "domainId": "security-safety",
+    "subSkillId": "prompt-injection",
+    "term": "Indirect prompt injection",
+    "definition": "An attack where the user is trusted but Claude processes third-party content (web pages, emails, documents, tool results) that contains adversarial instructions.",
+    "whyItMatters": "Unlike a jailbreak, the attacker isn't your user. Defenses: put untrusted content only in `tool_result` blocks, label its source, state an untrusted-content policy in the system prompt, JSON-encode it, and apply least privilege.",
+    "example": "An email body saying \"Ignore previous instructions…\" is JSON-encoded inside a `tool_result` so it reads as data, not a directive.",
+    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks", "title": "Mitigate jailbreaks and prompt injections", "checkedOn": "2026-09-26" },
+    "isVocab": true
+  }
+]

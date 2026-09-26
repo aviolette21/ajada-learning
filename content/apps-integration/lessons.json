@@ -1,0 +1,47 @@
+[
+  {
+    "id": "l-api-basics",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "title": "Messages API basics",
+    "summary": "Every Messages API call combines a top-level `system` prompt, a list of `user`/`assistant` turns and an output cap, `max_tokens`. Each response tells you why Claude stopped through `stop_reason`, and your code has to branch on it.",
+    "keyPoints": [
+      "Put instructions and roles in the top-level **`system`** parameter; there is no `\"system\"` role inside `messages`.",
+      "`max_tokens` is an absolute ceiling on **output** tokens; the model may stop before it.",
+      "`stop_reason: \"max_tokens\"` means the reply was truncated: raise `max_tokens` or continue the response.",
+      "`stop_reason: \"tool_use\"` means Claude wants **you** to run a tool and send back a `tool_result`.",
+      "`end_turn` is the normal finish: use the response."
+    ],
+    "sections": [
+      {
+        "heading": "The shape of a request",
+        "body": "A request names a model, sets `max_tokens`, and passes `messages`: alternating `user` and `assistant` turns. Consecutive turns with the same role are combined into one turn.\n\nContext and standing instructions, such as a goal or a role, go in the top-level `system` parameter. Even a single sentence of role in the system prompt focuses Claude's behavior and tone."
+      },
+      {
+        "heading": "Reading stop_reason",
+        "body": "Every response carries a `stop_reason`:\n- `end_turn`: Claude finished naturally. Use the response.\n- `max_tokens`: the response reached your limit. Raise `max_tokens` or continue the response.\n- `stop_sequence`: Claude emitted one of your `stop_sequences`.\n- `tool_use`: Claude is calling a tool. Run the tool and return the result.\n- `refusal`: Claude declined to respond. Read `stop_details`."
+      },
+      {
+        "heading": "The tool-use loop",
+        "body": "For tools your app defines, the model never executes anything itself. When the response stops with `tool_use`, your code runs each tool and sends a new request whose last message is a `user` turn of `tool_result` blocks.\n\nRepeat while `stop_reason` is `tool_use`. Any other stop reason exits the loop.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Loop while stop_reason is tool_use.",
+          "steps": [
+            { "label": "Send request", "sublabel": "tools + messages" },
+            { "label": "tool_use", "sublabel": "Claude asks" },
+            { "label": "Run tool", "sublabel": "your code" },
+            { "label": "tool_result", "sublabel": "you report back" }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": ["q-api-tool-use-stop-reason", "q-api-system-prompt-param", "q-api-max-tokens-stop"],
+    "sources": [
+      { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
+      { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
+      { "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works", "title": "How tool use works", "checkedOn": "2026-09-26" },
+      { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" }
+    ]
+  }
+]

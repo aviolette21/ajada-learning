@@ -1,0 +1,79 @@
+[
+  {
+    "id": "q-cache-repeated-system-prompt",
+    "domainId": "model-selection",
+    "subSkillId": "prompt-caching",
+    "topic": "Prompt caching",
+    "stem": "Your app sends the same 20k-token system prompt on every request, followed by a short user message. What cuts cost **and** latency the most?",
+    "choices": [
+      { "id": "a", "text": "Enable prompt caching on the system prompt", "reason": "The repeated prefix is read from cache: cache reads are billed at 0.1× the base input price and processing time drops." },
+      { "id": "b", "text": "Stream the response", "reason": "Streaming changes how output **arrives**; it doesn't discount the 20k input tokens processed on every request." },
+      { "id": "c", "text": "Raise `max_tokens`", "reason": "`max_tokens` caps output length only; it has no effect on input cost or speed." },
+      { "id": "d", "text": "Send requests through the Message Batches API", "reason": "Batches are cheaper but asynchronous (most finish within an hour), so latency goes **up**, not down." }
+    ],
+    "answer": "a",
+    "takeaway": "A big prefix that repeats should be **cached**; streaming doesn't make input cheaper.",
+    "mnemonic": "Same start, every time? Cache it.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Only the new part is processed at full price.",
+      "segments": [
+        { "label": "System prompt · 20k", "sublabel": "cached", "weight": 3, "tone": "success" },
+        { "label": "New message", "sublabel": "full price", "weight": 1, "tone": "neutral" }
+      ]
+    },
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-prompt-caching", "c-cache-control"],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cache-breakpoint-placement",
+    "domainId": "model-selection",
+    "subSkillId": "prompt-caching",
+    "topic": "Cache breakpoints",
+    "stem": "Each request contains tool definitions, a long unchanging system prompt, then a block with the current timestamp and the user's message. Where should the `cache_control` breakpoint go?",
+    "choices": [
+      { "id": "a", "text": "On the timestamp-and-message block, so the whole prompt is cached", "reason": "That block changes every request, so the prefix never matches again; put the breakpoint at the end of the static prefix, not on the varying block." },
+      { "id": "b", "text": "On the last block of the system prompt", "reason": "Correct: mark the last block whose prefix is identical across requests; the tools and system prompt before it are cached too." },
+      { "id": "c", "text": "Move the timestamp to the very start of the prompt, then cache the rest", "reason": "The cache is a prefix: a change early in the prompt invalidates everything after it, so nothing would ever hit." },
+      { "id": "d", "text": "On the first tool definition only", "reason": "That works but caches only part of the stable content; the long system prompt would still be processed at full price." }
+    ],
+    "answer": "b",
+    "takeaway": "Put static content **first** and the breakpoint on the **last identical block**; varying content goes after it.",
+    "mnemonic": "Static first, breakpoint at the seam, changes after.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Cache prefixes build in this order; a change invalidates that level and everything after it.",
+      "steps": [
+        { "label": "tools", "sublabel": "static" },
+        { "label": "system", "sublabel": "static · breakpoint here" },
+        { "label": "messages", "sublabel": "timestamp + user message" }
+      ]
+    },
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-cache-control", "c-prompt-caching"],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cache-lifetime",
+    "domainId": "model-selection",
+    "subSkillId": "prompt-caching",
+    "topic": "Cache lifetime",
+    "stem": "An internal tool caches a large system prompt, but users often pause 20–40 minutes between requests, so almost every request pays for a new cache write. What helps?",
+    "choices": [
+      { "id": "a", "text": "Nothing needed: cached prefixes last 24 hours", "reason": "The default cache lifetime is **5 minutes**, which is why these requests keep missing." },
+      { "id": "b", "text": "Add more cache breakpoints", "reason": "Up to 4 breakpoints let you cache sections separately; they don't make any entry live longer." },
+      { "id": "c", "text": "Use the 1-hour cache duration with `\"ttl\": \"1h\"` on `cache_control`", "reason": "Correct: the 1-hour option exists for gaps longer than 5 minutes; its writes cost 2× base input instead of 1.25×." },
+      { "id": "d", "text": "Trim the system prompt below the minimum cacheable length", "reason": "A prompt shorter than the model's minimum cacheable length can't be cached at all, so you'd lose caching entirely." }
+    ],
+    "answer": "c",
+    "takeaway": "The cache lives **5 minutes** by default and is refreshed free on each hit; use `ttl: \"1h\"` when gaps are longer.",
+    "mnemonic": "Five minutes free; an hour if you pay for it.",
+    "difficulty": "medium",
+    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
+    "relatedCardIds": ["c-cache-control", "c-prompt-caching"],
+    "lessonId": "l-prompt-caching"
+  }
+]
