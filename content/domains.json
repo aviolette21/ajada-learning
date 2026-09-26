@@ -1,0 +1,67 @@
+[
+  {
+    "id": "apps-integration", "name": "Applications and Integration", "shortName": "Apps & Integration", "weight": 33.1, "order": 0,
+    "subSkills": [
+      { "id": "app-design", "name": "Claude Application Design", "weight": 8.6, "official": true },
+      { "id": "swe-foundations", "name": "Software Engineering Foundations", "weight": 7.4, "official": true },
+      { "id": "api-mechanics", "name": "Claude API Mechanics", "weight": 6.8, "official": true },
+      { "id": "streaming-structured", "name": "Streaming & Structured Outputs", "official": false },
+      { "id": "errors-limits", "name": "Errors, Rate Limits & Retries", "official": false }
+    ]
+  },
+  {
+    "id": "model-selection", "name": "Model Selection and Optimisation", "shortName": "Model Selection", "weight": 16.8, "order": 1,
+    "subSkills": [
+      { "id": "model-choice", "name": "Choosing a Model", "official": false },
+      { "id": "cost-latency", "name": "Cost & Latency Optimisation", "official": false },
+      { "id": "prompt-caching", "name": "Prompt Caching", "official": false },
+      { "id": "batch-processing", "name": "Batch Processing", "official": false }
+    ]
+  },
+  {
+    "id": "agents-workflows", "name": "Agents and Workflows", "shortName": "Agents & Workflows", "weight": 14.7, "order": 2,
+    "subSkills": [
+      { "id": "workflow-patterns", "name": "Workflow Patterns", "official": false },
+      { "id": "agent-loops", "name": "Agent Loops", "official": false },
+      { "id": "multi-agent", "name": "Multi-Agent Orchestration", "official": false },
+      { "id": "agent-sdk", "name": "Claude Agent SDK", "official": false }
+    ]
+  },
+  {
+    "id": "prompt-context", "name": "Prompt and Context Engineering", "shortName": "Prompt & Context", "weight": 11.0, "order": 3,
+    "subSkills": [
+      { "id": "prompt-techniques", "name": "Prompting Techniques", "official": false },
+      { "id": "context-management", "name": "Context Window Management", "official": false },
+      { "id": "system-prompts", "name": "System Prompts & Roles", "official": false }
+    ]
+  },
+  {
+    "id": "tools-mcp", "name": "Tools and MCPs", "shortName": "Tools & MCPs", "weight": 10.6, "order": 4,
+    "subSkills": [
+      { "id": "tool-use", "name": "Tool Use", "official": false },
+      { "id": "mcp-servers", "name": "Building MCP Servers", "official": false },
+      { "id": "mcp-clients", "name": "MCP Clients & Transports", "official": false }
+    ]
+  },
+  {
+    "id": "security-safety", "name": "Security and Safety", "shortName": "Security & Safety", "weight": 8.1, "order": 5,
+    "subSkills": [
+      { "id": "prompt-injection", "name": "Prompt Injection Defense", "official": false },
+      { "id": "data-handling", "name": "Data Handling & Secrets", "official": false },
+      { "id": "guardrails", "name": "Guardrails & Safe Output", "official": false }
+    ]
+  },
+  {
+    "id": "claude-code", "name": "Claude Code", "shortName": "Claude Code", "weight": 3.1, "order": 6,
+    "subSkills": [
+      { "id": "cc-usage", "name": "Using Claude Code", "official": false },
+      { "id": "cc-config", "name": "Configuring Claude Code", "official": false }
+    ]
+  },
+  {
+    "id": "eval-testing", "name": "Eval, Testing, and Debugging", "shortName": "Eval & Debugging", "weight": 2.6, "order": 7,
+    "subSkills": [
+      { "id": "evals-debugging", "name": "Evals, Testing & Debugging", "official": false }
+    ]
+  }
+]
