@@ -1,8 +1,54 @@
-export function App() {
+import { AnimatePresence, MotionConfig } from 'motion/react';
+import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
+import type { Content } from '../content/schema';
+import { CardsPage } from '../features/cards/CardsPage';
+import { LearnPage } from '../features/learn/LearnPage';
+import { PracticePage } from '../features/practice/PracticePage';
+import { SettingsPage } from '../features/settings/SettingsPage';
+import { TodayPage } from '../features/today/TodayPage';
+import type { AppDb } from '../storage/db';
+import { TabBar } from '../ui/TabBar';
+import { ClockProvider } from './clock';
+import { ContentProvider } from './ContentContext';
+import { ProgressProvider } from './ProgressProvider';
+
+const systemNow = () => new Date();
+
+/** Full-screen flows hide the tab bar. */
+const FULLSCREEN = /^\/(session|practice\/(quiz|weak)|practice\/mock\/[^/]+$|cards\/review|learn\/lesson\/[^/]+\/check)/;
+
+export function Shell() {
+  const location = useLocation();
   return (
-    <main className="boot">
-      <h1>Ajada Learning</h1>
-      <p>Your CCDV-F study app is being built.</p>
-    </main>
+    <div className="app">
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<TodayPage />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/practice" element={<PracticePage />} />
+          <Route path="/cards" element={<CardsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          {/* ROUTES: later tasks add <Route> elements here */}
+          <Route path="*" element={<TodayPage />} />
+        </Routes>
+      </AnimatePresence>
+      {!FULLSCREEN.test(location.pathname) && <TabBar />}
+    </div>
+  );
+}
+
+export function App({ db, content }: { db: AppDb; content: Content }) {
+  return (
+    <MotionConfig reducedMotion="user">
+      <ClockProvider now={systemNow}>
+        <ContentProvider content={content}>
+          <ProgressProvider db={db}>
+            <HashRouter>
+              <Shell />
+            </HashRouter>
+          </ProgressProvider>
+        </ContentProvider>
+      </ClockProvider>
+    </MotionConfig>
   );
 }
