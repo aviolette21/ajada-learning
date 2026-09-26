@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform } from 'motion/react';
+import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useRef } from 'react';
 import { renderInline } from '../../ui/inline';
 import { flipSpring } from '../../ui/motion';
@@ -26,15 +26,22 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
       className="fc"
       style={{ x, rotate }}
       drag={flipped ? 'x' : false}
-      dragSnapToOrigin
+      dragMomentum={false}
       dragElastic={0.85}
       onPointerDown={() => { dragged.current = false; }}
       onDragStart={() => { dragged.current = true; }}
       onDragEnd={(_, info) => {
-        if (Math.abs(info.offset.x) > SWIPE_THRESHOLD || Math.abs(info.velocity.x) > 800) onSwipe(info.offset.x > 0 ? 'good' : 'again');
+        const flicked = Math.abs(info.velocity.x) > 800;
+        if (flicked || Math.abs(info.offset.x) > SWIPE_THRESHOLD) {
+          // Leave x where it is so the tilt and stamp hold while the card flies off; a flick goes the way it was thrown.
+          onSwipe((flicked ? info.velocity.x : info.offset.x) > 0 ? 'good' : 'again');
+        } else {
+          animate(x, 0, { type: 'spring', stiffness: 500, damping: 22, velocity: info.velocity.x });
+        }
       }}
       onClick={() => { if (!dragged.current) onFlip(); }}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onFlip();

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
@@ -29,8 +29,15 @@ export function CardReviewSession({ mode, onDone, onExit, toolbar, doneLabel = '
       .map((q) => toDeckItem(q, cardById, seq.current++)),
   );
   const [reviewed, setReviewed] = useState(0);
+  /** Key of the card on top; ratings for any other card (e.g. a second tap on a leaving card's buttons) are ignored. */
+  const headKey = useRef<string | null>(items[0]?.key ?? null);
+  useEffect(() => {
+    headKey.current = items[0]?.key ?? null;
+  }, [items]);
 
   const onRate = (item: DeckItem, rating: UserRating) => {
+    if (item.key !== headKey.current) return;
+    headKey.current = null;
     const t = now();
     const next = rate(item.state ?? newState(item.cardId, item.direction, t), rating, t);
     void saveCardState(next);

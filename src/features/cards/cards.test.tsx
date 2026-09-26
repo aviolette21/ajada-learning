@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { renderWithApp } from '../../../tests/renderWithApp';
@@ -36,6 +36,29 @@ describe('CardReviewSession', () => {
     await flip();
     await userEvent.click(await screen.findByRole('button', { name: /^Easy/ }));
     await waitFor(() => expect(front()).toHaveTextContent('Alpha term'));
+  });
+
+  it('ignores a second tap on a rating button while the card is leaving', async () => {
+    const { db } = await renderWithApp(<CardReviewSession mode="forward" onDone={() => {}} onExit={() => {}} />);
+    await flip();
+    const easy = await screen.findByRole('button', { name: /^Easy/ });
+    fireEvent.click(easy);
+    fireEvent.click(easy);
+    await waitFor(() => expect(front()).toHaveTextContent('Beta term'));
+    await waitFor(async () => expect(await db.getCardStates()).toHaveLength(1));
+    const [alpha] = await db.getCardStates();
+    expect(alpha.cardId).toBe('c-alpha-one');
+    expect(alpha.fsrs.reps).toBe(1);
+  });
+
+  it('lets Enter on the source link through without flipping the card', async () => {
+    await renderWithApp(<CardReviewSession mode="forward" onDone={() => {}} onExit={() => {}} />);
+    await flip();
+    const link = document.querySelector('.deck-slot .fc[role="button"] .source') as HTMLElement;
+    fireEvent.keyDown(link, { key: 'Enter' });
+    expect(screen.getByRole('button', { name: /Card back/ })).toBeInTheDocument();
+    fireEvent.keyDown(screen.getByRole('button', { name: /Card back/ }), { key: 'Enter' });
+    expect(await screen.findByRole('button', { name: /Card front/ })).toBeInTheDocument();
   });
 
   it('shows the definition on the front in reverse mode', async () => {
