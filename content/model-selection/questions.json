@@ -6,7 +6,7 @@
     "topic": "Prompt caching",
     "stem": "Your app sends the same 20k-token system prompt on every request, followed by a short user message. What cuts cost **and** latency the most?",
     "choices": [
-      { "id": "a", "text": "Enable prompt caching on the system prompt", "reason": "The repeated prefix is read from cache: cache reads are billed at 0.1× the base input price and processing time drops." },
+      { "id": "a", "text": "Enable prompt caching on the system prompt", "reason": "The repeated prefix is read from cache: cache reads cost a small fraction of the base input price (0.1× on most models, lower on some newer ones) and processing time drops." },
       { "id": "b", "text": "Stream the response", "reason": "Streaming changes how output **arrives**; it doesn't discount the 20k input tokens processed on every request." },
       { "id": "c", "text": "Raise `max_tokens`", "reason": "`max_tokens` caps output length only; it has no effect on input cost or speed." },
       { "id": "d", "text": "Send requests through the Message Batches API", "reason": "Batches are cheaper but asynchronous (most finish within an hour), so latency goes **up**, not down." }
@@ -37,7 +37,7 @@
       { "id": "a", "text": "On the timestamp-and-message block, so the whole prompt is cached", "reason": "That block changes every request, so the prefix never matches again; put the breakpoint at the end of the static prefix, not on the varying block." },
       { "id": "b", "text": "On the last block of the system prompt", "reason": "Correct: mark the last block whose prefix is identical across requests; the tools and system prompt before it are cached too." },
       { "id": "c", "text": "Move the timestamp to the very start of the prompt, then cache the rest", "reason": "The cache is a prefix: a change early in the prompt invalidates everything after it, so nothing would ever hit." },
-      { "id": "d", "text": "On the first tool definition only", "reason": "That works but caches only part of the stable content; the long system prompt would still be processed at full price." }
+      { "id": "d", "text": "On the first tool definition only", "reason": "At best this caches only the first tool (and it may fall below the minimum cacheable length); the long system prompt would still be processed at full price." }
     ],
     "answer": "b",
     "takeaway": "Put static content **first** and the breakpoint on the **last identical block**; varying content goes after it.",
@@ -70,7 +70,7 @@
     ],
     "answer": "c",
     "takeaway": "The cache lives **5 minutes** by default and is refreshed free on each hit; use `ttl: \"1h\"` when gaps are longer.",
-    "mnemonic": "Five minutes free; an hour if you pay for it.",
+    "mnemonic": "Five minutes by default; an hour if you set `ttl`.",
     "difficulty": "medium",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
     "relatedCardIds": ["c-cache-control", "c-prompt-caching"],

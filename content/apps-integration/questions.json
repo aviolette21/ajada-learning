@@ -36,7 +36,7 @@
     "topic": "System prompt",
     "stem": "A team is porting a chatbot to the Claude Messages API and wants to give Claude a persona and standing instructions. How should they send them?",
     "choices": [
-      { "id": "a", "text": "Add a message with `role: \"system\"` at the start of the `messages` array", "reason": "The Messages API has no `\"system\"` role for input messages; this is the most common porting mistake." },
+      { "id": "a", "text": "Add a message with `role: \"system\"` at the start of the `messages` array", "reason": "The Messages API has no `\"system\"` role for input messages." },
       { "id": "b", "text": "Put them in the top-level `system` parameter", "reason": "Correct: the top-level `system` parameter is how you provide context and instructions such as a goal or role." },
       { "id": "c", "text": "Put them in an `assistant` message so Claude thinks it already agreed", "reason": "`assistant` turns represent Claude's prior replies, not the place for standing instructions." },
       { "id": "d", "text": "List them in `stop_sequences`", "reason": "`stop_sequences` are strings that make generation stop; they carry no instructions." }

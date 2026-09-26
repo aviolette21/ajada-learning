@@ -16,7 +16,7 @@
     "subSkillId": "api-mechanics",
     "term": "system (parameter)",
     "definition": "The top-level Messages API parameter for context and instructions, such as a goal or role. There is no `\"system\"` role for input messages.",
-    "whyItMatters": "Exam distractors put instructions in a `role: \"system\"` message; on the Messages API they belong in the top-level `system` field.",
+    "whyItMatters": "A common pitfall is putting instructions in a `role: \"system\"` message; on the Messages API they belong in the top-level `system` field.",
     "example": "`\"system\": \"You are a helpful coding assistant specializing in Python.\"`",
     "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
     "isVocab": true

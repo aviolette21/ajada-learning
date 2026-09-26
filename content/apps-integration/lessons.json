@@ -4,7 +4,7 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "title": "Messages API basics",
-    "summary": "Every Messages API call combines a top-level `system` prompt, a list of `user`/`assistant` turns and an output cap, `max_tokens`. Each response tells you why Claude stopped through `stop_reason`, and your code has to branch on it.",
+    "summary": "Every Messages API call passes a list of `user`/`assistant` turns and an output cap, `max_tokens`, and can include a top-level `system` prompt. Each response tells you why Claude stopped through `stop_reason`, and your code has to branch on it.",
     "keyPoints": [
       "Put instructions and roles in the top-level **`system`** parameter; there is no `\"system\"` role inside `messages`.",
       "`max_tokens` is an absolute ceiling on **output** tokens; the model may stop before it.",

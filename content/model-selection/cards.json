@@ -5,7 +5,7 @@
     "subSkillId": "prompt-caching",
     "term": "Prompt caching",
     "definition": "An API feature that lets a request resume from a previously processed prompt prefix, reducing processing time and cost for prompts with repeated content.",
-    "whyItMatters": "Cache reads cost **0.1×** the base input price; 5-minute cache writes cost 1.25× and 1-hour writes 2×. Caching pays off when the same large prefix repeats.",
+    "whyItMatters": "Cache reads cost a small fraction of the base input price (**0.1×** on most models, lower on some newer ones); 5-minute cache writes cost 1.25× and 1-hour writes 2×. Caching pays off when the same large prefix repeats.",
     "example": "Cache a long system prompt and tool definitions shared by every request.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
     "isVocab": true

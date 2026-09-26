@@ -23,16 +23,16 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-loops",
     "topic": "Stopping conditions",
-    "stem": "Your coding agent usually finishes its task, but occasionally keeps calling tools without converging. Which safeguard does Anthropic's guidance recommend adding?",
+    "stem": "Your coding agent usually finishes its task, but occasionally keeps calling tools without converging. Which safeguard, commonly included in agent designs according to Anthropic's guidance, helps you keep control?",
     "choices": [
       { "id": "a", "text": "Hide tool results from the agent so it can't get stuck on them", "reason": "Agents need ground truth from the environment, such as tool results, at each step to assess progress." },
-      { "id": "b", "text": "Trust the model to stop; agent tasks always terminate on completion", "reason": "Tasks often end on completion, but the guidance adds stopping conditions precisely because that isn't guaranteed." },
+      { "id": "b", "text": "Trust the model to stop; agent tasks always terminate on completion", "reason": "Tasks often end on completion, but the guidance notes it's also common to include stopping conditions to maintain control." },
       { "id": "c", "text": "Raise `max_tokens` so each turn can finish its thought", "reason": "`max_tokens` caps a single response's length; it doesn't bound how many loop iterations run." },
       { "id": "d", "text": "A stopping condition such as a maximum number of iterations", "reason": "Correct: it's common to include stopping conditions, such as a maximum number of iterations, to maintain control." }
     ],
     "answer": "d",
-    "takeaway": "Give every agent loop a **stopping condition** (e.g. an iteration cap), and feed it real tool results each step.",
-    "mnemonic": "Every loop needs an exit.",
+    "takeaway": "Add a **stopping condition** (e.g. a maximum number of iterations) to keep control of an agent loop, and feed it real tool results each step.",
+    "mnemonic": "Cap the loop to keep control.",
     "difficulty": "medium",
     "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
     "relatedCardIds": ["c-stopping-condition"]
