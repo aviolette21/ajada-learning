@@ -11,7 +11,7 @@ describe('PracticePage', () => {
     await renderWithApp(<PracticePage />, { route: '/practice', path: '/practice' });
     await userEvent.click(await screen.findByRole('button', { name: 'Beta' }));
     await userEvent.click(screen.getByRole('button', { name: /Quick quiz/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/practice/quiz?d=alpha');
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/quiz\?d=alpha$/);
   });
   it('links to weak spots, mock exam and history', async () => {
     await renderWithApp(<PracticePage />, { route: '/practice', path: '/practice' });
@@ -29,7 +29,7 @@ describe('QuizPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Done' }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/practice');
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice$/);
   });
 });
 
