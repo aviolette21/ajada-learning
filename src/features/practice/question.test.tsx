@@ -29,6 +29,7 @@ describe('QuestionView', () => {
     expect(choice(/Wrong one q-alpha-1/)).toHaveTextContent('your answer');
     expect(choice(/Wrong two q-alpha-1/)).toHaveClass('choice-muted');
     expect(choice(/Right answer q-alpha-1/)).toBeDisabled();
+    expect(choice(/Right answer q-alpha-1/)).toHaveTextContent(/^A/);
   });
 
   it('in exam mode highlights the selection and hides reasons', async () => {

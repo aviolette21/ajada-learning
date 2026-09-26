@@ -36,7 +36,8 @@ export function QuestionView({ question, chosen, onChoose, mode, showReportFlag 
               <button type="button" className={`choice choice-${state}`} disabled={locked} aria-pressed={isChosen}
                 onClick={() => onChoose?.(c.id)}>
                 <span className="choice-letter" aria-hidden="true">
-                  {state === 'correct' ? <IconCheck /> : state === 'wrong' ? <IconX /> : c.id.toUpperCase()}
+                  {c.id.toUpperCase()}
+                  {state === 'correct' ? <IconCheck /> : state === 'wrong' ? <IconX /> : null}
                 </span>
                 <span className="choice-body">
                   <span className="sr-only">{state === 'correct' ? 'Correct answer: ' : state === 'wrong' ? 'Incorrect: ' : ''}</span>

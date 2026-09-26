@@ -58,7 +58,7 @@
 .chev { display: inline-grid; color: var(--faint); }
 .disclosure-body { overflow: hidden; font-size: 14px; color: var(--text-2); }
 .disclosure-body p { margin: 0 0 10px; }
-.source { display: block; margin: 10px 0 12px; font-size: 12px; color: var(--accent-text); text-decoration: none; }
+.source { display: flex; align-items: center; min-height: 44px; margin: 4px 0 8px; font-size: 12px; color: var(--accent-text); text-decoration: none; }
 .seg { display: flex; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
 .seg-opt {
   position: relative; flex: 1; min-height: 44px; padding: 10px 4px; border: 0; border-radius: 9px;
