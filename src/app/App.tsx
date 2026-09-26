@@ -4,6 +4,8 @@ import type { Content } from '../content/schema';
 import { CardsPage } from '../features/cards/CardsPage';
 import { LearnPage } from '../features/learn/LearnPage';
 import { PracticePage } from '../features/practice/PracticePage';
+import { QuizPage } from '../features/practice/QuizPage';
+import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { TodayPage } from '../features/today/TodayPage';
 import type { AppDb } from '../storage/db';
@@ -28,6 +30,8 @@ export function Shell() {
           <Route path="/practice" element={<PracticePage />} />
           <Route path="/cards" element={<CardsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/practice/quiz" element={<QuizPage />} />
+          <Route path="/practice/weak" element={<WeakSpotsPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>
