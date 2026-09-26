@@ -1,11 +1,11 @@
-# CCDV-F Study App — Design Spec
+# Ajada Learning — Design Spec
 
 **Date:** 2026-09-26
 **Status:** Approved in brainstorming, pending written-spec review
 
 ## 1. Purpose
 
-A personal iPhone study app for the **Claude Certified Developer – Foundations (CCDV-F)** exam. It delivers study-guide lessons, flashcards with spaced repetition, a vocabulary glossary, practice questions with rich explanations, and a timed mock exam. The core goal is *learning*, not just scoring: every answer explains why the right choice is right and why each wrong choice is wrong, in a clean mobile UI.
+**Ajada Learning** is a personal iPhone study app for the **Claude Certified Developer – Foundations (CCDV-F)** exam. It delivers study-guide lessons, flashcards with spaced repetition, a vocabulary glossary, practice questions with rich explanations, and a timed mock exam. The core goal is *learning*, not just scoring: every answer explains why the right choice is right and why each wrong choice is wrong, in a clean mobile UI.
 
 ### Exam facts the app is built around (from public web sources, Sept 2026)
 
@@ -31,6 +31,9 @@ Sources: claudecertificationguide.com (blueprint), k21academy.com, devcompass.ai
 
 | Topic | Decision |
 |---|---|
+| App name | **Ajada Learning** (home-screen label "Ajada"; PWA `short_name`) |
+| Repo | `ajada-learning` on GitHub (account `aviolette21`), public |
+| URL | `https://aviolette21.github.io/ajada-learning/` (Vite `base: '/ajada-learning/'`) |
 | Platform | iPhone |
 | Delivery | Installable offline PWA (Add to Home Screen) |
 | Hosting | GitHub Pages, public repo, deployed by GitHub Actions |
