@@ -2,6 +2,7 @@ import { AnimatePresence, MotionConfig } from 'motion/react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import type { Content } from '../content/schema';
 import { CardsPage } from '../features/cards/CardsPage';
+import { ReviewPage } from '../features/cards/ReviewPage';
 import { LearnPage } from '../features/learn/LearnPage';
 import { PracticePage } from '../features/practice/PracticePage';
 import { QuizPage } from '../features/practice/QuizPage';
@@ -32,6 +33,7 @@ export function Shell() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/practice/quiz" element={<QuizPage />} />
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
+          <Route path="/cards/review" element={<ReviewPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>
