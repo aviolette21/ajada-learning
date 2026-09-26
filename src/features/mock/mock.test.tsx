@@ -34,6 +34,16 @@ describe('MockIntroPage', () => {
     const [saved] = await db.getMockSessions();
     expect(saved.questionIds).toHaveLength(4);
   });
+  it('submits an exam that timed out while away and links to its results', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'a' } }));
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    const link = await screen.findByRole('link', { name: /timed out and was submitted/ });
+    expect(link).toHaveAttribute('href', '/practice/mock/m1/results');
+    expect((await db.getMockSessions())[0].submittedAt).toBeDefined();
+    expect(await db.getAttempts()).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: 'Resume exam in progress' })).toBeNull();
+  });
   it('offers to resume an unfinished exam', async () => {
     const db = await openTestDb();
     await db.putMockSession(session());

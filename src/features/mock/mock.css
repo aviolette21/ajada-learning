@@ -6,9 +6,9 @@
 .mock-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .mock-nav { display: flex; gap: 8px; margin-top: 16px; }
 .mock-nav .btn { flex: 1; margin-top: 0; }
-.navgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 8px 0 14px; }
+.navgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; margin: 8px 0 14px; }
 .navcell {
-  position: relative; aspect-ratio: 1; min-height: 40px; border: 1px solid var(--border); border-radius: 9px;
+  position: relative; aspect-ratio: 1; min-height: 44px; border: 1px solid var(--border); border-radius: 9px;
   background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 750; cursor: pointer;
 }
 .navcell.answered { border-color: #3a3366; background: var(--accent-soft); color: var(--accent-text); }

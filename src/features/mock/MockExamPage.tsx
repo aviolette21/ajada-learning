@@ -35,7 +35,7 @@ export function MockExamPage() {
   const remaining = session ? remainingMs(session, time.getTime()) : 0;
 
   const update = (patch: Partial<MockSession>) => {
-    if (!session) return;
+    if (!session || submitting.current) return;
     const next = { ...session, ...patch };
     setSession(next);
     void saveMockSession(next);
