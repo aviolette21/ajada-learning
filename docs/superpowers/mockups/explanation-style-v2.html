@@ -1,0 +1,75 @@
+<style>
+  .wrap{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .phone{width:320px;border:2px solid #333;border-radius:32px;background:#0e0f13;color:#e8e8ee;font:14px/1.45 -apple-system,system-ui,sans-serif;overflow:hidden;position:relative}
+  .scr{padding:16px 14px 0}
+  .top{display:flex;justify-content:space-between;font-size:11px;color:#8a8a99;margin-bottom:8px}
+  .bar{height:4px;background:#23242c;border-radius:3px;margin-bottom:12px}
+  .bar i{display:block;height:100%;width:38%;background:#8b7cf6;border-radius:3px}
+  .tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:10px;background:#1d1b2e;color:#b3a8ff}
+  .q{font-weight:600;margin:8px 0 10px;font-size:14.5px}
+  .ch{border:1.5px solid #2a2b35;border-radius:12px;padding:9px 11px;margin:7px 0;font-size:13px;background:#16171d}
+  .ch .why{font-size:12px;color:#a9a9b8;margin-top:4px}
+  .ok{border-color:#2fbf71;background:#10261b}
+  .bad{border-color:#e05656;background:#2a1414}
+  .mute{opacity:.8}
+  .sheet{background:#1a1b22;border-top:1px solid #2a2b35;border-radius:20px 20px 0 0;margin-top:10px;padding:14px}
+  .verdict{display:flex;align-items:center;gap:8px;font-weight:700;color:#ff8a8a;font-size:15px}
+  .tldr{background:#211d3a;border-left:3px solid #8b7cf6;border-radius:10px;padding:10px;margin:10px 0;font-size:13px}
+  .diag{display:flex;gap:4px;margin:8px 0 4px;font-size:10.5px}
+  .blk{padding:8px 6px;border-radius:8px;text-align:center}
+  .row{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #262731;font-size:13px;font-weight:600}
+  .row span{color:#6f6f80}
+  .btn{margin:12px 0 4px;background:#8b7cf6;color:#0e0f13;text-align:center;font-weight:700;border-radius:12px;padding:11px}
+  .src{font-size:11px;color:#9d92ff}
+  .notes{max-width:360px;font-size:13.5px}
+  .notes li{margin:6px 0}
+</style>
+
+<h2>Recommended: "Verdict sheet" (blend, dark mode)</h2>
+<p class="subtitle">Based on patterns from Duolingo, UWorld and Brilliant. Scroll the phone content top to bottom. It shows the state after you picked <b>B (wrong)</b>.</p>
+
+<div class="wrap">
+  <div class="phone">
+    <div class="scr">
+      <div class="top"><span>Practice · 8 / 20</span><span>✕</span></div>
+      <div class="bar"><i></i></div>
+      <span class="tag">Model Selection &amp; Optimisation</span>
+      <div class="q">Your app sends the same 20k-token system prompt on every request. What cuts cost and latency the most?</div>
+
+      <div class="ch ok">✅ A. Prompt caching on the system prompt
+        <div class="why">The repeated prefix is read from cache, so input is cheaper and the first token arrives faster.</div></div>
+      <div class="ch bad">❌ B. Stream the response · <i>your answer</i>
+        <div class="why">Streaming only changes how output <i>arrives</i>. You still pay full price for all 20k input tokens.</div></div>
+      <div class="ch mute">C. Raise max_tokens
+        <div class="why">This only caps output length. It has no effect on input cost.</div></div>
+      <div class="ch mute">D. Message Batches API
+        <div class="why">Cheaper, but results come back asynchronously, so latency goes <b>up</b>.</div></div>
+    </div>
+
+    <div class="sheet">
+      <div class="verdict">✕ Not quite. The answer is A.</div>
+      <div class="tldr"><b>💡 In one line:</b> A big prefix that repeats should be <b>cached</b>. Streaming doesn't make input cheaper.</div>
+      <div class="diag">
+        <div class="blk" style="background:#123524;flex:3;color:#9ff0c4">System prompt · 20k<br><b>cached ⚡</b></div>
+        <div class="blk" style="background:#262731;flex:1">New msg<br>full price</div>
+      </div>
+      <div class="row">🧠 Remember it <span>▸</span></div>
+      <div class="row">🃏 2 related flashcards <span>▸</span></div>
+      <div class="row">📖 Read the lesson <span>▸</span></div>
+      <div class="src">📎 Source: Anthropic docs · Prompt caching</div>
+      <div class="btn">Continue</div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h3>Why this design</h3>
+    <ul>
+      <li><b>Instant verdict at the bottom (Duolingo).</b> You see right or wrong immediately, in the thumb zone, with a big Continue button.</li>
+      <li><b>A reason on every choice, visible without tapping (UWorld).</b> UWorld's per-choice explanations are what its users praise most. Duolingo gets criticized for showing the answer without explaining it. The reason your answer was wrong is the most valuable part, so it's never hidden.</li>
+      <li><b>One-line takeaway first, then more depth if you want it (Brilliant).</b> You can move fast when you get it, or dig in when you don't.</li>
+      <li><b>Diagram only when it helps.</b> It's optional per question, not forced on every one.</li>
+      <li><b>Links to the flashcards and lesson</b>, so a miss leads straight into studying that topic.</li>
+      <li><b>Dark mode only.</b> Near-black background, soft violet accent, and green and red kept muted so they don't glare.</li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,108 @@
+<style>
+  .fcwrap{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .phone{width:330px;height:640px;border:2px solid #333;border-radius:34px;background:#0e0f13;color:#e8e8ee;font:14px/1.45 -apple-system,system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}
+  .hdr{padding:16px 16px 6px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#8a8a99}
+  .prog{margin:0 16px;height:4px;background:#23242c;border-radius:3px;overflow:hidden}
+  .prog i{display:block;height:100%;width:0;background:#8b7cf6;border-radius:3px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+  .stage{position:relative;flex:1;margin:18px 18px 8px;perspective:1200px}
+  .card{position:absolute;inset:0;touch-action:none;cursor:grab;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
+  .card.behind{transform:translateY(14px) scale(.94);opacity:.55;pointer-events:none}
+  .card.behind2{transform:translateY(26px) scale(.88);opacity:.25;pointer-events:none}
+  .flip{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.3,1.35,.5,1)}
+  .card.flipped .flip{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;padding:20px;display:flex;flex-direction:column;box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
+  .front{background:linear-gradient(165deg,#241f42 0%,#17161f 70%);border:1px solid #332d5c}
+  .back{background:linear-gradient(165deg,#1a1b24 0%,#121318 80%);border:1px solid #2a2b35;transform:rotateY(180deg)}
+  .tag{align-self:flex-start;font-size:10.5px;padding:3px 9px;border-radius:10px;background:rgba(139,124,246,.15);color:#b3a8ff}
+  .term{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;font-size:21px;font-weight:700;letter-spacing:-.2px}
+  .hint{text-align:center;font-size:11px;color:#6f6f80;animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+  .def{font-size:15px;font-weight:600;margin:10px 0}
+  .sec{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#8a8a99;margin-top:12px}
+  .txt{font-size:13px;color:#c9c9d6;margin-top:3px}
+  code{background:#23242c;padding:1px 5px;border-radius:5px;font-size:12px;color:#d4ccff}
+  .src{margin-top:auto;font-size:11px;color:#9d92ff}
+  .stamp{position:absolute;top:22px;padding:4px 10px;border-radius:8px;font-weight:800;font-size:13px;opacity:0;border:2px solid;z-index:3;transition:opacity .1s}
+  .stamp.l{left:18px;color:#ff8a8a;border-color:#ff8a8a;transform:rotate(-12deg)}
+  .stamp.r{right:18px;color:#7fe0a8;border-color:#7fe0a8;transform:rotate(12deg)}
+  .rate{display:flex;gap:7px;padding:8px 16px 20px;transform:translateY(20px);opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.2,.8,.2,1)}
+  .rate.show{transform:none;opacity:1;pointer-events:auto}
+  .rate button{flex:1;border:0;border-radius:14px;padding:10px 0 8px;font:700 12px -apple-system,system-ui,sans-serif;cursor:pointer;transition:transform .12s}
+  .rate button:active{transform:scale(.93)}
+  .rate small{display:block;font-weight:500;font-size:10px;opacity:.75;margin-top:2px}
+  .again{background:#2a1414;color:#ff8a8a}.hard{background:#2a2414;color:#f0c46a}.good{background:#10261b;color:#7fe0a8}.easy{background:#1d1b2e;color:#b3a8ff}
+  .done{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:pop .5s cubic-bezier(.3,1.4,.5,1)}
+  @keyframes pop{from{transform:scale(.8);opacity:0}}
+  .notes{max-width:340px;font-size:13.5px}.notes li{margin:6px 0}
+  @media (prefers-reduced-motion:reduce){.flip,.card{transition-duration:.01s}}
+</style>
+
+<h2>Flashcards: interactive prototype</h2>
+<p class="subtitle"><b>Try it:</b> tap the card to flip it, then rate it with a button, or <b>drag right</b> for Good and <b>drag left</b> for Again.</p>
+
+<div class="fcwrap">
+  <div class="phone">
+    <div class="hdr"><span>✕</span><span id="count">1 / 4</span><span>⋯</span></div>
+    <div class="prog"><i id="bar"></i></div>
+    <div class="stage" id="stage">
+      <div class="done" id="done"><div style="font-size:44px">🎉</div><div style="font-size:18px;font-weight:700;margin-top:8px">Session complete</div><div style="color:#8a8a99;font-size:13px;margin-top:4px">4 reviewed · next due tomorrow</div></div>
+    </div>
+    <div class="rate" id="rate">
+      <button class="again" data-r="again">Again<small>&lt;1m</small></button>
+      <button class="hard" data-r="hard">Hard<small>6m</small></button>
+      <button class="good" data-r="good">Good<small>1d</small></button>
+      <button class="easy" data-r="easy">Easy<small>4d</small></button>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h3>What makes it feel professional</h3>
+    <ul>
+      <li><b>A real 3D flip</b> with a slight springy overshoot, so it feels physical rather than a flat swap.</li>
+      <li><b>A visible stack:</b> the next cards peek out behind the current one, so you can tell there are more to go.</li>
+      <li><b>Swipe with feedback:</b> the card tilts as you drag and shows an AGAIN or GOOD stamp before you let go.</li>
+      <li><b>Rating buttons appear only after you flip</b>, so you can't rate a card before seeing the answer. Each button shows when you'll see the card next.</li>
+      <li><b>A structured back:</b> definition, why it matters on the exam, an example and a source.</li>
+      <li><b>Respects Reduce Motion</b>: if you turn that on in iOS settings, the animations are toned down.</li>
+    </ul>
+    <h3>Libraries for the real app</h3>
+    <ul>
+      <li><b>Motion</b> (formerly Framer Motion) for the flip, drag gestures and spring physics. The same library also handles page transitions and the answer panel on the question screen.</li>
+      <li><b>ts-fsrs</b> for scheduling. It uses FSRS, the same algorithm modern Anki uses, and it's more accurate than the older SM-2 algorithm.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  const cards=[
+    {tag:"Model Selection & Optimisation",term:"Prompt caching",def:"Reusing a processed prompt prefix across requests so repeated input is cheaper and faster.",why:"Common distractor: streaming. Streaming changes how output arrives, not what the input costs.",ex:"Put <code>cache_control</code> on a large, stable system prompt."},
+    {tag:"Tools & MCPs",term:"MCP server",def:"A process that exposes tools, resources and prompts to an AI client through the Model Context Protocol.",why:"Know what goes in the server and what goes in the client or host.",ex:"A GitHub MCP server exposing <code>create_issue</code>."},
+    {tag:"Agents & Workflows",term:"Workflow vs. agent",def:"A workflow follows code-defined steps. An agent lets the model decide its own steps and tool calls.",why:"Scenario questions ask which one fits. Use the simplest thing that works.",ex:"Fixed pipeline: prompt chaining. Open-ended task: an agent loop."},
+    {tag:"Applications & Integration",term:"stop_reason: \"tool_use\"",def:"The model has paused to ask your code to run a tool and send back the result.",why:"You must send a tool_result block back to continue the turn.",ex:"Run the tool, then reply with <code>tool_result</code> + the matching <code>tool_use_id</code>."}
+  ];
+  const stage=document.getElementById('stage'),rate=document.getElementById('rate'),bar=document.getElementById('bar'),count=document.getElementById('count'),done=document.getElementById('done');
+  let i=0,els=[];
+  function make(c){const d=document.createElement('div');d.className='card';d.innerHTML=
+    '<div class="stamp l">AGAIN</div><div class="stamp r">GOOD</div><div class="flip">'+
+    '<div class="face front"><span class="tag">'+c.tag+'</span><div class="term">'+c.term+'</div><div class="hint">Tap to flip</div></div>'+
+    '<div class="face back"><span class="tag">'+c.tag+'</span><div class="def">'+c.def+'</div><div class="sec">Why it matters</div><div class="txt">'+c.why+'</div><div class="sec">Example</div><div class="txt">'+c.ex+'</div><div class="src">📎 Anthropic docs</div></div></div>';return d;}
+  cards.slice().reverse().forEach(c=>{const e=make(c);stage.appendChild(e);els.unshift(e);});
+  function layout(){els.forEach((e,k)=>{e.classList.remove('behind','behind2');if(k===i+1)e.classList.add('behind');if(k===i+2)e.classList.add('behind2');if(k>i+2)e.style.opacity=0;else if(k>=i)e.style.opacity='';});
+    count.textContent=Math.min(i+1,cards.length)+' / '+cards.length;bar.style.width=(i/cards.length*100)+'%';}
+  function cur(){return els[i];}
+  function fly(dir){const e=cur();if(!e)return;e.style.transition='transform .45s cubic-bezier(.4,0,.2,1),opacity .45s';
+    e.style.transform='translateX('+(dir*420)+'px) rotate('+(dir*24)+'deg)';e.style.opacity=0;rate.classList.remove('show');
+    i++;setTimeout(()=>{e.remove();layout();if(i>=cards.length){bar.style.width='100%';done.style.display='flex';}},250);}
+  rate.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;fly(b.dataset.r==='again'||b.dataset.r==='hard'?-1:1);});
+  let sx=0,dx=0,drag=false,moved=false;
+  stage.addEventListener('pointerdown',ev=>{const e=cur();if(!e||!ev.target.closest('.card'))return;drag=true;moved=false;sx=ev.clientX;dx=0;e.style.transition='none';e.setPointerCapture&&e.setPointerCapture(ev.pointerId);});
+  stage.addEventListener('pointermove',ev=>{if(!drag)return;const e=cur();dx=ev.clientX-sx;if(Math.abs(dx)>6)moved=true;
+    e.style.transform='translateX('+dx+'px) rotate('+(dx/18)+'deg)';
+    e.querySelector('.stamp.r').style.opacity=Math.max(0,Math.min(1,dx/90));e.querySelector('.stamp.l').style.opacity=Math.max(0,Math.min(1,-dx/90));});
+  stage.addEventListener('pointerup',()=>{if(!drag)return;drag=false;const e=cur();
+    if(!moved){e.style.transition='';e.style.transform='';e.classList.toggle('flipped');if(e.classList.contains('flipped'))rate.classList.add('show');return;}
+    if(Math.abs(dx)>100){fly(dx>0?1:-1);}else{e.style.transition='transform .5s cubic-bezier(.3,1.4,.5,1)';e.style.transform='';e.querySelectorAll('.stamp').forEach(s=>s.style.opacity=0);}});
+  layout();
+})();
+</script>

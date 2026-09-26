@@ -1,0 +1,75 @@
+<style>
+  .wrap{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+  .phone{width:260px;height:520px;border:2px solid #333;border-radius:30px;background:#0e0f13;color:#e8e8ee;font:13px/1.4 -apple-system,system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column}
+  .body{flex:1;padding:16px 12px;overflow:hidden}
+  .tabs{display:flex;justify-content:space-around;border-top:1px solid #23242c;padding:8px 0 12px;font-size:10px;color:#6f6f80;background:#121318}
+  .tabs .on{color:#9d92ff}
+  .t{text-align:center}.t b{display:block;font-size:17px}
+  h4{margin:0 0 8px;font-size:15px}
+  .card{background:#16171d;border:1px solid #23242c;border-radius:14px;padding:10px;margin:8px 0}
+  .big{font-size:26px;font-weight:800;color:#9d92ff}
+  .mut{color:#8a8a99;font-size:11px}
+  .dom{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:11px}
+  .dom .n{flex:1}
+  .meter{width:70px;height:6px;background:#23242c;border-radius:4px;overflow:hidden}
+  .meter i{display:block;height:100%}
+  .cta{background:#8b7cf6;color:#0e0f13;border-radius:12px;padding:10px;text-align:center;font-weight:700;margin-top:6px}
+  .fc{height:230px;border-radius:18px;background:linear-gradient(160deg,#211d3a,#16171d);border:1px solid #2f2a55;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font-size:16px;font-weight:600;margin:10px 0}
+  .rate{display:flex;gap:6px}.rate div{flex:1;text-align:center;border-radius:10px;padding:8px 0;font-size:11px;font-weight:700}
+  .cap{text-align:center;font-weight:700;margin-bottom:6px}
+</style>
+
+<h2>Screens &amp; navigation</h2>
+<p class="subtitle">Four tabs at the bottom. Low-fidelity layout only: focus on structure, not polish.</p>
+
+<div class="wrap">
+  <div>
+    <div class="cap">Home (Today)</div>
+    <div class="phone"><div class="body">
+      <h4>Today</h4>
+      <div class="card"><div class="mut">Exam readiness</div><div class="big">64%</div><div class="mut">Predicted score ≈ 690 / 1000 · pass is 720</div></div>
+      <div class="card"><b>Today's session</b><div class="mut">12 cards due · 10 questions in your weakest area</div><div class="cta">Start · ~15 min</div></div>
+      <div class="card"><div class="mut" style="margin-bottom:4px">By domain (weight)</div>
+        <div class="dom"><span class="n">Apps &amp; Integration 33%</span><span class="meter"><i style="width:55%;background:#e0a14a"></i></span></div>
+        <div class="dom"><span class="n">Model Selection 17%</span><span class="meter"><i style="width:72%;background:#2fbf71"></i></span></div>
+        <div class="dom"><span class="n">Agents &amp; Workflows 15%</span><span class="meter"><i style="width:40%;background:#e05656"></i></span></div>
+        <div class="dom"><span class="n">Prompt &amp; Context 11%</span><span class="meter"><i style="width:68%;background:#2fbf71"></i></span></div>
+        <div class="mut">+4 more…</div></div>
+    </div><div class="tabs"><div class="t on"><b>⌂</b>Today</div><div class="t"><b>📖</b>Learn</div><div class="t"><b>✎</b>Practice</div><div class="t"><b>🃏</b>Cards</div></div></div>
+  </div>
+
+  <div>
+    <div class="cap">Learn</div>
+    <div class="phone"><div class="body">
+      <h4>Learn</h4>
+      <div class="mut">8 domains → sub-skills → short lessons</div>
+      <div class="card"><b>Applications &amp; Integration</b><div class="mut">33% of exam · 3 of 5 lessons done</div></div>
+      <div class="card"><b>Model Selection &amp; Optimisation</b><div class="mut">17% · 2 of 4 done</div></div>
+      <div class="card"><b>Agents &amp; Workflows</b><div class="mut">15% · 0 of 4 done</div></div>
+      <div class="card"><b>Prompt &amp; Context Engineering</b><div class="mut">11% · 1 of 3 done</div></div>
+      <div class="mut">Each lesson: summary → key points → example / diagram → 3 check-yourself questions</div>
+    </div><div class="tabs"><div class="t"><b>⌂</b>Today</div><div class="t on"><b>📖</b>Learn</div><div class="t"><b>✎</b>Practice</div><div class="t"><b>🃏</b>Cards</div></div></div>
+  </div>
+
+  <div>
+    <div class="cap">Practice</div>
+    <div class="phone"><div class="body">
+      <h4>Practice</h4>
+      <div class="card"><b>Quick quiz</b><div class="mut">10 questions · pick domains · instant explanation after each</div></div>
+      <div class="card"><b>Weak spots</b><div class="mut">Questions you missed, plus your lowest-scoring domains</div></div>
+      <div class="card"><b>🕐 Mock exam</b><div class="mut">53 questions · 120 min · weighted like the real exam · review at the end</div></div>
+      <div class="card"><b>History</b><div class="mut">Past mock scores and trend</div></div>
+    </div><div class="tabs"><div class="t"><b>⌂</b>Today</div><div class="t"><b>📖</b>Learn</div><div class="t on"><b>✎</b>Practice</div><div class="t"><b>🃏</b>Cards</div></div></div>
+  </div>
+
+  <div>
+    <div class="cap">Cards</div>
+    <div class="phone"><div class="body">
+      <h4>Flashcards</h4>
+      <div class="mut">12 due · tap to flip</div>
+      <div class="fc">What does a <code>cache_control</code> breakpoint mark?</div>
+      <div class="rate"><div style="background:#2a1414;color:#ff8a8a">Again</div><div style="background:#2a2414;color:#f0c46a">Hard</div><div style="background:#10261b;color:#7fe0a8">Good</div><div style="background:#1d1b2e;color:#b3a8ff">Easy</div></div>
+      <div class="mut" style="margin-top:8px">Browse by domain · vocabulary glossary</div>
+    </div><div class="tabs"><div class="t"><b>⌂</b>Today</div><div class="t"><b>📖</b>Learn</div><div class="t"><b>✎</b>Practice</div><div class="t on"><b>🃏</b>Cards</div></div></div>
+  </div>
+</div>
