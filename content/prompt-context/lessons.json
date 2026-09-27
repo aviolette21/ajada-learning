@@ -1,0 +1,210 @@
+[
+  {
+    "id": "l-context-engineering",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "title": "Context engineering",
+    "summary": "Context engineering is curating the tokens an agent sees at each step, not just writing the prompt. Context is a finite resource with diminishing returns, so aim for the smallest set of high-signal tokens, and use compaction, tool result clearing and memory when a task outgrows the window.",
+    "keyPoints": [
+      "As tokens grow, recall degrades (**context rot**): every token draws on a limited **attention budget**.",
+      "Write system prompts at the **right altitude**: neither brittle if-else rules nor vague guidance. Minimal doesn't mean short.",
+      "Keep a **minimal viable tool set**: if an engineer can't say which tool applies, the agent can't either.",
+      "**Just in time**: keep references (paths, queries, links) and load data with tools; it's slower than pre-computed retrieval.",
+      "**Compaction** summarizes older turns on the server; **tool result clearing** drops the oldest tool results by rule."
+    ],
+    "sections": [
+      {
+        "heading": "Why context is a finite resource",
+        "body": "Context engineering is the natural progression of prompt engineering: curating and maintaining the optimal set of tokens during inference, including everything outside the prompt, such as tools, external data and message history. For agents running in a loop, that curation happens each time you decide what to pass to the model.\n\nAs the number of tokens in the context window increases, the model's ability to accurately recall information from it decreases (context rot). Anthropic describes an \"attention budget\" that every new token depletes by some amount. The result is a performance gradient rather than a hard cliff, so the guiding principle is to find the smallest possible set of high-signal tokens."
+      },
+      {
+        "heading": "Prompts, tools and examples",
+        "body": "- System prompts: clear, simple language at the right altitude, specific enough to guide behavior yet flexible enough to give strong heuristics. Start minimal on the best model, then add instructions and examples for the failure modes you find.\n- Tools: self-contained, robust to error, clear in purpose, with minimal overlap. Bloated tool sets are a common failure mode.\n- Examples: curate diverse, canonical examples rather than a laundry list of edge cases."
+      },
+      {
+        "heading": "Retrieving context just in time",
+        "body": "Rather than pre-processing all relevant data up front, a just-in-time agent keeps lightweight identifiers (file paths, stored queries, web links) and uses tools to load data at runtime. Claude Code works this way, writing targeted queries and using commands like head and tail instead of loading full data objects. This allows progressive disclosure: each step informs the next.\n\nThe trade-off is speed: runtime exploration is slower than retrieving pre-computed data. A hybrid can work well; Claude Code drops CLAUDE.md files into context up front, then uses glob and grep to find files just in time.\n\nThe memory tool supports the same pattern. It is client-side: Claude requests file operations under `/memories`, and your application executes them on storage you control, so memory persists only if your handler serves the same store."
+      },
+      {
+        "heading": "When a task outgrows the window",
+        "body": "Compaction replaces the older turns of a conversation with a summary Claude writes on the server, so you need no summarization code. With compaction on demand you decide when; with compaction at a token threshold, the API decides when input tokens reach your trigger.\n\nContext editing clears specific content by rule instead. Tool result clearing (`clear_tool_uses_20250919`) clears the oldest tool results once context passes a threshold (by default 100,000 input tokens), replaces them with placeholder text, and keeps the 3 most recent tool uses by default. Tools listed in `exclude_tools` are never cleared. Clearing is applied server-side, so your client keeps its full, unmodified history.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Compaction keeps a long conversation inside the window.",
+          "steps": [
+            {
+              "label": "History nears limit"
+            },
+            {
+              "label": "Server writes summary"
+            },
+            {
+              "label": "Summary replaces old turns"
+            },
+            {
+              "label": "Work continues"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-context-compaction",
+      "q-context-tool-result-clearing",
+      "q-context-just-in-time"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "title": "Effective context engineering for AI agents",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+        "title": "Compaction overview",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+        "title": "Context editing",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+        "title": "Memory tool",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-prompt-engineering",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "title": "Prompt engineering techniques",
+    "summary": "Claude responds well to clear, explicit instructions. Give it context for your rules, a role, well-structured examples and documents, and room to reason. On current models, don't prefill the last assistant turn: use structured outputs or instructions instead.",
+    "keyPoints": [
+      "**Golden rule**: if a colleague with minimal context would be confused by your prompt, Claude will be too.",
+      "Explain **why** a rule matters; Claude generalizes from the explanation. A **role** in the system prompt focuses tone.",
+      "Long documents go at the **top**; queries at the end improved quality by **up to 30%** in tests. Ask for quotes first.",
+      "Prefill on the last assistant turn returns a **400** starting with **Claude 4.6** models.",
+      "Thinking off? Use **manual CoT** with `<thinking>` and `<answer>` tags. Dial back aggressive \"MUST\" wording."
+    ],
+    "sections": [
+      {
+        "heading": "Be clear, direct and explain why",
+        "body": "Think of Claude as a brilliant but new employee who lacks context on your norms and workflows. Be specific about the output format and constraints, and use numbered or bulleted steps when order or completeness matters. If you want \"above and beyond\" behavior, ask for it explicitly.\n\nAdd the motivation behind instructions. \"NEVER use ellipses\" works less well than explaining that a text-to-speech engine will read the response and can't pronounce them. For formatting, tell Claude what to do instead of what not to do: ask for smoothly flowing prose paragraphs rather than banning markdown.\n\nSetting a role in the system prompt focuses Claude's behavior and tone. Even a single sentence makes a difference."
+      },
+      {
+        "heading": "Examples and long documents",
+        "body": "- Examples: make them relevant, diverse and wrapped in `<example>` tags; 3 to 5 work best.\n- XML tags: wrap each kind of content in its own consistent, descriptive tag.\n- Long inputs (20k+ tokens): put the documents near the top, above the query, instructions and examples.\n- Wrap each document in `<document>` tags with `<document_content>` and `<source>` subtags.\n- Ask Claude to quote the relevant parts first, then carry out the task."
+      },
+      {
+        "heading": "Reasoning and thinking",
+        "body": "Claude 4.6 and later models use adaptive thinking, where Claude decides when and how much to think; the effort parameter controls thinking depth. With thinking on, general instructions like \"think thoroughly\" often produce better reasoning than a hand-written step-by-step plan.\n\nWhen thinking is off, you can still ask Claude to think through the problem, using tags like `<thinking>` and `<answer>` to cleanly separate reasoning from the final output. Asking Claude to verify its answer against test criteria before finishing also catches errors, though Claude Opus 5 verifies well without it.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Manual chain-of-thought when thinking is off.",
+          "steps": [
+            {
+              "label": "Ask to reason step by step"
+            },
+            {
+              "label": "<thinking>",
+              "sublabel": "reasoning"
+            },
+            {
+              "label": "<answer>",
+              "sublabel": "what users see"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Migrating older prompts",
+        "body": "Starting with Claude 4.6 models, prefilled responses on the last assistant turn are no longer supported and return a 400 error. For output formats, use structured outputs; for classification, use a tool with an enum of valid labels or structured outputs; to skip preambles, instruct Claude to respond directly. Earlier models still accept prefills.\n\nNewer models such as Claude Opus 4.5 and 4.6 are more responsive to the system prompt, so language written to fix undertriggering, like \"CRITICAL: You MUST use this tool when...\", can now cause overtriggering. Use normal wording such as \"Use this tool when...\", and lower effort only as a fallback."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-prompt-explain-why",
+      "q-prompt-role",
+      "q-prompt-manual-cot"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-output-handling",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "title": "Handling model output",
+    "summary": "Structured outputs constrain Claude's responses and tool inputs to your JSON schema, but refusals, `max_tokens` cut-offs and enum casing can still surprise your parser. Check `stop_reason` before parsing, and ground factual answers so Claude can admit what it doesn't know.",
+    "keyPoints": [
+      "**JSON outputs** (`output_config.format`) shape the response; **strict tool use** (`strict: true`) shapes tool inputs.",
+      "A refusal returns **HTTP 200** with `stop_reason: \"refusal\"` and may not match the schema. It is still billed.",
+      "A `max_tokens` cut-off may break the schema: retry with a higher `max_tokens`.",
+      "Enum and const **capitalization** isn't guaranteed: compare case-insensitively.",
+      "Letting Claude say **\"I don't know\"** can drastically reduce false information."
+    ],
+    "sections": [
+      {
+        "heading": "Two structured output features",
+        "body": "Structured outputs use constrained decoding to keep output schema-compliant. JSON outputs, set with `output_config.format`, control Claude's response format. Strict tool use, set with `\"strict\": true` at the top level of a tool definition, alongside `name`, `description` and `input_schema`, makes the tool's `input` strictly follow its schema. Without strict mode, Claude might send `\"2\"` instead of `2` or omit required fields.\n\nThe two work together in the same request, which suits agents that need both reliable tool calls and a structured final answer."
+      },
+      {
+        "heading": "When output can still miss the schema",
+        "body": "Structured outputs guarantee compliance in most cases, but not all:\n\n- Refusals: `stop_reason: \"refusal\"`, a 200 status code, billed tokens, and output that may not match your schema, because the refusal takes precedence.\n- Token limit: `stop_reason: \"max_tokens\"` means the output may be incomplete; retry with a higher `max_tokens`.\n- Enum casing: a string `enum` or `const` value may differ from your schema only in capitalization, with no error and no special stop reason.\n\nSo check `stop_reason` before you parse, and compare enum values case-insensitively.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Check why Claude stopped before trusting the JSON.",
+          "steps": [
+            {
+              "label": "Response"
+            },
+            {
+              "label": "Check stop_reason"
+            },
+            {
+              "label": "Parse and validate"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Reducing hallucinations",
+        "body": "Explicitly give Claude permission to admit uncertainty, for example to say \"I don't have enough information to confidently assess this.\" For long documents, ask for word-for-word quotes first. To make answers auditable, have Claude find a supporting quote for each claim and retract any claim it can't support.\n\nOther techniques: ask for step-by-step reasoning before the answer, compare several runs of the same prompt for inconsistencies, and tell Claude to use only the provided documents. These reduce hallucinations but don't eliminate them, so still validate critical information."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-output-refusal-schema",
+      "q-output-strict-tool-inputs",
+      "q-output-enum-casing"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+        "title": "Structured outputs",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+        "title": "Strict tool use",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+        "title": "Reduce hallucinations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+        "title": "Stop reasons and fallback",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  }
+]

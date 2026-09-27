@@ -6,16 +6,754 @@
     "topic": "XML tags",
     "stem": "Your prompt mixes instructions, a long contract and a few examples in plain paragraphs, and Claude sometimes treats clauses from the contract as instructions. What's the best fix?",
     "choices": [
-      { "id": "a", "text": "Wrap each kind of content in its own descriptive XML tag, such as `<instructions>` and `<contract>`", "reason": "Correct: XML tags help Claude parse prompts that mix instructions, context, examples and inputs, reducing misinterpretation." },
-      { "id": "b", "text": "Move the contract below your question at the end of the prompt", "reason": "The reverse of the guidance: put long documents near the top, above the query and instructions." },
-      { "id": "c", "text": "Use a different tag name for the contract in every request", "reason": "The guidance is to use consistent, descriptive tag names across your prompts." },
-      { "id": "d", "text": "Delete the examples to shorten the prompt", "reason": "Examples help; the guidance suggests 3–5 of them. The problem is ambiguous structure, not length." }
+      {
+        "id": "a",
+        "text": "Wrap each kind of content in its own descriptive XML tag, such as `<instructions>` and `<contract>`",
+        "reason": "Correct: XML tags help Claude parse prompts that mix instructions, context, examples and inputs, reducing misinterpretation."
+      },
+      {
+        "id": "b",
+        "text": "Move the contract below your question at the end of the prompt",
+        "reason": "The reverse of the guidance: put long documents near the top, above the query and instructions."
+      },
+      {
+        "id": "c",
+        "text": "Use a different tag name for the contract in every request",
+        "reason": "The guidance is to use consistent, descriptive tag names across your prompts."
+      },
+      {
+        "id": "d",
+        "text": "Delete the examples to shorten the prompt",
+        "reason": "Examples help; the guidance suggests 3–5 of them. The problem is ambiguous structure, not length."
+      }
     ],
     "answer": "a",
     "takeaway": "When a prompt mixes content types, give each its own **consistent XML tag** so instructions and data can't blur.",
     "mnemonic": "Tag it so Claude can tell it apart.",
     "difficulty": "easy",
-    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-xml-tags"]
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-26"
+    },
+    "relatedCardIds": [
+      "c-xml-tags"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-context-compaction",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Compaction",
+    "stem": "Your support agent's conversations regularly grow toward the context window limit. You want older turns replaced by a summary, without writing any summarization code yourself. What fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Context editing's thinking block clearing",
+        "reason": "Context editing clears old tool results or thinking blocks **by rule** instead of summarizing them."
+      },
+      {
+        "id": "b",
+        "text": "Compaction, which has Claude summarize older turns on the server",
+        "reason": "Correct: compaction replaces older turns with a summary Claude writes on the server, so you need no summarization code of your own."
+      },
+      {
+        "id": "c",
+        "text": "Your own summarizer that rewrites the history",
+        "reason": "That works, but you write the summarization call, its prompt and the history rewrite, which is the code you wanted to avoid."
+      },
+      {
+        "id": "d",
+        "text": "Keep sending the full history, since a large window needs no management",
+        "reason": "Compaction also keeps the active context small, because response quality degrades as a conversation grows."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "To keep a long conversation in the window with no summarizer of your own, use **compaction**; context editing clears by rule instead.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Compaction swaps older turns for a server-written summary.",
+      "steps": [
+        {
+          "label": "Long conversation"
+        },
+        {
+          "label": "Claude writes summary",
+          "sublabel": "on the server"
+        },
+        {
+          "label": "Summary replaces older turns"
+        },
+        {
+          "label": "Conversation continues"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-compaction"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-context-tool-result-clearing",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context editing",
+    "stem": "Your coding agent reads dozens of large files and search results per task. Once Claude has processed them, the old results just take up space. You want the API to drop the oldest results by rule while keeping recent ones. What do you enable?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Thinking block clearing (`clear_thinking_20251015`)",
+        "reason": "This strategy manages `thinking` blocks when extended thinking is on; it doesn't touch tool results."
+      },
+      {
+        "id": "b",
+        "text": "Client-side SDK compaction with `compaction_control`",
+        "reason": "SDK compaction summarizes and replaces the **whole** history rather than clearing specific results, and `compaction_control` is deprecated in the TypeScript and Ruby SDKs."
+      },
+      {
+        "id": "c",
+        "text": "Add the file-reading tool to `exclude_tools`",
+        "reason": "The opposite: `exclude_tools` lists tools whose uses and results should **never** be cleared."
+      },
+      {
+        "id": "d",
+        "text": "Tool result clearing (`clear_tool_uses_20250919`)",
+        "reason": "Correct: past a threshold, the API clears the oldest tool results first, replaces them with placeholder text and keeps the most recent tool uses."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Old tool results you no longer need? **Tool result clearing** drops the oldest first and keeps the latest few.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "By default, clearing keeps the 3 most recent tool uses.",
+      "segments": [
+        {
+          "label": "Oldest tool results",
+          "sublabel": "replaced by placeholder",
+          "weight": 3,
+          "tone": "neutral"
+        },
+        {
+          "label": "Recent tool uses",
+          "sublabel": "kept",
+          "weight": 1,
+          "tone": "success"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-result-clearing"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-context-memory-tool-storage",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Memory tool",
+    "stem": "Your app enables the memory tool, and its handler keeps memory files in an in-memory map. Each conversation runs in a fresh process, so Claude finds `/memories` empty every time. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the memory tool's beta header to every request",
+        "reason": "The memory tool itself doesn't require a beta header, and a header wouldn't store anything for you."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude in the system prompt to check its memory first",
+        "reason": "Claude already checks its memory directory automatically before starting a task; the directory is empty because nothing kept the files."
+      },
+      {
+        "id": "c",
+        "text": "Back the handler with persistent storage you control and serve the same store",
+        "reason": "Correct: the tool is client-side and memory lives entirely in your app, so a later conversation continues only if your handler serves the same store."
+      },
+      {
+        "id": "d",
+        "text": "Enable context editing so Anthropic keeps the memory files",
+        "reason": "Context editing clears content from the conversation; memory operations are executed by your application against your own storage."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The memory tool only **requests** file operations; persistence is whatever storage your handler provides.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-memory-tool",
+      "c-agentic-memory"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-context-just-in-time",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Just-in-time context",
+    "stem": "Your data-analysis agent loads whole database tables into its prompt before every task, and its answers get worse as the tables grow. Which approach does Anthropic's context engineering post describe?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep lightweight references, such as stored queries, and load data at runtime with tools",
+        "reason": "Correct: \"just in time\" agents keep identifiers and load data into context with tools, as Claude Code does with targeted queries and head and tail."
+      },
+      {
+        "id": "b",
+        "text": "Move the tables into the system prompt",
+        "reason": "Moving the tables doesn't shrink them: every new token depletes the model's attention budget by some amount."
+      },
+      {
+        "id": "c",
+        "text": "Add a long list of edge-case rules explaining the tables",
+        "reason": "The post doesn't recommend stuffing a laundry list of edge cases into a prompt, and the tables would still be preloaded."
+      },
+      {
+        "id": "d",
+        "text": "Spread each table across several turns of the same conversation",
+        "reason": "The data still piles up in the same context window. The aim is the smallest set of high-signal tokens."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Don't preload everything: keep **references** and let the agent load what it needs **just in time**, accepting slower runtime exploration.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-just-in-time-context"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-context-prompt-altitude",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "System prompt altitude",
+    "stem": "One engineer's agent system prompt is a long chain of if-else rules for every case. Another's says only \"Be a helpful support agent.\" What does Anthropic's context engineering post recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep adding if-else rules until every case is covered",
+        "reason": "Hardcoding complex, brittle logic creates fragility and increases maintenance complexity over time."
+      },
+      {
+        "id": "b",
+        "text": "Aim between them: specific enough to guide, flexible enough to give strong heuristics",
+        "reason": "Correct: the \"right altitude\" is the Goldilocks zone between brittle hardcoded logic and vague guidance."
+      },
+      {
+        "id": "c",
+        "text": "Keep the one-line prompt, since capable models infer the rest",
+        "reason": "Vague, high-level guidance fails to give concrete signals for desired outputs, or falsely assumes shared context."
+      },
+      {
+        "id": "d",
+        "text": "Cut both prompts to the fewest words, since minimal means short",
+        "reason": "The post says minimal doesn't necessarily mean short: the agent still needs enough information up front."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Write system prompts at the **right altitude**: clear heuristics, neither brittle rules nor vague one-liners.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-right-altitude"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-context-tool-bloat",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Tool set design",
+    "stem": "Your agent has 40 tools, several with overlapping jobs, and it often picks the wrong one. Your own engineers can't agree which tool applies in some cases. What does Anthropic's context engineering post advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more narrowly scoped tools so each case has its own",
+        "reason": "Bloated tool sets that cover too much functionality are one of the most common failure modes the post describes."
+      },
+      {
+        "id": "b",
+        "text": "Keep the tools as they are; the agent will learn which to use",
+        "reason": "If a human engineer can't definitively say which tool to use, an AI agent can't be expected to do better."
+      },
+      {
+        "id": "c",
+        "text": "Curate a minimal viable set of tools with minimal overlap",
+        "reason": "Correct: tools should be self-contained and clear in purpose, and a minimal set can also make context more reliable to maintain and prune."
+      },
+      {
+        "id": "d",
+        "text": "List every edge case in the system prompt to explain the choice",
+        "reason": "The post recommends against stuffing a laundry list of edge cases into a prompt."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Ambiguous tool choice is a **tool-set** problem: prune to a minimal set with clear, non-overlapping purposes.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-minimal-tool-set"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-prompt-explain-why",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Instruction context",
+    "stem": "Your voice assistant's system prompt says \"NEVER use ellipses\", and you want Claude to follow the intent behind that rule. Which rewrite does Anthropic's prompting guide show as more effective?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "\"NEVER EVER use ellipses. This is CRITICAL.\"",
+        "reason": "The guide's fix adds the reason, not emphasis: context behind an instruction helps Claude understand your goal."
+      },
+      {
+        "id": "b",
+        "text": "Prefill each reply so it starts without an ellipsis",
+        "reason": "Prefilling the last assistant turn isn't supported starting with Claude 4.6 models, and it wouldn't explain the goal anyway."
+      },
+      {
+        "id": "c",
+        "text": "\"Do not use ellipses, dots or trailing periods.\"",
+        "reason": "Still a bare prohibition with no reason; the guide also suggests saying what to do instead of what not to do."
+      },
+      {
+        "id": "d",
+        "text": "Say replies are read aloud by a text-to-speech engine that can't pronounce ellipses",
+        "reason": "Correct: explaining why the behavior matters helps Claude deliver more targeted responses, and it generalizes from the explanation."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Give the **reason** behind a rule; Claude generalizes from the explanation better than from emphasis.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-instruction-context"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-role",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Role prompting",
+    "stem": "Your legal-research app on Claude Opus 5.5 sends only user messages, and Claude's answers read like a general assistant's. What small change does Anthropic's prompting guide recommend to focus its behavior and tone?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prefill each reply with \"As a legal researcher,\"",
+        "reason": "Prefilled responses on the last assistant turn return a 400 error starting with Claude 4.6 models."
+      },
+      {
+        "id": "b",
+        "text": "Set a role in the system prompt, even a single sentence",
+        "reason": "Correct: setting a role in the system prompt focuses Claude's behavior and tone, and even a single sentence makes a difference."
+      },
+      {
+        "id": "c",
+        "text": "Tell Claude \"Don't sound like a general assistant\"",
+        "reason": "The guide suggests telling Claude what to do instead of what not to do; a role states what you want."
+      },
+      {
+        "id": "d",
+        "text": "Raise `effort` to its highest level",
+        "reason": "Effort controls how deeply Claude thinks and how many tokens it spends, not the role or tone of its answers."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Generic tone? Give Claude a **role in the system prompt**; one sentence can be enough.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-role-prompting",
+      "c-system-parameter"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-prefill-migration",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Prefill migration",
+    "stem": "You move a classifier to Claude Opus 5.5. Each request ends with an assistant message `{\"label\": \"` so Claude continues in JSON. Now every request fails with a 400 error. What does Anthropic's prompting guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pin a Claude 4.6 model, which still supports prefill",
+        "reason": "Prefill on the last assistant turn stopped being supported **starting with** Claude 4.6 models; only earlier models accept it."
+      },
+      {
+        "id": "b",
+        "text": "Shorten the prefill to just `{`",
+        "reason": "Any prefilled final assistant turn gets a 400 on these models, however short it is."
+      },
+      {
+        "id": "c",
+        "text": "Drop the prefill; use structured outputs or a tool with an `enum` of labels",
+        "reason": "Correct: for classification, the guide suggests tools with an enum field of valid labels, or structured outputs."
+      },
+      {
+        "id": "d",
+        "text": "Keep the prefill and retry the 400s with backoff",
+        "reason": "The error comes from the request shape: requests with a prefilled assistant message to these models return a 400 every time."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Prefill on the last turn is gone from **Claude 4.6** on; constrain format with **structured outputs** or an enum tool instead.",
+    "mnemonic": "No prefill after 4.6: schema it instead.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-prefill"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-quote-grounding",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Long context prompting",
+    "stem": "Claude answers doctors' questions over 60k tokens of patient records wrapped in `<document>` tags, but its answers sometimes drift into irrelevant parts of the records. Which long-context technique from Anthropic's prompting guide targets this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask Claude to first quote the relevant parts in `<quotes>` tags, then answer from them",
+        "reason": "Correct: asking for relevant quotes first helps Claude focus on the relevant content and ignore the rest of the documents."
+      },
+      {
+        "id": "b",
+        "text": "Put the question at the top, above the records",
+        "reason": "The reverse of the guidance: long data goes near the top, and queries at the end can improve quality by up to 30% in tests."
+      },
+      {
+        "id": "c",
+        "text": "Remove each document's `<source>` subtag to save tokens",
+        "reason": "The guide recommends `<source>` and other metadata subtags alongside `<document_content>` for clarity."
+      },
+      {
+        "id": "d",
+        "text": "Merge all the records into one untagged block",
+        "reason": "For multiple documents, the guide says to wrap each in its own `<document>` tags with content and metadata subtags."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "On long documents, ask for the **relevant quotes first**, then the answer built from them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-quote-grounding"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-manual-cot",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Chain of thought",
+    "stem": "Your app runs Claude Sonnet 4.6 with thinking off, and that setting must stay. You want step-by-step reasoning on hard questions, but users should see only the final answer. What does Anthropic's prompting guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude not to explain its reasoning, to keep answers clean",
+        "reason": "That suppresses the reasoning you want; with thinking off, the guide says to encourage step-by-step reasoning instead."
+      },
+      {
+        "id": "b",
+        "text": "Prefill each reply with `<thinking>`",
+        "reason": "Prefilled responses on the last assistant turn aren't supported starting with Claude 4.6 models; the request returns a 400."
+      },
+      {
+        "id": "c",
+        "text": "Ask for reasoning and answer in one paragraph, then trim the start",
+        "reason": "Without tags there's no clean boundary to cut at; the guide uses structured tags to separate reasoning from the final output."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to reason in `<thinking>` tags and answer in `<answer>` tags; show only `<answer>`",
+        "reason": "Correct: manual chain-of-thought is the guide's fallback when thinking is off, with tags that cleanly separate reasoning from output."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Thinking off? Use **manual CoT** with `<thinking>` and `<answer>` tags so you can show only the answer.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-manual-cot"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-overtriggering",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Tool triggering",
+    "stem": "After you migrate to Claude Opus 4.6, your agent calls `search_docs` even for trivial questions. The system prompt, written for an older model, says \"CRITICAL: You MUST use search_docs whenever you might need information.\" What's the first fix the prompting guide suggests?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Dial back to normal wording, such as \"Use search_docs when...\"",
+        "reason": "Correct: Opus 4.5 and 4.6 are more responsive to the system prompt, so aggressive language written against undertriggering now overtriggers."
+      },
+      {
+        "id": "b",
+        "text": "Add stronger emphasis, like \"ONLY\" and \"NEVER\", to limit it",
+        "reason": "More aggressive language is the cause here; the guide's fix is to dial it back to normal prompting."
+      },
+      {
+        "id": "c",
+        "text": "Add \"If in doubt, use search_docs\"",
+        "reason": "The guide warns that instructions like \"If in doubt, use [tool]\" cause overtriggering."
+      },
+      {
+        "id": "d",
+        "text": "Raise `effort` so Claude judges tool use more carefully",
+        "reason": "The guide uses effort only as a fallback, and in the other direction: lower the setting if Claude stays overly aggressive."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Prompts tuned against undertriggering can **overtrigger** newer models; soften the wording first, lower effort second.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-overtriggering"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-output-refusal-schema",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured outputs",
+    "stem": "Your extraction job uses `output_config.format` and parses every reply as JSON. A few replies come back with HTTP 200 but fail your schema check, and each has `stop_reason: \"refusal\"`. What should your code do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat these as HTTP errors and retry them with backoff",
+        "reason": "They aren't HTTP errors: a refusal returns a 200 status code, and you're billed for the tokens generated."
+      },
+      {
+        "id": "b",
+        "text": "Check `stop_reason` before parsing and handle refusals separately",
+        "reason": "Correct: when Claude refuses, the refusal message takes precedence over schema constraints, so the output may not match your schema."
+      },
+      {
+        "id": "c",
+        "text": "Retry with a higher `max_tokens`",
+        "reason": "That's the fix for `stop_reason: \"max_tokens\"`, where output was cut off. These replies are refusals."
+      },
+      {
+        "id": "d",
+        "text": "Add `strict: true` to the request so refusals follow the schema",
+        "reason": "`strict: true` is for tool definitions, and Claude keeps its safety properties under structured outputs: a refusal still overrides the schema."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Schema compliance holds **in most cases**: check `stop_reason` for `refusal` or `max_tokens` before you parse.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Refusals and cut-offs can break the schema, so check first.",
+      "steps": [
+        {
+          "label": "Get response"
+        },
+        {
+          "label": "Check stop_reason",
+          "sublabel": "refusal or max_tokens?"
+        },
+        {
+          "label": "Parse JSON",
+          "sublabel": "if neither"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs",
+      "c-json-outputs"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-output-strict-tool-inputs",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Strict tool use",
+    "stem": "Your agent's `book_flight` tool expects `passengers` as an integer, but Claude sometimes sends `\"two\"` or `\"2\"`, and your function crashes. What guarantees tool inputs that match the tool's `input_schema`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "State the type more firmly in the tool's `description`",
+        "reason": "Without strict mode, Claude might still return incompatible types, such as `\"2\"` instead of `2`. Wording isn't a guarantee."
+      },
+      {
+        "id": "b",
+        "text": "Validate each tool call and retry the bad ones",
+        "reason": "A workaround, not a guarantee. With strict tool use there's no need to validate and retry tool calls."
+      },
+      {
+        "id": "c",
+        "text": "Set `\"strict\": true` at the top level of the tool definition",
+        "reason": "Correct: strict mode constrains sampling so the tool `input` strictly follows the `input_schema`, e.g. always `passengers: 2`."
+      },
+      {
+        "id": "d",
+        "text": "Put `\"strict\": true` inside the `passengers` property schema",
+        "reason": "`strict` goes at the top level of the tool definition, alongside `name`, `description` and `input_schema`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For type-safe tool arguments, set **`strict: true`** on the tool, next to its `input_schema`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "title": "Strict tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-strict-tool-use"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-output-enum-casing",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured outputs",
+    "stem": "A classifier uses JSON outputs with an `enum` of labels that includes \"Conversation topic 3\". Now and then a reply says \"Conversation Topic 3\", with no error and a normal stop reason, and your exact-match lookup fails. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Report it as a bug, since constrained decoding guarantees exact enum values",
+        "reason": "The docs say structured outputs **don't** guarantee the capitalization of string `enum` and `const` values."
+      },
+      {
+        "id": "b",
+        "text": "Treat it as a refusal and retry on a fallback model",
+        "reason": "A refusal has `stop_reason: \"refusal\"`. This response completes normally, with no special stop reason."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens` so the label isn't cut off",
+        "reason": "A cut-off shows `stop_reason: \"max_tokens\"`; here the whole label arrived with different casing."
+      },
+      {
+        "id": "d",
+        "text": "Compare labels case-insensitively and avoid values that differ only in case",
+        "reason": "Correct: this is the docs' advice, and it applies to both JSON outputs and strict tool use."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Structured outputs can change an enum's **capitalization** silently, so compare labels case-insensitively.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-enum-casing",
+      "c-json-outputs"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-output-allow-uncertainty",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Reducing hallucinations",
+    "stem": "Your M&A assistant analyzes reports you provide. When a report lacks some data, it sometimes states confident figures that aren't in the report. Which basic technique from Anthropic's hallucination guide addresses this directly?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Explicitly let Claude say it doesn't have enough information",
+        "reason": "Correct: giving Claude permission to admit uncertainty is a simple technique that can drastically reduce false information."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude to fill gaps from its general knowledge",
+        "reason": "The guide suggests the opposite: instruct Claude to use only information from the provided documents."
+      },
+      {
+        "id": "c",
+        "text": "Ask for the final figures without any reasoning",
+        "reason": "The guide suggests asking Claude to explain its reasoning step by step first, which can reveal faulty logic or assumptions."
+      },
+      {
+        "id": "d",
+        "text": "Require a figure for every item, even if it's an estimate",
+        "reason": "Forcing an answer removes the option the guide says to give: explicit permission to say \"I don't know\"."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Give Claude an explicit way out (\"I don't have enough information\") so it doesn't invent answers.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-allow-uncertainty"
+    ],
+    "lessonId": "l-output-handling"
   }
 ]

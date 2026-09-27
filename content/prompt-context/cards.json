@@ -7,7 +7,245 @@
     "definition": "Wrapping each type of prompt content in its own tag, such as `<instructions>` or `<context>`, so Claude can parse a complex prompt unambiguously.",
     "whyItMatters": "Reduces misinterpretation when instructions, context, examples and variable inputs share one prompt. Use consistent, descriptive tag names.",
     "example": "Nest for hierarchy: `<documents>` holds each `<document index=\"1\">`, with its source and content in their own tags.",
-    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-26"
+    },
     "isVocab": true
+  },
+  {
+    "id": "c-compaction",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Compaction (server-side)",
+    "definition": "Replaces the older turns of a conversation with a summary Claude writes on the server, so you need no summarization code of your own.",
+    "whyItMatters": "Keeps a long conversation or agent task inside the context window. **On demand**, you decide when to compact; **at a token threshold**, the API does.",
+    "example": "On-demand compaction uses the `compact-2026-09-04` beta header and the top-level `compaction` parameter.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-tool-result-clearing",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Tool result clearing",
+    "definition": "A context editing strategy, `clear_tool_uses_20250919`, that clears the oldest tool results once context passes a threshold, leaving placeholder text.",
+    "whyItMatters": "Fits agents with heavy tool use whose old results are no longer needed. Defaults: trigger at **100,000** input tokens, keep the **3** most recent tool uses.",
+    "example": "List a tool in `exclude_tools` if its uses and results must never be cleared.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-memory-tool",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Memory tool",
+    "definition": "An Anthropic-provided, client-side tool: Claude requests file operations under `/memories`, and your application executes them on storage you control.",
+    "whyItMatters": "Memory lives entirely in your application, so it persists only if your handler serves the same store. The handler must reject paths outside `/memories`.",
+    "example": "Tools entry: `{\"type\": \"memory_20250818\", \"name\": \"memory\"}`, with no input schema of your own.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-just-in-time-context",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Just-in-time context",
+    "definition": "An agent keeps lightweight identifiers (file paths, stored queries, web links) and uses tools to load the data into context at runtime.",
+    "whyItMatters": "Keeps context focused and enables progressive disclosure. The trade-off: runtime exploration is slower than retrieving pre-computed data.",
+    "example": "Claude Code drops CLAUDE.md in up front, then uses glob and grep to retrieve files just in time.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-right-altitude",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Right altitude (system prompts)",
+    "definition": "The zone between brittle, hardcoded if-else logic and vague guidance that falsely assumes shared context.",
+    "whyItMatters": "Anthropic's advice: be specific enough to guide behavior yet flexible enough to give strong heuristics. Minimal doesn't necessarily mean short.",
+    "example": "Start with a minimal prompt on the best model, then add instructions and examples for the failure modes you find.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-minimal-tool-set",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "term": "Minimal viable tool set",
+    "definition": "A curated set of self-contained tools with minimal overlap in functionality, so it's clear which tool fits each situation.",
+    "whyItMatters": "Bloated tool sets are a common failure mode: if a human engineer can't definitively say which tool to use, an agent can't be expected to do better.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-instruction-context",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Context behind instructions",
+    "definition": "Explaining the motivation for an instruction, such as why a behavior matters, so Claude better understands your goal.",
+    "whyItMatters": "Claude is smart enough to generalize from the explanation. The guide's example: say replies go to a text-to-speech engine, not just \"NEVER use ellipses\".",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-role-prompting",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Role prompting",
+    "definition": "Setting a role in the system prompt, such as \"You are a helpful coding assistant specializing in Python\", to focus Claude's behavior and tone.",
+    "whyItMatters": "The lightest fix when answers are too generic for your use case: even a single sentence makes a difference.",
+    "example": "The guide's example sends the role as `system` in the Messages API request.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-prefill",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Prefilled response",
+    "definition": "A partial assistant message on the last turn for Claude to continue from. Not supported starting with Claude 4.6 models: those requests return a 400.",
+    "whyItMatters": "Migrate: structured outputs for formats, tools with an `enum` or structured outputs for classification, system prompt instructions to skip preambles.",
+    "example": "Earlier models still accept prefills, and assistant messages elsewhere in the conversation are unaffected.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-quote-grounding",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Ground responses in quotes",
+    "definition": "For long-document tasks, asking Claude to quote the relevant parts of the documents first, before it carries out the task.",
+    "whyItMatters": "Helps Claude focus on the relevant content and ignore the rest. Pair it with long data at the top of the prompt, above the query.",
+    "example": "Ask for relevant quotes in `<quotes>` tags, then for the analysis based on them in `<info>` tags.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-manual-cot",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Manual chain-of-thought (CoT)",
+    "definition": "When thinking is off, asking Claude to think through a problem step by step, with tags like `<thinking>` and `<answer>` to separate reasoning from output.",
+    "whyItMatters": "The guide's fallback when thinking is off. With thinking on, general instructions like \"think thoroughly\" often beat a hand-written step-by-step plan.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-tool-overtriggering",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "term": "Tool overtriggering",
+    "definition": "Newer models such as Claude Opus 4.5 and 4.6 respond more to the system prompt, so wording written to fix undertriggering can make them overtrigger.",
+    "whyItMatters": "Dial back aggressive language: replace \"CRITICAL: You MUST use this tool when...\" with \"Use this tool when...\". Lower effort only as a fallback.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-structured-invalid-outputs",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "term": "Structured outputs that miss the schema",
+    "definition": "Structured outputs guarantee compliance in most cases, but a refusal or a `max_tokens` cut-off can return output that doesn't match your schema.",
+    "whyItMatters": "Check `stop_reason` before parsing. A refusal still returns HTTP 200 and is billed; for `max_tokens`, retry with a higher limit.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-strict-tool-use",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "term": "Strict tool use",
+    "definition": "Setting `strict: true` on a tool definition constrains sampling so Claude's tool inputs always match the tool's `input_schema`.",
+    "whyItMatters": "Without it, Claude might send `\"2\"` instead of `2` or omit required fields. With it, there's no need to validate and retry tool calls.",
+    "example": "Add `\"strict\": true` at the top level of the tool, alongside `name`, `description` and `input_schema`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "title": "Strict tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-enum-casing",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "term": "Enum casing in structured outputs",
+    "definition": "Structured outputs don't guarantee the capitalization of string `enum` and `const` values: a value may differ from your schema only in case.",
+    "whyItMatters": "Nothing flags it: the response completes with no error and no special stop_reason. Compare case-insensitively and avoid values that differ only in case.",
+    "example": "Schema says \"Conversation topic 3\"; the reply may say \"Conversation Topic 3\".",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-allow-uncertainty",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "term": "Permission to say \"I don't know\"",
+    "definition": "Explicitly giving Claude permission to admit uncertainty, for example to say it doesn't have enough information, instead of answering anyway.",
+    "whyItMatters": "A basic hallucination-reduction technique that can drastically reduce false information. Such techniques reduce hallucinations but don't eliminate them.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
   }
 ]
