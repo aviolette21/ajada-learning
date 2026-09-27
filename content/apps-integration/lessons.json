@@ -19,7 +19,7 @@
       },
       {
         "heading": "Reading stop_reason",
-        "body": "Every response carries a `stop_reason`:\n- `end_turn`: Claude finished naturally. Use the response.\n- `max_tokens`: the response reached your limit. Raise `max_tokens` or continue the response.\n- `stop_sequence`: Claude emitted one of your `stop_sequences`.\n- `tool_use`: Claude is calling a tool. Run the tool and return the result.\n- `refusal`: Claude declined to respond. Read `stop_details`."
+        "body": "Every response carries a `stop_reason`:\n\n- `end_turn`: Claude finished naturally. Use the response.\n- `max_tokens`: the response reached your limit. Raise `max_tokens` or continue the response.\n- `stop_sequence`: Claude emitted one of your `stop_sequences`.\n- `tool_use`: Claude is calling a tool. Run the tool and return the result.\n- `refusal`: Claude declined to respond. Read `stop_details`."
       },
       {
         "heading": "The tool-use loop",
@@ -289,6 +289,177 @@
       {
         "url": "https://code.claude.com/docs/en/plugins-reference",
         "title": "Plugin manifest reference",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-swe-foundations",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "title": "Errors, retries and rate limits",
+    "summary": "Production Claude apps must read each error's type, retry only what is transient, and stay inside rate limits. The rule to remember: back off on 429s and 5xx errors (honoring `retry-after`), fix the request on other 4xx errors, and log every `request-id`.",
+    "keyPoints": [
+      "**401** is a problem with the API key; **403** is a valid key without permission for the resource; **404** is a missing resource.",
+      "**500** `api_error`: retry with exponential backoff. **529** `overloaded_error`: the API is temporarily overloaded across all users.",
+      "A rate-limit **429** carries `retry-after` (seconds to wait). A spend-cap 429 has none and fails until access resumes.",
+      "The API uses a **token bucket**: 60 RPM might be enforced as 1 request per second. Cache reads don't count toward ITPM on most models.",
+      "Every response has a unique **`request-id`**; include it when you contact support."
+    ],
+    "sections": [
+      {
+        "heading": "Reading an error",
+        "body": "Errors come back as JSON with a top-level `error` object holding a `type` and `message`, plus a `request_id`. The status and type tell you what to do:\n\n- 400 `invalid_request_error`: an issue with the format or content of your request\n- 401 `authentication_error`: an issue with your API key, such as malformed, revoked or expired\n- 403 `permission_error`: your key doesn't have permission for the resource\n- 404 `not_found_error`: check the endpoint path and resource IDs\n- 413 `request_too_large`: the request exceeds the endpoint's size limit\n- 429 `rate_limit_error`: a rate limit, spend cap or Claude Code workspace limit\n- 500 `api_error`: retry with exponential backoff; if it persists, contact support with the request ID\n- 529 `overloaded_error`: the API is temporarily overloaded\n\nEvery response has a `request-id` header; the Python and TypeScript SDKs expose it as `_request_id`."
+      },
+      {
+        "heading": "Rate limits and backing off",
+        "body": "Limits are set per organization and measured in requests, input tokens and output tokens per minute (RPM, ITPM, OTPM) for each model class. Exceeding one returns a 429 that says which limit was hit, with a `retry-after` header giving the seconds to wait; earlier retries will fail.\n\nThe API uses the token bucket algorithm, so capacity replenishes continuously rather than at fixed intervals, and limits can apply over shorter periods: short bursts can trigger 429s. A sharp increase in usage can also hit acceleration limits, so ramp up gradually.\n\nResponse headers such as `anthropic-ratelimit-requests-remaining` and `-reset` show what's left. For most models only uncached input counts toward ITPM, so prompt caching raises effective throughput. A 429 with no `retry-after` and `enforced_spend_limit_reached` means the monthly spend cap; retries fail until access resumes.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Handling a rate-limit 429.",
+          "steps": [
+            {
+              "label": "429 rate_limit_error"
+            },
+            {
+              "label": "Read retry-after",
+              "sublabel": "seconds to wait"
+            },
+            {
+              "label": "Wait"
+            },
+            {
+              "label": "Retry"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Concurrency and streaming failures",
+        "body": "For asyncio code, the Python SDK offers `AsyncAnthropic`, the same interface with calls you `await`; the `aiohttp` backend can improve async performance.\n\nWhen streaming, an error can arrive after a 200 response. To recover an interrupted stream, save the content received so far and send a continuation request. On Claude 4.6 and later, put the partial response in a user message with an instruction to continue; on Claude 4.5 and earlier, it went at the start of an assistant message. Tool use and extended thinking blocks can't be partially recovered, so resume from the most recent text block."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-swe-permission-403",
+      "q-swe-retry-after",
+      "q-swe-cache-itpm"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/api/errors",
+        "title": "Claude API errors",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/rate-limits",
+        "title": "Rate limits",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+        "title": "Python SDK",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-app-design",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "title": "Designing Claude applications",
+    "summary": "Application design is choosing the simplest architecture that meets the need: a long prompt or retrieval, a live call or a batch, free text or structured output. The rule to remember: start simple, measure, and add complexity (extra calls, agents) only when it demonstrably helps.",
+    "keyPoints": [
+      "A knowledge base under **200,000 tokens** (about 500 pages) can go in the prompt whole; larger ones typically need RAG.",
+      "The **Message Batches API** costs 50% less for work that doesn't need immediate replies; match results by `custom_id`, never by order.",
+      "Streaming improves perceived responsiveness; **TTFT** measures the wait before the first token.",
+      "**Citations** give verifiable passages; **JSON outputs** give schema-valid replies; the two can't be combined in one request.",
+      "Workflow patterns: **routing** for distinct input types, **parallelization** for guardrails or independent parts."
+    ],
+    "sections": [
+      {
+        "heading": "Long prompt, retrieval or batch?",
+        "body": "Anthropic's Contextual Retrieval post notes that if a knowledge base is smaller than 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG, and prompt caching makes that faster and cheaper. For larger knowledge bases, RAG chunks the corpus, embeds the chunks and adds the most relevant ones to the prompt at query time.\n\nWhen no one is waiting on the answer, batch processing fits: the Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under 1 hour. Results can come back in any order, so always match them to requests by `custom_id`."
+      },
+      {
+        "heading": "Latency and streaming",
+        "body": "First engineer a prompt that works well, then reduce latency; doing it too early can hide what top performance looks like. The guide's levers:\n\n- Choose the right model: Claude Haiku 4.5 offers the fastest response times\n- Minimize prompt and output tokens; ask for sentence or paragraph counts rather than word counts\n- Use `max_tokens` only as a blunt cap, since replies are cut off at the limit\n- Stream responses so users see output as it arrives\n\nTime to first token (TTFT) is the time until the first token of the response, which matters most for streaming UIs.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The latency guide's order of work.",
+          "steps": [
+            {
+              "label": "Prompt that works"
+            },
+            {
+              "label": "Right model"
+            },
+            {
+              "label": "Fewer tokens"
+            },
+            {
+              "label": "Stream"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Grounded and structured output",
+        "body": "Citations return the exact passages that support each claim. Set `citations.enabled=true` on every document in the request; the API guarantees valid pointers into the documents, and `cited_text` doesn't count toward output tokens.\n\nJSON outputs (`output_config.format`) constrain replies to your schema through constrained decoding. The first request with a new schema is slower while its grammar compiles, then it's cached for 24 hours. Citations and JSON outputs are incompatible and return a 400 together.\n\nThe Files API lets you upload once and reference a `file_id`. PDFs and plain text go in `document` blocks; convert types like .docx to plain text first."
+      },
+      {
+        "heading": "Choosing a workflow pattern",
+        "body": "Anthropic's \"Building effective agents\" recommends the simplest solution that works:\n\n- Prompt chaining: fixed subtasks in sequence, trading latency for accuracy\n- Routing: classify the input, then hand it to a specialized prompt or model\n- Parallelization: sectioning (independent parts, such as a separate guardrail call) or voting (the same task several times)\n- Orchestrator-workers: a central LLM breaks down tasks it can't predict in advance\n- Evaluator-optimizer: one call generates, another critiques, in a loop"
+      }
+    ],
+    "checkQuestionIds": [
+      "q-app-long-context-vs-rag",
+      "q-app-batch-custom-id",
+      "q-app-citations-verify"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/contextual-retrieval",
+        "title": "Introducing Contextual Retrieval",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+        "title": "Batch processing",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+        "title": "Reducing latency",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+        "title": "Citations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+        "title": "Structured outputs",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+        "title": "Files API",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building effective agents",
         "checkedOn": "2026-09-27"
       }
     ]

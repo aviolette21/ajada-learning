@@ -267,5 +267,468 @@
       "checkedOn": "2026-09-27"
     },
     "isVocab": true
+  },
+  {
+    "id": "c-stateless-api",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Stateless Messages API",
+    "definition": "The Messages API keeps no conversation state between calls: you always send the full conversational history with each request.",
+    "whyItMatters": "A chatbot that sends only the newest message loses context. Build the conversation up over time by resending every turn in `messages`.",
+    "example": "Earlier turns don't have to come from Claude: you can include synthetic `assistant` messages.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "title": "Using the Messages API",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-alternating-turns",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Alternating user and assistant turns",
+    "definition": "Claude is trained on alternating `user` and `assistant` turns. Consecutive turns with the same role in a request are combined into a single turn.",
+    "whyItMatters": "Two `user` messages in a row are merged into one turn rather than answered separately, so model the history as alternating turns.",
+    "example": "A three-turn history: `user` → `assistant` → `user`. Claude then generates the next `assistant` turn.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-content-blocks",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Content blocks",
+    "definition": "An input message's `content` is a string or an array of typed blocks. A string is shorthand for one block of type `text`.",
+    "whyItMatters": "Anything beyond plain text, such as an `image` block, uses the array form. Responses also return `content` as an array of blocks.",
+    "example": "`{\"role\": \"user\", \"content\": [{\"type\": \"text\", \"text\": \"Hello, Claude\"}]}`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-message-response",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Message (response object)",
+    "definition": "A Messages API response: role assistant, `content` as an array of typed blocks, and fields such as `stop_reason`, usage, id and model.",
+    "whyItMatters": "Don't assume the first block is text: each block has a `type` (text, tool_use, thinking and others) that determines its shape.",
+    "example": "Simplest reply: `\"content\": [{\"type\": \"text\", \"text\": \"Hi, I'm Claude.\"}]`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-image-sources",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Image source types",
+    "definition": "An `image` content block's source can be base64 data, a URL to a hosted image, or a `file_id` from the Files API.",
+    "whyItMatters": "For an image you use repeatedly, upload it once and reference the `file_id` instead of resending base64. Claude works best with images before text.",
+    "example": "Supported formats: JPEG, PNG, GIF and WebP. On Bedrock and Google Cloud, only base64 is currently available.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-many-image-limit",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "Many-image requests",
+    "definition": "If one API request contains more than 20 images, a stricter per-image dimension limit applies to every image in that request.",
+    "whyItMatters": "Resent images from earlier turns count too. Stay under it by resizing each image to at most 2000 px per side, or sending 20 or fewer.",
+    "example": "API maximums: 100 images per request on 200k-context models, 600 on others; 8000x8000 px per image.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-stop-sequences",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "stop_sequences",
+    "definition": "A Messages API parameter: custom text sequences that make the model stop generating when it encounters one of them.",
+    "whyItMatters": "When one matches, `stop_reason` is `\"stop_sequence\"` and the response's `stop_sequence` field holds the matched string.",
+    "example": "`\"stop_sequences\": [\"</answer>\"]` stops generation when Claude emits the closing tag.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-api-versioning",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "term": "API version guarantees",
+    "definition": "Within an API version, Anthropic preserves existing input and output parameters, but may add optional inputs and new output values.",
+    "whyItMatters": "New enum variants, such as streaming event types, can appear without a version change, so don't write clients that break on additions.",
+    "example": "Latest listed version: `2023-06-01`. Earlier versions are deprecated and may be unavailable for new users.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/versioning",
+      "title": "Versions",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-api-error-types",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "API error types",
+    "definition": "Each HTTP error has a type: 400 invalid_request_error, 401 authentication_error, 403 permission_error, 404 not_found_error, 429 rate_limit_error.",
+    "whyItMatters": "401 is a problem with the API key itself; 403 is a key without permission for the resource; 500 `api_error` and 529 `overloaded_error` are on Anthropic's side.",
+    "example": "413 `request_too_large`: over the size limit. 402 `billing_error`: a billing or payment issue.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-exponential-backoff",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "Retry with exponential backoff",
+    "definition": "The errors page's advice for a 500 `api_error`: retry the request with exponential backoff, and contact support with the request ID if it persists.",
+    "whyItMatters": "Backoff suits transient failures like 500s. A 400 `invalid_request_error` means an issue with the format or content of your request.",
+    "example": "The official SDKs retry transient failures with exponential backoff, twice by default.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-overloaded-error",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "529 overloaded_error",
+    "definition": "The API is temporarily overloaded. 529 errors can occur when the API experiences high traffic across all users.",
+    "whyItMatters": "It isn't your organization's rate limit (that's 429). In rare cases, a sharp jump in your own usage brings 429 acceleration limits instead, so ramp up gradually.",
+    "example": "The official SDKs automatically retry 5xx server errors like this, twice by default.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-retry-after",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "retry-after header",
+    "definition": "Sent with a 429 rate-limit error: the number of seconds to wait until you can retry the request. Earlier retries will fail.",
+    "whyItMatters": "Wait at least that long before retrying. A 429 with no `retry-after` may be the monthly spend cap, where retries fail until access resumes.",
+    "example": "`retry-after: 20` means wait 20 seconds before sending the request again.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-spend-cap-429",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "Spend-cap 429",
+    "definition": "A 429 `rate_limit_error` returned once your organization reaches its tier's monthly spend cap. It has no `retry-after` header.",
+    "whyItMatters": "Retrying, including the SDKs' automatic retries, fails until access resumes. On the Messages API, `error.details.error_code` is `enforced_spend_limit_reached`.",
+    "example": "Access resumes at 00:00 UTC on the first day of the next month, or sooner by moving to a higher tier.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-ratelimit-headers",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "anthropic-ratelimit-* headers",
+    "definition": "Response headers showing the limit enforced, what remains and when it fully replenishes, for requests, tokens, input tokens and output tokens.",
+    "whyItMatters": "Read the `-remaining` and `-reset` values to pace your client before it runs into 429 errors.",
+    "example": "`anthropic-ratelimit-requests-remaining`; the `-reset` headers give times in RFC 3339 format.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-token-bucket",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "Token bucket rate limiting",
+    "definition": "The algorithm the API uses for rate limiting: capacity is continuously replenished up to your maximum, rather than reset at fixed intervals.",
+    "whyItMatters": "Limits can apply over shorter intervals: 60 requests per minute might be enforced as 1 per second, so short bursts can trigger 429s.",
+    "example": "Spread 60 requests across the minute instead of sending them all in the first second.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cache-aware-itpm",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "Cache-aware ITPM",
+    "definition": "For most Claude models, only uncached input tokens count toward input-tokens-per-minute (ITPM) limits; tokens read from cache don't.",
+    "whyItMatters": "Caching raises effective throughput: with a 2M ITPM limit and an 80% cache hit rate, you could process about 10M total input tokens a minute.",
+    "example": "Counted: `input_tokens`, `cache_creation_input_tokens`. Not counted (most models): `cache_read_input_tokens`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-request-id",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "request-id",
+    "definition": "A unique identifier on every API response, sent in the `request-id` header and in error response bodies as `request_id`.",
+    "whyItMatters": "Include it when you contact support about a specific request. The Python and TypeScript SDKs expose it as `_request_id` on responses.",
+    "example": "`print(f\"Request ID: {message._request_id}\")`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-async-client",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "AsyncAnthropic",
+    "definition": "The Python SDK's asynchronous client. It has the same interface as the sync `Anthropic` client, with calls you `await`.",
+    "whyItMatters": "Use it in asyncio code. For better concurrency, the SDK can also use an `aiohttp` HTTP backend via `DefaultAioHttpClient`.",
+    "example": "`message = await client.messages.create(...)` inside an `async def` function.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-stream-error-recovery",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "term": "Stream error recovery",
+    "definition": "Recovering an interrupted stream: save the content received before the error, then send a continuation request so Claude resumes.",
+    "whyItMatters": "On Claude 4.6 and later, put the partial response in a **user** message with an instruction to continue; on 4.5 and earlier, it went in an assistant message.",
+    "example": "Tool use and extended thinking blocks can't be partially recovered; resume from the most recent text block.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-long-context-vs-rag",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Long prompt vs RAG",
+    "definition": "Anthropic's post: if a knowledge base is under 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG.",
+    "whyItMatters": "Try the simplest option first; prompt caching makes the whole-knowledge-base prompt faster and cheaper. Larger knowledge bases need a scalable approach such as RAG.",
+    "example": "RAG: chunk the corpus, embed the chunks, then add the most relevant chunks to the prompt at query time.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/contextual-retrieval",
+      "title": "Introducing Contextual Retrieval",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-batch-vs-realtime",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Real-time vs batch",
+    "definition": "Batch processing suits large volumes when immediate responses are not required; it submits requests together for asynchronous processing.",
+    "whyItMatters": "The Message Batches API cuts costs by 50% and most batches finish in under 1 hour, so it fits evals, moderation and bulk generation, not live replies.",
+    "example": "Nightly review summaries: batch. A user waiting in a chat: an immediate response, not a batch.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-custom-id",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "custom_id",
+    "definition": "A unique ID you give each request in a Message Batch (1 to 64 letters, digits, hyphens or underscores) to match it with its result.",
+    "whyItMatters": "Batch results can be returned in any order, so match each result to its request by `custom_id`, never by position.",
+    "example": "`\"custom_id\": \"review-10432\"` lets you write each summary back to the right row.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-ttft",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Time to first token (TTFT)",
+    "definition": "The time from sending the prompt until the model generates the first token of its response.",
+    "whyItMatters": "Particularly relevant with streaming, when you want a responsive experience. Baseline latency instead covers processing the prompt and generating the response.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-latency-levers",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Latency reduction levers",
+    "definition": "Anthropic's latency guide: choose the right model, minimize prompt and output tokens, and stream responses.",
+    "whyItMatters": "Engineer a prompt that works well first, then reduce latency: doing it prematurely might hide what top performance looks like.",
+    "example": "Ask for a sentence or paragraph count rather than a word count. Claude Haiku 4.5 offers the fastest response times.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-citations",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Citations",
+    "definition": "An API feature that returns the exact document passages supporting each claim. Turn it on with `citations.enabled=true` on each document.",
+    "whyItMatters": "Unlike prompt-based quoting, citations are guaranteed to contain valid pointers to the provided documents. Enable them on all or none of a request's documents.",
+    "example": "Plain text and PDFs are chunked into sentences; custom content documents let you control citation granularity.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "title": "Citations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cited-text",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "cited_text",
+    "definition": "The citation field holding the exact passage Claude cites, returned with its location in the source document.",
+    "whyItMatters": "It is provided for convenience and doesn't count toward output tokens, or toward input tokens when passed back in later turns.",
+    "example": "Location types: `char_location` for plain text, `page_location` for PDFs, `content_block_location` for custom content.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "title": "Citations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-json-outputs",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "JSON outputs (output_config.format)",
+    "definition": "The structured outputs mode that constrains Claude's response to a JSON schema you supply, using constrained decoding.",
+    "whyItMatters": "It addresses malformed JSON and missing fields. Citations can't be combined with it (400), and a refusal or `max_tokens` cutoff may still not match the schema.",
+    "example": "`\"output_config\": {\"format\": {\"type\": \"json_schema\", \"schema\": {...}}}`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-grammar-caching",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Schema grammar caching",
+    "definition": "Structured outputs compile your schema into a grammar. The first request with a schema has extra latency; grammars are cached 24 hours from last use.",
+    "whyItMatters": "Changing the schema structure, or the set of tools used alongside it, invalidates the cache; changing only `name` or `description` fields does not.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-files-api",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Files API",
+    "definition": "Upload a file once, get a `file_id`, and reference that ID in Messages requests instead of re-uploading the content each time.",
+    "whyItMatters": "PDFs and plain text go in `document` blocks, images in `image` blocks. Convert unsupported types such as .docx or .xlsx to plain text first.",
+    "example": "Files you upload can't be downloaded; only files created by skills or code execution can.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-routing-workflow",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Routing (workflow)",
+    "definition": "A workflow that classifies an input and directs it to a specialized follow-up task, with its own prompts and tools.",
+    "whyItMatters": "Use it when distinct categories are better handled separately. Without it, optimizing for one kind of input can hurt performance on others.",
+    "example": "Route easy, common questions to Claude Haiku 4.5 and hard, unusual ones to a more capable model.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-parallelization-workflow",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "term": "Parallelization (workflow)",
+    "definition": "LLM calls that work at the same time, with outputs aggregated in code. Sectioning splits a task into independent parts; voting repeats one task.",
+    "whyItMatters": "Guardrails are a sectioning case: one call screens the input while another answers, which tends to beat one call doing both.",
+    "example": "Voting: several different prompts review code for vulnerabilities and flag any problem they find.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
   }
 ]
