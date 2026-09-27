@@ -20,8 +20,18 @@
           "kind": "segmented-bar",
           "caption": "A cached prefix is billed at the read rate; only the new part costs full price.",
           "segments": [
-            { "label": "Cached prefix", "sublabel": "cache-read rate", "weight": 3, "tone": "success" },
-            { "label": "New content", "sublabel": "full price", "weight": 1, "tone": "neutral" }
+            {
+              "label": "Cached prefix",
+              "sublabel": "cache-read rate",
+              "weight": 3,
+              "tone": "success"
+            },
+            {
+              "label": "New content",
+              "sublabel": "full price",
+              "weight": 1,
+              "tone": "neutral"
+            }
           ]
         }
       },
@@ -34,9 +44,246 @@
         "body": "By default the cache has a 5-minute lifetime, refreshed at no extra cost each time the cached content is used. If traffic has longer gaps, set `\"ttl\": \"1h\"` on `cache_control` for the 1-hour duration, at a higher write price.\n\nYou can define up to 4 breakpoints, for example to cache sections that change at different rates. Prompts shorter than the model's minimum cacheable length are not cached."
       }
     ],
-    "checkQuestionIds": ["q-cache-repeated-system-prompt", "q-cache-breakpoint-placement", "q-cache-lifetime"],
+    "checkQuestionIds": [
+      "q-cache-repeated-system-prompt",
+      "q-cache-breakpoint-placement",
+      "q-cache-lifetime"
+    ],
     "sources": [
-      { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" }
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+        "title": "Prompt caching",
+        "checkedOn": "2026-09-26"
+      }
+    ]
+  },
+  {
+    "id": "l-llm-fundamentals",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "title": "LLM fundamentals",
+    "summary": "A language model reads and writes tokens, and everything it works with at once must fit in its context window, the model's \"working memory\". Temperature controls how random the output is, and even at temperature 0 the API isn't fully deterministic. Examples in the prompt (few-shot) are one of the most reliable ways to steer it.",
+    "keyPoints": [
+      "For Claude, a token is approximately **3.5 English characters**; the exact number varies by language.",
+      "The context window includes the **response itself**; system prompt, messages, tools and thinking all count, and cached prefixes still count.",
+      "More context isn't automatically better: accuracy and recall degrade as tokens grow (**context rot**).",
+      "Even with **temperature 0**, identical inputs may produce different outputs across API calls.",
+      "Few-shot examples should be relevant, diverse and in `<example>` tags; **3–5** work best."
+    ],
+    "sections": [
+      {
+        "heading": "Tokens and next-token prediction",
+        "body": "Tokens are the smallest units a language model works in. They can be words, subwords, characters or even bytes. For Claude, a token is approximately 3.5 English characters, though the exact number varies by language.\n\nIn pretraining, autoregressive models like Claude's underlying model are trained on a large unlabeled corpus to predict the next word from the previous context. Pretrained models are not inherently good at answering questions or following instructions. Fine-tuning and RLHF refine them, and Claude has already been fine-tuned to be a helpful assistant."
+      },
+      {
+        "heading": "The context window",
+        "body": "The context window is all the text a model can reference when generating a response, including the response itself. It is a working memory, separate from the training data.\n\nEverything in a request counts: the system prompt, every message (tool results, images and documents too), tool definitions, and the output, including thinking. Cached prefixes still occupy the window; caching changes what you pay, not whether they count.\n\n- Input alone over the window: 400 \"prompt is too long\", on every model\n- Input plus `max_tokens` over the window, on Claude 4.5 models and newer: accepted, and it may stop with `model_context_window_exceeded`\n- More tokens can mean worse accuracy and recall (context rot), so curate what goes in",
+        "diagram": {
+          "kind": "segmented-bar",
+          "caption": "Everything in the request, plus the output, shares one window.",
+          "segments": [
+            {
+              "label": "System + tools",
+              "weight": 1,
+              "tone": "neutral"
+            },
+            {
+              "label": "Messages",
+              "weight": 3,
+              "tone": "neutral"
+            },
+            {
+              "label": "Output",
+              "sublabel": "incl. thinking",
+              "weight": 1,
+              "tone": "accent"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Temperature and non-determinism",
+        "body": "Temperature controls the randomness of a model's predictions. Higher temperatures give more creative and diverse outputs; lower temperatures give more conservative, deterministic outputs that stick to the most probable phrasing.\n\nEven with temperature set to 0, results are not fully deterministic: identical inputs may produce different outputs across API calls. This is true of Anthropic's own service and of third-party cloud providers."
+      },
+      {
+        "heading": "Steering with examples (few-shot)",
+        "body": "A few well-crafted examples, known as few-shot or multishot prompting, improve accuracy and consistency. Make them:\n\n- Relevant: mirror your actual use case closely\n- Diverse: cover edge cases, so Claude doesn't pick up unintended patterns\n- Structured: wrap each in `<example>` tags, and a set in `<examples>`\n\nInclude 3–5 examples for best results."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-llm-token-estimate",
+      "q-llm-context-overflow",
+      "q-llm-nondeterminism"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+        "title": "Glossary",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+        "title": "Context windows",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-technical-fundamentals",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "title": "Calling the Claude API",
+    "summary": "The Claude API is a RESTful API at `https://api.anthropic.com`. Requests need an API key or access token, an `anthropic-version` header and a JSON content type, and the official SDKs send these for you and add retries. Set `\"stream\": true` to get the reply as server-sent events, and handle each event type in order.",
+    "keyPoints": [
+      "Required headers: auth (`Authorization: Bearer` or legacy `x-api-key`), `anthropic-version` and `content-type: application/json`.",
+      "Official client SDKs: **Python, TypeScript, C#, Go, Java, PHP and Ruby**.",
+      "SDKs retry connection errors, rate limits and 5xx errors **twice by default**, with backoff; configure with `max_retries`.",
+      "Stream order: `message_start` → content blocks (start, deltas, stop) → `message_delta` → `message_stop`.",
+      "Messages requests are capped at **32 MB**; over that is a 413 `request_too_large`."
+    ],
+    "sections": [
+      {
+        "heading": "Requests and headers",
+        "body": "The Messages API is `POST /v1/messages`. Every request includes:\n\n- `Authorization: Bearer <key>` (or `x-api-key`, a legacy fallback that is still supported)\n- `anthropic-version`, for example `2023-06-01`\n- `content-type: application/json`\n\n`anthropic-workspace-id` is also required with a multi-workspace API key. Requests have size limits: 32 MB for Messages and Token Counting, 256 MB for Message Batches and 500 MB for the Files API. Going over returns a 413 `request_too_large` error."
+      },
+      {
+        "heading": "The SDKs",
+        "body": "Anthropic's client SDKs for Python, TypeScript, C#, Go, Java, PHP and Ruby manage headers automatically and provide type safety and built-in streaming, retries and error handling. The Claude Agent SDK is different: it works at a higher level, providing the agent loop and tool execution.\n\nThe SDKs automatically retry transient failures (connection errors, rate limits and 5xx server errors) with exponential backoff, twice by default, and honor `retry-after` when it is present. Use `max_retries` (TypeScript, Java, PHP: `maxRetries`) to configure or disable this."
+      },
+      {
+        "heading": "Streaming over server-sent events",
+        "body": "With `\"stream\": true`, the response arrives as server-sent events. `message_start` carries a `Message` with empty `content`. Each content block then has a `content_block_start`, one or more `content_block_delta` events and a `content_block_stop`. One or more `message_delta` events follow, whose `usage` counts are cumulative, and `message_stop` ends the stream.\n\n- `ping` events can appear anywhere\n- New event types may be added, so handle unknown ones gracefully\n- Tool input streams as `input_json_delta` partial JSON: accumulate it, then parse at `content_block_stop`\n- Errors can arrive mid-stream after a 200, for example `overloaded_error`\n\nFor large `max_tokens` values the SDKs require streaming to avoid HTTP timeouts. If you only need the finished reply, `.get_final_message()` (Python) or `.finalMessage()` (TypeScript) returns the complete `Message`.",
+        "diagram": {
+          "kind": "flow",
+          "steps": [
+            {
+              "label": "message_start"
+            },
+            {
+              "label": "content_block_start"
+            },
+            {
+              "label": "content_block_delta",
+              "sublabel": "one or more"
+            },
+            {
+              "label": "content_block_stop"
+            },
+            {
+              "label": "message_delta"
+            },
+            {
+              "label": "message_stop"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-tech-required-headers",
+      "q-tech-sse-event-order",
+      "q-tech-sdk-retries"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/api/overview",
+        "title": "API overview",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+        "title": "CLI, SDKs, and libraries",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/errors",
+        "title": "Claude API errors",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-model-tradeoffs",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "title": "Choosing a model and effort",
+    "summary": "Choosing a Claude model means balancing capability, speed and cost. Start most workloads on Claude Opus 5.5 and move to Claude Fable 5.1 only when evals at the highest effort still fall short. Within one model, the effort parameter is often a better lever than switching models.",
+    "keyPoints": [
+      "**Fable 5.1** $10/$50, slower · **Opus 5.5** $4/$20, moderate · **Sonnet 5** $2/$10, fast · **Haiku 4.5** $1/$5, fastest (per input/output MTok).",
+      "If unsure, start with **Claude Opus 5.5**; move to **Fable 5.1** when evals at `xhigh` or `max` effort still fall short.",
+      "Effort runs `low` → `max`; default `high` on most models, `medium` on Claude Opus 5.5. Lower effort cuts latency and cost.",
+      "Manual `budget_tokens`: at least **1,024** and below `max_tokens`; above 32k use batch processing. Claude 4.7 and later reject it."
+    ],
+    "sections": [
+      {
+        "heading": "The current lineup",
+        "body": "- Claude Fable 5.1: demanding reasoning and long-horizon agentic work. Slower latency; $10 / $50 per input / output MTok\n- Claude Opus 5.5: long-running agentic coding and knowledge work. Moderate latency; $4 / $20\n- Claude Sonnet 5: the best combination of speed and intelligence. Fast; $2 / $10\n- Claude Haiku 4.5: the fastest model, with near-frontier intelligence. Fastest; $1 / $5\n\nBatch API requests are 50% off. Actual latency depends on prompt length, output length and thinking effort."
+      },
+      {
+        "heading": "Two starting strategies",
+        "body": "Efficiency-first starts with Claude Haiku 4.5 and upgrades only for specific capability gaps. It suits prototyping, tight latency, cost-sensitive and high-volume straightforward tasks.\n\nCapability-first starts with Claude Opus 5.5, then optimizes down by lowering effort or switching models. It suits complex reasoning and cases where accuracy outweighs cost. If evals at `xhigh` or `max` effort still fall short on demanding reasoning or long-horizon agentic work, move to Claude Fable 5.1.\n\nEither way, build an evaluation set from your real prompts and data: the guide calls this the most important step.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The capability-first path in the model guide.",
+          "steps": [
+            {
+              "label": "Start on Opus 5.5"
+            },
+            {
+              "label": "Evaluate"
+            },
+            {
+              "label": "Lower effort or model",
+              "sublabel": "if evals hold"
+            },
+            {
+              "label": "Fable 5.1",
+              "sublabel": "if max effort falls short"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Effort and thinking",
+        "body": "Effort (`output_config.effort`) controls how many tokens Claude spends, across text, tool calls and thinking. Levels run `low`, `medium`, `high`, `xhigh` and `max`. Lower effort gives token savings with some capability reduction; `low` suits simple, speed-sensitive tasks such as subagents. On Claude Opus 5.5 adaptive thinking is always on, and `thinking: {\"type\": \"disabled\"}` returns a 400 error.\n\nOn models that support only manual extended thinking (such as Claude Sonnet 4.5 and Claude Haiku 4.5), `budget_tokens` sets the thinking target: at least 1,024 and less than `max_tokens`. Larger budgets can improve quality, with diminishing returns and more latency. Above 32k, use batch processing to avoid timeouts. Claude 4.7 and later models reject `budget_tokens` with a 400."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-tradeoff-fable-escalation",
+      "q-tradeoff-effort-lever",
+      "q-tradeoff-cost-estimate"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+        "title": "Choosing the right model",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+        "title": "Effort",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+        "title": "Extended thinking",
+        "checkedOn": "2026-09-27"
+      }
     ]
   }
 ]

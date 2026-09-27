@@ -7,7 +7,11 @@
     "definition": "An API feature that lets a request resume from a previously processed prompt prefix, reducing processing time and cost for prompts with repeated content.",
     "whyItMatters": "Cache reads cost **0.1×** base input on most models; 5-minute writes cost 1.25× and 1-hour writes 2×. It pays off when the same large prefix repeats.",
     "example": "Cache a long system prompt and tool definitions shared by every request.",
-    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-09-26"
+    },
     "isVocab": true
   },
   {
@@ -18,7 +22,11 @@
     "definition": "A content-block field marking a cache breakpoint: the prompt (tools, system, then messages) up to and including that block becomes the cacheable prefix.",
     "whyItMatters": "Exam scenarios test **where** to put the breakpoint: after the large, stable content and before anything that changes per request.",
     "example": "Put `cache_control` on the last block of a long system prompt; add `\"ttl\": \"1h\"` for the 1-hour lifetime.",
-    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching", "title": "Prompt caching", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-09-26"
+    },
     "isVocab": true
   },
   {
@@ -29,7 +37,327 @@
     "definition": "Asynchronous processing of large volumes of Messages requests at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
     "whyItMatters": "Choose it for work that doesn't need an immediate response (bulk evaluations, content moderation, data analysis), never for live chat.",
     "example": "Submit thousands of product descriptions as one batch, then poll for results. Results stay available for 29 days.",
-    "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing", "title": "Batch processing", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-26"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-token",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Token",
+    "definition": "The smallest unit a language model works in: a word, subword, character or byte. For Claude, a token is approximately 3.5 English characters.",
+    "whyItMatters": "Limits and prices are counted in tokens, not characters, so rough estimates start from that ratio; the exact number varies by language.",
+    "example": "A 7,000-character English text is roughly 2,000 tokens.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-context-window",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Context window",
+    "definition": "All the text a model can reference when generating a response, including the response itself: its \"working memory\", not its training data.",
+    "whyItMatters": "The system prompt, messages, tool definitions and the output (thinking included) all count; each response reports what it used in `usage`.",
+    "example": "Claude Opus 5.5 and Claude Sonnet 5 have a 1M-token window; Claude Sonnet 4.5 has 200k.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-context-rot",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Context rot",
+    "definition": "The degradation of accuracy and recall as the number of tokens in context grows. More context isn't automatically better.",
+    "whyItMatters": "Curating **what** is in context matters as much as how much space is available: a big window is not a reason to fill it.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-context-window-exceeded",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "model_context_window_exceeded",
+    "definition": "A stop reason on Claude 4.5 models and newer: generation stopped because it reached the context window limit.",
+    "whyItMatters": "On these models input plus `max_tokens` may exceed the window; input **alone** over the window still gets a 400 \"prompt is too long\".",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-pretraining",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Pretraining",
+    "definition": "Initial training on a large unlabeled text corpus. Autoregressive models like Claude's underlying model learn to predict the next word from prior context.",
+    "whyItMatters": "Pretrained models aren't inherently good at following instructions; fine-tuning and RLHF refine them, which is why Claude acts as an assistant.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-temperature",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Temperature",
+    "definition": "A parameter that controls the randomness of a model's predictions during text generation.",
+    "whyItMatters": "Higher temperature gives more creative, diverse outputs; lower gives more conservative, deterministic outputs that stick to the most probable phrasing.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-non-determinism",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Non-determinism",
+    "definition": "Identical inputs may produce different outputs across API calls. Even with temperature set to 0, results are not fully deterministic.",
+    "whyItMatters": "Don't expect a repeated request to reproduce a reply exactly, on Anthropic's own service or through third-party cloud providers.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-few-shot-prompting",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "term": "Few-shot (multishot) prompting",
+    "definition": "Putting a few well-crafted examples in the prompt: one of the most reliable ways to steer Claude's output format, tone and structure.",
+    "whyItMatters": "Make examples **relevant**, **diverse** (cover edge cases) and **structured** in `<example>` tags; 3–5 examples give the best results.",
+    "example": "Wrap the set in `<examples>` and each one in its own `<example>` tag.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-anthropic-version",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "anthropic-version (header)",
+    "definition": "A required request header naming the API version, for example `2023-06-01`.",
+    "whyItMatters": "Raw HTTP calls also need `content-type: application/json` and an API key (`Authorization: Bearer` or legacy `x-api-key`); the SDKs send these for you.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-client-sdks",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "Client SDKs",
+    "definition": "Anthropic's official, general-purpose Messages API clients for Python, TypeScript, C#, Go, Java, PHP and Ruby.",
+    "whyItMatters": "Each has type safety and built-in streaming, retries and error handling. The Claude Agent SDK is different: it provides the agent loop and tool execution.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+      "title": "CLI, SDKs, and libraries",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-sdk-retries",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "SDK automatic retries",
+    "definition": "The official SDKs retry transient failures (connection errors, rate limits, 5xx errors) with exponential backoff, twice by default.",
+    "whyItMatters": "They honor the `retry-after` header when present. Configure or disable retries with `max_retries` (TypeScript, Java, PHP: `maxRetries`).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-stream-event-flow",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "Stream event flow",
+    "definition": "`message_start`, then each content block (start, one or more deltas, stop), then one or more message deltas, then a final `message_stop`.",
+    "whyItMatters": "A raw SSE parser must follow this order, accept `ping` events anywhere, and handle unknown event types gracefully.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-input-json-delta",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "input_json_delta",
+    "definition": "The delta type for a streamed `tool_use` block: partial JSON strings that build up the tool's `input`.",
+    "whyItMatters": "Don't parse each delta: accumulate the strings and parse at `content_block_stop`, or use the SDK helpers. The final `input` is an object.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-message-delta-usage",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "message_delta usage",
+    "definition": "The token counts in the `usage` field of a streaming `message_delta` event. They are **cumulative**.",
+    "whyItMatters": "When you log usage from a stream, adding up the counts from several `message_delta` events double-counts tokens.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-sdk-final-message",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "Stream, then get the final message",
+    "definition": "SDK helpers that stream internally and return the complete Message object: `.get_final_message()` in Python, `.finalMessage()` in TypeScript.",
+    "whyItMatters": "Use them for requests with large `max_tokens` values, where the SDKs require streaming to avoid HTTP timeouts, even if you don't need text as it arrives.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-stream-error-events",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "Mid-stream errors",
+    "definition": "When receiving a streaming (SSE) response, an error can occur after the API has already returned a 200 response.",
+    "whyItMatters": "A 200 status doesn't mean the stream will finish: handle errors that arrive in the stream, such as `overloaded_error` (HTTP 529 when not streaming).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-request-size-limits",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "term": "Request size limits",
+    "definition": "Maximum request size per endpoint: 32 MB for Messages and Token Counting, 256 MB for Message Batches, 500 MB for the Files API.",
+    "whyItMatters": "Going over returns a 413 `request_too_large` error. Partner platforms set their own: Bedrock allows 20 MB and Google Cloud 30 MB.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-current-models",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "term": "Current Claude models",
+    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5: speed + intelligence. Haiku 4.5: fastest.",
+    "whyItMatters": "If you're unsure, start with Claude Opus 5.5; use Claude Fable 5.1 when your evals on Opus 5.5 at higher effort still fall short.",
+    "example": "Comparative latency: Fable 5.1 slower, Opus 5.5 moderate, Sonnet 5 fast, Haiku 4.5 fastest.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-effort",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "term": "Effort (output_config.effort)",
+    "definition": "Controls how many tokens Claude spends responding, from low through medium, high and xhigh to max. It affects text, tool calls and thinking.",
+    "whyItMatters": "Lower it for speed-sensitive or simple tasks to cut latency and cost. Most models default to `high`; Claude Opus 5.5 defaults to `medium`.",
+    "example": "`\"output_config\": {\"effort\": \"low\"}` for a simple, high-volume subtask.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-thinking-budget",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "term": "budget_tokens (extended thinking)",
+    "definition": "The thinking budget in manual extended thinking: at least 1,024 tokens and less than `max_tokens`. It is a target, not a strict cap.",
+    "whyItMatters": "Larger budgets can improve quality at the cost of latency, with diminishing returns; above 32k use batch processing. Claude 4.7 and later reject it.",
+    "example": "`\"thinking\": {\"type\": \"enabled\", \"budget_tokens\": 16000}` for a complex task.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-price-per-mtok",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "term": "Price per MTok",
+    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5: $2 input, $10 output.",
+    "whyItMatters": "Estimate cost as input MTok × input price + output MTok × output price. Batch API requests are 50% off.",
+    "example": "Claude Haiku 4.5: $1 / $5. Claude Opus 5.5: $4 / $20. Claude Fable 5.1: $10 / $50.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-token-counting",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "term": "Token counting API",
+    "definition": "`POST /v1/messages/count_tokens` takes the same inputs as a Messages request and returns the total input tokens, as an estimate.",
+    "whyItMatters": "It's free (with its own RPM limits). Count under the model you'll use: Claude 4.7 and later models use a newer tokenizer that yields about 30% more tokens.",
+    "example": "Before a migration, count one request under each model and compare the two `input_tokens` values.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "title": "Token counting",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
   }
 ]
