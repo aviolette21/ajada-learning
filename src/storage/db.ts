@@ -55,6 +55,7 @@ export class AppDb {
   getAttempts() { return this.db.getAll('attempts'); }
   getMockSessions() { return this.db.getAll('mockSessions'); }
   async putMockSession(s: MockSession) { await this.db.put('mockSessions', s); }
+  async deleteMockSession(id: string) { await this.db.delete('mockSessions', id); }
   async markLessonDone(lessonId: string, at: number) { await this.db.put('lessonsDone', { lessonId, at }); }
   getLessonsDone() { return this.db.getAll('lessonsDone'); }
   async putFlag(f: Flag) { await this.db.put('flags', f); }

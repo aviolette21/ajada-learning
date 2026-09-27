@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
 import { MOCK_DURATION_MS } from '../../study/mockExam';
 import type { MockSession } from '../../study/types';
@@ -50,6 +50,37 @@ describe('MockIntroPage', () => {
     await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
     await userEvent.click(await screen.findByRole('button', { name: 'Resume exam in progress' }));
     expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1');
+  });
+  it('makes resume the primary action while an exam is in progress', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session());
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    expect(await screen.findByRole('button', { name: 'Resume exam in progress' })).toHaveClass('btn-primary');
+    expect(screen.getByRole('button', { name: 'Start a new mock exam' })).toHaveClass('btn-secondary');
+  });
+  it('discards the exam in progress, without recording it, when starting a new one is confirmed', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const db = await openTestDb();
+    await db.putMockSession(session({ answers: { 'q-alpha-1': 'a', 'q-alpha-2': 'b' } }));
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Start a new mock exam' }));
+    expect(confirm).toHaveBeenCalledWith('Discard your exam in progress and start a new one?');
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(`/practice/mock/mock-${NOW.getTime()}`));
+    expect((await db.getMockSessions()).map((s) => s.id)).toEqual([`mock-${NOW.getTime()}`]);
+    expect(await db.getAttempts()).toEqual([]);
+    confirm.mockRestore();
+  });
+  it('keeps the exam in progress when starting a new one is cancelled', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const db = await openTestDb();
+    await db.putMockSession(session());
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Start a new mock exam' }));
+    expect(confirm).toHaveBeenCalled();
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/mock$/);
+    expect((await db.getMockSessions()).map((s) => s.id)).toEqual(['m1']);
+    expect(await db.getAttempts()).toEqual([]);
+    confirm.mockRestore();
   });
 });
 

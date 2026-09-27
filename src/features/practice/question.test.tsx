@@ -83,4 +83,21 @@ describe('QuestionRunner', () => {
     expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2 });
     await waitFor(async () => expect(await db.getAttempts()).toHaveLength(2));
   });
+
+  it('hides the lesson link during a lesson check so the check is not abandoned', async () => {
+    await renderWithApp(
+      <QuestionRunner questions={[q1]} mode="lesson" title="Check" onFinish={() => {}} onExit={() => {}} />,
+    );
+    await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
+    expect(await screen.findByText(/Not quite/)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Read the lesson/ })).toBeNull();
+  });
+
+  it('keeps the lesson link outside lesson checks', async () => {
+    await renderWithApp(
+      <QuestionRunner questions={[q1]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />,
+    );
+    await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
+    expect(await screen.findByRole('link', { name: /Read the lesson/ })).toBeInTheDocument();
+  });
 });

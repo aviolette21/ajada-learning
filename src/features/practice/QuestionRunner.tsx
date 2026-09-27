@@ -66,7 +66,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
           <QuestionView question={question} chosen={chosen} onChoose={choose} mode="answer" />
         </motion.div>
       </AnimatePresence>
-      <VerdictSheet question={question} chosen={chosen} open={chosen !== null} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} />
+      <VerdictSheet question={question} chosen={chosen} open={chosen !== null} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-.runner { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: calc(var(--safe-top) + 6px) 16px 32px; }
+.runner { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: calc(var(--safe-top) + 6px) 16px calc(var(--safe-bottom) + 32px); }
 .runner.has-sheet { padding-bottom: 64vh; }
 .runner-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
 .runner-count { font-size: 13px; font-weight: 650; color: var(--muted); }
@@ -35,6 +35,6 @@
 .takeaway { margin-bottom: 8px; padding: 11px 12px; border-left: 3px solid var(--accent); border-radius: 10px; background: #211d3a; font-size: 14px; }
 .related { margin: 0 0 8px; padding-left: 18px; }
 .related li { margin: 6px 0; }
-.summary { display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto; padding: calc(var(--safe-top) + 64px) 24px 24px; text-align: center; }
+.summary { display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto; padding: calc(var(--safe-top) + 64px) 24px calc(var(--safe-bottom) + 24px); text-align: center; }
 .summary .score { font-size: 44px; font-weight: 800; color: var(--accent-text); }
 .flag.on { color: var(--warning); }

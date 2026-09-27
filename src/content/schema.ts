@@ -4,7 +4,7 @@ const text = z.string().trim().min(1);
 const slug = z.string().regex(/^[a-z0-9-]+$/);
 
 export const ChoiceIdSchema = z.enum(['a', 'b', 'c', 'd']);
-export const SourceSchema = z.object({ url: z.url(), title: text, checkedOn: z.iso.date() });
+export const SourceSchema = z.object({ url: z.url({ protocol: /^https$/ }), title: text, checkedOn: z.iso.date() });
 
 const Tone = z.enum(['success', 'error', 'accent', 'neutral']);
 export const DiagramSchema = z.discriminatedUnion('kind', [

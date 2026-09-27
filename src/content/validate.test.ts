@@ -38,6 +38,14 @@ describe('validateContent', () => {
     expect(errorText(r)).toMatch(/alpha\/questions\.json: 0\.answer/);
   });
 
+  it.each(['javascript:alert(1)', 'http://example.com/docs'])('rejects a non-https source url %s', (url) => {
+    const r = mutate((raw) => {
+      const card = raw.files['alpha/cards.json'][0];
+      card.source = { ...card.source, url };
+    });
+    expect(errorText(r)).toMatch(/alpha\/cards\.json: 0\.source\.url/);
+  });
+
   it('rejects choices out of order', () => {
     const r = mutate((raw) => {
       const cs = raw.files['alpha/questions.json'][0].choices;

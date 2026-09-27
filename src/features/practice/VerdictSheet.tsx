@@ -8,12 +8,14 @@ import { IconCheck, IconChevron, IconX } from '../../ui/icons';
 import { renderInline } from '../../ui/inline';
 import { Sheet } from '../../ui/Sheet';
 
-export function VerdictSheet({ question, chosen, open, onContinue, continueLabel = 'Continue' }: {
+export function VerdictSheet({ question, chosen, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
   question: Question;
   chosen: ChoiceId | null;
   open: boolean;
   onContinue: () => void;
   continueLabel?: string;
+  /** Off during a lesson check, where leaving for the lesson would abandon the check. */
+  showLessonLink?: boolean;
 }) {
   const { cardById } = useContent();
   const correct = chosen === question.answer;
@@ -36,7 +38,7 @@ export function VerdictSheet({ question, chosen, open, onContinue, continueLabel
             </ul>
           </Disclosure>
         )}
-        {question.lessonId && (
+        {showLessonLink && question.lessonId && (
           <Link className="sheet-row" to={`/learn/lesson/${question.lessonId}`}>
             <span>📖 Read the lesson</span><span className="chev"><IconChevron /></span>
           </Link>

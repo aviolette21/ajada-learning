@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { openTestDb } from '../../tests/renderWithApp';
 import { fixtureContent } from '../content/fixtures';
 import type { AppDb } from '../storage/db';
-import { newState, rate } from '../study/scheduler';
+import { buildQueue, newState, rate } from '../study/scheduler';
 import { DEFAULT_SETTINGS, type MockSession } from '../study/types';
 import { ClockProvider } from './clock';
 import { ContentProvider } from './ContentContext';
@@ -43,7 +43,23 @@ describe('ProgressProvider', () => {
     await act(() => result.current.recordAnswer(content.questionById.get('q-alpha-1')!, 'b', 'quiz'));
     expect(result.current.attempts).toMatchObject([{ questionId: 'q-alpha-1', correct: false, mode: 'quiz' }]);
     expect(result.current.cardStates.get('c-alpha-one:forward')!.fsrs.due.getTime()).toBe(NOW.getTime());
+    expect(result.current.cardStates.get('c-alpha-one:reverse')!.fsrs.due.getTime()).toBe(NOW.getTime());
     expect(await db.getAttempts()).toHaveLength(1);
+  });
+
+  it('resurfaces a never-studied related flashcard in both directions after a wrong answer', async () => {
+    const { result, db, content } = await setup();
+    await act(() => result.current.recordAnswer(content.questionById.get('q-beta-1')!, 'b', 'quiz'));
+    for (const d of ['forward', 'reverse'] as const) {
+      expect(result.current.cardStates.get(`c-beta-one:${d}`)!.fsrs.due.getTime()).toBe(NOW.getTime());
+    }
+    expect((await db.getCardStates()).map((s) => s.key).sort()).toEqual(['c-beta-one:forward', 'c-beta-one:reverse']);
+    const queue = buildQueue({
+      cardIds: ['c-beta-one'], states: result.current.cardStates, mode: 'mixed', now: NOW, newPerDay: 0, rng: () => 0,
+    });
+    expect(queue.map((q) => [q.direction, q.state?.key])).toEqual([
+      ['forward', 'c-beta-one:forward'], ['reverse', 'c-beta-one:reverse'],
+    ]);
   });
 
   it('leaves flashcards alone after a right answer', async () => {
@@ -78,6 +94,19 @@ describe('ProgressProvider', () => {
     await act(async () => { await result.current.submitMock(session); });
     expect(result.current.mockSessions[0].submittedAt).toBe(NOW.getTime());
     expect(result.current.attempts).toMatchObject([{ questionId: 'q-alpha-1', correct: true, mode: 'mock' }]);
+  });
+  it('discards a mock session without recording its answers', async () => {
+    const { result, db } = await setup();
+    const session: MockSession = {
+      id: 'm3', startedAt: 0, durationMs: 1000, questionIds: ['q-alpha-1'],
+      answers: { 'q-alpha-1': 'a' }, flagged: [], currentIndex: 0,
+    };
+    await act(() => result.current.saveMockSession(session));
+    await act(() => result.current.discardMockSession('m3'));
+    expect(result.current.mockSessions).toEqual([]);
+    expect(await db.getMockSessions()).toEqual([]);
+    expect(result.current.attempts).toEqual([]);
+    expect(await db.getAttempts()).toEqual([]);
   });
   it('records a mock exam once when two submits race', async () => {
     const { result, db } = await setup();

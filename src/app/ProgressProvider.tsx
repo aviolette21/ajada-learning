@@ -3,7 +3,7 @@ import type { ChoiceId, Question } from '../content/schema';
 import { parseBackup, serializeBackup } from '../storage/backup';
 import type { AppDb } from '../storage/db';
 import { mockAttempts } from '../study/mockExam';
-import { resurface, stateKey } from '../study/scheduler';
+import { newState, resurface, stateKey } from '../study/scheduler';
 import {
   DEFAULT_SETTINGS,
   type Attempt, type AttemptMode, type Flag, type MockSession, type Settings, type StoredCardState,
@@ -28,6 +28,8 @@ export interface ProgressApi extends Progress {
   updateSettings(patch: Partial<Settings>): Promise<void>;
   saveMockSession(session: MockSession): Promise<void>;
   submitMock(session: MockSession): Promise<MockSession>;
+  /** Deletes an unsubmitted session without recording any of its answers. */
+  discardMockSession(id: string): Promise<void>;
   /** Serializes all progress; does not count as a backup until `markBackedUp` is called. */
   exportBackup(): Promise<string>;
   /** Records that a backup file was actually saved (sets `lastBackupAt` to now). */
@@ -101,7 +103,8 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
           : question.relatedCardIds.flatMap((cardId) =>
               (['forward', 'reverse'] as const).flatMap((d) => {
                 const s = current().cardStates.get(stateKey(cardId, d));
-                return s ? [resurface(s, at)] : [];
+                // A never-studied direction starts as a new state, which is already due now.
+                return [s ? resurface(s, at) : newState(cardId, d, at)];
               }),
             );
         if (resurfaced.length > 0) await db.putCardStates(resurfaced);
@@ -152,6 +155,10 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         // Keep a successful submission cached; forget a failed one so it can be retried.
         run.catch(() => submits.current.delete(session.id));
         return run;
+      },
+      async discardMockSession(id) {
+        await db.deleteMockSession(id);
+        setState((p) => p && { ...p, mockSessions: p.mockSessions.filter((s) => s.id !== id) });
       },
       async exportBackup() {
         return serializeBackup(await db.exportAll(), now());
