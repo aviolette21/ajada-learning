@@ -122,4 +122,4 @@ button.panel-link { padding: 0; border: 0; background: none; font: inherit; }
   background: var(--surface-2); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); font-weight: 650;
 }
 .update-toast .grow { flex: 1; }
-.update-toast .btn { min-height: 40px; padding: 8px 14px; }
+.update-toast .btn { min-height: 44px; padding: 8px 14px; }

@@ -13,6 +13,16 @@ test('answering a question shows every reason and the verdict sheet', async ({ p
   await expect(page.locator('.choice-reason')).toHaveCount(4);
 });
 
+test('flashcard shows only the face turned toward you (WebKit backface guard)', async ({ page }) => {
+  await page.goto('./#/cards/review');
+  const top = page.locator('.deck-slot .fc[role="button"]');
+  await expect(top.locator('.fc-front')).toBeVisible();
+  await expect(top.locator('.fc-back')).toBeHidden();
+  await top.click();
+  await expect(top.locator('.fc-back')).toBeVisible();
+  await expect(top.locator('.fc-front')).toBeHidden();
+});
+
 // Runs on the Pixel 7 project (see playwright.config.ts): WebKit's iPhone emulation keeps each entering card
 // 'not stable' for seconds, which pushes this 15-card run past the timeout.
 test.describe('flashcards', { tag: '@chromium' }, () => {

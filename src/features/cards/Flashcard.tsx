@@ -18,7 +18,8 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
   const goodOpacity = useTransform(x, [20, 110], [0, 1]);
   const againOpacity = useTransform(x, [-110, -20], [1, 0]);
   const dragged = useRef(false);
-  // backface-visibility is not reliable in every WebKit build, so the face turned away is hidden once the flip passes 90°.
+  // Keep BOTH on purpose: CSS backface-visibility (cards.css) and this 90° visibility swap. Some WebKit builds ignore
+  // backface-visibility and show the back face mirrored through the front; the swap guards that (see e2e flip test).
   const rotateY = useMotionValue(flipped ? 180 : 0);
   const frontVisibility = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'));
   const backVisibility = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'));
