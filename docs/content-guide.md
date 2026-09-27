@@ -96,7 +96,7 @@ These are copied word for word from the plan. They are binding.
 ### What the rules mean in practice
 
 - **One source per question and per card.** Pick the single official page that supports every claim in the item, including every wrong-choice reason. If one page doesn't cover it all, cut the claim or split the item. Lessons may list several `sources`, and every sentence must be supported by at least one of them.
-- **Record the final URL.** If a URL redirects (for example docs.anthropic.com or docs.claude.com to platform.claude.com), record the URL you end up on. Use the page's own title for `title`. Drop tracking parameters. Keep a `#fragment` only if it points to the exact section.
+- **Record the final URL.** If a URL redirects (older docs.anthropic.com or docs.claude.com links may redirect to platform.claude.com), record the URL you end up on. Use the page's own title for `title`. Drop tracking parameters. Keep a `#fragment` only if it points to the exact section.
 - **`checkedOn`** is an ISO date (`YYYY-MM-DD`): the day you fetched the page.
 - **Don't overstate.** Hedge words in the source ("generally", "most models", "up to", "by default") must survive into your text. Do not turn "can" into "always", or "reduces" into "eliminates". Numbers (prices, limits, lifetimes, model names) must be exact, and should be qualified if the source qualifies them. Plan 1's fact-check caught a cache-pricing overstatement. The fix was "0.1× on most models, lower on some newer ones".
 - **Wrong choices must be wrong for a reason the source supports.** Each distractor should be a real misconception, such as a neighbouring feature, a plausible-but-wrong parameter, or the right idea applied at the wrong layer. Its `reason` says why it's wrong, citing the source's facts, not only "this is incorrect".
@@ -118,6 +118,7 @@ These are copied word for word from the plan. They are binding.
 - **`lessonId`**: every question sets `lessonId` to the lesson for **its own sub-skill** (for example, every `cost-tokens` question links `l-prompt-caching`, the lesson for that sub-skill). If a sub-skill has more than one lesson, use the one that teaches the question's topic. If the lesson doesn't exist yet, write it in the same task. The validator rejects a `lessonId` that points to a lesson that doesn't exist.
 - **`relatedCardIds`**: every question lists **at least 1** card id, preferably cards from the same sub-skill that define the terms the question depends on. Each card id must exist.
 - **Lesson `checkQuestionIds`**: exactly **3 distinct** question ids, all from the **same sub-skill** as the lesson. Choose questions the lesson actually teaches you to answer. The validator rejects repeats, questions from another sub-skill and unknown ids. This is why every sub-skill target is at least 3 questions.
+- **Backfill the seed items.** When you write a sub-skill's lesson, also set `lessonId` on any existing (seed) questions in that sub-skill that don't have one. Check that their `relatedCardIds` still fit (cards on the question's topic, preferably from the same sub-skill), and fix them in place if not.
 - Linked items can go in the same task. Write the cards first, then the questions that reference them, then the lesson that checks three of those questions.
 
 ## 5. Checking for duplicates before you write
@@ -256,7 +257,7 @@ What makes it good: the summary states the idea in two sentences, the key points
   "sections": [
     {
       "heading": "What caching buys you",
-      "body": "When a request starts with the same content as a recent one, the API can resume from that cached prefix instead of processing it again. This significantly reduces processing time and cost for prompts with consistent elements, and long documents generally see better time-to-first-token.\n\nPricing is relative to the base input price:\n- Cache read: 0.1× on most models (lower on some newer ones, e.g. 0.05× on Claude Opus 5.5)\n- 5-minute cache write: 1.25×\n- 1-hour cache write: 2×",
+      "body": "When a request starts with the same content as a recent one, the API can resume from that cached prefix instead of processing it again. This significantly reduces processing time and cost for prompts with consistent elements, and long documents generally see better time-to-first-token.\n\nPricing is relative to the base input price:\n\n- Cache read: 0.1× on most models (lower on some newer ones, e.g. 0.05× on Claude Opus 5.5)\n- 5-minute cache write: 1.25×\n- 1-hour cache write: 2×",
       "diagram": {
         "kind": "segmented-bar",
         "caption": "A cached prefix is billed at the read rate; only the new part costs full price.",
@@ -334,7 +335,7 @@ Write one lesson per sub-skill (more only if the sub-skill has clearly separate 
 
 ## 8. Diagrams and markup
 
-**Markup.** Text fields support only `**bold**` and `` `code` ``. Lesson section bodies also support paragraphs (separated by a blank line, `\n\n`) and bullet lists (a block whose lines all start with `- `, one item per line, separated by `\n`). Don't use headings, links, tables or numbered lists inside text. A card definition may contain at most 2 code spans. In JSON, escape inner double quotes (`\"ttl\": \"1h\"`).
+**Markup.** Text fields support only `**bold**` and `` `code` ``. Lesson section bodies also support paragraphs (separated by a blank line, `\n\n`) and bullet lists (a block whose lines all start with `- `, one item per line, separated by `\n`). Put a blank line between an intro sentence and its list. Don't use headings, links, tables or numbered lists inside text. A card definition may contain at most 2 code spans. In JSON, escape inner double quotes (`\"ttl\": \"1h\"`).
 
 **Diagrams.** Questions and lesson sections may carry one optional `diagram`. Aim for about 1 diagram per 5 questions, where it genuinely helps. Two kinds exist:
 
@@ -376,7 +377,7 @@ For each slice (one or more sub-skills):
 | Model Context Protocol (spec, servers, clients, transports, primitives) | `https://modelcontextprotocol.io` | Official spec and docs. |
 | Engineering and research posts (for example on building agents, context engineering, tool design) | `https://www.anthropic.com/engineering` | News posts under `https://www.anthropic.com/news` are also allowed. |
 
-Redirects are fine. Record the **final URL** after any redirect, along with that page's title. Use the English (`/en/`) pages. Don't cite third-party blogs, prep sites, GitHub READMEs of unofficial projects, or search-result snippets.
+Redirects are fine. Record the **final URL** after any redirect, along with that page's title. Use the English (`/en/`) pages where the site has them (modelcontextprotocol.io has no `/en/`). Don't cite third-party blogs, prep sites, GitHub READMEs of unofficial projects, or search-result snippets.
 
 ## 11. Fact-checker checklist
 
@@ -387,5 +388,11 @@ For every new or changed item, the reviewer:
 3. Confirms every reason, takeaway, mnemonic, card field and lesson sentence is supported by the source.
 4. Checks the URL loads and the title matches.
 5. Checks the style rules and the limits.
+6. Checks the source's domain is on the official allowlist (section 10: platform.claude.com or docs.claude.com, code.claude.com, modelcontextprotocol.io, anthropic.com).
+7. Checks `checkedOn` is the session date, the day the page was fetched.
+8. Checks `lessonId` and `relatedCardIds` point to the right sub-skill or topic (section 4).
+9. Checks for duplicates against existing content (section 5).
+
+For the slice as a whole, the reviewer also checks the answer-letter balance, the difficulty mix (about 30% easy, 50% medium, 20% hard) and the diagram ratio (about 1 per 5 questions).
 
 The output is a per-item table (OK / FIX / DROP, with the problem and a supporting or contradicting quote). Wrong answer keys are Critical. Unsupported or false claims and second defensible answers are Important. Overstated wording is also Important for study content.

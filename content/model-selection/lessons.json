@@ -15,7 +15,7 @@
     "sections": [
       {
         "heading": "What caching buys you",
-        "body": "When a request starts with the same content as a recent one, the API can resume from that cached prefix instead of processing it again. This significantly reduces processing time and cost for prompts with consistent elements, and long documents generally see better time-to-first-token.\n\nPricing is relative to the base input price:\n- Cache read: 0.1× on most models (lower on some newer ones, e.g. 0.05× on Claude Opus 5.5)\n- 5-minute cache write: 1.25×\n- 1-hour cache write: 2×",
+        "body": "When a request starts with the same content as a recent one, the API can resume from that cached prefix instead of processing it again. This significantly reduces processing time and cost for prompts with consistent elements, and long documents generally see better time-to-first-token.\n\nPricing is relative to the base input price:\n\n- Cache read: 0.1× on most models (lower on some newer ones, e.g. 0.05× on Claude Opus 5.5)\n- 5-minute cache write: 1.25×\n- 1-hour cache write: 2×",
         "diagram": {
           "kind": "segmented-bar",
           "caption": "A cached prefix is billed at the read rate; only the new part costs full price.",

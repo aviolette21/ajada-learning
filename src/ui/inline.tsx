@@ -11,15 +11,31 @@ export function renderInline(text: string): ReactNode {
   });
 }
 
-/** Paragraphs separated by blank lines; a block whose lines start with "- " becomes a list. */
+type Run = { list: boolean; lines: string[] };
+
+/** Splits a block into runs of plain lines and runs of consecutive "- " lines. */
+function runs(block: string): Run[] {
+  const out: Run[] = [];
+  for (const line of block.split('\n')) {
+    const list = line.startsWith('- ');
+    const last = out[out.length - 1];
+    if (last && last.list === list) last.lines.push(line);
+    else out.push({ list, lines: [line] });
+  }
+  return out;
+}
+
+/** Paragraphs separated by blank lines; within a block, consecutive "- " lines become a list and other lines a paragraph. */
 export function Paragraphs({ text }: { text: string }) {
   return (
     <>
-      {text.split(/\n{2,}/).map((block, i) =>
-        block.startsWith('- ') ? (
-          <ul key={i}>{block.split('\n').map((line, j) => <li key={j}>{renderInline(line.replace(/^- /, ''))}</li>)}</ul>
-        ) : (
-          <p key={i}>{renderInline(block)}</p>
+      {text.split(/\n{2,}/).flatMap((block, i) =>
+        runs(block).map((run, k) =>
+          run.list ? (
+            <ul key={`${i}-${k}`}>{run.lines.map((line, j) => <li key={j}>{renderInline(line.replace(/^- /, ''))}</li>)}</ul>
+          ) : (
+            <p key={`${i}-${k}`}>{renderInline(run.lines.join('\n'))}</p>
+          ),
         ),
       )}
     </>

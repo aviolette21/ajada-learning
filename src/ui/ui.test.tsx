@@ -24,6 +24,14 @@ describe('renderInline', () => {
     render(<Paragraphs text={'Intro\n\n- one\n- two'} />);
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
+  it('renders an intro line followed directly by "- " lines as a paragraph and a list', () => {
+    const { container } = render(<Paragraphs text={'Pricing:\n- Read: 0.1×\n- Write: 1.25×'} />);
+    const paragraphs = container.querySelectorAll('p');
+    expect(paragraphs).toHaveLength(1);
+    expect(paragraphs[0].textContent).toBe('Pricing:');
+    expect(container.querySelectorAll('ul')).toHaveLength(1);
+    expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['Read: 0.1×', 'Write: 1.25×']);
+  });
 });
 
 describe('SegmentedControl', () => {
