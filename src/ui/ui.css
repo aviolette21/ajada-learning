@@ -27,6 +27,7 @@
 .panel h2, .panel h3 { margin: 0 0 6px; font-size: 16px; }
 .panel.center { text-align: center; }
 .panel-link { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; color: var(--text); text-decoration: none; cursor: pointer; }
+button.panel-link { padding: 0; border: 0; background: none; font: inherit; }
 .panel-link .grow { flex: 1; min-width: 0; }
 .panel-link .chev { color: var(--faint); }
 .muted { color: var(--muted); font-size: 13px; }

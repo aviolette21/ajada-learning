@@ -18,6 +18,10 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
   const goodOpacity = useTransform(x, [20, 110], [0, 1]);
   const againOpacity = useTransform(x, [-110, -20], [1, 0]);
   const dragged = useRef(false);
+  // backface-visibility is not reliable in every WebKit build, so the face turned away is hidden once the flip passes 90°.
+  const rotateY = useMotionValue(flipped ? 180 : 0);
+  const frontVisibility = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'));
+  const backVisibility = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'));
   const { card } = item;
   const reverse = item.direction === 'reverse';
 
@@ -53,13 +57,13 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
     >
       <motion.span className="fc-stamp fc-stamp-again" style={{ opacity: againOpacity }} aria-hidden="true">AGAIN</motion.span>
       <motion.span className="fc-stamp fc-stamp-good" style={{ opacity: goodOpacity }} aria-hidden="true">GOOD</motion.span>
-      <motion.div className="fc-flip" initial={false} animate={{ rotateY: flipped ? 180 : 0 }} transition={flipSpring}>
-        <div className="fc-face fc-front" aria-hidden={flipped}>
+      <motion.div className="fc-flip" style={{ rotateY }} initial={false} animate={{ rotateY: flipped ? 180 : 0 }} transition={flipSpring}>
+        <motion.div className="fc-face fc-front" style={{ visibility: frontVisibility }} aria-hidden={flipped}>
           <span className="tag">{domainName}</span>
           <div className={`fc-main ${reverse ? 'fc-main-def' : ''}`}>{reverse ? renderInline(card.definition) : card.term}</div>
           <div className="fc-hint">{reverse ? 'Which term is this? Tap to flip' : 'Tap to flip'}</div>
-        </div>
-        <div className="fc-face fc-back" aria-hidden={!flipped}>
+        </motion.div>
+        <motion.div className="fc-face fc-back" style={{ visibility: backVisibility }} aria-hidden={!flipped}>
           <span className="tag">{domainName}</span>
           {reverse ? <div className="fc-term-answer">{card.term}</div> : <div className="fc-def">{renderInline(card.definition)}</div>}
           <div className="fc-sec">Why it matters</div>
@@ -73,7 +77,7 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
           <a className="source" href={card.source.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
             📎 {card.source.title}
           </a>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );

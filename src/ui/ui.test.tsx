@@ -14,6 +14,12 @@ describe('renderInline', () => {
     expect(screen.getByText('cache').tagName).toBe('STRONG');
     expect(screen.getByText('cache_control').tagName).toBe('CODE');
   });
+  it('renders `code` nested inside **bold**', () => {
+    render(<p>{renderInline('Commit **`x`** to git')}</p>);
+    const code = screen.getByText('x');
+    expect(code.tagName).toBe('CODE');
+    expect(code.parentElement?.tagName).toBe('STRONG');
+  });
   it('turns "- " blocks into lists', () => {
     render(<Paragraphs text={'Intro\n\n- one\n- two'} />);
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
