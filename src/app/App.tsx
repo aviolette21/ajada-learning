@@ -19,6 +19,7 @@ import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { SessionPage } from '../features/today/SessionPage';
 import { TodayPage } from '../features/today/TodayPage';
+import { UpdateBanner } from '../pwa/UpdateBanner';
 import type { AppDb } from '../storage/db';
 import { TabBar } from '../ui/TabBar';
 import { ClockProvider } from './clock';
@@ -59,6 +60,7 @@ export function Shell() {
         </Routes>
       </AnimatePresence>
       {!FULLSCREEN.test(location.pathname) && <TabBar />}
+      <UpdateBanner />
     </div>
   );
 }
