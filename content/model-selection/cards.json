@@ -49,9 +49,9 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "term": "Token",
-    "definition": "The smallest unit a language model works in: a word, subword, character or byte. For Claude, a token is approximately 3.5 English characters.",
+    "definition": "The smallest unit a language model works in: a word, subword, character or byte. The glossary puts a Claude token at approximately 3.5 English characters.",
     "whyItMatters": "Limits and prices are counted in tokens, not characters, so rough estimates start from that ratio; the exact number varies by language.",
-    "example": "A 7,000-character English text is roughly 2,000 tokens.",
+    "example": "By the glossary's rough ratio, a 7,000-character English text is about 2,000 tokens; exact counts vary.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",

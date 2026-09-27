@@ -42,6 +42,10 @@
       {
         "heading": "Lifetime and limits",
         "body": "By default the cache has a 5-minute lifetime, refreshed at no extra cost each time the cached content is used. If traffic has longer gaps, set `\"ttl\": \"1h\"` on `cache_control` for the 1-hour duration, at a higher write price.\n\nYou can define up to 4 breakpoints, for example to cache sections that change at different rates. Prompts shorter than the model's minimum cacheable length are not cached."
+      },
+      {
+        "heading": "Counting tokens before you send",
+        "body": "The token counting endpoint (`POST /v1/messages/count_tokens`) takes the same inputs as a Messages request and returns an estimate of the total input tokens. It is free to use, with its own requests-per-minute limits.\n\nToken counting doesn't use caching logic: you can include `cache_control` blocks, but prompt caching only happens when a message is actually created. Count under the model you plan to use, because Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text."
       }
     ],
     "checkQuestionIds": [
@@ -54,6 +58,11 @@
         "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
         "title": "Prompt caching",
         "checkedOn": "2026-09-26"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+        "title": "Token counting",
+        "checkedOn": "2026-09-27"
       }
     ]
   },
@@ -64,7 +73,7 @@
     "title": "LLM fundamentals",
     "summary": "A language model reads and writes tokens, and everything it works with at once must fit in its context window, the model's \"working memory\". Temperature controls how random the output is, and even at temperature 0 the API isn't fully deterministic. Examples in the prompt (few-shot) are one of the most reliable ways to steer it.",
     "keyPoints": [
-      "For Claude, a token is approximately **3.5 English characters**; the exact number varies by language.",
+      "The glossary's **rough** ratio is about 3.5 English characters per token; Claude 4.7 and later tokenizers produce about **30% more** tokens, so count real prompts.",
       "The context window includes the **response itself**; system prompt, messages, tools and thinking all count, and cached prefixes still count.",
       "More context isn't automatically better: accuracy and recall degrade as tokens grow (**context rot**).",
       "Even with **temperature 0**, identical inputs may produce different outputs across API calls.",
@@ -73,7 +82,7 @@
     "sections": [
       {
         "heading": "Tokens and next-token prediction",
-        "body": "Tokens are the smallest units a language model works in. They can be words, subwords, characters or even bytes. For Claude, a token is approximately 3.5 English characters, though the exact number varies by language.\n\nIn pretraining, autoregressive models like Claude's underlying model are trained on a large unlabeled corpus to predict the next word from the previous context. Pretrained models are not inherently good at answering questions or following instructions. Fine-tuning and RLHF refine them, and Claude has already been fine-tuned to be a helpful assistant."
+        "body": "Tokens are the smallest units a language model works in. They can be words, subwords, characters or even bytes. Anthropic's glossary puts a Claude token at approximately 3.5 English characters, though the exact number varies by language. Treat that as a rough ratio: Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text, so get real counts from the token counting API for the model you plan to use.\n\nIn pretraining, autoregressive models like Claude's underlying model are trained on a large unlabeled corpus to predict the next word from the previous context. Pretrained models are not inherently good at answering questions or following instructions. Fine-tuning and RLHF refine them, and Claude has already been fine-tuned to be a helpful assistant."
       },
       {
         "heading": "The context window",
@@ -129,6 +138,11 @@
       {
         "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
         "title": "Prompting best practices",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+        "title": "Token counting",
         "checkedOn": "2026-09-27"
       }
     ]
@@ -217,7 +231,7 @@
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
     "title": "Choosing a model and effort",
-    "summary": "Choosing a Claude model means balancing capability, speed and cost. Start most workloads on Claude Opus 5.5 and move to Claude Fable 5.1 only when evals at the highest effort still fall short. Within one model, the effort parameter is often a better lever than switching models.",
+    "summary": "Choosing a Claude model means balancing capability, speed and cost. Start most workloads on Claude Opus 5.5; use Claude Fable 5.1 for demanding reasoning and long-horizon agentic work, or when evals on Opus 5.5 at higher effort still fall short. Within one model, the effort parameter is often a better lever than switching models.",
     "keyPoints": [
       "**Fable 5.1** $10/$50, slower · **Opus 5.5** $4/$20, moderate · **Sonnet 5** $2/$10, fast · **Haiku 4.5** $1/$5, fastest (per input/output MTok).",
       "If unsure, start with **Claude Opus 5.5**; move to **Fable 5.1** when evals at `xhigh` or `max` effort still fall short.",

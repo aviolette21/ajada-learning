@@ -193,8 +193,8 @@
       }
     ],
     "answer": "b",
-    "takeaway": "For English, a Claude token is approximately **3.5 characters**: divide characters by 3.5 for a rough count.",
-    "mnemonic": "Characters ÷ 3.5 ≈ tokens.",
+    "takeaway": "Anthropic's glossary gives a **rough** ratio of about 3.5 English characters per token; the exact number varies with the language.",
+    "mnemonic": "Glossary rule of thumb: characters ÷ 3.5.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
@@ -202,7 +202,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-token"
+      "c-token",
+      "c-token-counting"
     ],
     "lessonId": "l-llm-fundamentals"
   },
@@ -397,7 +398,7 @@
       {
         "id": "c",
         "text": "RLHF only adds factual knowledge; instruction-following comes from pretraining alone",
-        "reason": "RLHF trains the model to behave consistently with human preferences, including following instructions more effectively; it isn't about adding knowledge."
+        "reason": "RLHF trains the model to behave consistently with human preferences, including following instructions more effectively."
       },
       {
         "id": "d",
@@ -833,7 +834,7 @@
       {
         "id": "c",
         "text": "Stream, but parse every server-sent event by hand to rebuild the `Message`",
-        "reason": "That works, but the SDKs already accumulate the events and return the final `Message` for you."
+        "reason": "Possible, but unnecessary: the SDKs already accumulate the events and return the final `Message` for you."
       },
       {
         "id": "d",
