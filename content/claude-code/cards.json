@@ -7,7 +7,86 @@
     "definition": "A markdown file of persistent instructions that Claude Code reads at the start of every session. Project `./CLAUDE.md` is shared via source control.",
     "whyItMatters": "It's context, not enforced configuration: to block an action regardless, use a PreToolUse hook. Keep it concise (under 200 lines). `/init` drafts one.",
     "example": "Other scopes: managed policy (organization), `~/.claude/CLAUDE.md` (user), `./CLAUDE.local.md` (personal, gitignored).",
-    "source": { "url": "https://code.claude.com/docs/en/memory", "title": "How Claude remembers your project", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-continue-resume",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "term": "--continue vs --resume",
+    "definition": "`claude --continue` reopens the most recent conversation in the current directory; `claude --resume` resumes a session by ID or name, or opens a picker.",
+    "whyItMatters": "Sessions created with `claude -p` or the Agent SDK are left out of `--continue` and the picker; resume one by passing its session ID to `--resume`.",
+    "example": "`claude --resume auth-refactor` resumes the session named auth-refactor directly.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-print-mode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "term": "claude -p (non-interactive mode)",
+    "definition": "The `-p` (or `--print`) flag runs Claude Code non-interactively for scripts and CI. It exits 0 on success and non-zero when the run fails.",
+    "whyItMatters": "`--output-format json` returns the result, session ID and metadata as JSON; `--allowedTools` lets listed tools run without a permission prompt.",
+    "example": "`claude -p \"Summarize this project\" --output-format json | jq -r '.result'`",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-plan-mode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "term": "Plan mode",
+    "definition": "A permission mode in which Claude researches and proposes changes without making them: it reads files, explores and writes a plan, but doesn't edit your source.",
+    "whyItMatters": "Use it to explore a codebase before changing it. Edits stay blocked until you approve the plan (except where bypass permissions is available).",
+    "example": "Press `Shift+Tab`, prefix one prompt with `/plan`, or start with `claude --permission-mode plan`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-custom-skill",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "term": "Custom command (skill)",
+    "definition": "A skill's `SKILL.md` creates a /name command. Custom commands have been merged into skills, and existing `.claude/commands/` files keep working.",
+    "whyItMatters": "Where it lives sets who gets it: `.claude/skills/<name>/` committed in the repo reaches the team; `~/.claude/skills/<name>/` is yours in every project.",
+    "example": "A body of `Fix GitHub issue $ARGUMENTS`: running `/fix-issue 123` passes 123.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-subagent-file",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "term": "Custom subagent file",
+    "definition": "A Markdown file with YAML frontmatter (only `name` and `description` are required) whose body becomes the subagent's system prompt.",
+    "whyItMatters": "Commit it in `.claude/agents/` to share it with the team. `tools` is an allowlist; omit it and the subagent inherits every tool available to subagents.",
+    "example": "`tools: Read, Glob, Grep` with `model: haiku` makes a read-only helper on a cheaper model.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
   }
 ]

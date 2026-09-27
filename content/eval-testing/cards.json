@@ -7,7 +7,85 @@
     "definition": "A set of test cases designed to measure an LLM application's performance against clearly defined success criteria.",
     "whyItMatters": "Be task-specific (mirror the real task distribution, include edge cases), automate grading when possible, and prioritize volume over hand-graded quality.",
     "example": "Grade sentiment labels by exact match; use LLM-based grading on a Likert scale for tone.",
-    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests", "title": "Define success criteria and build evaluations", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-eval-grading-methods",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "term": "Eval grading methods",
+    "definition": "Code-based (fastest, most reliable, but lacks nuance), human (most flexible, but slow and expensive) and LLM-based (fast, flexible, suits complex judgment).",
+    "whyItMatters": "Pick the fastest, most reliable, most scalable method that works. Avoid human grading if possible, and test an LLM grader for reliability before scaling it.",
+    "example": "Exact match: `output == golden_answer`. String match: `key_phrase in output`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-refusal-fallback",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "term": "Refusal fallback",
+    "definition": "Re-sending a request that came back with `stop_reason: \"refusal\"` to another Claude model, which can usually still answer it.",
+    "whyItMatters": "Re-sending to the same model usually earns another refusal. On the Claude API, server-side fallback (beta) retries within a single call.",
+    "example": "Set `\"fallbacks\": \"default\"` to retry on the model Anthropic recommends for the refusal category.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-thinking-blocks-unchanged",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "term": "Thinking blocks cannot be modified",
+    "definition": "A 400 `invalid_request_error` returned when `thinking` blocks in the latest assistant message were edited, reordered, filtered out or reconstructed.",
+    "whyItMatters": "The fix is in your request: with tool use, pass every `thinking` and `redacted_thinking` block back exactly as received, including empty ones.",
+    "example": "If you filter content blocks by type before resending, keep both `thinking` and `redacted_thinking`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-tool-input-escaping",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "term": "Tool input escaping differences",
+    "definition": "Unicode and forward-slash escaping in tool inputs differs between model versions (Opus 4.6+), so raw string comparisons can start failing with newer models.",
+    "whyItMatters": "Parse tool inputs with `json.loads()` or `JSON.parse()` and compare values. Never do raw string matching on serialized input.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-agent-sdk-otel",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "term": "OpenTelemetry export (Agent SDK)",
+    "definition": "The Agent SDK can export metrics, log events and traces (beta) over OTLP. It's off until you set `CLAUDE_CODE_ENABLE_TELEMETRY=1` and choose an exporter.",
+    "whyItMatters": "Telemetry is structural by default: prompt and tool content are opt-in. Export errors fail silently unless you set `CLAUDE_CODE_OTEL_DIAG_STDERR=1`.",
+    "example": "Trace spans: `claude_code.llm_request` and `claude_code.tool` nest under `claude_code.interaction`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
   }
 ]

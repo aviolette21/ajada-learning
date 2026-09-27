@@ -1,0 +1,88 @@
+[
+  {
+    "id": "l-debugging-errors",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "title": "Debugging Claude apps",
+    "summary": "When a Claude feature misbehaves, first find the layer that failed. An HTTP 4xx or 5xx error means the request failed to process; a 200 with an unexpected `stop_reason` or content is about the model's output. Fix integration bugs in your code, recover output problems by continuing, retrying or falling back, and use evals and telemetry to see patterns.",
+    "keyPoints": [
+      "**Errors** are HTTP 4xx/5xx and mean request processing failed; **stop reasons** come with successful responses and say why generation stopped.",
+      "A **400** `invalid_request_error` points at the format or content of your request; a 500 `api_error` calls for retrying with exponential backoff.",
+      "A refusal is an HTTP 200 with `stop_reason: \"refusal\"`: retry on a **different** model, and monitor refusals as their own signal.",
+      "Grade evals with the fastest reliable method: **code-based** where possible, **LLM-based** with a clear rubric for complex judgment; avoid human grading if possible.",
+      "Agent SDK telemetry is **structural** by default: prompt and tool content are opt-in, and export errors fail silently by default."
+    ],
+    "sections": [
+      {
+        "heading": "Which layer failed?",
+        "body": "Separate failed requests from successful responses you didn't expect.\n\n- **Errors** (failed requests) carry HTTP 4xx or 5xx status codes and error details. 400 `invalid_request_error` means an issue with the format or content of your request; 529 `overloaded_error` means the API is temporarily overloaded; 500 `api_error` is an unexpected error in Anthropic's systems.\n- **Stop reasons** (successful responses) are part of the response body and say why generation stopped: `end_turn`, `max_tokens`, `tool_use`, `pause_turn`, `refusal` and others.\n\nThe official SDKs already retry transient failures (connection errors, rate limits, 5xx errors) with exponential backoff, twice by default. A streamed response can also hit an error after the API has returned 200. Every response carries a unique `request-id` header; log it, and include it when you contact support about a specific request.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Check whether the request failed before judging the output.",
+          "steps": [
+            {
+              "label": "HTTP 4xx/5xx?",
+              "sublabel": "request failed"
+            },
+            {
+              "label": "HTTP 200",
+              "sublabel": "read stop_reason"
+            },
+            {
+              "label": "Use, continue or fall back"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Recovery strategies",
+        "body": "Match the recovery to what happened:\n\n- `max_tokens`: the response hit your limit; raise `max_tokens` or continue the response\n- `pause_turn`: a server-tool loop reached its iteration limit; send the assistant content back to continue\n- `refusal`: Claude declined; retry on a fallback model, since the same model usually refuses again\n- `model_context_window_exceeded`: treat the response as truncated\n- 500 `api_error`: retry with exponential backoff, and contact support with the request ID if it persists\n- 400 `invalid_request_error`: fix the request, for example pass thinking blocks back exactly as received\n\nA refusal is an HTTP 200, so monitoring built on error rates never sees it. Emit an event per refusal, and branch on `stop_reason`, not on the explanation text."
+      },
+      {
+        "heading": "Tool-use symptoms",
+        "body": "Anthropic's tool-use troubleshooting page maps symptoms to fixes:\n\n- Claude calls the wrong tool: sharpen descriptions to say **when** to use each tool\n- Invented parameters or wrong types: add `strict: true` if your schema is in the supported subset\n- `tool_use ids were found without tool_result blocks`: return one `tool_result` per `tool_use`, before any text\n- String comparison on tool inputs fails with newer models: parse the JSON instead\n- Claude treats your own instructions in a tool result as possible injection: move them out of the `tool_result`, into a user turn"
+      },
+      {
+        "heading": "Evals and telemetry",
+        "body": "Choose the fastest, most reliable, most scalable grading method. Code-based grading (exact or string match) is fastest and most reliable but lacks nuance. LLM-based grading is fast, flexible and suits complex judgment; give it detailed, clear rubrics, ask for a specific output such as \"correct\" or \"incorrect\" or a 1–5 score, and have it reason first, then discard the reasoning. Test it for reliability, then scale.\n\nFor agents, the Agent SDK can export OpenTelemetry metrics, log events and traces (beta). Trace spans cover each interaction, model request and tool call, and subagent spans nest under the parent's tool span. Content is not recorded by default, and export errors fail silently unless you set `CLAUDE_CODE_OTEL_DIAG_STDERR=1`."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-debug-refusal-fallback",
+      "q-debug-thinking-blocks-400",
+      "q-debug-llm-grader"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+        "title": "Stop reasons and fallback",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/errors",
+        "title": "Claude API errors",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+        "title": "Refusals and fallback",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+        "title": "Troubleshooting tool use",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+        "title": "Observability with OpenTelemetry",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  }
+]

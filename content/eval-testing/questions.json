@@ -6,16 +6,267 @@
     "topic": "Building evals",
     "stem": "A team tunes a support-bot prompt by eyeballing a handful of chats, and each fix seems to break some other case. What should they do first?",
     "choices": [
-      { "id": "a", "text": "Hand-grade ten ideal conversations in depth before every change", "reason": "The guidance prioritizes volume: more automatically graded questions beat fewer high-quality hand-graded ones." },
-      { "id": "b", "text": "Test only typical, well-formed customer messages", "reason": "Evals should mirror the real task distribution, and the guidance says not to forget edge cases." },
-      { "id": "c", "text": "Define success criteria, then build a task-specific eval set with edge cases and automated grading to score each prompt version", "reason": "Correct: defining success criteria and designing evaluations to measure against them is the cycle central to prompt engineering." },
-      { "id": "d", "text": "Keep rewording the prompt until the handful of chats look right", "reason": "A few eyeballed chats don't mirror the real task distribution, so you can't tell whether a change helped overall." }
+      {
+        "id": "a",
+        "text": "Hand-grade ten ideal conversations in depth before every change",
+        "reason": "The guidance prioritizes volume: more automatically graded questions beat fewer high-quality hand-graded ones."
+      },
+      {
+        "id": "b",
+        "text": "Test only typical, well-formed customer messages",
+        "reason": "Evals should mirror the real task distribution, and the guidance says not to forget edge cases."
+      },
+      {
+        "id": "c",
+        "text": "Define success criteria, then build a task-specific eval set with edge cases and automated grading to score each prompt version",
+        "reason": "Correct: defining success criteria and designing evaluations to measure against them is the cycle central to prompt engineering."
+      },
+      {
+        "id": "d",
+        "text": "Keep rewording the prompt until the handful of chats look right",
+        "reason": "A few eyeballed chats don't mirror the real task distribution, so you can't tell whether a change helped overall."
+      }
     ],
     "answer": "c",
     "takeaway": "Measure, don't eyeball: set **success criteria**, then build an **automated, task-specific** eval set that includes edge cases.",
     "mnemonic": "Criteria first, then many automated tests.",
     "difficulty": "medium",
-    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests", "title": "Define success criteria and build evaluations", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-eval-set"]
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-refusal-fallback",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Refusals",
+    "stem": "Your app on Claude Opus 5.5 retries failed requests. One request returns HTTP 200 with `stop_reason: \"refusal\"` and empty content. Your handler re-sends it unchanged to the same model, which refuses again. What's the better recovery?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep retrying the same model with exponential backoff",
+        "reason": "A refusal is a normal response, not an error, and re-sending a refused request to the same model usually earns another refusal."
+      },
+      {
+        "id": "b",
+        "text": "Re-send it on a fallback model, or let server-side fallback (`fallbacks`) retry it",
+        "reason": "Correct: you can usually still get an answer by sending the same request to another Claude model; server-side fallback (beta) does this in one API call."
+      },
+      {
+        "id": "c",
+        "text": "Parse `stop_details.explanation` to decide whether to retry",
+        "reason": "The explanation text isn't stable, so display it rather than parse it; branch on `stop_reason` equal to `\"refusal\"`."
+      },
+      {
+        "id": "d",
+        "text": "Record it as a 5xx error so your error-rate alerts fire",
+        "reason": "A refusal is an HTTP 200, so monitoring built on error rates or 5xx never sees it. Instrument refusals as their own signal."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A refusal is a **model-output** outcome, not a transient error: retry on a **different model**, not the same one.",
+    "mnemonic": "Refused? Change the model, not the timing.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Another Claude model can usually serve a refused request.",
+      "steps": [
+        {
+          "label": "Request",
+          "sublabel": "primary model"
+        },
+        {
+          "label": "HTTP 200",
+          "sublabel": "stop_reason: refusal"
+        },
+        {
+          "label": "Retry",
+          "sublabel": "fallback model"
+        },
+        {
+          "label": "Answer"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-refusal-fallback"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-tool-input-escaping",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tool-use bugs",
+    "stem": "After you move your agent to a newer Claude model, a tool handler that compares the tool input's raw JSON text with an expected string starts failing, even though the values look the same when printed. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parse the input with `JSON.parse()` or `json.loads()` and compare the values",
+        "reason": "Correct: Unicode and forward-slash escaping differs between model versions (Opus 4.6+), so never do raw string matching on serialized input."
+      },
+      {
+        "id": "b",
+        "text": "Add `strict: true` to the tool definition",
+        "reason": "Strict mode is the fix for invented parameters and wrong parameter types, not for how the same values are escaped."
+      },
+      {
+        "id": "c",
+        "text": "Sharpen the tool's description",
+        "reason": "Sharper descriptions fix Claude calling the wrong tool; here the right tool is called with the right values."
+      },
+      {
+        "id": "d",
+        "text": "Add `input_examples` that show the exact expected string",
+        "reason": "`input_examples` help when Claude never calls a tool or picks values outside your enum; for escaping differences, the fix is to parse the JSON."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Compare **parsed** tool inputs, never serialized strings: escaping can differ between model versions.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-input-escaping"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-llm-grader",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Grading evals",
+    "stem": "You use Claude to grade 2,000 support replies for helpfulness. The grader writes paragraphs of free-form commentary that are hard to aggregate, and similar replies get different verdicts. Which change follows Anthropic's tips for LLM-based grading?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to human grading for all 2,000 replies",
+        "reason": "Human grading is the most flexible and high quality, but slow and expensive; the guidance says to avoid it if possible."
+      },
+      {
+        "id": "b",
+        "text": "Grade by exact match against one golden reply",
+        "reason": "Code-based grading is fast and reliable, but lacks nuance for complex judgments like helpfulness."
+      },
+      {
+        "id": "c",
+        "text": "Ask the grader for a score only, with no reasoning",
+        "reason": "The tips say to have the grader reason first, then discard the reasoning; this improves performance on tasks requiring complex judgment."
+      },
+      {
+        "id": "d",
+        "text": "Give a detailed rubric, and have it reason first, then output only \"correct\" or \"incorrect\" (or 1–5)",
+        "reason": "Correct: use detailed, clear rubrics and an empirical or specific output (purely qualitative evaluations are hard to assess at scale), with reasoning first."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An LLM grader needs a **clear rubric**, a **specific output** and reasoning first; test its reliability before you scale.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods",
+      "c-eval-set"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-otel-content",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Agent telemetry",
+    "stem": "Your Agent SDK service exports OpenTelemetry traces. While debugging a bad run, you see spans with durations, model names and tool names, but nothing about what the tools returned. What explains this, and what should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Traces need `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`; set it",
+        "reason": "That variable is what enables traces, which you already have; it doesn't add tool content to them."
+      },
+      {
+        "id": "b",
+        "text": "Content isn't recorded by default; set `OTEL_LOG_TOOL_CONTENT=1` if your pipeline is approved to store it",
+        "reason": "Correct: telemetry is structural by default. `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event with tool results, and requires tracing."
+      },
+      {
+        "id": "c",
+        "text": "Set the exporter to `console` to see the full output",
+        "reason": "Don't use `console` through the SDK: it writes telemetry to standard output, which the SDK uses as its message channel."
+      },
+      {
+        "id": "d",
+        "text": "Lower the export intervals so data isn't dropped",
+        "reason": "Shorter intervals reduce the chance of losing batched telemetry when a process exits; they don't add content to spans."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Agent SDK telemetry records **structure**, not content, by default; turn content on only for pipelines approved to store it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-thinking-blocks-400",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Integration errors",
+    "stem": "Your tool-using agent with thinking worked until you changed the loop to drop `thinking` blocks from each assistant message before appending the `tool_result`, to save tokens. Now every follow-up request fails with 400 `invalid_request_error`, and SDK retries don't help. What's the cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API is overloaded; retry with a longer backoff",
+        "reason": "Overload is `529 overloaded_error`. A 400 means an issue with the format or content of your request, which a retry sends again unchanged."
+      },
+      {
+        "id": "b",
+        "text": "Your API key lacks access to thinking; rotate it",
+        "reason": "Key problems show up as `401 authentication_error` or `403 permission_error`, not as a 400 about your request."
+      },
+      {
+        "id": "c",
+        "text": "The model no longer supports thinking; switch to `thinking.type.enabled`",
+        "reason": "Sending `thinking.type.enabled` to Claude 4.7 and later models itself returns a 400, and your requests worked before the loop change."
+      },
+      {
+        "id": "d",
+        "text": "Your loop filtered out thinking blocks; pass every `thinking` and `redacted_thinking` block back exactly as received",
+        "reason": "Correct: thinking blocks in the latest assistant message that are edited, reordered, filtered out or reconstructed return a 400; pass them back unchanged."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A 400 after a code change is an **integration** bug: fix what your request sends instead of retrying it.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-debugging-errors"
   }
 ]

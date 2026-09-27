@@ -6,16 +6,265 @@
     "topic": "CLAUDE.md",
     "stem": "A team wants every developer's Claude Code sessions to know the project's build commands and coding conventions, kept in source control with the code. Where should these instructions go?",
     "choices": [
-      { "id": "a", "text": "`~/.claude/CLAUDE.md` on each developer's machine", "reason": "That's user scope: personal preferences for all your projects, shared with no one else." },
-      { "id": "b", "text": "`./CLAUDE.local.md` in the repo", "reason": "Local instructions are personal, project-specific preferences meant to be added to `.gitignore`." },
-      { "id": "c", "text": "`./CLAUDE.md` (or `./.claude/CLAUDE.md`) committed to the repository", "reason": "Correct: project instructions are shared with the team via source control, and Claude reads them at the start of every session." },
-      { "id": "d", "text": "Type them into the chat at the start of each session", "reason": "Each session begins with a fresh context window; CLAUDE.md is where you write down what you'd otherwise re-explain." }
+      {
+        "id": "a",
+        "text": "`~/.claude/CLAUDE.md` on each developer's machine",
+        "reason": "That's user scope: personal preferences for all your projects, shared with no one else."
+      },
+      {
+        "id": "b",
+        "text": "`./CLAUDE.local.md` in the repo",
+        "reason": "Local instructions are personal, project-specific preferences meant to be added to `.gitignore`."
+      },
+      {
+        "id": "c",
+        "text": "`./CLAUDE.md` (or `./.claude/CLAUDE.md`) committed to the repository",
+        "reason": "Correct: project instructions are shared with the team via source control, and Claude reads them at the start of every session."
+      },
+      {
+        "id": "d",
+        "text": "Type them into the chat at the start of each session",
+        "reason": "Each session begins with a fresh context window; CLAUDE.md is where you write down what you'd otherwise re-explain."
+      }
     ],
     "answer": "c",
     "takeaway": "Team-shared project instructions live in a committed **`./CLAUDE.md`**; personal ones go in `~/.claude/CLAUDE.md` or `CLAUDE.local.md`.",
     "mnemonic": "Team → ./CLAUDE.md; me everywhere → ~/.claude; me here → .local.",
     "difficulty": "easy",
-    "source": { "url": "https://code.claude.com/docs/en/memory", "title": "How Claude remembers your project", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-claude-md"]
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-plan-mode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "You have just joined a team with a large, unfamiliar codebase. You want Claude Code to explore it and propose a plan for refactoring the auth module, with no source edits until you approve that plan, and then carry it out. Which permission mode fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Plan mode, for example `claude --permission-mode plan`",
+        "reason": "Correct: plan mode is for exploring before changing anything. Claude reads, explores and writes a plan, and edits stay blocked until you approve it."
+      },
+      {
+        "id": "b",
+        "text": "`acceptEdits`",
+        "reason": "`acceptEdits` lets Claude create and edit files in your working directory without prompting, the opposite of what you want here."
+      },
+      {
+        "id": "c",
+        "text": "`dontAsk`",
+        "reason": "`dontAsk` denies anything that would prompt and has no plan to approve; it is meant for locked-down CI and scripts with pre-approved tools."
+      },
+      {
+        "id": "d",
+        "text": "`bypassPermissions`",
+        "reason": "`bypassPermissions` lets everything run without asking, and is meant for isolated containers and VMs only."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To look before you change anything, use **plan mode**: Claude explores and proposes, and edits wait for your approval.",
+    "mnemonic": "Plan first; edit after approval.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "In plan mode, edits wait until you approve the plan.",
+      "steps": [
+        {
+          "label": "Explore",
+          "sublabel": "reads, shell commands"
+        },
+        {
+          "label": "Write a plan"
+        },
+        {
+          "label": "You approve"
+        },
+        {
+          "label": "Claude edits"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-team-skill",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Custom commands",
+    "stem": "Your team wants a `/fix-issue` command that anyone who clones the repo can run as `/fix-issue 123`, with the issue number inserted into its instructions. Where and how should you define it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`~/.claude/skills/fix-issue/SKILL.md` on your machine",
+        "reason": "Personal skills load in all **your** projects on that machine; teammates who clone the repo don't get them."
+      },
+      {
+        "id": "b",
+        "text": "A \"Fixing issues\" section in the project's CLAUDE.md",
+        "reason": "CLAUDE.md content isn't a `/fix-issue` command. A procedure like this suits a skill, whose body loads only when it's used."
+      },
+      {
+        "id": "c",
+        "text": "A skill in a plugin, so everyone runs it as `/fix-issue`",
+        "reason": "Plugin skills are namespaced: they run as `/plugin-name:skill-name`, and only where the plugin is enabled."
+      },
+      {
+        "id": "d",
+        "text": "`.claude/skills/fix-issue/SKILL.md` committed to the repo, using `$ARGUMENTS` for the number",
+        "reason": "Correct: project skills load in sessions in this repository (commit them so your team gets them), and `$ARGUMENTS` is replaced by what follows the name."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A committed **`.claude/skills/<name>/SKILL.md`** becomes a team `/name` command; `$ARGUMENTS` receives what you type after it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-print-json",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A CI step runs Claude Code to list the names of failing tests, and a later step must parse them as a JSON array that follows a fixed schema. How should the CI step invoke Claude Code?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`claude -p \"...\"` with the default output, asking for JSON in the prompt",
+        "reason": "The default `text` format returns plain text output; nothing checks the reply against your schema."
+      },
+      {
+        "id": "b",
+        "text": "`claude -p \"...\" --output-format json --json-schema '<schema>'`, then read `structured_output`",
+        "reason": "Correct: with `--json-schema`, the response includes request metadata plus output conforming to your schema in the `structured_output` field."
+      },
+      {
+        "id": "c",
+        "text": "`claude -p \"...\" --output-format stream-json`",
+        "reason": "`stream-json` is newline-delimited JSON for real-time streaming; it doesn't hold the test names to your schema."
+      },
+      {
+        "id": "d",
+        "text": "`claude -p \"...\" --output-format json`, then parse the `result` field",
+        "reason": "Without `--json-schema`, `json` returns the text result in the `result` field with metadata; that text isn't held to a schema."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "In scripts, use `-p` with `--output-format json`, and add **`--json-schema`** when the output must follow a schema.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-subagent-readonly",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Custom subagents",
+    "stem": "You want a code-reviewer subagent that everyone on the team gets from the repo. It must be able to read and search code but never edit files, and it should run on Haiku to save cost. Which definition fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`.claude/agents/code-reviewer.md` with `tools: Read, Glob, Grep` and `model: haiku`, committed",
+        "reason": "Correct: project subagents in `.claude/agents/` can be checked into version control for the team; `tools` is an allowlist and `model` sets its model."
+      },
+      {
+        "id": "b",
+        "text": "`~/.claude/agents/code-reviewer.md` with the same frontmatter",
+        "reason": "User subagents in `~/.claude/agents/` are personal: available in all **your** projects, not shared through the repo."
+      },
+      {
+        "id": "c",
+        "text": "`.claude/agents/code-reviewer.md` with no `tools` field and \"Never edit files\" in its prompt",
+        "reason": "With `tools` omitted, the subagent inherits every tool available to subagents, so edit tools remain; restrict them with `tools` or `disallowedTools`."
+      },
+      {
+        "id": "d",
+        "text": "A `--agents` JSON definition passed when launching Claude Code",
+        "reason": "CLI-defined subagents exist only for that session and aren't saved to disk, so teammates don't get them."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Share subagents through **`.claude/agents/`**, and limit what they can do with `tools`, not with instructions alone.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-subagent-file"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-continue-skips-print",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Sessions",
+    "stem": "This morning a script ran `claude -p \"Review the auth module\"` in your repo and logged the run's session ID. Now you run `claude --continue` in the same directory to follow up interactively, but it opens an older conversation. What explains this, and what should you run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`-p` runs aren't saved as sessions; rerun the review interactively",
+        "reason": "They are saved: Claude Code leaves `-p` sessions out of `--continue` and the picker, but you can still resume one by its session ID."
+      },
+      {
+        "id": "b",
+        "text": "Run `claude --continue --fork-session` instead",
+        "reason": "Forking only gives the conversation you continue its own session ID; `--continue` still skips the `-p` session, so you'd branch the older one."
+      },
+      {
+        "id": "c",
+        "text": "Run `claude --resume` and pick it from the session picker",
+        "reason": "The session picker also leaves out sessions created with `claude -p` or the Agent SDK, so it won't be listed there."
+      },
+      {
+        "id": "d",
+        "text": "`--continue` skips `-p` sessions; run `claude --resume <session-id>`",
+        "reason": "Correct: `claude -p` and Agent SDK sessions are left out of `--continue` and the picker; pass the session ID to `claude --resume` to reopen it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`--continue` reopens the latest interactive conversation here; for a `-p` or SDK session, use **`--resume <session-id>`**.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-continue-resume",
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
   }
 ]

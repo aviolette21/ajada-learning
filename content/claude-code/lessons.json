@@ -1,0 +1,92 @@
+[
+  {
+    "id": "l-cc-operation",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "title": "Operating Claude Code",
+    "summary": "Day to day, you steer Claude Code with CLAUDE.md for standing instructions, permission modes for what Claude may do without asking, skills and subagents for reusable work, and sessions you can resume or script with `-p`. Where a file lives decides who gets it: commit it under the project to share it with your team.",
+    "keyPoints": [
+      "`/init` drafts a CLAUDE.md from your codebase (or suggests improvements to an existing one). Target **under 200 lines** per CLAUDE.md file.",
+      "`Shift+Tab` cycles permission modes. **Plan** mode explores and proposes without editing your source; edits wait until you approve the plan.",
+      "Custom commands have been merged into **skills**: `.claude/skills/<name>/SKILL.md` creates `/name`, and `$ARGUMENTS` receives what you type after it.",
+      "Subagents live in `.claude/agents/` (project) or `~/.claude/agents/` (you). `tools` is an allowlist; omit it and the subagent inherits the available tools.",
+      "`--continue` reopens the most recent conversation here; `--resume` takes an ID or name, or opens a picker. Reach a `-p` session with `--resume <session-id>`."
+    ],
+    "sections": [
+      {
+        "heading": "Memory and /init",
+        "body": "Each session begins with a fresh context window. CLAUDE.md files carry your instructions across sessions: Claude reads them at the start of every session. A committed `./CLAUDE.md` is shared with the team, `~/.claude/CLAUDE.md` holds your preferences for all projects, and a gitignored `./CLAUDE.local.md` holds personal notes for one project.\n\nFiles in your working directory and the directories above it load at launch; those in subdirectories load when Claude reads files there. They are concatenated rather than overriding each other. CLAUDE.md is context, not enforced configuration, so specific, concise instructions work best.\n\nRun `/init` to generate a starting CLAUDE.md with the build commands, test instructions and conventions Claude discovers; if one exists, it suggests improvements rather than overwriting it. `/memory` lets you edit CLAUDE.md files and turn auto memory on or off."
+      },
+      {
+        "heading": "Permission modes",
+        "body": "A permission mode sets which actions Claude can take without asking you first:\n\n- `default` (shown as Manual): only reads run without asking\n- `acceptEdits`: file edits and common filesystem commands also run\n- `plan`: Claude researches and proposes a plan, but doesn't edit your source\n- `auto`: a classifier reviews actions instead of you\n- `dontAsk`: only pre-approved tools run, and anything that would prompt is denied; for locked-down CI\n- `bypassPermissions`: everything runs; for isolated containers and VMs only\n\nIn the CLI, `Shift+Tab` cycles modes during a session, and `--permission-mode` picks one at startup. Deny rules still block in every mode.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Shift+Tab cycles the default modes; optional modes slot in after plan.",
+          "steps": [
+            {
+              "label": "default",
+              "sublabel": "Manual"
+            },
+            {
+              "label": "acceptEdits"
+            },
+            {
+              "label": "plan"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Commands, skills and subagents",
+        "body": "Type `/` to see the commands available to you, such as `/init`, `/memory`, `/compact`, `/clear` and `/resume`. A command is only recognized at the start of your message.\n\nA skill is a `SKILL.md` file: frontmatter with a `description` that helps Claude decide when to load it, plus instructions. It becomes `/name`. Save it in `~/.claude/skills/` for all your projects, or in the project's `.claude/skills/` and commit it for the team. Plugin skills run as `/plugin-name:skill-name`.\n\nA subagent runs a side task in its own context window with its own system prompt and tool access, and returns only a summary. Define one as a Markdown file in `.claude/agents/` (check it in) or `~/.claude/agents/`. Use `tools` or `disallowedTools` to limit it, and `model` to route it to a cheaper model such as Haiku."
+      },
+      {
+        "heading": "Sessions and non-interactive runs",
+        "body": "Sessions are saved conversations tied to a project directory. `claude --continue` reopens the most recent one in the current directory; `claude --resume` opens a picker, or takes a session ID or name. Add `--fork-session` to branch into a copy with its own session ID, leaving the original intact.\n\n`claude -p \"...\"` runs non-interactively for scripts and CI, and exits non-zero when the run fails. Combine it with `--output-format json` (add `--json-schema` for schema-conforming output in `structured_output`) and `--allowedTools` to pre-approve tools. Sessions created with `-p` or the Agent SDK are left out of `--continue` and the picker; resume one with `claude --resume <session-id>`."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-cc-plan-mode",
+      "q-cc-team-skill",
+      "q-cc-continue-skips-print"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/memory",
+        "title": "How Claude remembers your project",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/permission-modes",
+        "title": "Choose a permission mode",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/commands",
+        "title": "Commands",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/skills",
+        "title": "Extend Claude with skills",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/sub-agents",
+        "title": "Create custom subagents",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/sessions",
+        "title": "Manage sessions",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/headless",
+        "title": "Run Claude Code programmatically",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  }
+]
