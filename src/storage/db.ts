@@ -21,6 +21,28 @@ export interface BackupData {
   kv: { key: string; value: unknown }[];
 }
 
+/**
+ * Awaits a transaction's requests and its completion together. `queue` issues the requests through `add`, so each one
+ * is tracked as it is made. Any failure, even a request that throws before it is queued, aborts the transaction so
+ * nothing partial commits, and no request is left with an unhandled rejection.
+ */
+async function run<T>(tx: { done: Promise<void>; abort(): void }, queue: (add: (request: Promise<T>) => void) => void): Promise<T[]> {
+  const requests: Promise<T>[] = [];
+  try {
+    queue((request) => void requests.push(request));
+    const [results] = await Promise.all([Promise.all(requests), tx.done]);
+    return results;
+  } catch (err) {
+    for (const r of [...requests, tx.done]) r.catch(() => {});
+    try {
+      tx.abort();
+    } catch {
+      // Already finished or aborted.
+    }
+    throw err;
+  }
+}
+
 export class AppDb {
   private constructor(private readonly db: IDBPDatabase<AjadaSchema>) {}
 
@@ -42,13 +64,12 @@ export class AppDb {
 
   async putCardStates(states: StoredCardState[]) {
     const tx = this.db.transaction('cardStates', 'readwrite');
-    await Promise.all([...states.map((s) => tx.store.put(s)), tx.done]);
+    await run(tx, (add) => { for (const s of states) add(tx.store.put(s)); });
   }
 
   async addAttempts(list: Attempt[]): Promise<Attempt[]> {
     const tx = this.db.transaction('attempts', 'readwrite');
-    const ids = await Promise.all(list.map(({ id: _drop, ...a }) => tx.store.add(a as Attempt)));
-    await tx.done;
+    const ids = await run<number>(tx, (add) => { for (const { id: _drop, ...a } of list) add(tx.store.add(a as Attempt)); });
     return list.map((a, i) => ({ ...a, id: ids[i] }));
   }
 
@@ -65,25 +86,27 @@ export class AppDb {
   async setKv(key: string, value: unknown) { await this.db.put('kv', value, key); }
 
   async exportAll(): Promise<BackupData> {
-    const [cardStates, attempts, mockSessions, lessonsDone, flags, kvKeys, kvValues] = await Promise.all([
-      this.db.getAll('cardStates'), this.db.getAll('attempts'), this.db.getAll('mockSessions'),
-      this.db.getAll('lessonsDone'), this.db.getAll('flags'), this.db.getAllKeys('kv'), this.db.getAll('kv'),
-    ]);
+    // One transaction, so the stores (and kv's keys and values) are read from the same snapshot.
+    const tx = this.db.transaction([...STORES], 'readonly');
+    const [cardStates, attempts, mockSessions, lessonsDone, flags, kvValues, kvKeys] = await run<unknown>(tx, (add) => {
+      for (const s of STORES) add(tx.objectStore(s).getAll());
+      add(tx.objectStore('kv').getAllKeys());
+    }) as [StoredCardState[], Attempt[], MockSession[], LessonDone[], Flag[], unknown[], string[]];
     return { cardStates, attempts, mockSessions, lessonsDone, flags, kv: kvKeys.map((key, i) => ({ key, value: kvValues[i] })) };
   }
 
   async replaceAll(data: BackupData) {
     const tx = this.db.transaction([...STORES], 'readwrite');
-    await Promise.all(STORES.map((s) => tx.objectStore(s).clear()));
-    await Promise.all([
-      ...data.cardStates.map((v) => tx.objectStore('cardStates').put(v)),
-      ...data.attempts.map((v) => tx.objectStore('attempts').put(v)),
-      ...data.mockSessions.map((v) => tx.objectStore('mockSessions').put(v)),
-      ...data.lessonsDone.map((v) => tx.objectStore('lessonsDone').put(v)),
-      ...data.flags.map((v) => tx.objectStore('flags').put(v)),
-      ...data.kv.map(({ key, value }) => tx.objectStore('kv').put(value, key)),
-    ]);
-    await tx.done;
+    // Clears and puts share one transaction: if any put fails, the clears roll back too.
+    await run<unknown>(tx, (add) => {
+      for (const s of STORES) add(tx.objectStore(s).clear());
+      for (const v of data.cardStates) add(tx.objectStore('cardStates').put(v));
+      for (const v of data.attempts) add(tx.objectStore('attempts').put(v));
+      for (const v of data.mockSessions) add(tx.objectStore('mockSessions').put(v));
+      for (const v of data.lessonsDone) add(tx.objectStore('lessonsDone').put(v));
+      for (const v of data.flags) add(tx.objectStore('flags').put(v));
+      for (const { key, value } of data.kv) add(tx.objectStore('kv').put(value, key));
+    });
   }
 
   close() { this.db.close(); }
