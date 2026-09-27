@@ -10,6 +10,7 @@ import {
 } from '../study/types';
 import { useClock } from './clock';
 import { useContent } from './ContentContext';
+import { SAVE_FAILED, useNotify } from './Notifier';
 
 export interface Progress {
   attempts: Attempt[];
@@ -20,6 +21,7 @@ export interface Progress {
   settings: Settings;
 }
 
+/** Save methods report a failure to the user (a toast) and still reject, so a caller that awaits can react. */
 export interface ProgressApi extends Progress {
   recordAnswer(question: Question, chosen: ChoiceId, mode: AttemptMode): Promise<void>;
   saveCardState(state: StoredCardState): Promise<void>;
@@ -58,6 +60,7 @@ const upsert = (list: MockSession[], s: MockSession) => [...list.filter((x) => x
 export function ProgressProvider({ db, children }: { db: AppDb; children: ReactNode }) {
   const { now } = useClock();
   const { questionById } = useContent();
+  const notify = useNotify();
   const [state, setState] = useState<Progress | null>(null);
   const [loadError, setLoadError] = useState<unknown>(null);
   const ref = useRef(state);
@@ -86,6 +89,12 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
   const api = useMemo<ProgressApi | null>(() => {
     if (!state) return null;
     const current = () => ref.current!;
+    /** Wraps a save so its failure is reported once, here, rather than at every call site. */
+    const reported = <A extends unknown[], R>(save: (...args: A) => Promise<R>) => (...args: A): Promise<R> =>
+      save(...args).catch((err: unknown) => {
+        notify(SAVE_FAILED);
+        throw err;
+      });
     const saveSettings = async (patch: Partial<Settings>) => {
       const settings = { ...current().settings, ...patch };
       await db.setKv(SETTINGS_KEY, settings);
@@ -93,7 +102,7 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
     };
     return {
       ...state,
-      async recordAnswer(question, chosen, mode) {
+      recordAnswer: reported(async (question: Question, chosen: ChoiceId, mode: AttemptMode) => {
         const at = now();
         const [attempt] = await db.addAttempts([
           { questionId: question.id, chosen, correct: chosen === question.answer, mode, at: at.getTime() },
@@ -109,16 +118,16 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
             );
         if (resurfaced.length > 0) await db.putCardStates(resurfaced);
         setState((p) => p && { ...p, attempts: [...p.attempts, attempt], cardStates: withStates(p.cardStates, resurfaced) });
-      },
-      async saveCardState(s) {
+      }),
+      saveCardState: reported(async (s: StoredCardState) => {
         await db.putCardStates([s]);
         setState((p) => p && { ...p, cardStates: withStates(p.cardStates, [s]) });
-      },
-      async markLessonDone(lessonId) {
+      }),
+      markLessonDone: reported(async (lessonId: string) => {
         await db.markLessonDone(lessonId, now().getTime());
         setState((p) => p && { ...p, lessonsDone: new Set(p.lessonsDone).add(lessonId) });
-      },
-      async toggleFlag(itemId, kind) {
+      }),
+      toggleFlag: reported(async (itemId: string, kind: Flag['kind']) => {
         if (current().flags.has(itemId)) {
           await db.deleteFlag(itemId);
           setState((p) => {
@@ -132,13 +141,13 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
           await db.putFlag(flag);
           setState((p) => p && { ...p, flags: new Map(p.flags).set(itemId, flag) });
         }
-      },
-      updateSettings: saveSettings,
-      async saveMockSession(session) {
+      }),
+      updateSettings: reported(saveSettings),
+      saveMockSession: reported(async (session: MockSession) => {
         await db.putMockSession(session);
         setState((p) => p && { ...p, mockSessions: upsert(p.mockSessions, session) });
-      },
-      submitMock(session) {
+      }),
+      submitMock: reported((session: MockSession) => {
         const pending = submits.current.get(session.id);
         if (pending) return pending;
         const existing = current().mockSessions.find((s) => s.id === session.id);
@@ -155,11 +164,11 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         // Keep a successful submission cached; forget a failed one so it can be retried.
         run.catch(() => submits.current.delete(session.id));
         return run;
-      },
-      async discardMockSession(id) {
+      }),
+      discardMockSession: reported(async (id: string) => {
         await db.deleteMockSession(id);
         setState((p) => p && { ...p, mockSessions: p.mockSessions.filter((s) => s.id !== id) });
-      },
+      }),
       async exportBackup() {
         return serializeBackup(await db.exportAll(), now());
       },
@@ -172,7 +181,7 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         await load();
       },
     };
-  }, [state, db, now, questionById, load]);
+  }, [state, db, now, questionById, load, notify]);
 
   if (loadError) {
     return <pre className="fatal">Ajada could not load your progress on this device.{'\n'}{String(loadError)}</pre>;

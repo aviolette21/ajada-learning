@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { buildQueue } from '../../study/scheduler';
 import { IconChevron } from '../../ui/icons';
@@ -24,7 +25,7 @@ export function CardsPage() {
         <div className="big-num">{due}</div>
         <p className="muted">{due === 1 ? 'card ready to review' : 'cards ready to review'}</p>
         <div style={{ margin: '12px 0' }}>
-          <DirectionToggle value={settings.cardDirection} onChange={(m) => void updateSettings({ cardDirection: m })} />
+          <DirectionToggle value={settings.cardDirection} onChange={(m) => updateSettings({ cardDirection: m }).catch(ignore)} />
         </div>
         <Link className="btn btn-primary btn-block" to="/cards/review">{due > 0 ? 'Start review' : 'Open review'}</Link>
       </section>

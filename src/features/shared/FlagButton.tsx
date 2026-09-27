@@ -1,3 +1,4 @@
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { IconFlag } from '../../ui/icons';
 
@@ -7,7 +8,7 @@ export function FlagButton({ itemId, kind }: { itemId: string; kind: 'question' 
   return (
     <button type="button" className={`icon-btn flag ${on ? 'on' : ''}`} aria-pressed={on}
       aria-label={on ? 'Flagged as wrong or outdated (tap to unflag)' : 'Flag as wrong or outdated'}
-      onClick={(e) => { e.stopPropagation(); void toggleFlag(itemId, kind); }}>
+      onClick={(e) => { e.stopPropagation(); toggleFlag(itemId, kind).catch(ignore); }}>
       <IconFlag filled={on} />
     </button>
   );

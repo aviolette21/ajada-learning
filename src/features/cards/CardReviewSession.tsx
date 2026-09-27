@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { buildQueue, newState, nextDueIn, previewIntervals, rate, shouldRequeue } from '../../study/scheduler';
 import type { DirectionMode, UserRating } from '../../study/types';
@@ -40,7 +41,7 @@ export function CardReviewSession({ mode, onDone, onExit, toolbar, doneLabel = '
     headKey.current = null;
     const t = now();
     const next = rate(item.state ?? newState(item.cardId, item.direction, t), rating, t);
-    void saveCardState(next);
+    saveCardState(next).catch(ignore);
     setReviewed((n) => n + 1);
     setItems((list) => {
       const rest = list.slice(1);

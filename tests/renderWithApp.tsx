@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { ClockProvider } from '../src/app/clock';
 import { ContentProvider } from '../src/app/ContentContext';
+import { NotifierProvider } from '../src/app/Notifier';
 import { ProgressProvider } from '../src/app/ProgressProvider';
 import { fixtureContent } from '../src/content/fixtures';
 import type { Content } from '../src/content/schema';
@@ -35,15 +36,17 @@ export async function renderWithApp(ui: ReactNode, opts: RenderOptions = {}) {
   const utils = render(
     <ClockProvider now={now}>
       <ContentProvider content={content}>
-        <ProgressProvider db={db}>
-          <MemoryRouter initialEntries={[opts.route ?? '/']}>
-            <Routes>
-              <Route path={opts.path ?? '*'} element={ui} />
-              {opts.path && <Route path="*" element={<div data-testid="elsewhere" />} />}
-            </Routes>
-            <LocationProbe />
-          </MemoryRouter>
-        </ProgressProvider>
+        <NotifierProvider>
+          <ProgressProvider db={db}>
+            <MemoryRouter initialEntries={[opts.route ?? '/']}>
+              <Routes>
+                <Route path={opts.path ?? '*'} element={ui} />
+                {opts.path && <Route path="*" element={<div data-testid="elsewhere" />} />}
+              </Routes>
+              <LocationProbe />
+            </MemoryRouter>
+          </ProgressProvider>
+        </NotifierProvider>
       </ContentProvider>
     </ClockProvider>,
   );

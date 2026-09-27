@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useClock } from '../../app/clock';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { firstActivityAt, isStandalone, needsBackupReminder } from '../../app/reminders';
 
@@ -13,7 +14,7 @@ export function HomeBanners() {
       {showInstall && (
         <div className="banner" role="note">
           <span className="grow">📲 Add Ajada to your Home Screen so it works offline and iOS keeps your progress: tap <strong>Share</strong> → <strong>Add to Home Screen</strong>.</span>
-          <button type="button" className="btn btn-ghost" onClick={() => void updateSettings({ installHintDismissedAt: now().getTime() })}>Dismiss</button>
+          <button type="button" className="btn btn-ghost" onClick={() => updateSettings({ installHintDismissedAt: now().getTime() }).catch(ignore)}>Dismiss</button>
         </div>
       )}
       {showBackup && (

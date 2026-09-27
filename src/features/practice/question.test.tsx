@@ -1,7 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { renderWithApp } from '../../../tests/renderWithApp';
+import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
+import { SAVE_FAILED } from '../../app/Notifier';
 import { fixtureContent } from '../../content/fixtures';
 import { QuestionRunner } from './QuestionRunner';
 import { QuestionView } from './QuestionView';
@@ -82,6 +83,15 @@ describe('QuestionRunner', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2 });
     await waitFor(async () => expect(await db.getAttempts()).toHaveLength(2));
+  });
+
+  it('keeps going and says so when an answer cannot be saved', async () => {
+    const db = await openTestDb();
+    vi.spyOn(db, 'addAttempts').mockRejectedValue(new Error('quota exceeded'));
+    await renderWithApp(<QuestionRunner questions={[q1]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />, { db });
+    await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha-1/ }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    expect(screen.getByRole('button', { name: 'Finish' })).toBeInTheDocument();
   });
 
   it('hides the lesson link during a lesson check so the check is not abandoned', async () => {

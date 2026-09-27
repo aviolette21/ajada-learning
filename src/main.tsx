@@ -8,7 +8,8 @@ import { AppDb } from './storage/db';
 
 const root = createRoot(document.getElementById('root')!);
 
-void navigator.storage?.persist?.();
+// Best effort: without persistent storage the browser may evict progress under pressure, but the app still works.
+navigator.storage?.persist?.().catch(() => {});
 
 AppDb.open()
   .then((db) =>

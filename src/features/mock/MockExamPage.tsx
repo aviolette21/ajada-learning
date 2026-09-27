@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useNow } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import type { ChoiceId } from '../../content/schema';
 import { remainingMs } from '../../study/mockExam';
@@ -38,13 +39,19 @@ export function MockExamPage() {
     if (!session || submitting.current) return;
     const next = { ...session, ...patch };
     setSession(next);
-    void saveMockSession(next);
+    saveMockSession(next).catch(ignore);
   };
 
   const submit = useCallback(async () => {
     if (!session || submitting.current) return;
     submitting.current = true;
-    await submitMock(session);
+    try {
+      await submitMock(session);
+    } catch {
+      // Already reported; let Submit (or the timer) try again.
+      submitting.current = false;
+      return;
+    }
     navigate(`/practice/mock/${session.id}/results`, { replace: true });
   }, [session, submitMock, navigate]);
 

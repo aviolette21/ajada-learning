@@ -1,6 +1,6 @@
 import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { openTestDb } from '../../tests/renderWithApp';
 import { fixtureContent } from '../content/fixtures';
 import type { AppDb } from '../storage/db';
@@ -8,6 +8,7 @@ import { buildQueue, newState, rate } from '../study/scheduler';
 import { DEFAULT_SETTINGS, type MockSession } from '../study/types';
 import { ClockProvider } from './clock';
 import { ContentProvider } from './ContentContext';
+import { NotifierProvider, SAVE_FAILED } from './Notifier';
 import { ProgressProvider, useProgress } from './ProgressProvider';
 
 const NOW = new Date('2026-09-26T10:00:00');
@@ -20,7 +21,9 @@ async function setup(existing?: AppDb) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <ClockProvider now={now}>
       <ContentProvider content={content}>
-        <ProgressProvider db={db}>{children}</ProgressProvider>
+        <NotifierProvider>
+          <ProgressProvider db={db}>{children}</ProgressProvider>
+        </NotifierProvider>
       </ContentProvider>
     </ClockProvider>
   );
@@ -137,6 +140,38 @@ describe('ProgressProvider', () => {
     await waitFor(() => expect(b.result.current.attempts).toHaveLength(1));
   });
 
+  it('reports a failed save in a toast, rejects, and leaves progress unchanged', async () => {
+    const { result, db, content } = await setup();
+    const question = content.questionById.get('q-alpha-1')!;
+    const fail = () => Promise.reject(new Error('quota exceeded'));
+    vi.spyOn(db, 'addAttempts').mockImplementation(fail);
+    vi.spyOn(db, 'putFlag').mockImplementation(fail);
+    vi.spyOn(db, 'markLessonDone').mockImplementation(fail);
+    vi.spyOn(db, 'putMockSession').mockImplementation(fail);
+    vi.spyOn(db, 'setKv').mockImplementation(fail);
+    const session: MockSession = {
+      id: 'm1', startedAt: NOW.getTime(), durationMs: 1000, questionIds: ['q-alpha-1'], answers: {}, flagged: [], currentIndex: 0,
+    };
+    const saves = [
+      () => result.current.recordAnswer(question, 'a', 'quiz'),
+      () => result.current.toggleFlag('q-alpha-1', 'question'),
+      () => result.current.markLessonDone('l-alpha'),
+      () => result.current.saveMockSession(session),
+      () => result.current.submitMock(session),
+      () => result.current.updateSettings({ newCardsPerDay: 3 }),
+    ];
+    for (const save of saves) {
+      await act(async () => { await expect(save()).rejects.toThrow('quota exceeded'); });
+      expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+      await act(async () => screen.getByRole('button', { name: 'Dismiss message' }).click());
+    }
+    expect(result.current.attempts).toEqual([]);
+    expect(result.current.flags.size).toBe(0);
+    expect(result.current.lessonsDone.size).toBe(0);
+    expect(result.current.mockSessions).toEqual([]);
+    expect(result.current.settings).toEqual(DEFAULT_SETTINGS);
+  });
+
   it('shows an error instead of a blank screen when progress cannot load', async () => {
     const broken = {
       getAttempts: () => Promise.reject(new Error('disk on fire')),
@@ -149,7 +184,9 @@ describe('ProgressProvider', () => {
     render(
       <ClockProvider now={() => NOW}>
         <ContentProvider content={fixtureContent()}>
-          <ProgressProvider db={broken}><p>child</p></ProgressProvider>
+          <NotifierProvider>
+            <ProgressProvider db={broken}><p>child</p></ProgressProvider>
+          </NotifierProvider>
         </ContentProvider>
       </ClockProvider>,
     );

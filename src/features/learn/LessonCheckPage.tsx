@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import type { Question } from '../../content/schema';
 import { QuestionRunner, type RunSummary } from '../practice/QuestionRunner';
@@ -19,6 +20,6 @@ export function LessonCheckPage() {
   if (summary) return <SessionSummary summary={summary} extra="Lesson marked as done." onDone={back} doneLabel="Back to lesson" />;
   return (
     <QuestionRunner questions={questions} mode="lesson" title="Check yourself" onExit={back}
-      onFinish={(s) => { void markLessonDone(lessonId); setSummary(s); }} />
+      onFinish={(s) => { markLessonDone(lessonId).catch(ignore); setSummary(s); }} />
   );
 }

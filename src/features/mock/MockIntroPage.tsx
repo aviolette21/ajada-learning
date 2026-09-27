@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { buildMockExam, MOCK_QUESTION_COUNT, remainingMs } from '../../study/mockExam';
 import { PASS_SCORE } from '../../study/readiness';
@@ -24,7 +25,7 @@ export function MockIntroPage() {
     const expired = mockSessions.filter((s) => !s.submittedAt && remainingMs(s, t) <= 0);
     if (expired.length === 0) return;
     const latest = expired.reduce((a, b) => (b.startedAt > a.startedAt ? b : a));
-    void Promise.all(expired.map((s) => submitMock(s))).then(() => setTimedOutId(latest.id));
+    Promise.all(expired.map((s) => submitMock(s))).then(() => setTimedOutId(latest.id), ignore);
   }, [mockSessions, submitMock, now]);
 
   const start = async () => {
@@ -57,7 +58,7 @@ export function MockIntroPage() {
         <p className="banner"><Link to={`/practice/mock/${timedOutId}/results`}>Your last exam timed out and was submitted — see results</Link></p>
       )}
       {active && <Button block onClick={() => navigate(`/practice/mock/${active.id}`)}>Resume exam in progress</Button>}
-      <Button block variant={active ? 'secondary' : 'primary'} onClick={() => void start()}>Start a new mock exam</Button>
+      <Button block variant={active ? 'secondary' : 'primary'} onClick={() => start().catch(ignore)}>Start a new mock exam</Button>
     </Screen>
   );
 }

@@ -123,3 +123,4 @@ button.panel-link { padding: 0; border: 0; background: none; font: inherit; }
 }
 .update-toast .grow { flex: 1; }
 .update-toast .btn { min-height: 44px; padding: 8px 14px; }
+.error-toast { border-color: var(--error); background: var(--error-bg); color: var(--error-text); }

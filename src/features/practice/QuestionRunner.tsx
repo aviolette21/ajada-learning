@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import type { ChoiceId, Question } from '../../content/schema';
 import type { AttemptMode } from '../../study/types';
@@ -41,7 +42,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
     if (chosen) return;
     setChosen(id);
     if (id === question.answer) setCorrect((c) => c + 1);
-    void recordAnswer(question, id, mode);
+    recordAnswer(question, id, mode).catch(ignore);
   };
   const next = () => {
     if (isLast) {

@@ -8,7 +8,7 @@ const HOUR = 60 * 60 * 1000;
 export function UpdateBanner() {
   const { needRefresh: [needRefresh, setNeedRefresh], updateServiceWorker } = useRegisterSW({
     onRegisteredSW(_url: string, registration: ServiceWorkerRegistration | undefined) {
-      if (registration) setInterval(() => void registration.update(), HOUR);
+      if (registration) setInterval(() => registration.update().catch(() => {}), HOUR); // offline checks fail; the next hour retries
     },
   });
   return (

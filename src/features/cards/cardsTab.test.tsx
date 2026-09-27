@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
-import { renderWithApp } from '../../../tests/renderWithApp';
+import { describe, expect, it, vi } from 'vitest';
+import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
+import { SAVE_FAILED } from '../../app/Notifier';
 import { fixtureContent } from '../../content/fixtures';
 import { BrowsePage } from './BrowsePage';
 import { CardsPage } from './CardsPage';
@@ -31,6 +32,17 @@ describe('BrowsePage', () => {
     expect(screen.getByRole('button', { name: 'Flag as wrong or outdated' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Details/ }));
     expect(screen.getByText('Alpha matters')).toBeInTheDocument();
+  });
+});
+
+describe('FlagButton', () => {
+  it('stays unflagged and says so when the flag cannot be saved', async () => {
+    const db = await openTestDb();
+    vi.spyOn(db, 'putFlag').mockRejectedValue(new Error('quota exceeded'));
+    await renderWithApp(<BrowsePage />, { db, route: '/cards/browse/alpha', path: '/cards/browse/:domainId' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Flag as wrong or outdated' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    expect(screen.getByRole('button', { name: 'Flag as wrong or outdated' })).toHaveAttribute('aria-pressed', 'false');
   });
 });
 

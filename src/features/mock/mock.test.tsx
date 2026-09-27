@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
+import { SAVE_FAILED } from '../../app/Notifier';
 import { MOCK_DURATION_MS } from '../../study/mockExam';
 import type { MockSession } from '../../study/types';
 import { HistoryPage } from './HistoryPage';
@@ -34,6 +35,14 @@ describe('MockIntroPage', () => {
     const [saved] = await db.getMockSessions();
     expect(saved.questionIds).toHaveLength(4);
   });
+  it('stays put and says so when a new session cannot be saved', async () => {
+    const db = await openTestDb();
+    vi.spyOn(db, 'putMockSession').mockRejectedValue(new Error('quota exceeded'));
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    await userEvent.click(await screen.findByRole('button', { name: 'Start a new mock exam' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/mock$/);
+  });
   it('submits an exam that timed out while away and links to its results', async () => {
     const db = await openTestDb();
     await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'a' } }));
@@ -43,6 +52,14 @@ describe('MockIntroPage', () => {
     expect((await db.getMockSessions())[0].submittedAt).toBeDefined();
     expect(await db.getAttempts()).toHaveLength(1);
     expect(screen.queryByRole('button', { name: 'Resume exam in progress' })).toBeNull();
+  });
+  it('says so when an exam that timed out while away cannot be submitted', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1 }));
+    vi.spyOn(db, 'addAttempts').mockRejectedValue(new Error('quota exceeded'));
+    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    expect(screen.queryByRole('link', { name: /timed out and was submitted/ })).toBeNull();
   });
   it('offers to resume an unfinished exam', async () => {
     const db = await openTestDb();
@@ -112,6 +129,24 @@ describe('MockExamPage', () => {
     expect(within(nav).getByRole('button', { name: 'Question 1, answered' })).toBeInTheDocument();
     await userEvent.click(within(nav).getByRole('button', { name: 'Submit exam' }));
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
+    expect(await db.getAttempts()).toHaveLength(1);
+  });
+
+  it('stays on the exam when submitting fails, and a retry submits', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ answers: { 'q-alpha-1': 'a' } }));
+    const spy = vi.spyOn(db, 'addAttempts').mockRejectedValueOnce(new Error('quota exceeded'));
+    await examAt(db);
+    const submit = async () => {
+      await userEvent.click(await screen.findByRole('button', { name: /All questions/ }));
+      await userEvent.click(within(screen.getByRole('dialog', { name: 'Question navigator' })).getByRole('button', { name: 'Submit exam' }));
+    };
+    await submit();
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/mock\/m1$/);
+    await submit();
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
+    expect(spy).toHaveBeenCalledTimes(2);
     expect(await db.getAttempts()).toHaveLength(1);
   });
 

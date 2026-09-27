@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
+import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { BackupError, backupFileName } from '../../storage/backup';
 import { shareOrDownload } from '../../storage/share';
@@ -41,7 +42,7 @@ export function SettingsPage() {
     }
   };
 
-  const setNewCards = (n: number) => void p.updateSettings({ newCardsPerDay: Math.min(50, Math.max(5, n)) });
+  const setNewCards = (n: number) => p.updateSettings({ newCardsPerDay: Math.min(50, Math.max(5, n)) }).catch(ignore);
 
   return (
     <Screen title="Settings" back="/">
@@ -81,7 +82,7 @@ export function SettingsPage() {
                   <code>{f.itemId}</code>
                   <div className="muted">{f.kind === 'question' ? questionById.get(f.itemId)?.stem : cardById.get(f.itemId)?.term}</div>
                 </div>
-                <button type="button" className="btn btn-ghost" onClick={() => void p.toggleFlag(f.itemId, f.kind)}>Unflag</button>
+                <button type="button" className="btn btn-ghost" onClick={() => p.toggleFlag(f.itemId, f.kind).catch(ignore)}>Unflag</button>
               </li>
             ))}
           </ul>

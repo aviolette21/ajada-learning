@@ -24,6 +24,7 @@ import type { AppDb } from '../storage/db';
 import { TabBar } from '../ui/TabBar';
 import { ClockProvider } from './clock';
 import { ContentProvider } from './ContentContext';
+import { NotifierProvider } from './Notifier';
 import { ProgressProvider } from './ProgressProvider';
 
 const systemNow = () => new Date();
@@ -70,11 +71,13 @@ export function App({ db, content }: { db: AppDb; content: Content }) {
     <MotionConfig reducedMotion="user">
       <ClockProvider now={systemNow}>
         <ContentProvider content={content}>
-          <ProgressProvider db={db}>
-            <HashRouter>
-              <Shell />
-            </HashRouter>
-          </ProgressProvider>
+          <NotifierProvider>
+            <ProgressProvider db={db}>
+              <HashRouter>
+                <Shell />
+              </HashRouter>
+            </ProgressProvider>
+          </NotifierProvider>
         </ContentProvider>
       </ClockProvider>
     </MotionConfig>

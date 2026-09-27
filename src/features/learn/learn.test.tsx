@@ -1,7 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
-import { renderWithApp } from '../../../tests/renderWithApp';
+import { describe, expect, it, vi } from 'vitest';
+import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
+import { SAVE_FAILED } from '../../app/Notifier';
 import { DomainPage } from './DomainPage';
 import { LearnPage } from './LearnPage';
 import { LessonCheckPage } from './LessonCheckPage';
@@ -51,5 +52,16 @@ describe('LessonCheckPage', () => {
     }
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();
     await waitFor(async () => expect(await db.getLessonsDone()).toMatchObject([{ lessonId: 'l-alpha' }]));
+  });
+  it('still shows the summary, and says so, when the lesson cannot be marked done', async () => {
+    const db = await openTestDb();
+    vi.spyOn(db, 'markLessonDone').mockRejectedValue(new Error('quota exceeded'));
+    await renderWithApp(<LessonCheckPage />, { db, route: '/learn/lesson/l-alpha/check', path: '/learn/lesson/:lessonId/check' });
+    for (const id of ['q-alpha-1', 'q-alpha-2', 'q-alpha-3']) {
+      await userEvent.click(await screen.findByRole('button', { name: new RegExp(`Right answer ${id}`) }));
+      await userEvent.click(await screen.findByRole('button', { name: id === 'q-alpha-3' ? 'Finish' : 'Continue' }));
+    }
+    expect(await screen.findByText('3 / 3')).toBeInTheDocument();
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
   });
 });
