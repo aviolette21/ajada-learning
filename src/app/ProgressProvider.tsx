@@ -104,10 +104,8 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
       ...state,
       recordAnswer: reported(async (question: Question, chosen: ChoiceId, mode: AttemptMode) => {
         const at = now();
-        const [attempt] = await db.addAttempts([
-          { questionId: question.id, chosen, correct: chosen === question.answer, mode, at: at.getTime() },
-        ]);
-        const resurfaced = attempt.correct
+        const correct = chosen === question.answer;
+        const resurfaced = correct
           ? []
           : question.relatedCardIds.flatMap((cardId) =>
               (['forward', 'reverse'] as const).flatMap((d) => {
@@ -116,7 +114,7 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
                 return [s ? resurface(s, at) : newState(cardId, d, at)];
               }),
             );
-        if (resurfaced.length > 0) await db.putCardStates(resurfaced);
+        const attempt = await db.recordAttempt({ questionId: question.id, chosen, correct, mode, at: at.getTime() }, resurfaced);
         setState((p) => p && { ...p, attempts: [...p.attempts, attempt], cardStates: withStates(p.cardStates, resurfaced) });
       }),
       saveCardState: reported(async (s: StoredCardState) => {
@@ -155,8 +153,7 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
         const run = (async () => {
           const at = now().getTime();
           const submitted: MockSession = { ...session, submittedAt: at };
-          await db.putMockSession(submitted);
-          const attempts = await db.addAttempts(mockAttempts(submitted, questionById, at));
+          const attempts = await db.submitMockSession(submitted, mockAttempts(submitted, questionById, at));
           setState((p) => p && { ...p, mockSessions: upsert(p.mockSessions, submitted), attempts: [...p.attempts, ...attempts] });
           return submitted;
         })();

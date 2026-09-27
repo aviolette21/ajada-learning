@@ -144,7 +144,8 @@ describe('ProgressProvider', () => {
     const { result, db, content } = await setup();
     const question = content.questionById.get('q-alpha-1')!;
     const fail = () => Promise.reject(new Error('quota exceeded'));
-    vi.spyOn(db, 'addAttempts').mockImplementation(fail);
+    vi.spyOn(db, 'recordAttempt').mockImplementation(fail);
+    vi.spyOn(db, 'submitMockSession').mockImplementation(fail);
     vi.spyOn(db, 'putFlag').mockImplementation(fail);
     vi.spyOn(db, 'markLessonDone').mockImplementation(fail);
     vi.spyOn(db, 'putMockSession').mockImplementation(fail);

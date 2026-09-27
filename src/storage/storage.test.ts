@@ -126,3 +126,39 @@ describe('stricter backups', () => {
     db.close();
   });
 });
+
+describe('writes that span two stores', () => {
+  const session = { id: 'm1', startedAt: 0, durationMs: 10, questionIds: ['q-a'], answers: { 'q-a': 'b' as const }, flagged: [], currentIndex: 0 };
+  const attempt = { questionId: 'q-a', chosen: 'b' as const, correct: false, mode: 'mock' as const, at: 1 };
+
+  it('submits a mock session and its attempts together', async () => {
+    const db = await openFresh();
+    const saved = await db.submitMockSession({ ...session, submittedAt: 1 }, [attempt]);
+    expect(typeof saved[0].id).toBe('number');
+    expect(await db.getMockSessions()).toMatchObject([{ id: 'm1', submittedAt: 1 }]);
+    expect(await db.getAttempts()).toHaveLength(1);
+    db.close();
+  });
+
+  it('leaves the session unsubmitted when its attempts cannot be stored', async () => {
+    const db = await openFresh();
+    await db.putMockSession(session);
+    // A function can't be cloned into IndexedDB, so this attempt's add throws.
+    const broken = { ...attempt, chosen: (() => 'b') as unknown as 'b' };
+    await expect(db.submitMockSession({ ...session, submittedAt: 1 }, [attempt, broken])).rejects.toThrow();
+    expect((await db.getMockSessions())[0].submittedAt).toBeUndefined();
+    expect(await db.getAttempts()).toEqual([]);
+    db.close();
+  });
+
+  it('records an attempt with its resurfaced cards, or neither', async () => {
+    const db = await openFresh();
+    const state = newState('c-a', 'forward', T);
+    const saved = await db.recordAttempt(attempt, [state]);
+    expect(typeof saved.id).toBe('number');
+    expect(await db.getCardStates()).toHaveLength(1);
+    await expect(db.recordAttempt(attempt, [{ ...state, key: undefined as unknown as string }])).rejects.toThrow();
+    expect(await db.getAttempts()).toHaveLength(1);
+    db.close();
+  });
+});

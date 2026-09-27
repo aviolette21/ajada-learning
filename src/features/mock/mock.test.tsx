@@ -56,7 +56,7 @@ describe('MockIntroPage', () => {
   it('says so when an exam that timed out while away cannot be submitted', async () => {
     const db = await openTestDb();
     await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1 }));
-    vi.spyOn(db, 'addAttempts').mockRejectedValue(new Error('quota exceeded'));
+    vi.spyOn(db, 'submitMockSession').mockRejectedValue(new Error('quota exceeded'));
     await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
     expect(screen.queryByRole('link', { name: /timed out and was submitted/ })).toBeNull();
@@ -135,7 +135,7 @@ describe('MockExamPage', () => {
   it('stays on the exam when submitting fails, and a retry submits', async () => {
     const db = await openTestDb();
     await db.putMockSession(session({ answers: { 'q-alpha-1': 'a' } }));
-    const spy = vi.spyOn(db, 'addAttempts').mockRejectedValueOnce(new Error('quota exceeded'));
+    const spy = vi.spyOn(db, 'submitMockSession').mockRejectedValueOnce(new Error('quota exceeded'));
     await examAt(db);
     const submit = async () => {
       await userEvent.click(await screen.findByRole('button', { name: /All questions/ }));
@@ -144,6 +144,8 @@ describe('MockExamPage', () => {
     await submit();
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/mock\/m1$/);
+    // Nothing was half-written: after a reload the exam is still in progress, not submitted without its answers.
+    expect((await db.getMockSessions())[0].submittedAt).toBeUndefined();
     await submit();
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
     expect(spy).toHaveBeenCalledTimes(2);
@@ -153,7 +155,7 @@ describe('MockExamPage', () => {
   it('locks answers once time is up, even if the auto-submit failed', async () => {
     const db = await openTestDb();
     await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'b' } }));
-    vi.spyOn(db, 'addAttempts').mockRejectedValueOnce(new Error('quota exceeded'));
+    vi.spyOn(db, 'submitMockSession').mockRejectedValueOnce(new Error('quota exceeded'));
     await examAt(db);
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
     await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-1/ }));

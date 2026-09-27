@@ -87,7 +87,7 @@ describe('QuestionRunner', () => {
 
   it('keeps going and says so when an answer cannot be saved', async () => {
     const db = await openTestDb();
-    vi.spyOn(db, 'addAttempts').mockRejectedValue(new Error('quota exceeded'));
+    vi.spyOn(db, 'recordAttempt').mockRejectedValue(new Error('quota exceeded'));
     await renderWithApp(<QuestionRunner questions={[q1]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />, { db });
     await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha-1/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);

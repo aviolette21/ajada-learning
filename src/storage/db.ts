@@ -73,6 +73,27 @@ export class AppDb {
     return list.map((a, i) => ({ ...a, id: ids[i] }));
   }
 
+  /** Stores an attempt and the card states it resurfaced in one transaction. */
+  async recordAttempt(attempt: Attempt, states: StoredCardState[]): Promise<Attempt> {
+    const tx = this.db.transaction(['attempts', 'cardStates'], 'readwrite');
+    const { id: _drop, ...a } = attempt;
+    const [id] = await run<unknown>(tx, (add) => {
+      add(tx.objectStore('attempts').add(a as Attempt));
+      for (const s of states) add(tx.objectStore('cardStates').put(s));
+    });
+    return { ...attempt, id: id as number };
+  }
+
+  /** Saves a submitted session and its attempts in one transaction, so a session is never submitted without them. */
+  async submitMockSession(session: MockSession, attempts: Attempt[]): Promise<Attempt[]> {
+    const tx = this.db.transaction(['mockSessions', 'attempts'], 'readwrite');
+    const [, ...ids] = await run<unknown>(tx, (add) => {
+      add(tx.objectStore('mockSessions').put(session));
+      for (const { id: _drop, ...a } of attempts) add(tx.objectStore('attempts').add(a as Attempt));
+    });
+    return attempts.map((a, i) => ({ ...a, id: ids[i] as number }));
+  }
+
   getAttempts() { return this.db.getAll('attempts'); }
   getMockSessions() { return this.db.getAll('mockSessions'); }
   async putMockSession(s: MockSession) { await this.db.put('mockSessions', s); }
