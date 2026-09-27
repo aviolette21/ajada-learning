@@ -2,7 +2,7 @@
   {
     "id": "c-mcp-server",
     "domainId": "tools-mcp",
-    "subSkillId": "mcp-servers",
+    "subSkillId": "mcp-server-dev",
     "term": "MCP server",
     "definition": "A program that exposes capabilities to AI apps through the Model Context Protocol, using three building blocks: **tools**, **resources** and **prompts**.",
     "whyItMatters": "Questions test who controls each block: tools are model-controlled, resources are application-controlled, prompts are user-controlled.",

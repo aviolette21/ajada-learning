@@ -2,7 +2,7 @@
   {
     "id": "c-prompt-caching",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "term": "Prompt caching",
     "definition": "An API feature that lets a request resume from a previously processed prompt prefix, reducing processing time and cost for prompts with repeated content.",
     "whyItMatters": "Cache reads cost **0.1×** base input on most models; 5-minute writes cost 1.25× and 1-hour writes 2×. It pays off when the same large prefix repeats.",
@@ -13,7 +13,7 @@
   {
     "id": "c-cache-control",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "term": "cache_control",
     "definition": "A content-block field marking a cache breakpoint: the prompt (tools, system, then messages) up to and including that block becomes the cacheable prefix.",
     "whyItMatters": "Exam scenarios test **where** to put the breakpoint: after the large, stable content and before anything that changes per request.",
@@ -24,7 +24,7 @@
   {
     "id": "c-message-batches",
     "domainId": "model-selection",
-    "subSkillId": "batch-processing",
+    "subSkillId": "cost-tokens",
     "term": "Message Batches API",
     "definition": "Asynchronous processing of large volumes of Messages requests at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
     "whyItMatters": "Choose it for work that doesn't need an immediate response (bulk evaluations, content moderation, data analysis), never for live chat.",

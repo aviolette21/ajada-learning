@@ -2,7 +2,7 @@
   {
     "id": "c-eval-set",
     "domainId": "eval-testing",
-    "subSkillId": "evals-debugging",
+    "subSkillId": "debugging-errors",
     "term": "Eval set",
     "definition": "A set of test cases designed to measure an LLM application's performance against clearly defined success criteria.",
     "whyItMatters": "Be task-specific (mirror the real task distribution, include edge cases), automate grading when possible, and prioritize volume over hand-graded quality.",

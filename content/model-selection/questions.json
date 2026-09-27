@@ -2,7 +2,7 @@
   {
     "id": "q-cache-repeated-system-prompt",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "topic": "Prompt caching",
     "stem": "Your app sends the same 20k-token system prompt on every request, followed by a short user message. What cuts cost **and** latency the most?",
     "choices": [
@@ -30,7 +30,7 @@
   {
     "id": "q-cache-breakpoint-placement",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "topic": "Cache breakpoints",
     "stem": "Each request contains tool definitions, a long unchanging system prompt, then a block with the current timestamp and the user's message. Where should the `cache_control` breakpoint go?",
     "choices": [
@@ -59,7 +59,7 @@
   {
     "id": "q-cache-lifetime",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "topic": "Cache lifetime",
     "stem": "An internal tool caches a large system prompt, but users often pause 20–40 minutes between requests, so almost every request pays for a new cache write. What helps?",
     "choices": [

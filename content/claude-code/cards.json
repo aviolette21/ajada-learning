@@ -2,7 +2,7 @@
   {
     "id": "c-claude-md",
     "domainId": "claude-code",
-    "subSkillId": "cc-config",
+    "subSkillId": "cc-operation",
     "term": "CLAUDE.md",
     "definition": "A markdown file of persistent instructions that Claude Code reads at the start of every session. Project `./CLAUDE.md` is shared via source control.",
     "whyItMatters": "It's context, not enforced configuration: to block an action regardless, use a PreToolUse hook. Keep it concise (under 200 lines). `/init` drafts one.",

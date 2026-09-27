@@ -91,6 +91,26 @@ export function validateContent(raw: RawContent): ValidationResult {
   }
   for (const { file, item } of lessons) {
     for (const id of item.checkQuestionIds) if (!questionIds.has(id)) errors.push(`${file}: ${item.id} links unknown question "${id}"`);
+    const seenChecks = new Set<string>();
+    for (const id of item.checkQuestionIds) {
+      if (seenChecks.has(id)) errors.push(`${file}: ${item.id} repeats check question "${id}"`);
+      seenChecks.add(id);
+      const q = questions.find((x) => x.item.id === id)?.item;
+      if (q && q.subSkillId !== item.subSkillId) {
+        errors.push(`${file}: ${item.id} check question "${id}" is in sub-skill "${q.subSkillId}", not "${item.subSkillId}"`);
+      }
+    }
+  }
+
+  for (const domain of domains) {
+    const inDomain = questions.filter((q) => q.item.domainId === domain.id).map((q) => q.item);
+    if (inDomain.length < 8) continue;
+    for (const letter of ['a', 'b', 'c', 'd'] as const) {
+      const n = inDomain.filter((q) => q.answer === letter).length;
+      if (n / inDomain.length > 0.4) {
+        errors.push(`${domain.id}: ${n} of ${inDomain.length} questions have answer "${letter}" (max 40%)`);
+      }
+    }
   }
 
   if (errors.length > 0) return { ok: false, errors };

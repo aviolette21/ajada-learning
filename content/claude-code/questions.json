@@ -2,7 +2,7 @@
   {
     "id": "q-cc-claude-md",
     "domainId": "claude-code",
-    "subSkillId": "cc-config",
+    "subSkillId": "cc-operation",
     "topic": "CLAUDE.md",
     "stem": "A team wants every developer's Claude Code sessions to know the project's build commands and coding conventions, kept in source control with the code. Where should these instructions go?",
     "choices": [

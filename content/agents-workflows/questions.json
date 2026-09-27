@@ -2,7 +2,7 @@
   {
     "id": "q-workflow-vs-agent",
     "domainId": "agents-workflows",
-    "subSkillId": "workflow-patterns",
+    "subSkillId": "agent-patterns",
     "topic": "Workflows vs agents",
     "stem": "A team's task always follows the same fixed steps: translate a document, check the translation against a glossary, then format it. They want predictable, consistent results. What should they build?",
     "choices": [
@@ -21,7 +21,7 @@
   {
     "id": "q-agent-loop-termination",
     "domainId": "agents-workflows",
-    "subSkillId": "agent-loops",
+    "subSkillId": "agent-construction",
     "topic": "Stopping conditions",
     "stem": "Your coding agent usually finishes its task, but occasionally keeps calling tools without converging. Which safeguard, commonly included in agent designs according to Anthropic's guidance, helps you keep control?",
     "choices": [

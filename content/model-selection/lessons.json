@@ -2,7 +2,7 @@
   {
     "id": "l-prompt-caching",
     "domainId": "model-selection",
-    "subSkillId": "prompt-caching",
+    "subSkillId": "cost-tokens",
     "title": "Prompt caching",
     "summary": "Prompt caching lets a request resume from a prefix the API has already processed, so repeated content is cheaper and faster. You mark where the reusable prefix ends with `cache_control`, and the cache lives 5 minutes by default.",
     "keyPoints": [

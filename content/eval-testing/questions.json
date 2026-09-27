@@ -2,7 +2,7 @@
   {
     "id": "q-eval-regression-set",
     "domainId": "eval-testing",
-    "subSkillId": "evals-debugging",
+    "subSkillId": "debugging-errors",
     "topic": "Building evals",
     "stem": "A team tunes a support-bot prompt by eyeballing a handful of chats, and each fix seems to break some other case. What should they do first?",
     "choices": [

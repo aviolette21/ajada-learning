@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const text = z.string().trim().min(1);
 const slug = z.string().regex(/^[a-z0-9-]+$/);
+const upTo = (n: number) => text.max(n);
 
 export const ChoiceIdSchema = z.enum(['a', 'b', 'c', 'd']);
 export const SourceSchema = z.object({ url: z.url({ protocol: /^https$/ }), title: text, checkedOn: z.iso.date() });
@@ -39,21 +40,21 @@ export const DomainSchema = z.object({
 });
 export const DomainsFileSchema = z.array(DomainSchema).min(1);
 
-export const ChoiceSchema = z.object({ id: ChoiceIdSchema, text, reason: text });
+export const ChoiceSchema = z.object({ id: ChoiceIdSchema, text: upTo(140), reason: upTo(220) });
 
 export const QuestionSchema = z.object({
   id: z.string().regex(/^q-[a-z0-9-]+$/),
   domainId: text,
   subSkillId: text,
   topic: text,
-  stem: text,
+  stem: upTo(320),
   choices: z
     .array(ChoiceSchema)
     .length(4)
     .refine((cs) => cs.map((c) => c.id).join('') === 'abcd', { message: 'choices must have ids a, b, c, d in order' }),
   answer: ChoiceIdSchema,
-  takeaway: text,
-  mnemonic: text.optional(),
+  takeaway: upTo(170),
+  mnemonic: upTo(100).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   diagram: DiagramSchema.optional(),
   source: SourceSchema,
@@ -81,15 +82,15 @@ export const CardSchema = z.object({
   isVocab: z.boolean(),
 });
 
-export const LessonSectionSchema = z.object({ heading: text, body: text, diagram: DiagramSchema.optional() });
+export const LessonSectionSchema = z.object({ heading: upTo(60), body: upTo(1400), diagram: DiagramSchema.optional() });
 
 export const LessonSchema = z.object({
   id: z.string().regex(/^l-[a-z0-9-]+$/),
   domainId: text,
   subSkillId: text,
   title: text,
-  summary: text,
-  keyPoints: z.array(text).min(1),
+  summary: upTo(400),
+  keyPoints: z.array(upTo(180)).min(1),
   sections: z.array(LessonSectionSchema).min(1),
   checkQuestionIds: z.array(z.string()).length(3),
   sources: z.array(SourceSchema).min(1),

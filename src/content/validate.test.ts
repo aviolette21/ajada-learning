@@ -115,4 +115,35 @@ describe('validateContent', () => {
     const r = mutate((raw) => { raw.files['alpha/notes.json'] = []; });
     expect(errorText(r)).toMatch(/alpha\/notes\.json: unexpected content file/);
   });
+
+  it('rejects questions that exceed length limits', () => {
+    const r = mutate((raw) => { raw.files['alpha/questions.json'][0].stem = 'x'.repeat(321); });
+    expect(errorText(r)).toMatch(/alpha\/questions\.json: 0\.stem/);
+  });
+
+  it('rejects lesson section bodies over 1400 characters', () => {
+    const r = mutate((raw) => { raw.files['alpha/lessons.json'][0].sections[0].body = 'x'.repeat(1401); });
+    expect(errorText(r)).toMatch(/alpha\/lessons\.json: 0\.sections\.0\.body/);
+  });
+
+  it('rejects lesson check questions from another sub-skill or repeated', () => {
+    const r = mutate((raw) => {
+      raw.domains[0].subSkills.push({ id: 'a2', name: 'Alpha Two', official: false });
+      raw.files['alpha/questions.json'][2].subSkillId = 'a2';
+      raw.files['alpha/lessons.json'][0].checkQuestionIds = ['q-alpha-1', 'q-alpha-1', 'q-alpha-3'];
+    });
+    const text = errorText(r);
+    expect(text).toMatch(/l-alpha check question "q-alpha-3" is in sub-skill "a2", not "a1"/);
+    expect(text).toMatch(/l-alpha repeats check question "q-alpha-1"/);
+  });
+
+  it('rejects answer keys skewed to one letter in domains with 8+ questions', () => {
+    const r = mutate((raw) => {
+      const base = raw.files['alpha/questions.json'][1];
+      raw.files['alpha/questions.json'].push(
+        ...Array.from({ length: 6 }, (_, i) => ({ ...structuredClone(base), id: `q-alpha-extra-${i}`, lessonId: undefined })),
+      );
+    });
+    expect(errorText(r)).toMatch(/alpha: 9 of 9 questions have answer "a" \(max 40%\)/);
+  });
 });

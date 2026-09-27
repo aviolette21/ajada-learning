@@ -2,7 +2,7 @@
   {
     "id": "q-mcp-primitives",
     "domainId": "tools-mcp",
-    "subSkillId": "mcp-servers",
+    "subSkillId": "mcp-server-dev",
     "topic": "MCP server primitives",
     "stem": "Your MCP server offers three things: (1) a `send_message` action, (2) read-only database schemas for context, and (3) a \"Summarize my meetings\" template users pick from a slash-command menu. Which MCP building blocks are these?",
     "choices": [

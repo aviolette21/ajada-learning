@@ -2,7 +2,7 @@
   {
     "id": "c-workflow-vs-agent",
     "domainId": "agents-workflows",
-    "subSkillId": "workflow-patterns",
+    "subSkillId": "agent-patterns",
     "term": "Workflow vs agent",
     "definition": "**Workflows** run LLMs and tools through predefined code paths. **Agents** let the LLM dynamically direct its own process and tool use.",
     "whyItMatters": "Workflows give predictability for well-defined tasks; agents give flexibility at the cost of latency and spend. Start with the simplest solution.",
@@ -13,7 +13,7 @@
   {
     "id": "c-stopping-condition",
     "domainId": "agents-workflows",
-    "subSkillId": "agent-loops",
+    "subSkillId": "agent-construction",
     "term": "Stopping condition",
     "definition": "A rule that ends an agent loop even if the task isn't finished, such as a maximum number of iterations.",
     "whyItMatters": "Agent tasks often end on completion, but Anthropic's guidance says it's common to add stopping conditions to maintain control.",

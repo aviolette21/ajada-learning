@@ -2,7 +2,7 @@
   {
     "id": "q-prompt-xml-tags",
     "domainId": "prompt-context",
-    "subSkillId": "prompt-techniques",
+    "subSkillId": "prompt-engineering",
     "topic": "XML tags",
     "stem": "Your prompt mixes instructions, a long contract and a few examples in plain paragraphs, and Claude sometimes treats clauses from the contract as instructions. What's the best fix?",
     "choices": [

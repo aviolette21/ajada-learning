@@ -2,7 +2,7 @@
   {
     "id": "c-xml-tags",
     "domainId": "prompt-context",
-    "subSkillId": "prompt-techniques",
+    "subSkillId": "prompt-engineering",
     "term": "XML tags in prompts",
     "definition": "Wrapping each type of prompt content in its own tag, such as `<instructions>` or `<context>`, so Claude can parse a complex prompt unambiguously.",
     "whyItMatters": "Reduces misinterpretation when instructions, context, examples and variable inputs share one prompt. Use consistent, descriptive tag names.",

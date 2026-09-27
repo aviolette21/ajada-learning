@@ -2,7 +2,7 @@
   {
     "id": "c-prompt-injection",
     "domainId": "security-safety",
-    "subSkillId": "prompt-injection",
+    "subSkillId": "app-security",
     "term": "Indirect prompt injection",
     "definition": "An attack where the user is trusted but Claude processes third-party content (web pages, emails, documents, tool results) with adversarial instructions.",
     "whyItMatters": "The attacker isn't your user (unlike a jailbreak). Put untrusted content only in `tool_result` blocks, label its source, JSON-encode it, use least privilege.",
