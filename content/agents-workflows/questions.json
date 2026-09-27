@@ -16,7 +16,8 @@
     "mnemonic": "Fixed path → workflow; open path → agent.",
     "difficulty": "easy",
     "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-workflow-vs-agent"]
+    "relatedCardIds": ["c-workflow-vs-agent"],
+    "lessonId": "l-agent-patterns"
   },
   {
     "id": "q-agent-loop-termination",
@@ -35,6 +36,903 @@
     "mnemonic": "Cap the loop to keep control.",
     "difficulty": "medium",
     "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-stopping-condition"]
+    "relatedCardIds": ["c-stopping-condition"],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-multi-agent-fit",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Multi-agent systems",
+    "stem": "Your team is choosing a first project for a multi-agent system (a lead agent plus parallel subagents). Based on Anthropic's experience building its Research feature, which task is the best fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A coding task where every change depends on context the other agents also need",
+        "reason": "Domains where all agents must share the same context, or with many dependencies between agents, are not a good fit for multi-agent systems today."
+      },
+      {
+        "id": "b",
+        "text": "High-volume, low-value tickets, to cut the tokens used per ticket",
+        "reason": "Multi-agent systems use about 15× more tokens than chats, so they need tasks valuable enough to pay for the increased performance."
+      },
+      {
+        "id": "c",
+        "text": "A breadth-first research question that splits into many independent directions",
+        "reason": "Correct: multi-agent research systems excel especially for breadth-first queries that pursue multiple independent directions simultaneously."
+      },
+      {
+        "id": "d",
+        "text": "A simple fact lookup with a single answer",
+        "reason": "The post's scaling rules say simple fact-finding needs just 1 agent with 3-10 tool calls; more agents would be overinvestment."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Multi-agent pays off on **valuable, parallelizable** work; shared context and tight dependencies between agents are a poor fit today.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-lead-agent-subagents",
+      "c-multi-agent-token-cost"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-multi-agent-token-cost",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Multi-agent systems",
+    "stem": "A manager assumes that splitting a task across parallel subagents will lower the token bill, since each subagent does less. What does Anthropic's data from its multi-agent research system suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Token use drops, because each subagent's context is smaller",
+        "reason": "Each subagent has its own context window, but the total grows: multi-agent systems use about 15× more tokens than chats."
+      },
+      {
+        "id": "b",
+        "text": "Token use rises sharply, so the task must be valuable enough to justify it",
+        "reason": "Correct: multi-agent systems use about 15× more tokens than chats, so they need tasks whose value is high enough to pay for the increased performance."
+      },
+      {
+        "id": "c",
+        "text": "Token use stays the same; only the wall-clock time changes",
+        "reason": "Parallelism did cut research time, but these architectures burn through tokens fast; the total does not stay the same."
+      },
+      {
+        "id": "d",
+        "text": "Token use matches a single agent, about 4× a chat",
+        "reason": "About 4× is the figure for single agents versus chats; multi-agent systems use about 15×."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Multi-agent systems trade **tokens** (about 15× a chat) for performance, so save them for high-value tasks.",
+    "mnemonic": "Chat 1×, agent 4×, multi-agent 15×.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-multi-agent-token-cost"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-subagent-delegation",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Delegating to subagents",
+    "stem": "Your lead research agent gives subagents short instructions like \"research the semiconductor shortage\". Two subagents end up running the same searches while an important angle goes uncovered. What change does Anthropic recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give each subagent an objective, output format, tool and source guidance, and clear task boundaries",
+        "reason": "Correct: each subagent needs these; without detailed task descriptions, agents duplicate work, leave gaps, or fail to find necessary information."
+      },
+      {
+        "id": "b",
+        "text": "Spawn more subagents so the missing angle gets covered by chance",
+        "reason": "More agents with vague briefs just duplicate more work; early agents even spawned 50 subagents for simple queries."
+      },
+      {
+        "id": "c",
+        "text": "Have all subagents share one context window so they can see each other",
+        "reason": "Subagents are meant to have their own context windows; that separation of concerns reduces path dependency and enables independent investigations."
+      },
+      {
+        "id": "d",
+        "text": "Keep the short instructions and move subagents to a larger model",
+        "reason": "The failure came from instructions vague enough that subagents misinterpreted the task; the fix is teaching the orchestrator how to delegate."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Teach the orchestrator to delegate: every subagent gets an **objective, output format, tools and boundaries**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-delegation-brief",
+      "c-lead-agent-subagents"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-long-running-session-handoff",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Long-running agents",
+    "stem": "Your coding agent works across many context windows. Each new session starts with no memory, has to guess what happened, and spends time getting the app working again. Which harness change did Anthropic find effective?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rely on compaction alone to carry context between sessions",
+        "reason": "Compaction isn't sufficient on its own; it doesn't always pass perfectly clear instructions to the next agent."
+      },
+      {
+        "id": "b",
+        "text": "Prompt the agent to build the whole app in one session",
+        "reason": "Trying to one-shot the app led the model to run out of context mid-implementation, leaving a half-implemented, undocumented feature."
+      },
+      {
+        "id": "c",
+        "text": "Let each new session judge from the code whether the project is done",
+        "reason": "That is a known failure mode: a later agent sees that progress has been made and declares the job done."
+      },
+      {
+        "id": "d",
+        "text": "Keep a progress file and git history that each session reads first and updates at the end",
+        "reason": "Correct: a claude-progress.txt file alongside the git history lets agents quickly understand the state of work in a fresh context window."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Bridge sessions with **artifacts**: a progress file plus git history that every new session reads first and updates before it ends.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A typical coding-agent session in Anthropic's harness.",
+      "steps": [
+        {
+          "label": "Read progress + git log"
+        },
+        {
+          "label": "Run init.sh, basic test"
+        },
+        {
+          "label": "Build one feature"
+        },
+        {
+          "label": "Commit + update progress"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-initializer-agent"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-premature-victory",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Long-running agents",
+    "stem": "Midway through a long project, a fresh session of your coding agent sees that many features exist and declares the whole app finished, though much is missing. Which fix matches Anthropic's long-running agent harness?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A Markdown checklist of features that agents may freely reword as they work",
+        "reason": "The harness uses JSON because the model is less likely to inappropriately change or overwrite JSON files than Markdown files."
+      },
+      {
+        "id": "b",
+        "text": "A JSON feature list, all initially failing, that agents update only via each `passes` field",
+        "reason": "Correct: every feature starts as failing and agents may only change its passes status, giving a clear outline of what full functionality looks like."
+      },
+      {
+        "id": "c",
+        "text": "Let agents remove tests that stop a feature from passing",
+        "reason": "The harness forbids this with strongly worded instructions: removing or editing tests could lead to missing or buggy functionality."
+      },
+      {
+        "id": "d",
+        "text": "Mark a feature done as soon as its unit tests pass",
+        "reason": "Unit tests alone missed features that didn't work end-to-end; the harness marks features passing only after careful testing."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Stop early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-feature-list-file",
+      "c-initializer-agent"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-context-strategy-choice",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Long-horizon context",
+    "stem": "Your agent does iterative development toward clear milestones over several hours, far beyond one context window. Which long-horizon technique does Anthropic's context engineering post say excels for this kind of task?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Compaction, which keeps conversational flow for heavy back-and-forth",
+        "reason": "Compaction maintains conversational flow for tasks requiring extensive back-and-forth, which is not what defines this task."
+      },
+      {
+        "id": "b",
+        "text": "A multi-agent architecture, built for parallel exploration",
+        "reason": "Multi-agent architectures handle complex research and analysis where parallel exploration pays dividends."
+      },
+      {
+        "id": "c",
+        "text": "Structured note-taking, with notes persisted outside the context window",
+        "reason": "Correct: the post says note-taking excels for iterative development with clear milestones."
+      },
+      {
+        "id": "d",
+        "text": "Waiting for a model with a larger context window",
+        "reason": "For the foreseeable future, context windows of all sizes are likely to face context pollution and information relevance concerns."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Match the technique to the task: **compaction** for back-and-forth, **notes** for milestones, **sub-agents** for parallel research.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-agentic-memory"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-when-not-to-use-agents",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "When not to use agents",
+    "stem": "A team wants an autonomous agent to answer customer questions from their help-center articles. A single well-prompted call with retrieved articles already answers most questions correctly. What does Anthropic's guidance suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep optimizing the single LLM call with retrieval and examples",
+        "reason": "Correct: find the simplest solution possible; for many applications, optimizing single LLM calls with retrieval and in-context examples is usually enough."
+      },
+      {
+        "id": "b",
+        "text": "Build the agent anyway, since agents are cheaper and faster",
+        "reason": "Agentic systems often trade latency and cost for better task performance, so they are not the cheaper, faster option."
+      },
+      {
+        "id": "c",
+        "text": "Build a multi-agent system so every question gets several perspectives",
+        "reason": "Add complexity only when it demonstrably improves outcomes; here the simple setup already works."
+      },
+      {
+        "id": "d",
+        "text": "Wrap it in a fixed workflow of many chained LLM calls to be safe",
+        "reason": "Workflows suit well-defined multi-step tasks, but the guidance says the simplest solution might mean not building agentic systems at all."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "If one optimized LLM call works, stop there: add agentic complexity only **when simpler solutions fall short**.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-simplest-solution-first",
+      "c-workflow-vs-agent"
+    ],
+    "lessonId": "l-agent-architecture"
+  },
+  {
+    "id": "q-agent-sdk-choice",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "You want to embed an agent with built-in file, shell and web tools, plus permissions and hooks, inside your own Python service, running in a process you operate. Which Anthropic option fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The Client SDK, calling the Claude API directly",
+        "reason": "The Client SDK gives direct access to the Claude API, but you write the tool loop yourself or use its beta tool runner."
+      },
+      {
+        "id": "b",
+        "text": "The Claude Agent SDK",
+        "reason": "Correct: it's a library that runs the Claude Code binary in your application, with built-in tools, permissions, sessions and hooks."
+      },
+      {
+        "id": "c",
+        "text": "The Claude Code CLI in an interactive terminal",
+        "reason": "The CLI is the terminal interface built for daily interactive use, not a library you embed in a service."
+      },
+      {
+        "id": "d",
+        "text": "Claude Managed Agents",
+        "reason": "Managed Agents is for having Anthropic host the agent, configured through the Claude API, rather than a process you operate."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Embed Claude Code's agent in your own process → **Agent SDK**; raw API calls → Client SDK; Anthropic-hosted → Managed Agents.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-managed-agents"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-max-turns-result",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Stopping conditions",
+    "stem": "Your SDK agent runs with `max_turns=30`. On a large refactor, the final `ResultMessage` has subtype `error_max_turns`, and your code crashes reading its `result` field. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read `result` anyway; it holds the partial answer so far",
+        "reason": "The `result` field is only present on the `success` variant, so always check the subtype before reading it."
+      },
+      {
+        "id": "b",
+        "text": "Raise `max_tokens` so each turn can do more work",
+        "reason": "`max_tokens` is the output token limit; this loop ended because it hit the cap on tool-use turns, a different limit."
+      },
+      {
+        "id": "c",
+        "text": "Check the subtype first, then resume the session with a higher turn limit",
+        "reason": "Correct: `result` exists only on `success`, while every result carries `session_id`, so you can resume with a higher limit."
+      },
+      {
+        "id": "d",
+        "text": "Remove the limit, since unlimited loops are best for production",
+        "reason": "The caps default to no limit, but open-ended prompts can run long; setting a budget is a good default for production agents."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Check `ResultMessage.subtype` before reading `result`; after `error_max_turns`, **resume** the session rather than start over.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-stopping-condition"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-bypass-permissions-allowlist",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK permissions",
+    "stem": "Your CI agent must run in `bypassPermissions` mode. You set `allowed_tools=[\"Read\", \"Grep\"]`, expecting a read-only agent, but it still ran `Bash` commands. How do you block Bash while keeping the mode?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a `canUseTool` callback that denies Bash",
+        "reason": "Calls auto-approved by `bypassPermissions` skip `canUseTool`, so permission checks placed there are silently bypassed."
+      },
+      {
+        "id": "b",
+        "text": "Add only safe commands, like `Bash(ls *)`, to `allowed_tools`",
+        "reason": "Allow rules only pre-approve. Other calls still fall through to the permission mode, where `bypassPermissions` approves them."
+      },
+      {
+        "id": "c",
+        "text": "Nothing works, because bypassPermissions ignores deny rules too",
+        "reason": "Deny rules are checked before the permission mode; a matching deny rule blocks the tool even in `bypassPermissions` mode."
+      },
+      {
+        "id": "d",
+        "text": "Add `Bash` to `disallowed_tools`",
+        "reason": "Correct: `allowed_tools` does not constrain `bypassPermissions`, but a bare `disallowed_tools` entry removes Bash from the request."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`allowed_tools` **pre-approves**; it does not restrict. To block a tool under `bypassPermissions`, use `disallowed_tools`.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-pretooluse-block-env",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK hooks",
+    "stem": "Your Agent SDK app must stop the agent from writing to `.env` files, and tell Claude why so it avoids retrying. Which hook setup fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `PreToolUse` hook matching `Write|Edit` that returns a deny decision with a reason",
+        "reason": "Correct: PreToolUse fires before the tool runs and can block it; `permissionDecisionReason` tells the model why, so it avoids retrying."
+      },
+      {
+        "id": "b",
+        "text": "A `PostToolUse` hook that inspects the file after the write",
+        "reason": "PostToolUse fires on the tool execution result, after the write has already happened; its example use is an audit trail."
+      },
+      {
+        "id": "c",
+        "text": "A `PreToolUse` hook that returns an async output while it checks",
+        "reason": "Async outputs cannot block, modify or inject context, because the agent has already moved on; use them only for side effects."
+      },
+      {
+        "id": "d",
+        "text": "A `Stop` hook that reverts any `.env` changes at the end",
+        "reason": "Stop fires when agent execution stops, too late to prevent the write; its example use is saving session state before exit."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To **prevent** a tool action, deny it in `PreToolUse` with a reason; a `PostToolUse` hook runs after the tool already ran.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A PreToolUse deny stops the call before it runs.",
+      "steps": [
+        {
+          "label": "Claude calls Write on .env"
+        },
+        {
+          "label": "PreToolUse hook"
+        },
+        {
+          "label": "deny + reason",
+          "sublabel": "tool never runs"
+        },
+        {
+          "label": "Claude explains it can't"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-pretooluse-hook"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-custom-tool-errors",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Custom tools",
+    "stem": "Your custom Agent SDK tool calls an inventory API. When the API returns a 503, the handler throws, and Claude sees only a raw exception message it can't act on. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing; an uncaught handler error ends the query, which is safest",
+        "reason": "A handler error doesn't stop the agent loop: the in-process MCP server converts it to an error result and the loop continues."
+      },
+      {
+        "id": "b",
+        "text": "Return the error text as a normal, successful result",
+        "reason": "Without `isError`, Claude would treat the failure as a normal result instead of knowing the tool failed."
+      },
+      {
+        "id": "c",
+        "text": "Catch it and return `isError: true` with a message on what failed and what to try",
+        "reason": "Correct: returning isError lets you compose the message Claude reads, adding context the raw exception lacks, such as what to try instead."
+      },
+      {
+        "id": "d",
+        "text": "Mark the tool `readOnlyHint: true` so the SDK retries it",
+        "reason": "`readOnlyHint` controls whether the tool can be called in parallel with other read-only tools; it adds no retries."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Handler errors don't stop the loop; return **`isError: true`** with an actionable message so Claude can retry or adapt.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-sdk-custom-tool"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-subagent-context-handoff",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK subagents",
+    "stem": "Your main agent spends ten turns finding a failing test and its file path, then delegates the fix to a `test-fixer` subagent (not a fork). The subagent starts searching from scratch. Why, and what is the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It inherited too much parent history; set a smaller `maxTurns`",
+        "reason": "A non-fork subagent gets none of the parent's conversation history, and `maxTurns` only caps how many turns it takes."
+      },
+      {
+        "id": "b",
+        "text": "It only sees the Agent tool's prompt; put the path and error in that prompt",
+        "reason": "Correct: the Agent tool's prompt string is the only content passed from parent to subagent, so include file paths, errors and decisions."
+      },
+      {
+        "id": "c",
+        "text": "It lacks the parent's system prompt; copy it into the subagent's definition",
+        "reason": "The facts it needs came from the parent's turns, not its system prompt; the subagent uses its own system prompt by design."
+      },
+      {
+        "id": "d",
+        "text": "It needs more tools; remove its `tools` restriction",
+        "reason": "Tool access controls what the subagent can do, not what it knows; the parent's findings only arrive through the prompt."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Subagents start fresh: pass what they need **in the Agent tool's prompt**; only their final message returns to the parent.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-subagent-context"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-managed-agents-concepts",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Managed Agents",
+    "stem": "You are adopting Claude Managed Agents. You want to define the model, system prompt, tools, MCP servers and skills once, then reuse them across many runs. Which resource do you create and reference by ID?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An environment",
+        "reason": "An environment configures where sessions run: an Anthropic-managed cloud sandbox, or a self-hosted sandbox on your own infrastructure."
+      },
+      {
+        "id": "b",
+        "text": "A session",
+        "reason": "A session is a running agent instance within an environment, performing a specific task and generating outputs."
+      },
+      {
+        "id": "c",
+        "text": "An event",
+        "reason": "Events are messages exchanged between your application and the agent, such as user turns, tool results and status updates."
+      },
+      {
+        "id": "d",
+        "text": "An agent",
+        "reason": "Correct: an agent holds the model, system prompt, tools, MCP servers and skills; you create it once and reference it by ID across sessions."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Managed Agents: **agent** = model, prompt and tools; **environment** = where it runs; **session** = one run; **events** = messages.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-prompt-chaining-gate",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Prompt chaining",
+    "stem": "Your pipeline writes a document outline, checks that it meets required criteria, then writes the full document from it. The steps never change, and you'll accept extra latency for accuracy. Which pattern is this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prompt chaining, with a programmatic gate after the outline",
+        "reason": "Correct: chaining decomposes a task into fixed steps, each call processing the previous output, with checks on intermediate steps."
+      },
+      {
+        "id": "b",
+        "text": "Routing",
+        "reason": "Routing classifies an input and sends it to a specialized follow-up task; here every input goes through the same fixed steps."
+      },
+      {
+        "id": "c",
+        "text": "Orchestrator-workers",
+        "reason": "Orchestrator-workers fits tasks where you can't predict the subtasks; these steps are fixed in advance."
+      },
+      {
+        "id": "d",
+        "text": "An autonomous agent",
+        "reason": "Agents suit open-ended problems where you can't hardcode a fixed path; this path is fixed."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Fixed, sequential steps with checks in between → **prompt chaining**, which makes each LLM call an easier task.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Prompt chaining with a gate between steps.",
+      "steps": [
+        {
+          "label": "Write outline"
+        },
+        {
+          "label": "Gate",
+          "sublabel": "meets criteria?"
+        },
+        {
+          "label": "Write document"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-prompt-chaining"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-routing-support-queries",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Routing",
+    "stem": "Your support bot handles general questions, refund requests and technical support with one prompt. Every time you tune it for refunds, technical answers get worse. Which workflow does Anthropic suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parallelization with voting",
+        "reason": "Voting runs the same task several times to get diverse outputs; it doesn't separate distinct query types."
+      },
+      {
+        "id": "b",
+        "text": "Evaluator-optimizer",
+        "reason": "Evaluator-optimizer refines a response through feedback in a loop; it doesn't stop tuning for one category from hurting another."
+      },
+      {
+        "id": "c",
+        "text": "Routing: classify each query and send it to a specialized prompt and tools",
+        "reason": "Correct: routing allows separation of concerns; without it, optimizing for one kind of input can hurt performance on other inputs."
+      },
+      {
+        "id": "d",
+        "text": "Prompt chaining",
+        "reason": "Chaining runs the same fixed sequence of steps on every input, so all query types would still share the same prompts."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Distinct input categories fighting over one prompt → **route** each one to its own specialized path.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-routing"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-parallelization-voting",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Parallelization",
+    "stem": "You want higher confidence that a piece of code has no vulnerabilities. You plan to run several different prompts that each review the same code and flag any problem they find. Which workflow is this, and which variation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parallelization, sectioning",
+        "reason": "Sectioning breaks a task into independent subtasks; here every prompt does the same task on the same code."
+      },
+      {
+        "id": "b",
+        "text": "Orchestrator-workers",
+        "reason": "In orchestrator-workers a central LLM decides the subtasks dynamically; here the reviews are fixed in advance."
+      },
+      {
+        "id": "c",
+        "text": "Prompt chaining",
+        "reason": "Chaining feeds each call the previous call's output in sequence; these reviews run independently of each other."
+      },
+      {
+        "id": "d",
+        "text": "Parallelization, voting",
+        "reason": "Correct: voting runs the same task multiple times for diverse outputs, as when several prompts review code for vulnerabilities."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Same task, several runs → **voting**; different independent subtasks → **sectioning**. Both aggregate outputs programmatically.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-parallelization"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-orchestrator-vs-parallel",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Orchestrator-workers",
+    "stem": "Your coding tool gets requests like \"rename this API everywhere\". The number of files and the change in each depend on the request, so you cannot list the subtasks in advance. Which workflow fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parallelization, sectioning the work into a fixed set of subtasks",
+        "reason": "Sectioning looks similar, but its subtasks are predefined; here they depend on the specific input."
+      },
+      {
+        "id": "b",
+        "text": "Orchestrator-workers",
+        "reason": "Correct: a central LLM dynamically breaks down the task, delegates to workers and synthesizes results, since subtasks aren't predefined."
+      },
+      {
+        "id": "c",
+        "text": "Routing to a specialized prompt per file type",
+        "reason": "Routing sends an input to one follow-up task by category; it doesn't break one task into an unknown number of subtasks."
+      },
+      {
+        "id": "d",
+        "text": "Prompt chaining with one step per file",
+        "reason": "Chaining suits tasks that decompose cleanly into fixed subtasks, which this one does not."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Can't predict the subtasks? An **orchestrator** decides them per input; parallelization needs them defined in advance.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Orchestrator-workers: subtasks are decided per input.",
+      "steps": [
+        {
+          "label": "Orchestrator breaks down task"
+        },
+        {
+          "label": "Workers handle subtasks"
+        },
+        {
+          "label": "Orchestrator synthesizes"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-orchestrator-workers",
+      "c-parallelization"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-evaluator-optimizer-fit",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Evaluator-optimizer",
+    "stem": "You translate literary texts. First drafts miss nuances, but a second model can reliably critique them against clear criteria, and revising on that feedback measurably improves them. Which workflow fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Routing between translation models",
+        "reason": "Routing picks one specialized path per input; it has no feedback loop to refine a draft."
+      },
+      {
+        "id": "b",
+        "text": "Parallelization with sectioning",
+        "reason": "Sectioning splits a task into independent subtasks; it doesn't iterate on one draft using critiques."
+      },
+      {
+        "id": "c",
+        "text": "Evaluator-optimizer",
+        "reason": "Correct: one call generates while another evaluates and gives feedback in a loop, which fits clear criteria and measurable gains from refinement."
+      },
+      {
+        "id": "d",
+        "text": "Prompt chaining with fixed translate, then format steps",
+        "reason": "Chaining runs each fixed step once; it has no loop in which an evaluator's feedback drives further revisions."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Clear criteria plus feedback that measurably improves drafts → an **evaluator-optimizer** loop.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-evaluator-optimizer"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-framework-first",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Agent frameworks",
+    "stem": "A new team plans to adopt an agent framework before writing any code, so they never need to look at raw prompts or API responses. What does Anthropic's Building effective agents post advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Start with LLM APIs directly; if you use a framework, understand its underlying code",
+        "reason": "Correct: many patterns take a few lines of code, and incorrect assumptions about what's under the hood are a common source of customer error."
+      },
+      {
+        "id": "b",
+        "text": "Always use a framework, since it hides prompts you do not need to see",
+        "reason": "Hiding prompts is the risk: extra abstraction can obscure the underlying prompts and responses, making them harder to debug."
+      },
+      {
+        "id": "c",
+        "text": "Avoid frameworks entirely; Anthropic says they don't work",
+        "reason": "The post says frameworks make it easy to get started by simplifying low-level tasks; the caution is to understand them, not to ban them."
+      },
+      {
+        "id": "d",
+        "text": "Choose the framework with the most abstraction layers for production",
+        "reason": "The advice runs the other way: reduce abstraction layers and build with basic components as you move to production."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Start with **direct API calls**; frameworks help you start fast, but know what is under the hood and trim layers for production.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-frameworks-advice"
+    ],
+    "lessonId": "l-agent-patterns"
   }
 ]

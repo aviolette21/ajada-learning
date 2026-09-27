@@ -20,5 +20,301 @@
     "example": "Stop the loop and report back after 20 tool calls.",
     "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
     "isVocab": true
+  },
+  {
+    "id": "c-lead-agent-subagents",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Lead agent and subagents",
+    "definition": "A multi-agent design: a lead agent plans the work, spawns subagents that explore in parallel with their own context windows, then synthesizes their findings.",
+    "whyItMatters": "Anthropic's Research system uses this orchestrator-worker design. It excels at breadth-first queries that pursue several independent directions at once.",
+    "example": "Finding all board members of S&P 500 IT companies by decomposing it into subagent tasks.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-multi-agent-token-cost",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Multi-agent token cost",
+    "definition": "In Anthropic's data, agents typically use about **4×** more tokens than chat interactions, and multi-agent systems about **15×** more.",
+    "whyItMatters": "For economic viability, multi-agent systems need tasks whose value is high enough to pay for the increased performance.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-delegation-brief",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Subagent task description",
+    "definition": "What a lead agent gives each subagent: an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+    "whyItMatters": "Without detailed task descriptions, subagents duplicate work, leave gaps or fail to find necessary information.",
+    "example": "Not just \"research the semiconductor shortage\", but a scoped objective, sources and output format.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-agentic-memory",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Structured note-taking (agentic memory)",
+    "definition": "The agent regularly writes notes to memory outside its context window; the notes are pulled back into context at later times.",
+    "whyItMatters": "It gives persistent memory with minimal overhead, and Anthropic says it excels for iterative development with clear milestones.",
+    "example": "A custom agent maintaining a `NOTES.md` file to track progress across a complex task.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-initializer-agent",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Initializer agent",
+    "definition": "The first session of a long-running harness: it sets up an `init.sh` script, a `claude-progress.txt` log and an initial git commit.",
+    "whyItMatters": "Each later session starts with a fresh context window, so it reads the progress file and git history to quickly understand the state of work.",
+    "example": "Session 1 writes the feature list and init.sh; later sessions each work on one feature, then commit.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-feature-list-file",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Feature list file",
+    "definition": "A JSON file of end-to-end feature requirements, all initially marked failing, that coding agents update only by changing each feature's `passes` field.",
+    "whyItMatters": "It stops agents declaring the project done too early. JSON is used because the model is less likely to inappropriately change it than Markdown.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-simplest-solution-first",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "term": "Simplest solution first",
+    "definition": "Anthropic's advice: find the simplest solution possible and increase complexity only when needed, which might mean not building an agentic system at all.",
+    "whyItMatters": "Agentic systems often trade latency and cost for better task performance. For many apps, optimizing single LLM calls with retrieval and examples is usually enough.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-claude-agent-sdk",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "Claude Agent SDK",
+    "definition": "A Python and TypeScript library giving you the same tools, agent loop and context management that power Claude Code, in a process you operate.",
+    "whyItMatters": "Choose it over the Client SDK when you want built-in tools, permissions, sessions and hooks instead of writing the tool loop yourself.",
+    "example": "Embed an agent that finds and fixes bugs in existing code inside your own app.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-max-turns-budget",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "maxTurns / maxBudgetUsd",
+    "definition": "Agent SDK caps on tool-use turns and on spend. Hitting one ends the loop with an `error_max_turns` or `error_max_budget_usd` result.",
+    "whyItMatters": "Both default to no limit, so open-ended prompts can run long. Setting a budget is a good default for production agents.",
+    "example": "`max_turns=30` to prevent runaway sessions; if hit, resume the session with a higher limit.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-allowed-vs-disallowed-tools",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "allowedTools vs disallowedTools",
+    "definition": "`allowedTools` auto-approves the listed tools; `disallowedTools` blocks them, even in bypassPermissions mode. Unlisted tools stay available.",
+    "whyItMatters": "Allowing is not restricting: `allowed_tools` does not constrain `bypassPermissions`. To block a tool there, use `disallowed_tools`.",
+    "example": "`disallowed_tools=[\"Bash\"]` removes Bash from the request, so Claude cannot attempt it.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-pretooluse-hook",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "PreToolUse hook",
+    "definition": "An Agent SDK hook callback that fires before a tool executes and can allow, deny or modify the call, for example by returning a deny decision.",
+    "whyItMatters": "Use it to block dangerous operations before they execute, such as writes to `.env` files. If any hook returns deny, the operation is blocked.",
+    "example": "A `\"Write|Edit\"` matcher makes the callback fire only for file-writing tools.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-sdk-custom-tool",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "Custom tool (Agent SDK)",
+    "definition": "Your own function Claude can call: a name, description, input schema and handler, wrapped in an in-process MCP server with `createSdkMcpServer`.",
+    "whyItMatters": "Tools are named `mcp__{server_name}__{tool_name}`. Returning `isError: true` lets you compose the error message Claude reads.",
+    "example": "A `get_temperature` tool registered on a `weather` server.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-subagent-context",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "Subagent context isolation",
+    "definition": "A non-fork subagent starts fresh: its own system prompt plus the Agent tool's prompt, without the parent's history. Only its final message returns.",
+    "whyItMatters": "The Agent tool's prompt string is the only content passed from parent to subagent, so include file paths, errors and decisions in it.",
+    "example": "A doc-reviewer subagent limited to Read and Grep can analyze files but never modify them.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-managed-agents",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "term": "Claude Managed Agents",
+    "definition": "A pre-built, configurable agent harness that runs in managed infrastructure, built around four concepts: agent, environment, session and events.",
+    "whyItMatters": "Best for long-running tasks and asynchronous work. The Messages API is best for custom agent loops and fine-grained control.",
+    "example": "Create an agent once, then start sessions that reference it by ID.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-prompt-chaining",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Prompt chaining",
+    "definition": "A workflow that splits a task into a sequence of steps, each LLM call processing the previous output, with optional programmatic checks (gates) between steps.",
+    "whyItMatters": "Ideal when a task decomposes cleanly into fixed subtasks. It trades latency for higher accuracy by making each LLM call an easier task.",
+    "example": "Write an outline, check it meets criteria, then write the document from the outline.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-routing",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Routing",
+    "definition": "A workflow that classifies an input and directs it to a specialized follow-up task, such as a different prompt, tool set or model.",
+    "whyItMatters": "Use it when distinct categories are better handled separately; without it, optimizing for one kind of input can hurt performance on others.",
+    "example": "Send easy, common questions to a smaller, cost-efficient model and hard ones to a more capable one.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-parallelization",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Parallelization (sectioning, voting)",
+    "definition": "LLMs work on a task simultaneously and outputs are aggregated programmatically. **Sectioning** splits independent subtasks; **voting** repeats the same task.",
+    "whyItMatters": "Sectioning suits speed or focused attention per aspect; voting suits tasks needing multiple perspectives or attempts for higher-confidence results.",
+    "example": "Voting: several prompts review the same code for vulnerabilities and flag problems.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-orchestrator-workers",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Orchestrator-workers",
+    "definition": "A workflow where a central LLM dynamically breaks down a task, delegates subtasks to worker LLMs and synthesizes their results.",
+    "whyItMatters": "Unlike parallelization, subtasks aren't predefined. It suits complex tasks where you can't predict the subtasks needed, such as multi-file code changes.",
+    "example": "A coding product that makes complex changes to multiple files each time.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-evaluator-optimizer",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Evaluator-optimizer",
+    "definition": "A workflow where one LLM call generates a response while another provides evaluation and feedback, in a loop.",
+    "whyItMatters": "It fits when there are clear evaluation criteria and iterative refinement provides measurable value.",
+    "example": "Literary translation, where an evaluator LLM critiques nuances the translator LLM missed.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-frameworks-advice",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "term": "Frameworks vs direct API calls",
+    "definition": "Anthropic suggests starting with LLM APIs directly, since many patterns take a few lines of code. If you use a framework, understand the underlying code.",
+    "whyItMatters": "Frameworks can add abstraction that obscures prompts and responses, making debugging harder, and can tempt you to add complexity you do not need.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
   }
 ]

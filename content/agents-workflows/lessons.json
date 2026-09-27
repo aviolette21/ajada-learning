@@ -1,0 +1,231 @@
+[
+  {
+    "id": "l-agent-architecture",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "title": "Agent architecture",
+    "summary": "Architecture starts with whether you need an agent at all: Anthropic recommends the simplest solution that works. When you do, a lead agent with parallel subagents suits broad, valuable research, and long-running agents need memory that lives outside the context window.",
+    "keyPoints": [
+      "Find the **simplest solution**; optimizing single LLM calls with retrieval and in-context examples is usually enough for many apps.",
+      "Multi-agent systems excel at **breadth-first**, parallelizable work, but use about **15×** the tokens of a chat (single agents about 4×).",
+      "Each subagent needs an **objective, output format, tool and source guidance, and clear task boundaries**.",
+      "Long-horizon options: **compaction** for back-and-forth, **structured notes** for milestones, **sub-agents** for parallel research.",
+      "Across sessions, a **progress file plus git history** (and a JSON feature list) lets a fresh agent pick up the work."
+    ],
+    "sections": [
+      {
+        "heading": "Start simple, or skip the agent",
+        "body": "When building with LLMs, Anthropic recommends finding the simplest solution possible and only increasing complexity when needed. This might mean not building agentic systems at all. Agentic systems often trade latency and cost for better task performance.\n\nWhen more complexity is warranted, workflows give predictability for well-defined tasks, and agents fit when flexibility and model-driven decisions are needed at scale. For many applications, optimizing single LLM calls with retrieval and in-context examples is usually enough."
+      },
+      {
+        "heading": "Lead agents and subagents",
+        "body": "Anthropic's Research feature uses an orchestrator-worker design: a lead agent analyzes the query, develops a strategy and spawns subagents that search in parallel, each with its own context window, then condense what they found for the lead agent.\n\nThis works best for breadth-first queries with many independent directions. It costs more: agents typically use about 4× more tokens than chats, and multi-agent systems about 15×. Domains where all agents must share the same context, or with many dependencies between agents, are not a good fit today.\n\nThe lead agent must teach its subagents well. Each needs an objective, an output format, guidance on tools and sources, and clear task boundaries; otherwise they duplicate work or leave gaps. Scaling rules help too: simple fact-finding needs just 1 agent with 3-10 tool calls.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The Research system: plan, search in parallel, synthesize, cite.",
+          "steps": [
+            {
+              "label": "Lead agent plans"
+            },
+            {
+              "label": "Subagents search",
+              "sublabel": "in parallel"
+            },
+            {
+              "label": "Lead synthesizes"
+            },
+            {
+              "label": "Citation agent"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Memory for long-running agents",
+        "body": "When a task outgrows one context window, Anthropic describes three techniques:\n\n- Compaction: summarize a conversation nearing the limit and restart with the summary; it suits extensive back-and-forth\n- Structured note-taking: the agent writes notes outside the context window and reads them back later; it suits iterative development with clear milestones\n- Sub-agent architectures: focused sub-agents with clean context windows return condensed summaries; they suit complex research\n\nFor coding across many sessions, Anthropic found compaction alone wasn't sufficient. An initializer agent sets up an init.sh script, a claude-progress.txt log, an initial git commit and a JSON feature list with every feature marked failing. Each later session reads the progress file and git log, works on one feature, and ends with a commit and a progress update."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-multi-agent-fit",
+      "q-subagent-delegation",
+      "q-long-running-session-handoff"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building effective agents",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+        "title": "How we built our multi-agent research system",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "title": "Effective context engineering for AI agents",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+        "title": "Effective harnesses for long-running agents",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-agent-construction",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "title": "Building agents with the Agent SDK",
+    "summary": "The Claude Agent SDK gives you the tools, agent loop and context management behind Claude Code, as a Python or TypeScript library in a process you run. You shape the loop with turn and budget caps, permission rules and hooks, and extend it with custom tools and subagents. Managed Agents is the hosted alternative.",
+    "keyPoints": [
+      "The loop repeats until Claude replies with **no tool calls**; `max_turns` and `max_budget_usd` cap it, and both default to no limit.",
+      "Check `ResultMessage.subtype`: `result` exists only on `success`; limits give `error_max_turns` or `error_max_budget_usd`.",
+      "`allowed_tools` **pre-approves** and does not constrain `bypassPermissions`; `disallowed_tools` blocks, even in that mode.",
+      "`PreToolUse` hooks run before a tool and can deny it; if any hook returns deny, the operation is blocked.",
+      "A subagent gets only the **Agent tool's prompt** from its parent, and only its final message returns."
+    ],
+    "sections": [
+      {
+        "heading": "What the Agent SDK gives you",
+        "body": "The Agent SDK embeds the same tools, agent loop and context management that power Claude Code in your own application. It includes built-in tools (read, write and edit files, run commands, search the web), hooks, subagents, MCP, permissions and sessions.\n\nPick the option by who runs the agent:\n\n- Agent SDK: Claude Code's agent in a process you operate\n- Client SDK: direct Claude API access; you write the tool loop yourself or use the beta tool runner\n- Managed Agents: Anthropic hosts the agent harness, with sessions in a managed cloud sandbox or a self-hosted sandbox\n\nSelf-hosting the SDK means running a long-lived `claude` subprocess per session, with transcripts on local disk that don't survive a container restart unless you configure a SessionStore. Managed Agents is in beta and is built around agents, environments, sessions and events."
+      },
+      {
+        "heading": "The loop and its limits",
+        "body": "Claude evaluates the prompt, calls tools, receives the results and repeats. Each round trip is one turn, and the loop ends when Claude produces a response with no tool calls. The SDK then yields a `ResultMessage` with the final text, token usage, cost and session ID.\n\nWithout limits the loop runs until Claude finishes, which can run long on open-ended prompts. Cap it with `max_turns` (tool-use turns) or `max_budget_usd`; setting a budget is a good default for production agents. When a cap is hit, the result subtype is `error_max_turns` or `error_max_budget_usd` and there is no `result` field, so check the subtype first. Every result carries `session_id`, so you can resume.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The Agent SDK loop.",
+          "steps": [
+            {
+              "label": "Prompt"
+            },
+            {
+              "label": "Claude evaluates"
+            },
+            {
+              "label": "Run tools",
+              "sublabel": "repeat each turn"
+            },
+            {
+              "label": "ResultMessage",
+              "sublabel": "no tool calls left"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Permissions and hooks",
+        "body": "Hooks run first, then deny rules, then ask rules, then the permission mode, then allow rules, and finally your `canUseTool` callback. A deny rule blocks a tool even in `bypassPermissions` mode, and a bare deny such as `Bash` removes the tool from Claude's context.\n\n`allowed_tools` only pre-approves. With `bypassPermissions`, unlisted tools are still approved, so block tools there with `disallowed_tools`. Calls auto-approved earlier never reach `canUseTool`.\n\nHooks are callbacks at points in the loop. `PreToolUse` fires before a tool executes and can allow, deny or modify the call; a `permissionDecisionReason` tells the model why. `PostToolUse` fires on the result, and `Stop` when execution stops. Hooks run in your application process, so they don't consume context."
+      },
+      {
+        "heading": "Custom tools and subagents",
+        "body": "A custom tool has a name, description, input schema and handler, wrapped in an in-process MCP server and named `mcp__{server_name}__{tool_name}`. A handler error doesn't stop the loop; return `isError: true` to compose the message Claude reads.\n\nSubagents isolate context, run in parallel, and can have their own prompt, tools and model. A non-fork subagent starts fresh: the only content passed from the parent is the Agent tool's prompt, and only its final message returns as the tool result."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-max-turns-result",
+      "q-bypass-permissions-allowlist",
+      "q-pretooluse-block-env"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+        "title": "Agent SDK overview",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+        "title": "How the agent loop works",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+        "title": "Configure permissions",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+        "title": "Intercept and control agent behavior with hooks",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+        "title": "Give Claude custom tools",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+        "title": "Subagents in the SDK",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/hosting",
+        "title": "Hosting the Agent SDK",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+        "title": "Claude Managed Agents overview",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-agent-patterns",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "title": "Workflow patterns",
+    "summary": "Anthropic's Building effective agents post describes five workflow patterns built from an augmented LLM, from fixed prompt chains to feedback loops, and then agents that direct themselves. Choose the simplest pattern that fits, and start with direct API calls rather than a framework.",
+    "keyPoints": [
+      "**Prompt chaining**: fixed steps, each call using the previous output, with optional gates; trades latency for accuracy.",
+      "**Routing**: classify the input, then send it to a specialized prompt, tool set or model.",
+      "**Parallelization**: sectioning splits independent subtasks; voting repeats the same task for diverse outputs.",
+      "**Orchestrator-workers**: a central LLM decides subtasks per input. **Evaluator-optimizer**: generate, critique, refine in a loop.",
+      "Start with **LLM APIs directly**; if you use a framework, understand the underlying code."
+    ],
+    "sections": [
+      {
+        "heading": "The building block and frameworks",
+        "body": "The basic building block is an augmented LLM: an LLM enhanced with retrieval, tools and memory. The Model Context Protocol is one way to implement these augmentations.\n\nFrameworks make it easy to start by simplifying low-level tasks like calling LLMs, defining and parsing tools, and chaining calls. The post names the Claude Agent SDK, Strands Agents SDK by AWS, Rivet and Vellum. But frameworks can add abstraction that obscures the underlying prompts and responses, making them harder to debug. Anthropic suggests starting with LLM APIs directly, understanding any framework's underlying code, and reducing abstraction layers as you move to production."
+      },
+      {
+        "heading": "Five workflow patterns",
+        "body": "- Prompt chaining: a sequence of steps, each LLM call processing the previous output, with optional programmatic gates; for tasks that decompose cleanly into fixed subtasks\n- Routing: classify an input and direct it to a specialized follow-up; for distinct categories that are better handled separately\n- Parallelization: sectioning runs independent subtasks in parallel; voting runs the same task several times for diverse outputs\n- Orchestrator-workers: a central LLM breaks down the task, delegates to workers and synthesizes results; for tasks where you can't predict the subtasks\n- Evaluator-optimizer: one LLM call generates while another evaluates and gives feedback in a loop; for clear criteria where iterative refinement adds measurable value",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Evaluator-optimizer: a feedback loop.",
+          "steps": [
+            {
+              "label": "Generator drafts"
+            },
+            {
+              "label": "Evaluator critiques"
+            },
+            {
+              "label": "Generator revises",
+              "sublabel": "loop"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Agents and environment feedback",
+        "body": "Agents are typically just LLMs using tools based on environmental feedback in a loop. During execution, the agent must gain ground truth from the environment at each step, such as tool call results or code execution, to assess its progress. It can pause for human feedback at checkpoints or when it hits blockers.\n\nCoding agents work well because code is verifiable through automated tests, and agents can iterate using test results as feedback. Because agents mean higher costs and the potential for compounding errors, Anthropic recommends extensive testing in sandboxed environments with appropriate guardrails. Add complexity only when it demonstrably improves outcomes."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-prompt-chaining-gate",
+      "q-orchestrator-vs-parallel",
+      "q-framework-first"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building effective agents",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  }
+]
