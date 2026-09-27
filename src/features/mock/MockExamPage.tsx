@@ -36,7 +36,8 @@ export function MockExamPage() {
   const remaining = session ? remainingMs(session, time.getTime()) : 0;
 
   const update = (patch: Partial<MockSession>) => {
-    if (!session || submitting.current) return;
+    // Once time is up the answers are final, even while a failed auto-submit waits for a retry.
+    if (!session || submitting.current || remaining <= 0) return;
     const next = { ...session, ...patch };
     setSession(next);
     saveMockSession(next).catch(ignore);
@@ -48,7 +49,7 @@ export function MockExamPage() {
     try {
       await submitMock(session);
     } catch {
-      // Already reported; let Submit (or the timer) try again.
+      // Already reported. Submit stays available for a retry (the timer effect only re-runs when the session changes).
       submitting.current = false;
       return;
     }

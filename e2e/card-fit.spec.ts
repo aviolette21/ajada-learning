@@ -19,7 +19,8 @@ interface Measure {
 const TOP = '.deck-slot .fc[role="button"]';
 
 // CARD_FONTS=ci swaps in fonts about as wide as CI's Linux WebKit fallbacks (Verdana text, Courier-width code), so a
-// card that fits locally but not in CI fails here too. CI itself never sets it.
+// card that fits locally but not in CI fails here too. CI itself never sets it. ui-monospace stays first because
+// expectMonoCode requires it; on macOS it resolves to SF Mono (close to Courier width), elsewhere it falls through.
 if (process.env.CARD_FONTS === 'ci') {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {

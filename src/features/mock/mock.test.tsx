@@ -150,6 +150,20 @@ describe('MockExamPage', () => {
     expect(await db.getAttempts()).toHaveLength(1);
   });
 
+  it('locks answers once time is up, even if the auto-submit failed', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'b' } }));
+    vi.spyOn(db, 'addAttempts').mockRejectedValueOnce(new Error('quota exceeded'));
+    await examAt(db);
+    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
+    await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-1/ }));
+    expect(screen.getByRole('button', { name: /Right answer q-alpha-1/ })).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(screen.getByRole('button', { name: /All questions/ }));
+    await userEvent.click(within(screen.getByRole('dialog', { name: 'Question navigator' })).getByRole('button', { name: 'Submit exam' }));
+    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
+    expect((await db.getMockSessions())[0].answers).toEqual({ 'q-alpha-1': 'b' });
+  });
+
   it('auto-submits when time runs out', async () => {
     const db = await openTestDb();
     await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1 }));

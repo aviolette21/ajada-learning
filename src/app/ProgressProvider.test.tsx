@@ -149,6 +149,8 @@ describe('ProgressProvider', () => {
     vi.spyOn(db, 'markLessonDone').mockImplementation(fail);
     vi.spyOn(db, 'putMockSession').mockImplementation(fail);
     vi.spyOn(db, 'setKv').mockImplementation(fail);
+    vi.spyOn(db, 'putCardStates').mockImplementation(fail);
+    vi.spyOn(db, 'deleteMockSession').mockImplementation(fail);
     const session: MockSession = {
       id: 'm1', startedAt: NOW.getTime(), durationMs: 1000, questionIds: ['q-alpha-1'], answers: {}, flagged: [], currentIndex: 0,
     };
@@ -159,6 +161,8 @@ describe('ProgressProvider', () => {
       () => result.current.saveMockSession(session),
       () => result.current.submitMock(session),
       () => result.current.updateSettings({ newCardsPerDay: 3 }),
+      () => result.current.saveCardState(newState('c-alpha-one', 'forward', NOW)),
+      () => result.current.discardMockSession('m1'),
     ];
     for (const save of saves) {
       await act(async () => { await expect(save()).rejects.toThrow('quota exceeded'); });
@@ -170,6 +174,7 @@ describe('ProgressProvider', () => {
     expect(result.current.lessonsDone.size).toBe(0);
     expect(result.current.mockSessions).toEqual([]);
     expect(result.current.settings).toEqual(DEFAULT_SETTINGS);
+    expect(result.current.cardStates.size).toBe(0);
   });
 
   it('shows an error instead of a blank screen when progress cannot load', async () => {
