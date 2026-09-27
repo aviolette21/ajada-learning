@@ -101,7 +101,7 @@
     "subSkillId": "agent-architecture",
     "term": "Feature list file",
     "definition": "A JSON file of end-to-end feature requirements, all initially marked failing, that coding agents update only by changing each feature's `passes` field.",
-    "whyItMatters": "It stops agents declaring the project done too early. JSON is used because the model is less likely to inappropriately change it than Markdown.",
+    "whyItMatters": "It helps prevent agents declaring the project done too early. JSON is used because the model is less likely to inappropriately change it than Markdown.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
       "title": "Effective harnesses for long-running agents",
@@ -308,7 +308,7 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-patterns",
     "term": "Frameworks vs direct API calls",
-    "definition": "Anthropic suggests starting with LLM APIs directly, since many patterns take a few lines of code. If you use a framework, understand the underlying code.",
+    "definition": "Building effective agents (2024) suggests starting with LLM APIs directly (many patterns take a few lines of code) and understanding any framework you use.",
     "whyItMatters": "Frameworks can add abstraction that obscures prompts and responses, making debugging harder, and can tempt you to add complexity you do not need.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",

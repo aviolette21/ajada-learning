@@ -177,18 +177,18 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-patterns",
     "title": "Workflow patterns",
-    "summary": "Anthropic's Building effective agents post describes five workflow patterns built from an augmented LLM, from fixed prompt chains to feedback loops, and then agents that direct themselves. Choose the simplest pattern that fits, and start with direct API calls rather than a framework.",
+    "summary": "Anthropic's Building effective agents post describes five workflow patterns built from an augmented LLM, from fixed prompt chains to feedback loops, and then agents that direct themselves. Choose the simplest pattern that fits; the post advises starting with direct API calls rather than a framework.",
     "keyPoints": [
       "**Prompt chaining**: fixed steps, each call using the previous output, with optional gates; trades latency for accuracy.",
       "**Routing**: classify the input, then send it to a specialized prompt, tool set or model.",
       "**Parallelization**: sectioning splits independent subtasks; voting repeats the same task for diverse outputs.",
       "**Orchestrator-workers**: a central LLM decides subtasks per input. **Evaluator-optimizer**: generate, critique, refine in a loop.",
-      "Start with **LLM APIs directly**; if you use a framework, understand the underlying code."
+      "The post advises starting with **LLM APIs directly**; if you use a framework, understand the underlying code."
     ],
     "sections": [
       {
         "heading": "The building block and frameworks",
-        "body": "The basic building block is an augmented LLM: an LLM enhanced with retrieval, tools and memory. The Model Context Protocol is one way to implement these augmentations.\n\nFrameworks make it easy to start by simplifying low-level tasks like calling LLMs, defining and parsing tools, and chaining calls. The post names the Claude Agent SDK, Strands Agents SDK by AWS, Rivet and Vellum. But frameworks can add abstraction that obscures the underlying prompts and responses, making them harder to debug. Anthropic suggests starting with LLM APIs directly, understanding any framework's underlying code, and reducing abstraction layers as you move to production."
+        "body": "The basic building block is an augmented LLM: an LLM enhanced with retrieval, tools and memory. The Model Context Protocol is one way to implement these augmentations.\n\nFrameworks make it easy to start by simplifying low-level tasks like calling LLMs, defining and parsing tools, and chaining calls. The December 2024 post named several, including the Claude Agent SDK, though it notes the tooling landscape has since changed. It warns that frameworks can add abstraction that obscures the underlying prompts and responses, making them harder to debug. The post suggests starting with LLM APIs directly, understanding any framework's underlying code, and reducing abstraction layers as you move to production."
       },
       {
         "heading": "Five workflow patterns",

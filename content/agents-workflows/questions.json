@@ -253,7 +253,7 @@
       }
     ],
     "answer": "b",
-    "takeaway": "Stop early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
+    "takeaway": "Guard against early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
@@ -271,7 +271,7 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-architecture",
     "topic": "Long-horizon context",
-    "stem": "Your agent does iterative development toward clear milestones over several hours, far beyond one context window. Which long-horizon technique does Anthropic's context engineering post say excels for this kind of task?",
+    "stem": "Your coding agent works for several hours, far beyond one context window, building the product up step by step and checking off each defined stage before starting the next. Which long-horizon technique does Anthropic's context engineering post say excels for this kind of task?",
     "choices": [
       {
         "id": "a",
@@ -396,7 +396,7 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
     "topic": "Stopping conditions",
-    "stem": "Your SDK agent runs with `max_turns=30`. On a large refactor, the final `ResultMessage` has subtype `error_max_turns`, and your code crashes reading its `result` field. What should you do?",
+    "stem": "Your SDK agent runs with `max_turns=30`. On a large refactor, the final `ResultMessage` has subtype `error_max_turns`, and your code reads its `result` field and gets nothing. What should you do?",
     "choices": [
       {
         "id": "a",
