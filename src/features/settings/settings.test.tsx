@@ -16,7 +16,8 @@ describe('SettingsPage', () => {
   it('adjusts new cards per day in steps of 5', async () => {
     const { db } = await open();
     await userEvent.click(await screen.findByRole('button', { name: 'More new cards' }));
-    expect(screen.getByLabelText('New cards per day')).toHaveTextContent('20');
+    // The stepper shows the new value once the save lands, which can take longer than the click on a slow runner.
+    await waitFor(() => expect(screen.getByLabelText('New cards per day')).toHaveTextContent('20'));
     expect(await db.getKv('settings')).toMatchObject({ newCardsPerDay: 20 });
   });
 
