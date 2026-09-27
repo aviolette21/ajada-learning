@@ -20,7 +20,7 @@
     "subSkillId": "tool-implementation",
     "term": "Tool definition",
     "definition": "A user-defined tool entry: a **name** matching `^[a-zA-Z0-9_-]{1,128}$`, a detailed plaintext **description**, and an `input_schema` (a JSON Schema object).",
-    "whyItMatters": "The API builds a special system prompt from your tool definitions. Optional `input_examples` must be valid against `input_schema`, or the request returns a 400.",
+    "whyItMatters": "The API builds a special system prompt from your tool definitions. Each optional `input_examples` entry must match `input_schema`, or you get a 400.",
     "example": "`get_weather` with a required `location` string and an optional `unit` of \"celsius\" or \"fahrenheit\".",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
@@ -109,9 +109,9 @@
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
     "term": "Tool runner (SDK)",
-    "definition": "A beta SDK helper that runs your tools when Claude calls them, sends the results back and manages conversation state, looping until Claude stops calling tools.",
-    "whyItMatters": "When you need human-in-the-loop approval, custom logging or conditional execution, the docs say to write the manual loop instead.",
-    "example": "Python: define tools with `@beta_tool`, then call `runner.until_done()` to get the final message.",
+    "definition": "A beta SDK helper that runs your tools when Claude calls them, sends results back and manages conversation state until Claude stops calling tools.",
+    "whyItMatters": "For human-in-the-loop approval, custom logging or conditional execution, use the manual loop instead.",
+    "example": "Python: tools use `@beta_tool`; `runner.until_done()` gets the final message.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
       "title": "Tool runner (SDK)",

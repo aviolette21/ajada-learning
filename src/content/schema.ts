@@ -62,7 +62,10 @@ export const QuestionSchema = z.object({
   lessonId: z.string().optional(),
 });
 
-/** Card text limits: a card back must fit a phone screen without scrolling (see e2e "flashcard text fits"). */
+/**
+ * Card text limits: a card back must fit a phone screen without scrolling. The e2e "every flashcard's text fits" is the
+ * real check: fit depends on line wraps (code spans, word breaks), so no combined character count predicts it.
+ */
 export const CARD_LIMITS = { definition: 160, definitionCodeSpans: 2, whyItMatters: 170, example: 120 } as const;
 const codeSpans = (s: string) => s.match(/`[^`]+`/g)?.length ?? 0;
 

@@ -20,7 +20,7 @@
     "subSkillId": "debugging-errors",
     "term": "Eval grading methods",
     "definition": "Code-based (fastest, most reliable, but lacks nuance), human (most flexible, but slow and expensive) and LLM-based (fast, flexible, suits complex judgment).",
-    "whyItMatters": "Pick the fastest, most reliable, most scalable method that works. Avoid human grading if possible, and test an LLM grader for reliability before scaling it.",
+    "whyItMatters": "Use the fastest, most reliable, most scalable method. Avoid human grading if possible; test LLM graders' reliability first.",
     "example": "Exact match: `output == golden_answer`. String match: `key_phrase in output`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",

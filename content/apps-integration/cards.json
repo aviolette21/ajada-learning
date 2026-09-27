@@ -84,7 +84,7 @@
     "term": "Claude vs traditional ML",
     "definition": "Signs an LLM like Claude fits a classification task better: little labeled data, changing categories, unstructured text, semantic rules, need for explanations.",
     "whyItMatters": "Claude can classify with a few dozen labeled examples and adapt to new classes without extensive relabeling; traditional ML needs massive labeled datasets.",
-    "example": "Also: edge cases and ambiguous inputs, and multilingual support without separate models per language.",
+    "example": "Also: edge cases and ambiguous inputs; many languages without separate models.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
       "title": "Ticket routing",
@@ -97,9 +97,9 @@
     "domainId": "apps-integration",
     "subSkillId": "requirements",
     "term": "Efficiency-first vs capability-first",
-    "definition": "Two ways to pick a starting model: begin fast and cheap (Claude Haiku 4.5) and upgrade only if needed, or begin strongest (Claude Opus 5.5) and optimize down.",
+    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 4.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
     "whyItMatters": "Efficiency-first suits tight latency, cost-sensitive, high-volume straightforward tasks; capability-first suits complex reasoning where accuracy outweighs cost.",
-    "example": "Either way, evaluate whether performance meets your requirements before changing models.",
+    "example": "Either way, evaluate whether performance meets your requirements.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "title": "Choosing the right model",
@@ -398,8 +398,8 @@
     "subSkillId": "swe-foundations",
     "term": "API error types",
     "definition": "Each HTTP error has a type: 400 invalid_request_error, 401 authentication_error, 403 permission_error, 404 not_found_error, 429 rate_limit_error.",
-    "whyItMatters": "401 is a problem with the API key itself; 403 is a key without permission for the resource; 500 `api_error` and 529 `overloaded_error` are on Anthropic's side.",
-    "example": "413 `request_too_large`: over the size limit. 402 `billing_error`: a billing or payment issue.",
+    "whyItMatters": "401: an API key issue. 403: the key lacks permission. 500 `api_error`, 529 `overloaded_error`: Anthropic's side.",
+    "example": "413 `request_too_large`: too many bytes. 402 `billing_error`: billing or payment.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -563,7 +563,7 @@
     "subSkillId": "app-design",
     "term": "Long prompt vs RAG",
     "definition": "Anthropic's post: if a knowledge base is under 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG.",
-    "whyItMatters": "Try the simplest option first; prompt caching makes a whole-knowledge-base prompt faster and cheaper. The 2024 post says larger ones need a more scalable solution.",
+    "whyItMatters": "Try the simplest option first; prompt caching makes the full prompt faster and cheaper. The 2024 post says larger bases need a more scalable solution.",
     "example": "RAG: chunk the corpus, embed the chunks, then add the most relevant chunks to the prompt at query time.",
     "source": {
       "url": "https://www.anthropic.com/engineering/contextual-retrieval",
@@ -578,7 +578,7 @@
     "subSkillId": "app-design",
     "term": "Real-time vs batch",
     "definition": "The decision rule: if someone is waiting on the reply, send a normal Messages request; if immediate responses aren't required, batch the work.",
-    "whyItMatters": "Batch processing fits large volumes of data, cost optimization and large-scale evaluations or analyses, trading immediate replies for asynchronous processing.",
+    "whyItMatters": "Batching fits large volumes of data, cost optimization and large-scale evaluations or analyses, trading immediate replies for async processing.",
     "example": "Nightly review summaries: batch. A chat reply a user is waiting for: a direct Messages call.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",

@@ -264,7 +264,7 @@
     "subSkillId": "agent-patterns",
     "term": "Parallelization (sectioning, voting)",
     "definition": "LLMs work on a task simultaneously and outputs are aggregated programmatically. **Sectioning** splits independent subtasks; **voting** repeats the same task.",
-    "whyItMatters": "Sectioning suits speed or focused attention per aspect; voting suits tasks needing multiple perspectives or attempts for higher-confidence results.",
+    "whyItMatters": "Sectioning: speed, or focused attention per aspect. Voting: multiple perspectives or attempts for higher confidence.",
     "example": "Voting: several prompts review the same code for vulnerabilities and flag problems.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",

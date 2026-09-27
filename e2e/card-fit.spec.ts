@@ -1,7 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Card, Domain } from '../src/content/schema';
+import { LONG_TERM } from '../src/features/cards/Flashcard';
 
-// Card text must fit its face: no clipped lines on the back, nothing wider than the card, and inline code in a real
-// monospace stack (WebKit's bare "monospace" default is Courier). Runs on the WebKit iPhone project.
+// Every card in the bank must fit its face: no clipped lines, nothing wider than the card, and inline code in a real
+// monospace stack (WebKit's bare "monospace" default is Courier). Runs on the WebKit iPhone project. CI's Linux WebKit
+// falls back to a wider sans than iOS, so leave about a line of slack: check new cards locally with Verdana forced.
 
 interface Measure {
   term: string;
@@ -79,18 +85,114 @@ function expectMonoCode(seen: Measure[]) {
   for (const f of fonts) expect(f).toMatch(/^ui-monospace,/);
 }
 
+type CardText = Pick<Card, 'id' | 'term' | 'definition' | 'whyItMatters' | 'example' | 'source'> & { tag: string };
+
+/** Every card in the bank, read from content/ so the check can't miss one that a review session never deals. */
+function allCards(): CardText[] {
+  const root = fileURLToPath(new URL('../content/', import.meta.url));
+  const domains: Domain[] = JSON.parse(readFileSync(join(root, 'domains.json'), 'utf8'));
+  const shortName = new Map(domains.map((d) => [d.id, d.shortName]));
+  return readdirSync(root)
+    .filter((d) => existsSync(join(root, d, 'cards.json')))
+    .flatMap((d) => JSON.parse(readFileSync(join(root, d, 'cards.json'), 'utf8')) as Card[])
+    .map((c) => ({ ...c, tag: shortName.get(c.domainId) ?? '' }));
+}
+
+/**
+ * Writes a card's text into the live top card, mirroring Flashcard.tsx's markup (inline marks as renderInline does).
+ * Walking a deck through every card takes minutes; stamping all of them into one rendered card takes seconds.
+ */
+function stamp(page: Page, card: CardText) {
+  return page.locator(TOP).evaluate((fc, c) => {
+    const inline = (el: Element, s: string) => {
+      el.replaceChildren();
+      for (const part of s.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean)) {
+        if (part.length > 4 && part.startsWith('**') && part.endsWith('**')) {
+          const b = document.createElement('strong');
+          inline(b, part.slice(2, -2));
+          el.append(b);
+        } else if (part.length > 2 && part.startsWith('`') && part.endsWith('`')) {
+          const code = document.createElement('code');
+          code.textContent = part.slice(1, -1);
+          el.append(code);
+        } else el.append(part);
+      }
+    };
+    const div = (cls: string, text: string) => Object.assign(document.createElement('div'), { className: cls, textContent: text });
+    const need = <T extends Element>(el: T | null | undefined, what: string): T => {
+      if (!el) throw new Error(`stamp: no ${what} in the rendered card (did Flashcard.tsx markup change?)`);
+      return el;
+    };
+    const front = need(fc.querySelector('.fc-front'), '.fc-front');
+    const body = need(fc.querySelector('.fc-scroll-body'), '.fc-scroll-body');
+    const main = need(front.querySelector('.fc-main'), '.fc-main');
+    const reverse = main.classList.contains('fc-main-def');
+    for (const tag of fc.querySelectorAll('.fc-face .tag')) tag.textContent = c.tag;
+    if (reverse) {
+      inline(main, c.definition);
+      need(body.querySelector('.fc-term-answer'), '.fc-term-answer').textContent = c.term;
+    } else {
+      main.className = `fc-main ${c.term.length > c.longTerm ? 'fc-main-long' : ''}`;
+      main.textContent = c.term;
+      inline(need(body.querySelector('.fc-def'), '.fc-def'), c.definition);
+    }
+    const [why, ex] = body.querySelectorAll('.fc-txt');
+    inline(need(why, '.fc-txt'), c.whyItMatters);
+    const source = need(body.querySelector('.source'), '.source');
+    if (c.example) {
+      const txt = ex ?? div('fc-txt fc-example', '');
+      if (!ex) source.before(div('fc-sec', 'Example'), txt);
+      inline(txt, c.example);
+    } else if (ex) {
+      ex.previousElementSibling?.remove();
+      ex.remove();
+    }
+    source.textContent = `📎 ${c.source.title}`;
+  }, { ...card, longTerm: LONG_TERM });
+}
+
+const faceHtml = (page: Page) => page.locator(TOP).evaluate((fc) => [...fc.querySelectorAll('.fc-face')].map((f) => f.innerHTML));
+
 for (const [label, mode] of [['Term → Def', /Term → Def/], ['Def → Term', /Def → Term/]] as const) {
-  test(`flashcard text fits an iPhone 14 card (${label})`, async ({ page }) => {
-    test.setTimeout(90_000);
-    const seen = await walkSession(page, mode);
-    expect(seen.length).toBeGreaterThanOrEqual(14);
-    for (const m of seen) {
-      for (const v of m.vertical) expect.soft(v.scrollHeight, `card "${m.term}" ${v.name}`).toBeLessThanOrEqual(v.clientHeight + 1);
+  test(`every flashcard's text fits an iPhone 14 card (${label})`, async ({ page }) => {
+    const cards = allCards();
+    expect(cards.length).toBeGreaterThan(100);
+    await page.goto('./#/cards/review');
+    await page.getByRole('radio', { name: mode }).click();
+    await expect(page.locator(TOP)).toHaveCount(1);
+    // Let the dealt card settle to full size: the horizontal checks read bounding boxes, which a scale-in shrinks.
+    await expect(page.locator('.deck-slot').first()).toHaveCSS('transform', 'none');
+
+    // The stamp must reproduce React's own render, or the check below would measure something the app never shows.
+    const dealt = (await measure(page)).term;
+    const rendered = await faceHtml(page);
+    const self = cards.find((c) => c.term === dealt || c.definition.replaceAll('`', '').replaceAll('**', '') === dealt);
+    expect(self, `dealt card "${dealt}" is in content/`).toBeDefined();
+    await stamp(page, self!);
+    expect(await faceHtml(page)).toEqual(rendered);
+
+    const seen: Measure[] = [];
+    for (const card of cards) {
+      await stamp(page, card);
+      const m = await measure(page);
+      seen.push({ ...m, term: card.id });
+      for (const v of m.vertical) expect.soft(v.scrollHeight, `card ${card.id} ${v.name}`).toBeLessThanOrEqual(v.clientHeight + 1);
     }
     expectNoHorizontalOverflow(seen);
     expectMonoCode(seen);
   });
 }
+
+test('a real review session deals cards that fit (Term → Def)', async ({ page }) => {
+  test.setTimeout(90_000);
+  const seen = await walkSession(page, /Term → Def/);
+  expect(seen.length).toBeGreaterThanOrEqual(14);
+  for (const m of seen) {
+    for (const v of m.vertical) expect.soft(v.scrollHeight, `card "${m.term}" ${v.name}`).toBeLessThanOrEqual(v.clientHeight + 1);
+  }
+  expectNoHorizontalOverflow(seen);
+  expectMonoCode(seen);
+});
 
 test.describe('iPhone SE', () => {
   test.use({ viewport: { width: 375, height: 667 } });
