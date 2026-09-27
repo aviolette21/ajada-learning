@@ -70,7 +70,7 @@ async function walkSession(page: Page, mode: RegExp): Promise<Measure[]> {
 }
 
 function expectNoHorizontalOverflow(seen: Measure[]) {
-  for (const m of seen) expect(m.horizontal, `card "${m.term}"`).toEqual([]);
+  for (const m of seen) expect.soft(m.horizontal, `card "${m.term}"`).toEqual([]);
 }
 
 function expectMonoCode(seen: Measure[]) {
@@ -85,7 +85,7 @@ for (const [label, mode] of [['Term → Def', /Term → Def/], ['Def → Term', 
     const seen = await walkSession(page, mode);
     expect(seen.length).toBeGreaterThanOrEqual(14);
     for (const m of seen) {
-      for (const v of m.vertical) expect(v.scrollHeight, `card "${m.term}" ${v.name}`).toBeLessThanOrEqual(v.clientHeight + 1);
+      for (const v of m.vertical) expect.soft(v.scrollHeight, `card "${m.term}" ${v.name}`).toBeLessThanOrEqual(v.clientHeight + 1);
     }
     expectNoHorizontalOverflow(seen);
     expectMonoCode(seen);

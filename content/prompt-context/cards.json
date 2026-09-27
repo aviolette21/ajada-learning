@@ -5,7 +5,7 @@
     "subSkillId": "prompt-techniques",
     "term": "XML tags in prompts",
     "definition": "Wrapping each type of prompt content in its own tag, such as `<instructions>` or `<context>`, so Claude can parse a complex prompt unambiguously.",
-    "whyItMatters": "Reduces misinterpretation when instructions, context, examples and variable inputs share one prompt. Use consistent, descriptive names and nest tags for hierarchy.",
+    "whyItMatters": "Reduces misinterpretation when instructions, context, examples and variable inputs share one prompt. Use consistent, descriptive tag names.",
     "example": "Nest for hierarchy: `<documents>` holds each `<document index=\"1\">`, with its source and content in their own tags.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" },
     "isVocab": true

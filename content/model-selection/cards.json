@@ -26,7 +26,7 @@
     "domainId": "model-selection",
     "subSkillId": "batch-processing",
     "term": "Message Batches API",
-    "definition": "An API for processing large volumes of Messages requests asynchronously at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
+    "definition": "Asynchronous processing of large volumes of Messages requests at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
     "whyItMatters": "Choose it for work that doesn't need an immediate response (bulk evaluations, content moderation, data analysis), never for live chat.",
     "example": "Submit thousands of product descriptions as one batch, then poll for results. Results stay available for 29 days.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing", "title": "Batch processing", "checkedOn": "2026-09-26" },
