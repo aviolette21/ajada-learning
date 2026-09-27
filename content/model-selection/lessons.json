@@ -45,7 +45,7 @@
       },
       {
         "heading": "Counting tokens before you send",
-        "body": "The token counting endpoint (`POST /v1/messages/count_tokens`) takes the same inputs as a Messages request and returns an estimate of the total input tokens. It is free to use, with its own requests-per-minute limits.\n\nToken counting doesn't use caching logic: you can include `cache_control` blocks, but prompt caching only happens when a message is actually created. Count under the model you plan to use, because Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text."
+        "body": "The token counting endpoint (`POST /v1/messages/count_tokens`) takes the same inputs as a Messages request, with a few exceptions, and returns an estimate of the total input tokens. It rejects most server tools, the MCP connector, and `image` or `document` blocks with a `url` or `file` source; send images and PDFs as base64 to count them. It is free to use, with its own requests-per-minute limits.\n\nToken counting doesn't use caching logic: you can include `cache_control` blocks, but prompt caching only happens when a message is actually created. Count under the model you plan to use, because Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text than earlier models."
       }
     ],
     "checkQuestionIds": [
@@ -73,7 +73,7 @@
     "title": "LLM fundamentals",
     "summary": "A language model reads and writes tokens, and everything it works with at once must fit in its context window, the model's \"working memory\". Temperature controls how random the output is, and even at temperature 0 the API isn't fully deterministic. Examples in the prompt (few-shot) are one of the most reliable ways to steer it.",
     "keyPoints": [
-      "The glossary's **rough** ratio is about 3.5 English characters per token; Claude 4.7 and later tokenizers produce about **30% more** tokens, so count real prompts.",
+      "The glossary's **rough** ratio is about 3.5 English characters per token; Claude 4.7 and later tokenizers produce about **30% more** tokens than earlier models.",
       "The context window includes the **response itself**; system prompt, messages, tools and thinking all count, and cached prefixes still count.",
       "More context isn't automatically better: accuracy and recall degrade as tokens grow (**context rot**).",
       "Even with **temperature 0**, identical inputs may produce different outputs across API calls.",
@@ -82,7 +82,7 @@
     "sections": [
       {
         "heading": "Tokens and next-token prediction",
-        "body": "Tokens are the smallest units a language model works in. They can be words, subwords, characters or even bytes. Anthropic's glossary puts a Claude token at approximately 3.5 English characters, though the exact number varies by language. Treat that as a rough ratio: Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text, so get real counts from the token counting API for the model you plan to use.\n\nIn pretraining, autoregressive models like Claude's underlying model are trained on a large unlabeled corpus to predict the next word from the previous context. Pretrained models are not inherently good at answering questions or following instructions. Fine-tuning and RLHF refine them, and Claude has already been fine-tuned to be a helpful assistant."
+        "body": "Tokens are the smallest units a language model works in. They can be words, subwords, characters or even bytes. Anthropic's glossary puts a Claude token at approximately 3.5 English characters, though the exact number varies by language. Treat that as a rough ratio: Claude 4.7 and later models use a newer tokenizer that produces approximately 30% more tokens for the same text than earlier models, so get real counts from the token counting API for the model you plan to use.\n\nIn pretraining, autoregressive models like Claude's underlying model are trained on a large unlabeled corpus to predict the next word from the previous context. Pretrained models are not inherently good at answering questions or following instructions. Fine-tuning and RLHF refine them, and Claude has already been fine-tuned to be a helpful assistant."
       },
       {
         "heading": "The context window",

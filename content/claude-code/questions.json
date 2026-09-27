@@ -50,8 +50,8 @@
     "choices": [
       {
         "id": "a",
-        "text": "Plan mode, for example `claude --permission-mode plan`",
-        "reason": "Correct: plan mode is for exploring before changing anything. Claude reads, explores and writes a plan, and edits stay blocked until you approve it."
+        "text": "`plan`",
+        "reason": "Correct: plan mode is for exploring before changing anything. Claude reads, explores and writes a plan; edits stay blocked until you approve it, except in terminal sessions with bypass permissions available."
       },
       {
         "id": "b",
@@ -61,7 +61,7 @@
       {
         "id": "c",
         "text": "`dontAsk`",
-        "reason": "`dontAsk` denies anything that would prompt and has no plan to approve; it is meant for locked-down CI and scripts with pre-approved tools."
+        "reason": "`dontAsk` runs only pre-approved tools and denies anything that would prompt; it is meant for locked-down CI and scripts, not for exploring first."
       },
       {
         "id": "d",
@@ -148,7 +148,7 @@
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
     "topic": "Non-interactive mode",
-    "stem": "A CI step runs Claude Code to list the names of failing tests, and a later step must parse them as a JSON array that follows a fixed schema. How should the CI step invoke Claude Code?",
+    "stem": "A CI step runs Claude Code to list the names of failing tests, and a later step must parse them as JSON that follows a fixed schema. How should the CI step invoke Claude Code?",
     "choices": [
       {
         "id": "a",

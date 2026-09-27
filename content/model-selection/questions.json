@@ -174,12 +174,12 @@
       {
         "id": "a",
         "text": "About 70,000 tokens",
-        "reason": "That treats every character as a token. Tokens can be single characters, but for Claude a token is approximately 3.5 English characters."
+        "reason": "That treats every character as a token. Tokens can be single characters, but the glossary's rough ratio is about 3.5 English characters per Claude token."
       },
       {
         "id": "b",
         "text": "About 20,000 tokens",
-        "reason": "Correct: at approximately 3.5 English characters per token, 70,000 ÷ 3.5 ≈ 20,000. The exact number varies with the language used."
+        "reason": "Correct: at the glossary's rough ratio of about 3.5 English characters per token, 70,000 ÷ 3.5 ≈ 20,000. The exact number varies with the language."
       },
       {
         "id": "c",
@@ -444,7 +444,7 @@
       {
         "id": "d",
         "text": "Nothing, because temperature only affects fiction",
-        "reason": "Temperature controls randomness in text generation generally; fiction is just the case where it can also change the answers themselves."
+        "reason": "Temperature controls the randomness of predictions in text generation generally; for fiction, higher temperature can vary the answers as well as the phrasing."
       }
     ],
     "answer": "b",
@@ -521,7 +521,7 @@
       },
       {
         "id": "c",
-        "text": "Make the examples diverse, covering edge cases such as outages, and wrap them in `<example>` tags",
+        "text": "Use diverse examples, including outages, each in `<example>` tags",
         "reason": "Correct: examples should be relevant, diverse enough that Claude doesn't pick up unintended patterns, and structured in `<example>` tags."
       },
       {
@@ -810,7 +810,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-stream-event-flow"
+      "c-stream-event-flow",
+      "c-api-versioning"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -921,7 +922,7 @@
       },
       {
         "id": "d",
-        "text": "Errors can arrive mid-stream after a 200; this one means the API is temporarily overloaded (HTTP 529 when not streaming)",
+        "text": "An error can follow a 200 when streaming; this one means the API is temporarily overloaded",
         "reason": "Correct: streamed errors can follow a 200 response, and `overloaded_error` (529) can happen when the API has high traffic across all users."
       }
     ],
@@ -935,7 +936,7 @@
     },
     "relatedCardIds": [
       "c-stream-error-events",
-      "c-sdk-retries"
+      "c-overloaded-error"
     ],
     "lessonId": "l-technical-fundamentals"
   },

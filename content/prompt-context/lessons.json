@@ -8,7 +8,7 @@
     "keyPoints": [
       "As tokens grow, recall degrades (**context rot**): every token draws on a limited **attention budget**.",
       "Write system prompts at the **right altitude**: neither brittle if-else rules nor vague guidance. Minimal doesn't mean short.",
-      "Keep a **minimal viable tool set**: if an engineer can't say which tool applies, the agent can't either.",
+      "Keep a **minimal viable tool set**: if a human engineer can't say which tool applies, an agent **can't be expected to do better**.",
       "**Just in time**: keep references (paths, queries, links) and load data with tools; it's slower than pre-computed retrieval.",
       "**Compaction** summarizes older turns on the server; **tool result clearing** drops the oldest tool results by rule."
     ],
@@ -85,7 +85,7 @@
     "keyPoints": [
       "**Golden rule**: if a colleague with minimal context would be confused by your prompt, Claude will be too.",
       "Explain **why** a rule matters; Claude generalizes from the explanation. A **role** in the system prompt focuses tone.",
-      "Long documents go at the **top**; queries at the end improved quality by **up to 30%** in tests. Ask for quotes first.",
+      "Long documents go at the **top**; queries at the end can improve quality by **up to 30%** in tests. Ask for quotes first.",
       "Prefill on the last assistant turn returns a **400** starting with **Claude 4.6** models.",
       "Thinking off? Use **manual CoT** with `<thinking>` and `<answer>` tags. Dial back aggressive \"MUST\" wording."
     ],
@@ -100,7 +100,7 @@
       },
       {
         "heading": "Reasoning and thinking",
-        "body": "Claude 4.6 and later models use adaptive thinking, where Claude decides when and how much to think; the effort parameter controls thinking depth. With thinking on, general instructions like \"think thoroughly\" often produce better reasoning than a hand-written step-by-step plan.\n\nWhen thinking is off, you can still ask Claude to think through the problem, using tags like `<thinking>` and `<answer>` to cleanly separate reasoning from the final output. Asking Claude to verify its answer against test criteria before finishing also catches errors, though Claude Opus 5 verifies well without it.",
+        "body": "Claude 4.6 and later models support adaptive thinking, where Claude decides when and how much to think; on Claude Opus 5.5 it is always on and the only mode. The effort parameter and query complexity shape how much it thinks. With thinking on, general instructions like \"think thoroughly\" often produce better reasoning than a hand-written step-by-step plan.\n\nWhen thinking is off, you can still ask Claude to think through the problem, using tags like `<thinking>` and `<answer>` to cleanly separate reasoning from the final output. Asking Claude to verify its answer against test criteria before finishing also catches errors. On Claude Opus 5, remove such instructions: it verifies its own work well without them, and they can cause over-verification.",
         "diagram": {
           "kind": "flow",
           "caption": "Manual chain-of-thought when thinking is off.",

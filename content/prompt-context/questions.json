@@ -294,7 +294,7 @@
       {
         "id": "a",
         "text": "Add more narrowly scoped tools so each case has its own",
-        "reason": "Bloated tool sets that cover too much functionality are one of the most common failure modes the post describes."
+        "reason": "Adding tools grows the set: bloated tool sets that lead to ambiguous decision points about which tool to use are a common failure mode the post describes."
       },
       {
         "id": "b",
@@ -339,8 +339,8 @@
       },
       {
         "id": "b",
-        "text": "Prefill each reply so it starts without an ellipsis",
-        "reason": "Prefilling the last assistant turn isn't supported starting with Claude 4.6 models, and it wouldn't explain the goal anyway."
+        "text": "\"You are a voice assistant. NEVER use ellipses.\"",
+        "reason": "A role focuses behavior and tone, but the rule still gives no reason; the guide's better version explains that a text-to-speech engine can't pronounce ellipses."
       },
       {
         "id": "c",
@@ -386,7 +386,7 @@
       {
         "id": "c",
         "text": "Tell Claude \"Don't sound like a general assistant\"",
-        "reason": "The guide suggests telling Claude what to do instead of what not to do; a role states what you want."
+        "reason": "It names no role or use case; the guide's small change is a role in the system prompt, which focuses Claude's behavior and tone."
       },
       {
         "id": "d",
@@ -438,7 +438,7 @@
     ],
     "answer": "c",
     "takeaway": "Prefill on the last turn is gone from **Claude 4.6** on; constrain format with **structured outputs** or an enum tool instead.",
-    "mnemonic": "No prefill after 4.6: schema it instead.",
+    "mnemonic": "No prefill from 4.6 on: schema it instead.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",

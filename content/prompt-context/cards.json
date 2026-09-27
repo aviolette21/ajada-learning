@@ -181,7 +181,7 @@
     "domainId": "prompt-context",
     "subSkillId": "prompt-engineering",
     "term": "Tool overtriggering",
-    "definition": "Newer models such as Claude Opus 4.5 and 4.6 respond more to the system prompt, so wording written to fix undertriggering can make them overtrigger.",
+    "definition": "Claude Opus 4.5 and Claude Opus 4.6 are more responsive to the system prompt, so wording written to fix undertriggering can make them overtrigger.",
     "whyItMatters": "Dial back aggressive language: replace \"CRITICAL: You MUST use this tool when...\" with \"Use this tool when...\". Lower effort only as a fallback.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -209,7 +209,7 @@
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
     "term": "Strict tool use",
-    "definition": "Setting `strict: true` on a tool definition constrains sampling so Claude's tool inputs always match the tool's `input_schema`.",
+    "definition": "Setting `strict: true` on a tool definition constrains sampling so Claude's tool inputs strictly follow the tool's `input_schema`.",
     "whyItMatters": "Without it, Claude might send `\"2\"` instead of `2` or omit required fields. With it, there's no need to validate and retry tool calls.",
     "example": "Add `\"strict\": true` at the top level of the tool, alongside `name`, `description` and `input_schema`.",
     "source": {

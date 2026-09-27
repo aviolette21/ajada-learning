@@ -414,7 +414,7 @@
     "term": "Retry with exponential backoff",
     "definition": "The errors page's advice for a 500 `api_error`: retry the request with exponential backoff, and contact support with the request ID if it persists.",
     "whyItMatters": "Backoff suits transient failures like 500s. A 400 `invalid_request_error` means an issue with the format or content of your request.",
-    "example": "If 500s persist after backing off, contact support and include the `request_id` from the error body.",
+    "example": "The official SDKs already retry 5xx errors with backoff, twice by default; `max_retries` configures that.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",

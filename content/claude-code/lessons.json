@@ -7,7 +7,7 @@
     "summary": "Day to day, you steer Claude Code with CLAUDE.md for standing instructions, permission modes for what Claude may do without asking, skills and subagents for reusable work, and sessions you can resume or script with `-p`. Where a file lives decides who gets it: commit it under the project to share it with your team.",
     "keyPoints": [
       "`/init` drafts a CLAUDE.md from your codebase (or suggests improvements to an existing one). Target **under 200 lines** per CLAUDE.md file.",
-      "`Shift+Tab` cycles permission modes. **Plan** mode explores and proposes without editing your source; edits wait until you approve the plan.",
+      "`Shift+Tab` cycles permission modes. **Plan** mode explores and proposes without editing your source; edits wait for your approval unless bypass is available.",
       "Custom commands have been merged into **skills**: `.claude/skills/<name>/SKILL.md` creates `/name`, and `$ARGUMENTS` receives what you type after it.",
       "Subagents live in `.claude/agents/` (project) or `~/.claude/agents/` (you). `tools` is an allowlist; omit it and the subagent inherits the available tools.",
       "`--continue` reopens the most recent conversation here; `--resume` takes an ID or name, or opens a picker. Reach a `-p` session with `--resume <session-id>`."
@@ -19,7 +19,7 @@
       },
       {
         "heading": "Permission modes",
-        "body": "A permission mode sets which actions Claude can take without asking you first:\n\n- `default` (shown as Manual): only reads run without asking\n- `acceptEdits`: file edits and common filesystem commands also run\n- `plan`: Claude researches and proposes a plan, but doesn't edit your source\n- `auto`: a classifier reviews actions instead of you\n- `dontAsk`: only pre-approved tools run, and anything that would prompt is denied; for locked-down CI\n- `bypassPermissions`: everything runs; for isolated containers and VMs only\n\nIn the CLI, `Shift+Tab` cycles modes during a session, and `--permission-mode` picks one at startup. Deny rules still block in every mode.",
+        "body": "A permission mode sets which actions Claude can take without asking you first:\n\n- `default` (shown as Manual): only reads run without asking\n- `acceptEdits`: file edits and common filesystem commands also run\n- `plan`: Claude researches and proposes a plan, but doesn't edit your source; edits wait for your approval, except in terminal sessions with bypass permissions available\n- `auto`: a classifier reviews actions instead of you\n- `dontAsk`: only pre-approved tools run, and anything that would prompt is denied; for locked-down CI\n- `bypassPermissions`: everything runs; for isolated containers and VMs only\n\nIn the CLI, `Shift+Tab` cycles modes during a session, and `--permission-mode` picks one at startup. Deny rules still block in every mode.",
         "diagram": {
           "kind": "flow",
           "caption": "Shift+Tab cycles the default modes; optional modes slot in after plan.",

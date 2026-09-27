@@ -119,7 +119,7 @@
       {
         "id": "b",
         "text": "Add `strict: true` to the tool definition",
-        "reason": "Strict mode is the fix for invented parameters and wrong parameter types, not for how the same values are escaped."
+        "reason": "Strict mode addresses invented parameters and wrong parameter types, not how the same values are escaped."
       },
       {
         "id": "c",
@@ -233,7 +233,7 @@
     "domainId": "eval-testing",
     "subSkillId": "debugging-errors",
     "topic": "Integration errors",
-    "stem": "Your tool-using agent with thinking worked until you changed the loop to drop `thinking` blocks from each assistant message before appending the `tool_result`, to save tokens. Now every follow-up request fails with 400 `invalid_request_error`, and SDK retries don't help. What's the cause?",
+    "stem": "Your tool-using agent with thinking worked until you changed the loop to drop `thinking` blocks from each assistant message before appending the `tool_result`, to save tokens. Now every follow-up request fails with 400 `invalid_request_error`, and retrying doesn't help. What's the cause?",
     "choices": [
       {
         "id": "a",
@@ -247,7 +247,7 @@
       },
       {
         "id": "c",
-        "text": "The model no longer supports thinking; switch to `thinking.type.enabled`",
+        "text": "Your thinking config is outdated; switch to `thinking: {\"type\": \"enabled\"}`",
         "reason": "Sending `thinking.type.enabled` to Claude 4.7 and later models itself returns a 400, and your requests worked before the loop change."
       },
       {

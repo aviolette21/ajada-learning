@@ -39,32 +39,32 @@
       {
         "id": "a",
         "text": "Add a message with `role: \"system\"` at the start of the `messages` array",
-        "reason": "Instructions that apply from the start go in the top-level `system` parameter, not in a message at the start of `messages`."
+        "reason": "A `system` message cannot be the first entry in `messages`; use the top-level `system` field for instructions that apply from the start."
       },
       {
         "id": "b",
         "text": "Put them in the top-level `system` parameter",
-        "reason": "Correct: the top-level `system` parameter is how you provide context and instructions such as a goal or role."
+        "reason": "Correct: use the top-level `system` field for instructions that should apply from the very first turn."
       },
       {
         "id": "c",
         "text": "Put them in an `assistant` message so Claude thinks it already agreed",
-        "reason": "`assistant` turns represent Claude's prior replies, not the place for standing instructions."
+        "reason": "Synthetic `assistant` turns build up conversation history; instructions that apply from the start belong in the top-level `system` field."
       },
       {
         "id": "d",
-        "text": "List them in `stop_sequences`",
-        "reason": "`stop_sequences` are strings that make generation stop; they carry no instructions."
+        "text": "Add them as a mid-conversation `system` message after the first user turn",
+        "reason": "Mid-conversation system messages are for instructions that only become relevant later; ones that apply from the first turn go in top-level `system`."
       }
     ],
     "answer": "b",
-    "takeaway": "Standing instructions go in the top-level **`system`** parameter, not in `messages`.",
-    "mnemonic": "System sits on top, not in the stack.",
+    "takeaway": "Instructions that apply from the start go in the top-level **`system`** field; a `system` message can't open `messages`.",
+    "mnemonic": "From the first turn? Top-level system.",
     "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/api/messages/create",
-      "title": "Create a Message",
-      "checkedOn": "2026-09-26"
+      "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "title": "Using the Messages API",
+      "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
       "c-system-parameter"
@@ -229,8 +229,7 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-llm-vs-traditional-ml",
-      "c-eval-thresholds"
+      "c-llm-vs-traditional-ml"
     ],
     "lessonId": "l-requirements"
   },
@@ -682,7 +681,7 @@
     "domainId": "apps-integration",
     "subSkillId": "config-management",
     "topic": "CLAUDE.md vs settings",
-    "stem": "Your project's CLAUDE.md says \"Never read `.env` files\", yet Claude Code occasionally reads one. You need a guarantee, not a reminder. What should you change?",
+    "stem": "Your project's CLAUDE.md says \"Never read `.env` files\", yet Claude Code occasionally opens one with its Read tool. You need a guarantee, not a reminder. What should you change?",
     "choices": [
       {
         "id": "a",
@@ -1763,8 +1762,7 @@
     },
     "relatedCardIds": [
       "c-batch-vs-realtime",
-      "c-message-batches",
-      "c-parallelization-workflow"
+      "c-message-batches"
     ],
     "lessonId": "l-app-design"
   },
@@ -2110,7 +2108,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Upload the revision as a new file, reference its new `file_id`, then delete the old file",
+        "text": "Upload it as a new file, use that `file_id`, and delete the old file",
         "reason": "Correct: files can't be modified or renamed after upload; to change a file's content, upload a new file and delete the old one."
       },
       {
@@ -2125,8 +2123,8 @@
       },
       {
         "id": "d",
-        "text": "Delete the old file now and recover it later if the user wants it back",
-        "reason": "Deleted files cannot be recovered, so only delete a file you no longer need."
+        "text": "Add an `expires_at` to the old file so the new upload takes over",
+        "reason": "Expiration is set once at upload and cannot be changed, so it can't be added to the old file; switch to the new `file_id` yourself."
       }
     ],
     "answer": "a",
@@ -2198,8 +2196,7 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-parallelization",
-      "c-routing"
+      "c-parallelization"
     ],
     "lessonId": "l-app-design"
   }

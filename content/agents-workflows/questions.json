@@ -189,7 +189,7 @@
       },
       {
         "id": "d",
-        "text": "Keep a progress file and git history that each session reads first and updates at the end",
+        "text": "Keep a progress file and git history that each session reads and updates",
         "reason": "Correct: a claude-progress.txt file alongside the git history lets agents quickly understand the state of work in a fresh context window."
       }
     ],
