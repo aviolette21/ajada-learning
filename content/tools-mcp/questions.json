@@ -162,7 +162,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-tool-choice"
+      "c-tool-choice",
+      "c-strict-tool-use"
     ],
     "lessonId": "l-tool-implementation"
   },
@@ -700,7 +701,7 @@
       {
         "id": "d",
         "text": "False, but only its skills need review, since they hold the code",
-        "reason": "Skills enter context as instructions. Code the plugin runs by itself lives in its hooks, MCP servers and `bin/`."
+        "reason": "Skills enter context as instructions; the code a plugin brings lives in its hooks, MCP servers and `bin/`, so review those too."
       }
     ],
     "answer": "b",

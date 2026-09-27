@@ -4,7 +4,7 @@
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
     "title": "Implementing tools",
-    "summary": "Tool use lets Claude call functions you define (client tools) or that Anthropic runs (server tools). You describe each tool with a name, a detailed description and an `input_schema`; for client tools, your code runs each call and returns a `tool_result`. The description is by far the most important factor in tool performance.",
+    "summary": "Tool use lets Claude call tools that your application executes (client tools, including Anthropic-schema ones like `bash`) or that Anthropic runs (server tools). You describe each tool you define with a name, a detailed description and an `input_schema`; for client tools, your code runs each call and returns a `tool_result`. The description is by far the most important factor in tool performance.",
     "keyPoints": [
       "Descriptions matter most: what the tool does, when to use it (and when not), each parameter, caveats. Aim for **at least 3–4 sentences**.",
       "`tool_choice`: **auto** (default with tools), **any**, **tool**, **none**. Opus 5.5, Fable 5.1 and Mythos 5.1 return a 400 for `any` and `tool`.",
@@ -122,7 +122,7 @@
       },
       {
         "heading": "Connecting servers to Claude",
-        "body": "In Claude Code, HTTP servers are the recommended option for remote servers, and the SSE transport is deprecated: `claude mcp add --transport http <name> <url>`. A local stdio server takes its launch command after `--`, as in `claude mcp add --transport stdio myserver -- npx server`.\n\nFrom the Messages API, the MCP connector (beta) connects to remote servers without a separate MCP client. Define each server in `mcp_servers`, with a URL that starts with https, and reference it from exactly one `mcp_toolset` in `tools`, where you can allowlist or denylist tools. Only tool calls are supported, and local stdio servers can't be connected directly."
+        "body": "In Claude Code, HTTP servers are the recommended option for remote servers, and the SSE transport is deprecated: `claude mcp add --transport http <name> <url>`. A local stdio server takes its launch command after `--`, as in `claude mcp add --transport stdio myserver -- npx server`.\n\nFrom the Messages API, the MCP connector (beta) connects to remote servers without a separate MCP client. Define each server in `mcp_servers`, with a URL that starts with https, and reference it from exactly one `mcp_toolset` in `tools`, where you can allowlist or denylist tools. Only tool calls are currently supported, and local stdio servers can't be connected directly."
       }
     ],
     "checkQuestionIds": [
