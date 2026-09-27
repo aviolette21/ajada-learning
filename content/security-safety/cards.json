@@ -7,7 +7,191 @@
     "definition": "An attack where the user is trusted but Claude processes third-party content (web pages, emails, documents, tool results) with adversarial instructions.",
     "whyItMatters": "The attacker isn't your user (unlike a jailbreak). Put untrusted content only in `tool_result` blocks, label its source, JSON-encode it, use least privilege.",
     "example": "An email saying \"Ignore previous instructions…\" is JSON-encoded in a `tool_result`: data, not a directive.",
-    "source": { "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks", "title": "Mitigate jailbreaks and prompt injections", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-direct-prompt-injection",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "term": "Jailbreak (direct prompt injection)",
+    "definition": "An attack where the user of your application is the adversary, crafting inputs meant to bypass your guardrails.",
+    "whyItMatters": "Its defenses sit on the user-input side: harmlessness screens, input validation, system prompts that say how to refuse, and action on repeat offenders.",
+    "example": "A user who keeps triggering the same refusal is told they violate usage policies and may be throttled.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-prompt-leak",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "term": "Prompt leak",
+    "definition": "Exposure of sensitive information you expect to stay hidden in your prompt, such as a proprietary formula in the system prompt.",
+    "whyItMatters": "No method is foolproof. Try monitoring (output screening, post-processing) first; use leak-resistant prompting only when absolutely necessary.",
+    "example": "Post-process outputs with regular expressions or keyword filtering for terms from the hidden formula.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
+      "title": "Reduce prompt leak",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-tool-output-screen",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "term": "Tool-output injection screen",
+    "definition": "A small classifier call, for example with Claude Haiku 4.5, that checks each raw tool output for injection before it goes back as a `tool_result`.",
+    "whyItMatters": "If it flags an attempt, return an error or a stripped summary instead of the raw content, and consider surfacing the attempt to the user.",
+    "example": "Structured outputs constrain the verdict to one boolean, `injection_suspected`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-harmlessness-screen",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "term": "Harmlessness screen",
+    "definition": "A lightweight model, such as Claude Haiku 4.5, that pre-screens user input before it reaches your main conversation.",
+    "whyItMatters": "A first guardrail layer against jailbreaks. Use structured outputs to constrain its response to a simple classification.",
+    "example": "A JSON schema with one required boolean, `is_harmful`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-verify-with-citations",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "term": "Verify with citations",
+    "definition": "Having Claude cite quotes and sources for each claim, or find a supporting quote for each claim after drafting and retract any it can't support.",
+    "whyItMatters": "It makes responses auditable. These techniques reduce hallucinations but don't eliminate them, so still validate critical information.",
+    "example": "Remove each press-release claim with no supporting quote and mark the spot with empty [] brackets.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-keep-in-character",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "term": "Keeping Claude in character",
+    "definition": "Defining the role and personality in the system prompt, with detail on background and traits, plus common scenarios and expected responses.",
+    "whyItMatters": "Prepared scenarios help Claude handle diverse situations without breaking character in role-based applications.",
+    "example": "For IP questions: \"I cannot disclose TechCo's proprietary information.\"",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "title": "Increase output consistency",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-claude-code-hooks",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "term": "Claude Code hooks",
+    "definition": "User-defined shell commands that Claude Code runs automatically at specific points in its lifecycle, such as after a tool call (`PostToolUse`).",
+    "whyItMatters": "They give deterministic control: certain actions always happen rather than relying on the LLM to choose to run them.",
+    "example": "A `PostToolUse` hook with matcher `Edit|Write` runs Prettier on every file Claude edits.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-hook-exit-code-2",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "term": "Hook exit code 2",
+    "definition": "The blocking exit code for command hooks: on events that can block, it stops the action, and `PreToolUse` blocks the tool call.",
+    "whyItMatters": "For most events, exit 1 is a non-blocking error and the action proceeds. If your hook is meant to enforce a policy, use `exit 2`.",
+    "example": "Echo \"Blocked: rm commands are not allowed\" to stderr, then `exit 2`; Claude sees the message.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-hook-workspace-trust",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "term": "Hooks and workspace trust",
+    "definition": "Interactive sessions hold back settings-file hooks until you accept the trust dialog; `-p` and SDK sessions treat the folder as trusted.",
+    "whyItMatters": "Before scripting `claude -p` over a repo you didn't write, review its `.claude/` settings, start with `--bare`, or turn hooks off for that run.",
+    "example": "Pass `--settings '{\"disableAllHooks\": true}'` to turn hooks off for one run.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-api-key-types",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "term": "API key types",
+    "definition": "**Personal** keys act as you, **service account** keys act as a service account, and legacy **workspace** keys belong to a workspace.",
+    "whyItMatters": "Identity-backed keys stop working when their identity is removed. Shared or automated workloads (CI, production) should use a service account.",
+    "example": "An organization admin creates a service account for the CI pipeline, then a key linked to it.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-key-disable-vs-delete",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "term": "Disable vs delete an API key",
+    "definition": "**Disable** is reversible (status `inactive`; Re-enable restores it). **Delete** is permanent: the key is archived.",
+    "whyItMatters": "Disable or delete any key you suspect has leaked. Expiration is set at creation, can't be changed, and isn't a substitute for secret hygiene.",
+    "example": "Disable a suspect key now; Re-enable returns it to `\"active\"`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-read-deny-rule",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "term": "Read deny rule",
+    "definition": "A deny rule such as `Read(./.env)` that blocks Claude's file tools, recognized Bash file commands and redirections from reading a path.",
+    "whyItMatters": "It doesn't cover subprocesses that open files themselves, like a Python script. For OS-level enforcement for all processes, enable the sandbox.",
+    "example": "`Read(*.env)` then `Read(!sample.env)` blocks every *.env file except sample.env.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
   }
 ]
