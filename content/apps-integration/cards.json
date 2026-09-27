@@ -15,10 +15,14 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "term": "system (parameter)",
-    "definition": "The top-level Messages API parameter for context and instructions, such as a goal or role. There is no `\"system\"` role for input messages.",
-    "whyItMatters": "A common pitfall is putting instructions in a `role: \"system\"` message; on the Messages API they belong in the top-level `system` field.",
-    "example": "`\"system\": \"You are a helpful coding assistant specializing in Python.\"`",
-    "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
+    "definition": "The top-level Messages API field for instructions that apply from the start of a conversation, such as a goal or role.",
+    "whyItMatters": "Put standing instructions in the top-level `system` field: a `system` message can't be the first entry in `messages`.",
+    "example": "Some newer models (e.g. Claude Opus 5.5) also accept `\"role\": \"system\"` messages after a user turn.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "title": "Using the Messages API",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
   },
   {
@@ -410,7 +414,7 @@
     "term": "Retry with exponential backoff",
     "definition": "The errors page's advice for a 500 `api_error`: retry the request with exponential backoff, and contact support with the request ID if it persists.",
     "whyItMatters": "Backoff suits transient failures like 500s. A 400 `invalid_request_error` means an issue with the format or content of your request.",
-    "example": "The official SDKs retry transient failures with exponential backoff, twice by default.",
+    "example": "If 500s persist after backing off, contact support and include the `request_id` from the error body.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -559,7 +563,7 @@
     "subSkillId": "app-design",
     "term": "Long prompt vs RAG",
     "definition": "Anthropic's post: if a knowledge base is under 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG.",
-    "whyItMatters": "Try the simplest option first; prompt caching makes the whole-knowledge-base prompt faster and cheaper. Larger knowledge bases need a scalable approach such as RAG.",
+    "whyItMatters": "Try the simplest option first; prompt caching makes a whole-knowledge-base prompt faster and cheaper. The 2024 post says larger ones need a more scalable solution.",
     "example": "RAG: chunk the corpus, embed the chunks, then add the most relevant chunks to the prompt at query time.",
     "source": {
       "url": "https://www.anthropic.com/engineering/contextual-retrieval",
@@ -573,9 +577,9 @@
     "domainId": "apps-integration",
     "subSkillId": "app-design",
     "term": "Real-time vs batch",
-    "definition": "Batch processing suits large volumes when immediate responses are not required; it submits requests together for asynchronous processing.",
-    "whyItMatters": "The Message Batches API cuts costs by 50% and most batches finish in under 1 hour, so it fits evals, moderation and bulk generation, not live replies.",
-    "example": "Nightly review summaries: batch. A user waiting in a chat: an immediate response, not a batch.",
+    "definition": "The decision rule: if someone is waiting on the reply, send a normal Messages request; if immediate responses aren't required, batch the work.",
+    "whyItMatters": "Batch processing fits large volumes of data, cost optimization and large-scale evaluations or analyses, trading immediate replies for asynchronous processing.",
+    "example": "Nightly review summaries: batch. A chat reply a user is waiting for: a direct Messages call.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -705,13 +709,13 @@
     "id": "c-routing-workflow",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
-    "term": "Routing (workflow)",
-    "definition": "A workflow that classifies an input and directs it to a specialized follow-up task, with its own prompts and tools.",
-    "whyItMatters": "Use it when distinct categories are better handled separately. Without it, optimizing for one kind of input can hurt performance on others.",
-    "example": "Route easy, common questions to Claude Haiku 4.5 and hard, unusual ones to a more capable model.",
+    "term": "File lifecycle (Files API)",
+    "definition": "Uploaded files can't be modified or renamed. They persist until you delete them or they reach an optional `expires_at`, set once at upload.",
+    "whyItMatters": "To change content, upload a new file and delete the old one. Deleted files can't be recovered, and requests that reference an expired file fail.",
+    "example": "`expires_in_seconds` at upload: from 3,600 (1 hour) to 7,776,000 (90 days).",
     "source": {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "title": "Building effective agents",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
       "checkedOn": "2026-09-27"
     },
     "isVocab": true
@@ -720,13 +724,13 @@
     "id": "c-parallelization-workflow",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
-    "term": "Parallelization (workflow)",
-    "definition": "LLM calls that work at the same time, with outputs aggregated in code. Sectioning splits a task into independent parts; voting repeats one task.",
-    "whyItMatters": "Guardrails are a sectioning case: one call screens the input while another answers, which tends to beat one call doing both.",
-    "example": "Voting: several different prompts review code for vulnerabilities and flag any problem they find.",
+    "term": "Batch result types",
+    "definition": "Once a batch ends, each request has one result type: succeeded, errored, canceled or expired. Only succeeded results include the message.",
+    "whyItMatters": "You aren't billed for errored, canceled or expired requests. Check `request_counts` for totals and add your own retry logic for failed requests.",
+    "example": "`expired`: the batch reached its 24-hour expiration before the request was sent to the model.",
     "source": {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "title": "Building effective agents",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
       "checkedOn": "2026-09-27"
     },
     "isVocab": true

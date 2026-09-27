@@ -6,7 +6,7 @@
     "title": "Messages API basics",
     "summary": "Every Messages API call passes a list of `user`/`assistant` turns and an output cap, `max_tokens`, and can include a top-level `system` prompt. Each response tells you why Claude stopped through `stop_reason`, and your code has to branch on it.",
     "keyPoints": [
-      "Put instructions and roles in the top-level **`system`** parameter; there is no `\"system\"` role inside `messages`.",
+      "Put instructions and roles in the top-level **`system`** parameter; a `system` message can't open `messages`.",
       "`max_tokens` is an absolute ceiling on **output** tokens; the model may stop before it.",
       "`stop_reason: \"max_tokens\"` means the reply was truncated: raise `max_tokens` or continue the response.",
       "`stop_reason: \"tool_use\"` means Claude wants **you** to run a tool and send back a `tool_result`.",
@@ -28,20 +28,57 @@
           "kind": "flow",
           "caption": "Loop while stop_reason is tool_use.",
           "steps": [
-            { "label": "Send request", "sublabel": "tools + messages" },
-            { "label": "tool_use", "sublabel": "Claude asks" },
-            { "label": "Run tool", "sublabel": "your code" },
-            { "label": "tool_result", "sublabel": "you report back" }
+            {
+              "label": "Send request",
+              "sublabel": "tools + messages"
+            },
+            {
+              "label": "tool_use",
+              "sublabel": "Claude asks"
+            },
+            {
+              "label": "Run tool",
+              "sublabel": "your code"
+            },
+            {
+              "label": "tool_result",
+              "sublabel": "you report back"
+            }
           ]
         }
       }
     ],
-    "checkQuestionIds": ["q-api-tool-use-stop-reason", "q-api-system-prompt-param", "q-api-max-tokens-stop"],
+    "checkQuestionIds": [
+      "q-api-tool-use-stop-reason",
+      "q-api-system-prompt-param",
+      "q-api-max-tokens-stop"
+    ],
     "sources": [
-      { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
-      { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
-      { "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works", "title": "How tool use works", "checkedOn": "2026-09-26" },
-      { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" }
+      {
+        "url": "https://platform.claude.com/docs/en/api/messages/create",
+        "title": "Create a Message",
+        "checkedOn": "2026-09-26"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+        "title": "Stop reasons and fallback",
+        "checkedOn": "2026-09-26"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-09-26"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-09-26"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-09-27"
+      }
     ]
   },
   {
@@ -298,7 +335,7 @@
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
     "title": "Errors, retries and rate limits",
-    "summary": "Production Claude apps must read each error's type, retry only what is transient, and stay inside rate limits. The rule to remember: back off on 429s and 5xx errors (honoring `retry-after`), fix the request on other 4xx errors, and log every `request-id`.",
+    "summary": "Production Claude apps must read each error's type, retry only what is transient, and stay inside rate limits. The rule: back off on transient errors (500, 529 and rate-limit 429s, honoring `retry-after`); a spend-cap 429 won't clear on retry; fix the cause on other 4xx errors; log every `request-id`.",
     "keyPoints": [
       "**401** is a problem with the API key; **403** is a valid key without permission for the resource; **404** is a missing resource.",
       "**500** `api_error`: retry with exponential backoff. **529** `overloaded_error`: the API is temporarily overloaded across all users.",
@@ -374,7 +411,7 @@
     "title": "Designing Claude applications",
     "summary": "Application design is choosing the simplest architecture that meets the need: a long prompt or retrieval, a live call or a batch, free text or structured output. The rule to remember: start simple, measure, and add complexity (extra calls, agents) only when it demonstrably helps.",
     "keyPoints": [
-      "A knowledge base under **200,000 tokens** (about 500 pages) can go in the prompt whole; larger ones typically need RAG.",
+      "Anthropic's 2024 post: a knowledge base under **200,000 tokens** (about 500 pages) can go in the prompt whole. Many current models now have **1M-token** windows.",
       "The **Message Batches API** costs 50% less for work that doesn't need immediate replies; match results by `custom_id`, never by order.",
       "Streaming improves perceived responsiveness; **TTFT** measures the wait before the first token.",
       "**Citations** give verifiable passages; **JSON outputs** give schema-valid replies; the two can't be combined in one request.",
@@ -383,14 +420,14 @@
     "sections": [
       {
         "heading": "Long prompt, retrieval or batch?",
-        "body": "Anthropic's Contextual Retrieval post notes that if a knowledge base is smaller than 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG, and prompt caching makes that faster and cheaper. For larger knowledge bases, RAG chunks the corpus, embeds the chunks and adds the most relevant ones to the prompt at query time.\n\nWhen no one is waiting on the answer, batch processing fits: the Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under 1 hour. Results can come back in any order, so always match them to requests by `custom_id`."
+        "body": "Anthropic's Contextual Retrieval post notes that if a knowledge base is smaller than 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG, and prompt caching makes that faster and cheaper. The post says larger knowledge bases need a more scalable solution, such as RAG, which chunks the corpus, embeds the chunks and adds the most relevant ones to the prompt at query time. Context windows have grown since: Claude Opus 5.5, Claude Sonnet 5 and other current models have a 1M-token context window.\n\nWhen no one is waiting on the answer, batch processing fits: the Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under 1 hour. Results can come back in any order, so always match them to requests by `custom_id`."
       },
       {
         "heading": "Latency and streaming",
-        "body": "First engineer a prompt that works well, then reduce latency; doing it too early can hide what top performance looks like. The guide's levers:\n\n- Choose the right model: Claude Haiku 4.5 offers the fastest response times\n- Minimize prompt and output tokens; ask for sentence or paragraph counts rather than word counts\n- Use `max_tokens` only as a blunt cap, since replies are cut off at the limit\n- Stream responses so users see output as it arrives\n\nTime to first token (TTFT) is the time until the first token of the response, which matters most for streaming UIs.",
+        "body": "First engineer a prompt that works well, then reduce latency; doing it too early can hide what top performance looks like. The guide's levers:\n\n- Choose the right model: Claude Haiku 4.5 offers the fastest response times\n- Minimize prompt and output tokens; ask for sentence or paragraph counts rather than word counts\n- Use `max_tokens` only as a blunt cap, since replies are cut off at the limit\n- Stream responses so users see output as it arrives\n\nTime to first token (TTFT) is the time until the first token of the response, which is particularly relevant for streaming UIs.",
         "diagram": {
           "kind": "flow",
-          "caption": "The latency guide's order of work.",
+          "caption": "Get the prompt working first, then apply the levers.",
           "steps": [
             {
               "label": "Prompt that works"
@@ -409,11 +446,11 @@
       },
       {
         "heading": "Grounded and structured output",
-        "body": "Citations return the exact passages that support each claim. Set `citations.enabled=true` on every document in the request; the API guarantees valid pointers into the documents, and `cited_text` doesn't count toward output tokens.\n\nJSON outputs (`output_config.format`) constrain replies to your schema through constrained decoding. The first request with a new schema is slower while its grammar compiles, then it's cached for 24 hours. Citations and JSON outputs are incompatible and return a 400 together.\n\nThe Files API lets you upload once and reference a `file_id`. PDFs and plain text go in `document` blocks; convert types like .docx to plain text first."
+        "body": "Citations return the exact passages that support each claim. Set `citations.enabled=true` on every document in the request; the API guarantees valid pointers into the documents, and `cited_text` doesn't count toward output tokens.\n\nJSON outputs (`output_config.format`) constrain replies to your schema through constrained decoding. The first request with a new schema is slower while its grammar compiles, then it's cached for 24 hours. Citations and JSON outputs are incompatible and return a 400 together.\n\nThe Files API lets you upload once and reference a `file_id`. Files can't be modified after upload: to change one, upload a new file and delete the old one. PDFs and plain text go in `document` blocks; convert types like .docx to plain text first."
       },
       {
         "heading": "Choosing a workflow pattern",
-        "body": "Anthropic's \"Building effective agents\" recommends the simplest solution that works:\n\n- Prompt chaining: fixed subtasks in sequence, trading latency for accuracy\n- Routing: classify the input, then hand it to a specialized prompt or model\n- Parallelization: sectioning (independent parts, such as a separate guardrail call) or voting (the same task several times)\n- Orchestrator-workers: a central LLM breaks down tasks it can't predict in advance\n- Evaluator-optimizer: one call generates, another critiques, in a loop"
+        "body": "Anthropic's \"Building effective agents\" recommends the simplest solution that works:\n\n- Prompt chaining: fixed subtasks in sequence, trading latency for accuracy\n- Routing: classify the input, then hand it to a specialized prompt or model\n- Parallelization: sectioning (independent parts, such as a separate guardrail call) or voting (the same task several times)\n- Orchestrator-workers: a central LLM breaks down complex tasks whose subtasks can't be predicted\n- Evaluator-optimizer: one call generates, another critiques, in a loop"
       }
     ],
     "checkQuestionIds": [
@@ -425,6 +462,11 @@
       {
         "url": "https://www.anthropic.com/engineering/contextual-retrieval",
         "title": "Introducing Contextual Retrieval",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+        "title": "Context windows",
         "checkedOn": "2026-09-27"
       },
       {

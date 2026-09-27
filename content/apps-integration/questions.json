@@ -36,17 +36,39 @@
     "topic": "System prompt",
     "stem": "A team is porting a chatbot to the Claude Messages API and wants to give Claude a persona and standing instructions. How should they send them?",
     "choices": [
-      { "id": "a", "text": "Add a message with `role: \"system\"` at the start of the `messages` array", "reason": "The Messages API has no `\"system\"` role for input messages." },
-      { "id": "b", "text": "Put them in the top-level `system` parameter", "reason": "Correct: the top-level `system` parameter is how you provide context and instructions such as a goal or role." },
-      { "id": "c", "text": "Put them in an `assistant` message so Claude thinks it already agreed", "reason": "`assistant` turns represent Claude's prior replies, not the place for standing instructions." },
-      { "id": "d", "text": "List them in `stop_sequences`", "reason": "`stop_sequences` are strings that make generation stop; they carry no instructions." }
+      {
+        "id": "a",
+        "text": "Add a message with `role: \"system\"` at the start of the `messages` array",
+        "reason": "Instructions that apply from the start go in the top-level `system` parameter, not in a message at the start of `messages`."
+      },
+      {
+        "id": "b",
+        "text": "Put them in the top-level `system` parameter",
+        "reason": "Correct: the top-level `system` parameter is how you provide context and instructions such as a goal or role."
+      },
+      {
+        "id": "c",
+        "text": "Put them in an `assistant` message so Claude thinks it already agreed",
+        "reason": "`assistant` turns represent Claude's prior replies, not the place for standing instructions."
+      },
+      {
+        "id": "d",
+        "text": "List them in `stop_sequences`",
+        "reason": "`stop_sequences` are strings that make generation stop; they carry no instructions."
+      }
     ],
     "answer": "b",
-    "takeaway": "Instructions and roles go in the top-level **`system`** parameter; `messages` holds `user`/`assistant` turns.",
+    "takeaway": "Standing instructions go in the top-level **`system`** parameter, not in `messages`.",
     "mnemonic": "System sits on top, not in the stack.",
     "difficulty": "easy",
-    "source": { "url": "https://platform.claude.com/docs/en/api/messages/create", "title": "Create a Message", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-system-parameter"],
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-26"
+    },
+    "relatedCardIds": [
+      "c-system-parameter"
+    ],
     "lessonId": "l-api-basics"
   },
   {
@@ -1741,7 +1763,8 @@
     },
     "relatedCardIds": [
       "c-batch-vs-realtime",
-      "c-message-batches"
+      "c-message-batches",
+      "c-parallelization-workflow"
     ],
     "lessonId": "l-app-design"
   },
@@ -1782,7 +1805,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-custom-id"
+      "c-custom-id",
+      "c-parallelization-workflow"
     ],
     "lessonId": "l-app-design"
   },
@@ -1880,7 +1904,7 @@
       {
         "id": "a",
         "text": "Structured outputs with a `quotes` field in the schema",
-        "reason": "Citations and structured outputs are incompatible, and the citations feature is what guarantees valid pointers into the documents."
+        "reason": "A schema constrains the format, not whether quotes match the documents; API citations guarantee valid pointers, and they can't be combined with structured outputs."
       },
       {
         "id": "b",
@@ -2081,59 +2105,59 @@
     "id": "q-app-routing",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
-    "topic": "Workflow patterns",
-    "stem": "A support product handles refund requests, technical troubleshooting and general questions. Tuning one big prompt for refunds keeps making technical answers worse. Which pattern from Anthropic's \"Building effective agents\" fits?",
+    "topic": "Files API",
+    "stem": "A user uploads a revised version of a policy PDF that your app stored earlier with the Files API and references by `file_id` in every request. How should the app switch to the new version?",
     "choices": [
       {
         "id": "a",
-        "text": "Routing: classify each query, then send it to a specialized prompt and tools",
-        "reason": "Correct: routing suits distinct categories better handled separately; without it, optimizing for one input type can hurt others."
+        "text": "Upload the revision as a new file, reference its new `file_id`, then delete the old file",
+        "reason": "Correct: files can't be modified or renamed after upload; to change a file's content, upload a new file and delete the old one."
       },
       {
         "id": "b",
-        "text": "Prompt chaining: run every query through all three prompts in sequence",
-        "reason": "Chaining fits tasks that decompose cleanly into fixed subtasks; these are separate categories, not steps."
+        "text": "Overwrite the content stored under the existing `file_id`",
+        "reason": "Files cannot be modified or renamed after upload, so there is no way to replace the content behind an ID."
       },
       {
         "id": "c",
-        "text": "An autonomous agent that decides its own steps",
-        "reason": "Agents suit open-ended problems with unpredictable steps, at higher cost; here the categories are known in advance."
+        "text": "Download the stored file, edit it, and re-upload it under the same ID",
+        "reason": "Files you upload can't be downloaded; only files created by skills or the code execution tool can."
       },
       {
         "id": "d",
-        "text": "Evaluator-optimizer: have a second call critique each answer",
-        "reason": "That loop suits clear evaluation criteria and iterative refinement; it doesn't separate the kinds of input."
+        "text": "Delete the old file now and recover it later if the user wants it back",
+        "reason": "Deleted files cannot be recovered, so only delete a file you no longer need."
       }
     ],
     "answer": "a",
-    "takeaway": "Different input types fighting over one prompt? **Route** them: classify first, then hand off to specialized handling.",
+    "takeaway": "Uploaded files are **immutable**: to change one, upload a new file and delete the old one.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
-      "caption": "Routing gives each category its own prompt and tools.",
+      "caption": "Files can't be modified: replace them instead.",
       "steps": [
         {
-          "label": "Query"
+          "label": "Upload revision"
         },
         {
-          "label": "Classify"
+          "label": "New file_id"
         },
         {
-          "label": "Specialized prompt",
-          "sublabel": "refund / tech / general"
+          "label": "Reference it"
         },
         {
-          "label": "Answer"
+          "label": "Delete old file"
         }
       ]
     },
     "source": {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "title": "Building effective agents",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-routing-workflow"
+      "c-routing-workflow",
+      "c-files-api"
     ],
     "lessonId": "l-app-design"
   },
@@ -2174,7 +2198,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-parallelization-workflow"
+      "c-parallelization",
+      "c-routing"
     ],
     "lessonId": "l-app-design"
   }
