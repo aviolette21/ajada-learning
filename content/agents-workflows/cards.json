@@ -4,8 +4,8 @@
     "domainId": "agents-workflows",
     "subSkillId": "workflow-patterns",
     "term": "Workflow vs agent",
-    "definition": "**Workflows** orchestrate LLMs and tools through predefined code paths. **Agents** are systems where LLMs dynamically direct their own processes and tool usage.",
-    "whyItMatters": "Workflows give predictability and consistency for well-defined tasks; agents suit tasks that need flexibility, at the cost of latency and spend. Start with the simplest solution.",
+    "definition": "**Workflows** run LLMs and tools through predefined code paths. **Agents** let the LLM dynamically direct its own process and tool use.",
+    "whyItMatters": "Workflows give predictability for well-defined tasks; agents give flexibility at the cost of latency and spend. Start with the simplest solution.",
     "example": "A fixed translate → check → format pipeline is a workflow; an assistant that decides which files to edit is an agent.",
     "source": { "url": "https://www.anthropic.com/engineering/building-effective-agents", "title": "Building effective agents", "checkedOn": "2026-09-26" },
     "isVocab": true

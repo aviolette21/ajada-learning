@@ -33,6 +33,25 @@ describe('validateContent', () => {
     expect(errorText(r)).toMatch(/alpha\/cards\.json: 0\.source/);
   });
 
+  // Card text has to fit a phone-sized card face (see e2e "flashcard text fits").
+  it.each([
+    ['definition', 160],
+    ['whyItMatters', 170],
+    ['example', 120],
+  ])('rejects a card %s longer than %i characters and accepts one at the limit', (field, max) => {
+    const atLimit = mutate((raw) => { raw.files['alpha/cards.json'][0][field] = 'x'.repeat(max); });
+    expect(atLimit.ok).toBe(true);
+    const over = mutate((raw) => { raw.files['alpha/cards.json'][0][field] = 'x'.repeat(max + 1); });
+    expect(errorText(over)).toMatch(new RegExp(`alpha/cards\\.json: 0\\.${field}`));
+  });
+
+  it('rejects a card definition with more than two code spans', () => {
+    const two = mutate((raw) => { raw.files['alpha/cards.json'][0].definition = 'Use `a` or `b`.'; });
+    expect(two.ok).toBe(true);
+    const three = mutate((raw) => { raw.files['alpha/cards.json'][0].definition = 'Use `a`, `b` or `c`.'; });
+    expect(errorText(three)).toMatch(/alpha\/cards\.json: 0\.definition: .*at most 2 code spans/);
+  });
+
   it('rejects an answer that is not a choice id', () => {
     const r = mutate((raw) => { raw.files['alpha/questions.json'][0].answer = 'e'; });
     expect(errorText(r)).toMatch(/alpha\/questions\.json: 0\.answer/);

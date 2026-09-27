@@ -1,10 +1,34 @@
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { renderInline } from '../../ui/inline';
 import { flipSpring } from '../../ui/motion';
 import type { DeckItem } from './deck';
 
 export const SWIPE_THRESHOLD = 100;
+/** Terms longer than this get a smaller front size so they don't wrap awkwardly. */
+export const LONG_TERM = 16;
+
+/** True while the element has content below its visible area (drives the back's bottom-fade scroll cue). */
+function useMoreBelow<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [more, setMore] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    // Watch the viewport and its content: late font loads or a resize can change whether there is more below.
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update);
+    ro?.observe(el);
+    if (el.firstElementChild) ro?.observe(el.firstElementChild);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro?.disconnect();
+    };
+  }, []);
+  return [ref, more] as const;
+}
 
 export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
   item: DeckItem;
@@ -23,6 +47,7 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
   const rotateY = useMotionValue(flipped ? 180 : 0);
   const frontVisibility = useTransform(rotateY, (r) => (r < 90 ? 'visible' : 'hidden'));
   const backVisibility = useTransform(rotateY, (r) => (r < 90 ? 'hidden' : 'visible'));
+  const [scrollRef, moreBelow] = useMoreBelow<HTMLDivElement>();
   const { card } = item;
   const reverse = item.direction === 'reverse';
 
@@ -61,23 +86,29 @@ export function Flashcard({ item, domainName, flipped, onFlip, onSwipe }: {
       <motion.div className="fc-flip" style={{ rotateY }} initial={false} animate={{ rotateY: flipped ? 180 : 0 }} transition={flipSpring}>
         <motion.div className="fc-face fc-front" style={{ visibility: frontVisibility }} aria-hidden={flipped}>
           <span className="tag">{domainName}</span>
-          <div className={`fc-main ${reverse ? 'fc-main-def' : ''}`}>{reverse ? renderInline(card.definition) : card.term}</div>
+          <div className={`fc-main ${reverse ? 'fc-main-def' : card.term.length > LONG_TERM ? 'fc-main-long' : ''}`}>{reverse ? renderInline(card.definition) : card.term}</div>
           <div className="fc-hint">{reverse ? 'Which term is this? Tap to flip' : 'Tap to flip'}</div>
         </motion.div>
-        <motion.div className="fc-face fc-back" style={{ visibility: backVisibility }} aria-hidden={!flipped}>
-          <span className="tag">{domainName}</span>
-          {reverse ? <div className="fc-term-answer">{card.term}</div> : <div className="fc-def">{renderInline(card.definition)}</div>}
-          <div className="fc-sec">Why it matters</div>
-          <div className="fc-txt">{renderInline(card.whyItMatters)}</div>
-          {card.example && (
-            <>
-              <div className="fc-sec">Example</div>
-              <div className="fc-txt">{renderInline(card.example)}</div>
-            </>
-          )}
-          <a className="source" href={card.source.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
-            📎 {card.source.title}
-          </a>
+        <motion.div className="fc-face fc-back" style={{ visibility: backVisibility }} aria-hidden={!flipped} data-more={moreBelow}>
+          {/* The scroll lives on an inner wrapper so a vertical pan scrolls (touch-action pan-y) instead of dragging. */}
+          <div className="fc-scroll" ref={scrollRef}>
+            <div className="fc-scroll-body">
+              <span className="tag">{domainName}</span>
+              {reverse ? <div className="fc-term-answer">{card.term}</div> : <div className="fc-def">{renderInline(card.definition)}</div>}
+              <div className="fc-sec">Why it matters</div>
+              <div className="fc-txt">{renderInline(card.whyItMatters)}</div>
+              {card.example && (
+                <>
+                  <div className="fc-sec">Example</div>
+                  <div className="fc-txt fc-example">{renderInline(card.example)}</div>
+                </>
+              )}
+              <a className="source" href={card.source.url} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}>
+                📎 {card.source.title}
+              </a>
+            </div>
+          </div>
+          <div className="fc-fade" aria-hidden="true" />
         </motion.div>
       </motion.div>
     </motion.div>

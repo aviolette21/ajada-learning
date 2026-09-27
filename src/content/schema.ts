@@ -61,14 +61,22 @@ export const QuestionSchema = z.object({
   lessonId: z.string().optional(),
 });
 
+/** Card text limits: a card back must fit a phone screen without scrolling (see e2e "flashcard text fits"). */
+export const CARD_LIMITS = { definition: 160, definitionCodeSpans: 2, whyItMatters: 170, example: 120 } as const;
+const codeSpans = (s: string) => s.match(/`[^`]+`/g)?.length ?? 0;
+
 export const CardSchema = z.object({
   id: z.string().regex(/^c-[a-z0-9-]+$/),
   domainId: text,
   subSkillId: text,
   term: text,
-  definition: text,
-  whyItMatters: text,
-  example: text.optional(),
+  definition: text
+    .max(CARD_LIMITS.definition)
+    .refine((d) => codeSpans(d) <= CARD_LIMITS.definitionCodeSpans, {
+      message: `definition may use at most ${CARD_LIMITS.definitionCodeSpans} code spans`,
+    }),
+  whyItMatters: text.max(CARD_LIMITS.whyItMatters),
+  example: text.max(CARD_LIMITS.example).optional(),
   source: SourceSchema,
   isVocab: z.boolean(),
 });

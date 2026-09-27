@@ -76,6 +76,28 @@ describe('CardReviewSession', () => {
   });
 });
 
+describe('Flashcard layout', () => {
+  it('shrinks a long front term and wraps the back in its own scroll container with a fade cue', async () => {
+    const content = fixtureContent();
+    const cards = content.cards.map((c, i) => (i === 0 ? { ...c, term: 'Streaming ("stream": true)' } : c));
+    await renderWithApp(<CardReviewSession mode="forward" onDone={() => {}} onExit={() => {}} />, {
+      content: { ...content, cards, cardById: new Map(cards.map((c) => [c.id, c])) },
+    });
+    expect(await screen.findByRole('button', { name: /Card front/ })).toHaveTextContent('Streaming');
+    expect(frontFace().querySelector('.fc-main')).toHaveClass('fc-main-long');
+    const back = document.querySelector('.deck-slot .fc[role="button"] .fc-back') as HTMLElement;
+    expect(back.querySelector('.fc-scroll .fc-scroll-body .fc-def')).not.toBeNull();
+    expect(back.querySelector('.fc-fade')).toHaveAttribute('aria-hidden', 'true');
+    expect(back).toHaveAttribute('data-more', 'false');
+  });
+
+  it('keeps a short front term at full size', async () => {
+    await renderWithApp(<CardReviewSession mode="forward" onDone={() => {}} onExit={() => {}} />);
+    expect(await screen.findByRole('button', { name: /Card front/ })).toHaveTextContent('Alpha term');
+    expect(frontFace().querySelector('.fc-main')).not.toHaveClass('fc-main-long');
+  });
+});
+
 describe('ReviewPage', () => {
   it('switches direction and remembers the choice', async () => {
     const { db } = await renderWithApp(<ReviewPage />, { route: '/cards/review', path: '/cards/review' });

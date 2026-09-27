@@ -28,6 +28,10 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  /* A real stack: WebKit's bare "monospace" default is Courier, thin and hard to read on a dark card. */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --code-bg: #2b2c3a;
+  --code-text: #e3ddff;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -41,5 +45,11 @@ body {
 }
 button { font: inherit; color: inherit; }
 a { color: var(--accent-text); }
-code { background: var(--border-soft); color: #d4ccff; padding: 1px 5px; border-radius: 5px; font-size: 0.9em; }
+code {
+  padding: 1px 5px; border-radius: 5px; background: var(--code-bg); color: var(--code-text);
+  font-family: var(--font-mono); font-size: 0.86em; font-weight: 500; line-height: 1; vertical-align: baseline;
+  overflow-wrap: anywhere; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+/* Code inside bold text keeps its regular weight; bold mono gets heavy and blotchy. */
+strong code { font-weight: 500; }
 .boot { padding: 48px 20px; text-align: center; }

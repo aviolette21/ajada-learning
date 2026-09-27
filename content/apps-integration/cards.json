@@ -4,9 +4,9 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "term": "stop_reason",
-    "definition": "A response field saying why Claude stopped: `end_turn` (finished naturally), `max_tokens` (hit your limit), `stop_sequence` (emitted one of your stop sequences), `tool_use` (calling a tool), `pause_turn`, `refusal`, and others.",
+    "definition": "A response field saying why Claude stopped, e.g. `end_turn` (finished naturally) or `max_tokens` (hit your limit).",
     "whyItMatters": "Your code must branch on it: use the reply on `end_turn`, run tools on `tool_use`, raise the limit or continue on `max_tokens`.",
-    "example": "`if response.stop_reason == \"tool_use\":` run the tool and send back a `tool_result`.",
+    "example": "Others: `stop_sequence` (emitted one of your stop sequences), `tool_use` (calling a tool), `pause_turn`, `refusal`.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons", "title": "Stop reasons and fallback", "checkedOn": "2026-09-26" },
     "isVocab": true
   },
@@ -37,9 +37,9 @@
     "domainId": "apps-integration",
     "subSkillId": "app-design",
     "term": "Streaming (\"stream\": true)",
-    "definition": "Setting `\"stream\": true` on a Messages request returns the response incrementally as server-sent events (SSE): `message_start`, content block events with `content_block_delta`s, `message_delta`, then `message_stop`.",
-    "whyItMatters": "Streaming lets a UI show text as it is generated, and the SDKs require streaming for requests with large `max_tokens` values to avoid HTTP timeouts.",
-    "example": "Append each `text_delta` from a `content_block_delta` event to the chat bubble.",
+    "definition": "Setting `\"stream\": true` on a Messages request returns the response incrementally as server-sent events (SSE).",
+    "whyItMatters": "A UI can show text as it is generated, and the SDKs require streaming for large `max_tokens` values to avoid HTTP timeouts.",
+    "example": "Events: `message_start`, `content_block_delta`s, `message_delta`, `message_stop`. Show each `text_delta` as it arrives.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/streaming", "title": "Streaming messages", "checkedOn": "2026-09-26" },
     "isVocab": true
   }
