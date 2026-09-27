@@ -86,5 +86,696 @@
     "difficulty": "easy",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/streaming", "title": "Streaming messages", "checkedOn": "2026-09-26" },
     "relatedCardIds": ["c-streaming"]
+  },
+  {
+    "id": "q-req-quantify-safety",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Success criteria",
+    "stem": "Legal tells your team that the new chatbot's outputs \"must be safe\". You are writing the app's success criteria. Which version follows Anthropic's guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "\"Safe outputs\"",
+        "reason": "The guide gives \"Safe outputs\" as its **bad** example: it isn't measurable, so no eval can tell you whether you met it."
+      },
+      {
+        "id": "b",
+        "text": "Less than 0.1% of outputs out of 10,000 trials flagged for toxicity by the content filter",
+        "reason": "Correct: this is the guide's good safety criterion, specific and measurable with a quantitative metric."
+      },
+      {
+        "id": "c",
+        "text": "Leave safety out: hazy topics like safety can't be measured",
+        "reason": "The guide says even \"hazy\" topics such as ethics and safety can be quantified."
+      },
+      {
+        "id": "d",
+        "text": "Outputs should feel safe to our reviewers",
+        "reason": "A vague impression isn't specific or measurable; qualitative measures help when consistently applied **along** with quantitative ones."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Turn a vague goal into a **number you can test**: even hazy topics like safety can be quantified.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-success-criteria"
+    ],
+    "lessonId": "l-requirements"
+  },
+  {
+    "id": "q-req-claude-vs-ml",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Claude fit",
+    "stem": "A support team is choosing between Claude and a traditional ML classifier to route tickets. Which fact about their situation is one of the indicators Anthropic's ticket-routing guide lists for using an LLM like Claude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "They want a separate model for each supported language",
+        "reason": "The guide's indicator is the opposite: multilingual support **without** maintaining separate models."
+      },
+      {
+        "id": "b",
+        "text": "They don't need any explanation of why a ticket was routed",
+        "reason": "Needing **interpretable reasoning** is an indicator for Claude, which can give human-readable explanations; not needing it isn't."
+      },
+      {
+        "id": "c",
+        "text": "They have only a few dozen labeled tickets, and categories will change as the product evolves",
+        "reason": "Correct: limited labeled data and evolving categories are both listed; Claude adapts to new classes without extensive relabeling."
+      },
+      {
+        "id": "d",
+        "text": "Their rules are simple keyword and pattern matches on fixed-format codes",
+        "reason": "The guide ties Claude to complex, unstructured text and semantic rules; it says traditional ML often relies on simple pattern matching."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Claude fits when labeled data is **scarce**, categories **change**, inputs are **unstructured** or rules are **semantic**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-llm-vs-traditional-ml"
+    ],
+    "lessonId": "l-requirements"
+  },
+  {
+    "id": "q-req-current-process",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Gathering requirements",
+    "stem": "You're starting a project to automate support-ticket routing with Claude. Before writing any prompt, what does Anthropic's ticket-routing guide say to do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Study how the team routes tickets today: SLA criteria, existing rules and where they fail, edge cases, prioritization",
+        "reason": "Correct: the guide says it's crucial to understand your existing system first; the more you know about how humans handle cases, the better."
+      },
+      {
+        "id": "b",
+        "text": "Collect a large labeled dataset of historical tickets",
+        "reason": "Massive labeled datasets are what traditional ML needs; Claude can classify tickets with just a few dozen labeled examples."
+      },
+      {
+        "id": "c",
+        "text": "Keep the intent categories loose so Claude can infer them",
+        "reason": "A well-defined category list is crucial for accurate classification: routing is directly proportional to how well-defined the categories are."
+      },
+      {
+        "id": "d",
+        "text": "Choose the largest model so accuracy is never a concern",
+        "reason": "Model choice depends on trade-offs between cost, accuracy and response time; many customers find Claude Haiku 4.5 ideal for ticket routing."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Requirements come from the **current process**: learn how people do the task and define the categories before you prompt.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-llm-vs-traditional-ml",
+      "c-eval-thresholds"
+    ],
+    "lessonId": "l-requirements"
+  },
+  {
+    "id": "q-req-efficiency-first",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Choosing an approach",
+    "stem": "Requirements for a new classifier: millions of short, straightforward requests a day, a tight latency budget and a strict cost ceiling. Per Anthropic's model-selection guide, how should you start?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Start capability-first with Claude Opus 5.5 and optimize down later",
+        "reason": "Capability-first suits complex reasoning and apps where accuracy outweighs cost, not tight-latency, cost-sensitive volume."
+      },
+      {
+        "id": "b",
+        "text": "Turn on fast mode for Claude Opus 5.5",
+        "reason": "Fast mode gives up to 2.5x higher output speed but at **premium** pricing, which works against a strict cost ceiling."
+      },
+      {
+        "id": "c",
+        "text": "Pick the model with the best public benchmark scores and skip testing",
+        "reason": "The guide says to create benchmark tests specific to your use case and test with your actual prompts and data."
+      },
+      {
+        "id": "d",
+        "text": "Start efficiency-first with Claude Haiku 4.5, test thoroughly, and upgrade only for specific capability gaps",
+        "reason": "Correct: efficiency-first is best for tight latency requirements, cost-sensitive implementations and high-volume, straightforward tasks."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Let constraints pick the start: **tight latency + cost + volume** means start efficiency-first and upgrade only if evals show a gap.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-requirements"
+  },
+  {
+    "id": "q-req-multidimensional",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Success criteria",
+    "stem": "A team drafts success criteria for a sentiment classifier that must also be non-toxic and fast. Which draft best follows Anthropic's guidance on success criteria?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The model should classify sentiment well, stay non-toxic and respond quickly",
+        "reason": "It names the right dimensions, but none is measurable; the guide's bad example is \"should classify sentiments well\"."
+      },
+      {
+        "id": "b",
+        "text": "On a held-out set of 10,000 diverse posts: F1 ≥ 0.85, 99.5% of outputs non-toxic, 95% response time < 200ms",
+        "reason": "Correct: it is specific, measurable and multidimensional, matching the guide's good example."
+      },
+      {
+        "id": "c",
+        "text": "F1 ≥ 0.85 on a held-out set of 10,000 diverse posts; judge toxicity and speed later",
+        "reason": "Measurable, but most use cases need evaluation along several success criteria, and toxicity and speed are requirements here."
+      },
+      {
+        "id": "d",
+        "text": "F1 of 0.99, far above any published result, with zero latency",
+        "reason": "Criteria should be achievable: based on benchmarks, prior experiments or expert knowledge, not unrealistic for current frontier models."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Good criteria are **specific, measurable, achievable and relevant**, and usually cover **several dimensions** at once.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria",
+      "c-success-criteria"
+    ],
+    "lessonId": "l-requirements"
+  },
+  {
+    "id": "q-lifecycle-dateless-pinned",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model versioning",
+    "stem": "Your app calls `claude-sonnet-5`. A teammate says: \"It's a dateless alias, so we'll get improved weights automatically when Anthropic updates it.\" Which statement is correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "True: dateless IDs are evergreen pointers to the latest version",
+        "reason": "The docs call this a common misconception: from the 4.6 generation on, a dateless ID maps to a single, fixed snapshot."
+      },
+      {
+        "id": "b",
+        "text": "True for dateless IDs; only dated IDs like `claude-sonnet-4-5-20250929` are pinned",
+        "reason": "Every model ID is pinned. Pointer behavior belongs to pre-4.6 aliases such as `claude-sonnet-4-5`, not to 4.6+ IDs."
+      },
+      {
+        "id": "c",
+        "text": "False: it's a pinned snapshot, and an updated version would ship under a new model ID",
+        "reason": "Correct: Anthropic doesn't update the weights or configuration of an existing model ID; updates ship under a new ID."
+      },
+      {
+        "id": "d",
+        "text": "False, but any behavior change on the same ID means the weights were swapped",
+        "reason": "Weights are fixed per ID; if behavior shifts on a previously stable ID, a serving-infrastructure update is the most likely cause."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "From 4.6 on, a dateless ID **is** the snapshot; to get a newer model you switch to its new ID.",
+    "mnemonic": "No date doesn't mean no pin.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-model-alias"
+    ],
+    "lessonId": "l-systems-lifecycle"
+  },
+  {
+    "id": "q-lifecycle-deprecation",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model deprecation",
+    "stem": "You get an email saying the model your production app uses is now deprecated, with a retirement date in two months. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Test your app on the recommended replacement now, then migrate all usage before the retirement date",
+        "reason": "Correct: migrate all usage before retirement, and test with the new model well before the date to measure performance on your tasks."
+      },
+      {
+        "id": "b",
+        "text": "Nothing yet: deprecated models keep working, so switch on the retirement date",
+        "reason": "Deprecated models still work but are likely less reliable, and the guidance is to test well before the retirement date, not on it."
+      },
+      {
+        "id": "c",
+        "text": "Switch to a legacy model instead, since legacy models never retire",
+        "reason": "Legacy means the model no longer receives updates and **may be deprecated** in the future."
+      },
+      {
+        "id": "d",
+        "text": "Keep the old model ID; it will start pointing at the replacement",
+        "reason": "Requests to a model past its retirement date fail; the guidance is to update your code to use the recommended replacement."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Deprecated means **still working, on a clock**: test the replacement early and move all usage before retirement.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Migrate while the model is deprecated; after retirement, requests fail.",
+      "steps": [
+        {
+          "label": "Deprecated",
+          "sublabel": "replacement named"
+        },
+        {
+          "label": "Test replacement",
+          "sublabel": "well before the date"
+        },
+        {
+          "label": "Migrate all usage"
+        },
+        {
+          "label": "Retired",
+          "sublabel": "requests fail"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-model-lifecycle"
+    ],
+    "lessonId": "l-systems-lifecycle"
+  },
+  {
+    "id": "q-lifecycle-migration-400",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model migration",
+    "stem": "Your service calls the Messages API over HTTP. After you change the model ID from `claude-opus-4-6` to `claude-opus-5-5`, every request returns a 400 error. Requests send `temperature: 0.3`, no `thinking` field, and `tool_choice` of type `auto`. What's the cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5 needs `thinking` set to `enabled` with a `budget_tokens` value",
+        "reason": "The reverse: manual thinking budgets are rejected on Claude Opus 5.5; sending no `thinking` field is fine, as adaptive thinking is always on."
+      },
+      {
+        "id": "b",
+        "text": "Claude Opus 5.5 rejects a non-default `temperature`; omit it and guide behavior with prompting",
+        "reason": "Correct: omit `temperature`, `top_p` and `top_k` or leave them at their defaults; any other value is rejected with a 400 error."
+      },
+      {
+        "id": "c",
+        "text": "The model ID needs a date suffix, such as `claude-opus-5-5-YYYYMMDD`",
+        "reason": "`claude-opus-5-5` is a fixed model ID with no date suffix."
+      },
+      {
+        "id": "d",
+        "text": "Claude Opus 5.5 needs a beta header for its 1M-token context window",
+        "reason": "No context-window beta header is needed: 1M tokens is the default, and a header sent for older models has no effect."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A model migration is a **code change**: check the target model's rejected settings, such as non-default `temperature`, before switching.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+      "title": "Migrating to Claude Opus 5.5",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id"
+    ],
+    "lessonId": "l-systems-lifecycle"
+  },
+  {
+    "id": "q-lifecycle-dev-loop",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Development loop",
+    "stem": "A team has test cases and a preliminary prompt for a new Claude feature. According to Anthropic's prompt engineering flow, what should happen before they ship?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ship now and write more test cases from production complaints",
+        "reason": "In the flow, test cases come first and shipping comes last, after testing and final validation."
+      },
+      {
+        "id": "b",
+        "text": "Hand-grade a few outputs and ship if they look good",
+        "reason": "The guidance prefers volume: more questions with automated grading beat fewer hand-graded ones."
+      },
+      {
+        "id": "c",
+        "text": "Skip testing and go straight to final validation",
+        "reason": "Final validation follows iterative testing and refinement against the test cases; it doesn't replace it."
+      },
+      {
+        "id": "d",
+        "text": "Iteratively test and refine the prompt against the test cases, then run a final validation",
+        "reason": "Correct: the flow is test cases → preliminary prompt → iterative testing and refinement → final validation → ship."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Build in a **loop**: test cases first, then iterate on the prompt and validate before you ship.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Anthropic's prompt engineering flow.",
+      "steps": [
+        {
+          "label": "Test cases"
+        },
+        {
+          "label": "Preliminary prompt"
+        },
+        {
+          "label": "Test and refine",
+          "sublabel": "iterate"
+        },
+        {
+          "label": "Final validation"
+        },
+        {
+          "label": "Ship"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-systems-lifecycle"
+  },
+  {
+    "id": "q-config-api-key-env",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "API key config",
+    "stem": "A script creates its client with `Anthropic(api_key=\"sk-ant-api03-...\")`, and the file is about to be committed. What's the standard way to supply the key instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send it in the legacy `x-api-key` header instead of `Authorization`",
+        "reason": "`x-api-key` is still supported, but it only changes which header carries the key; the key would still be in the code."
+      },
+      {
+        "id": "b",
+        "text": "Put it in the `anthropic-workspace-id` header",
+        "reason": "That header carries a workspace ID for keys not scoped to a workspace; it isn't where the API key goes."
+      },
+      {
+        "id": "c",
+        "text": "Set the `ANTHROPIC_API_KEY` environment variable and create the client with no key argument",
+        "reason": "Correct: set `ANTHROPIC_API_KEY` and the client SDKs pick it up automatically, so `Anthropic()` needs no key in code."
+      },
+      {
+        "id": "d",
+        "text": "Keep it in code but give the key a short expiration",
+        "reason": "Expiration limits how long a leaked key stays usable, but the docs say it is not a substitute for secret hygiene."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Supply the key through **`ANTHROPIC_API_KEY`**: the SDKs read it from the environment automatically, so no key lives in code.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-config-local-override",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Settings scopes",
+    "stem": "Your team's committed `.claude/settings.json` sets `\"model\": \"claude-sonnet-5\"`. You want Opus in this project for yourself only, without changing teammates' sessions. Where do you set `\"model\": \"claude-opus-5-5\"`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`.claude/settings.local.json` in the project",
+        "reason": "Correct: project local sits above shared project, and Claude Code keeps it out of your commits when it creates the file, so only your sessions change."
+      },
+      {
+        "id": "b",
+        "text": "`~/.claude/settings.json`",
+        "reason": "User settings are the lowest level, so the team's shared project value still wins in this project."
+      },
+      {
+        "id": "c",
+        "text": "`.claude/settings.json`, then commit the change",
+        "reason": "That's the shared file: once committed, every teammate who pulls it gets Opus too."
+      },
+      {
+        "id": "d",
+        "text": "A `managed-settings.json` file on your machine",
+        "reason": "Managed settings are deployed by your organization to everyone it reaches; you don't create or edit them."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Personal, per-project overrides go in **`.claude/settings.local.json`**, which outranks the shared project file.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Settings precedence, highest first.",
+      "steps": [
+        {
+          "label": "Managed",
+          "sublabel": "organization"
+        },
+        {
+          "label": "Command line",
+          "sublabel": "--settings"
+        },
+        {
+          "label": "Project local",
+          "sublabel": "settings.local.json"
+        },
+        {
+          "label": "Shared project",
+          "sublabel": "settings.json"
+        },
+        {
+          "label": "User",
+          "sublabel": "~/.claude"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes",
+      "c-cc-settings-precedence"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-config-lists-merge",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Settings precedence",
+    "stem": "Your `~/.claude/settings.json` allows `Bash(npm run test *)`. The project's `.claude/settings.json` allows `Bash(npm run lint)`. There are no other rules and no managed settings. What does `permissions.allow` resolve to in this project?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only `Bash(npm run lint)`, because shared project settings outrank user settings",
+        "reason": "Precedence picks between single values, but list keys like `permissions.allow` merge across files instead of the higher file replacing the lower."
+      },
+      {
+        "id": "b",
+        "text": "Only `Bash(npm run test *)`, because your personal settings win",
+        "reason": "User settings are the **lowest** level, and for list keys nothing wins outright: the lists combine."
+      },
+      {
+        "id": "c",
+        "text": "Neither: conflicting allow lists cancel out, so both commands prompt",
+        "reason": "Nothing cancels; the docs say each file can add entries without removing another file's."
+      },
+      {
+        "id": "d",
+        "text": "Both rules, because list settings merge across files",
+        "reason": "Correct: when the same list key is set in more than one file, Claude Code combines the lists instead of picking one."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Single values follow precedence, but list keys like `permissions.allow` **merge**: each file adds entries.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-precedence"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-config-claude-md-vs-settings",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "CLAUDE.md vs settings",
+    "stem": "Your project's CLAUDE.md says \"Never read `.env` files\", yet Claude Code occasionally reads one. You need a guarantee, not a reminder. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Repeat the rule in `CLAUDE.local.md` so it is read last",
+        "reason": "It is still CLAUDE.md-style context: it shapes behavior but isn't a hard enforcement layer."
+      },
+      {
+        "id": "b",
+        "text": "Block the path with a `permissions.deny` rule in settings",
+        "reason": "Correct: settings rules are enforced by the client regardless of what Claude decides; CLAUDE.md instructions are not a hard enforcement layer."
+      },
+      {
+        "id": "c",
+        "text": "Move the rule into a subdirectory CLAUDE.md so it overrides the root file",
+        "reason": "CLAUDE.md files are concatenated into context rather than overriding each other, and they remain guidance, not enforcement."
+      },
+      {
+        "id": "d",
+        "text": "Rewrite the rule in capitals with more detail",
+        "reason": "Specific instructions are followed more consistently, but CLAUDE.md is still context, not enforced configuration."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "CLAUDE.md **guides**; settings **enforce**. Put hard blocks such as `permissions.deny` in settings.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-config-mcp-project-scope",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "MCP scopes",
+    "stem": "You added an internal docs MCP server with `claude mcp add` and it works for you, but teammates who clone the repo don't get it. You want everyone on the team to have it. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Re-add it with `--scope user`",
+        "reason": "User scope loads in all **your** projects but stays private to your account, stored in `~/.claude.json`."
+      },
+      {
+        "id": "b",
+        "text": "Nothing: the default scope already shares it through the repo",
+        "reason": "The default is local scope: stored in `~/.claude.json` under the project's path and private to you."
+      },
+      {
+        "id": "c",
+        "text": "Re-add it with `--scope project` and commit the resulting `.mcp.json`",
+        "reason": "Correct: project scope stores the server in `.mcp.json` at the project root; check it into version control so the team gets it."
+      },
+      {
+        "id": "d",
+        "text": "Add the server to `~/.claude.json` by hand",
+        "reason": "`~/.claude.json` is in your home directory and holds local- and user-scoped servers, which stay private to you."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Team-shared MCP servers belong in a committed **`.mcp.json`** (project scope); local and user scopes stay private.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-config-mcp-credential-var",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "MCP env expansion",
+    "stem": "Your committed `.mcp.json` points a remote server at an internal gateway with the header `\"Authorization\": \"Bearer ${ANTHROPIC_API_KEY}\"`. The variable is set in every developer's shell, yet the server rejects each connection with a 401. What fixes it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy the value into a variable with your own name, such as `MY_MCP_API_KEY`, and reference that",
+        "reason": "Correct: Claude Code reads credential names like `ANTHROPIC_API_KEY` as empty in remote `url` and `headers`; a name of your own expands as written."
+      },
+      {
+        "id": "b",
+        "text": "Add a fallback: `${ANTHROPIC_API_KEY:-sk-...}`",
+        "reason": "For covered credential names a `:-default` fallback is ignored; the value still reads as empty."
+      },
+      {
+        "id": "c",
+        "text": "Export the variable again before starting Claude Code",
+        "reason": "A covered name reads as empty whether or not you have set it, so exporting it again changes nothing."
+      },
+      {
+        "id": "d",
+        "text": "Move the key into the `url`, since `headers` aren't expanded",
+        "reason": "`headers` is a supported expansion location, and the empty-credential rule applies to a remote server's `url` too."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`.mcp.json` expands `${VAR}`, but Claude Code **blanks credential variables** like `ANTHROPIC_API_KEY` in remote `url`/`headers`.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-json"
+    ],
+    "lessonId": "l-config-management"
   }
 ]

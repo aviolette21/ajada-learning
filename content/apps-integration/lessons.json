@@ -43,5 +43,254 @@
       { "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works", "title": "How tool use works", "checkedOn": "2026-09-26" },
       { "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices", "title": "Prompting best practices", "checkedOn": "2026-09-26" }
     ]
+  },
+  {
+    "id": "l-requirements",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "title": "Understanding requirements",
+    "summary": "Turning a business need into an LLM solution starts with success criteria you can measure, then a check that Claude fits the task, then a starting model chosen by your constraints. The rule to remember: define specific, measurable criteria and a way to test them before you prompt.",
+    "keyPoints": [
+      "Good success criteria are **specific, measurable, achievable and relevant**; even hazy goals like safety can be quantified.",
+      "Most use cases need **multidimensional** criteria, such as accuracy plus toxicity plus response time.",
+      "Claude suits classification when labeled data is **scarce** (a few dozen examples), categories change, or rules are semantic.",
+      "Tight latency, cost-sensitive, high-volume work: start **efficiency-first** with Claude Haiku 4.5 and upgrade only if needed.",
+      "Not every failing criterion is a prompt problem: latency and cost can sometimes improve more easily by **selecting a different model**."
+    ],
+    "sections": [
+      {
+        "heading": "Write measurable success criteria",
+        "body": "Building a successful LLM application starts with clearly defining your success criteria, then designing evaluations to measure performance against them. Good criteria are:\n- Specific: \"accurate sentiment classification\", not \"good performance\"\n- Measurable: quantitative metrics or well-defined qualitative scales\n- Achievable: based on benchmarks, prior experiments, AI research or expert knowledge\n- Relevant: aligned with the app's purpose and user needs\n\nEven hazy topics can be quantified: instead of \"safe outputs\", aim for less than 0.1% of outputs out of 10,000 trials flagged for toxicity by the content filter.\n\nMost use cases need several criteria at once. The guide's good example, on a held-out test set of 10,000 diverse posts: an F1 score of at least 0.85, 99.5% of outputs non-toxic, and 95% response time < 200ms."
+      },
+      {
+        "heading": "Decide whether Claude fits",
+        "body": "Anthropic's ticket-routing guide lists signs that an LLM like Claude suits a classification task better than traditional ML:\n- Limited labeled data: Claude can classify with just a few dozen labeled examples\n- Categories likely to change: Claude adapts without extensive relabeling\n- Complex, unstructured text inputs\n- Rules based on semantic understanding\n- A need for interpretable reasoning\n- Edge cases and ambiguous inputs\n- Multilingual support without separate models\n\nBefore automating, study how people do the task today: which criteria set the SLA, which rules exist and where they fail, and how edge cases are handled. Then define a clear list of categories: Claude's routing is directly proportional to how well-defined they are. Set success criteria with measurable benchmarks and thresholds, such as 95% accuracy.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The ticket-routing guide's order, from requirements to prompt.",
+          "steps": [
+            {
+              "label": "Current process",
+              "sublabel": "how humans route"
+            },
+            {
+              "label": "Define categories"
+            },
+            {
+              "label": "Success criteria"
+            },
+            {
+              "label": "Choose model"
+            },
+            {
+              "label": "Build prompt"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Choose an approach by constraints",
+        "body": "For ticket routing, the guide says model choice depends on the trade-offs between cost, accuracy and response time. Anthropic's model-selection guide describes two starting strategies:\n- Efficiency-first: begin with Claude Haiku 4.5, test, and upgrade only for specific capability gaps. Best for tight latency, cost-sensitive and high-volume, straightforward tasks.\n- Capability-first: begin with Claude Opus 5.5, then lower effort or downgrade models over time. Best for complex reasoning and where accuracy outweighs cost.\n\nEither way, decide with benchmark tests specific to your use case, using your actual prompts and data.\n\nNot every success criterion or failing eval is best solved by prompt engineering. For example, you can sometimes improve latency and cost more easily by selecting a different model."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-req-quantify-safety",
+      "q-req-claude-vs-ml",
+      "q-req-efficiency-first"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+        "title": "Ticket routing",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+        "title": "Choosing the right model",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+        "title": "Prompt engineering overview",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-systems-lifecycle",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "title": "The LLM app life cycle",
+    "summary": "An LLM feature moves through a loop: test cases, a preliminary prompt, iterative testing and refinement, final validation, then shipping and continued evaluation. Models have a life cycle too, so pin model IDs, watch for deprecations, and re-test before you migrate.",
+    "keyPoints": [
+      "Flow: **test cases → preliminary prompt → iterative testing and refinement → final validation → ship**.",
+      "Every Claude model ID is a **pinned snapshot**; from 4.6 on, dateless IDs are not evergreen pointers.",
+      "Pre-4.6 **aliases** such as `claude-sonnet-4-5` point to the most recent dated snapshot for that minor version.",
+      "Deprecated models still work; after the **retirement date** requests fail. Publicly released models get at least **60 days'** notice.",
+      "Migration can break requests: Claude Opus 5.5 rejects a non-default `temperature` with a **400** error."
+    ],
+    "sections": [
+      {
+        "heading": "Develop, evaluate, ship, keep evaluating",
+        "body": "Anthropic's prompt engineering flow starts from test cases, not the prompt: write test cases, draft a preliminary prompt, iteratively test and refine it, run a final validation, then ship. Evals should mirror the real task distribution, include edge cases, and use automated grading when possible. A/B testing compares performance against a baseline model or an earlier version.\n\nShipping isn't the end. For content moderation in production, Anthropic recommends tracking the types of content being flagged to spot trends, and regularly assessing performance with metrics such as precision and recall, using that data to refine prompts and assessment criteria.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Anthropic's prompt engineering flow.",
+          "steps": [
+            {
+              "label": "Test cases"
+            },
+            {
+              "label": "Preliminary prompt"
+            },
+            {
+              "label": "Test and refine",
+              "sublabel": "iterate"
+            },
+            {
+              "label": "Final validation"
+            },
+            {
+              "label": "Ship"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Pin model versions",
+        "body": "Each Claude model ID identifies a pinned version: the underlying model stays constant for the lifetime of that ID. From the Claude 4.6 generation on, IDs are dateless, such as `claude-sonnet-5`, and each maps to a single, fixed snapshot. A common misconception is that dateless IDs route to the latest version; they don't. When an updated version is available, it ships under a new model ID.\n\nEarlier models have dated IDs such as `claude-sonnet-4-5-20250929`, plus Claude API aliases such as `claude-sonnet-4-5` that point to the most recent dated snapshot for that minor version. The pinning guarantee covers model IDs, not those aliases.\n\nWeights are fixed per ID, but serving infrastructure can change. If behavior shifts on a previously stable ID, an infrastructure update is the most likely cause."
+      },
+      {
+        "heading": "Deprecation and migration",
+        "body": "Lifecycle states:\n- Active: fully supported and recommended\n- Legacy: no more updates; may be deprecated in the future\n- Deprecated: still works, with a recommended replacement and a retirement date\n- Retired: no longer available; requests fail\n\nAnthropic gives customers with active deployments at least 60 days' notice before retiring a publicly released model. Test your app with the replacement well before the retirement date, then migrate all usage. To find remaining usage, export from the Console Usage page: the CSV breaks usage down by API key and model.\n\nTreat a migration as a code change. For example, a request to `claude-opus-5-5` must omit `temperature`, `top_p` and `top_k` or leave them at their defaults, and manual thinking budgets are rejected; a rejected setting returns a 400 error."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-lifecycle-dev-loop",
+      "q-lifecycle-dateless-pinned",
+      "q-lifecycle-deprecation"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/content-moderation",
+        "title": "Content moderation",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+        "title": "Model IDs and versioning",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+        "title": "Model deprecations",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+        "title": "Migrating to Claude Opus 5.5",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-config-management",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "title": "Configuration management",
+    "summary": "Keep configuration out of code and in the right file. Supply API keys through `ANTHROPIC_API_KEY`, pick the Claude Code settings scope by who a setting should affect, and remember that settings enforce while CLAUDE.md only guides.",
+    "keyPoints": [
+      "The client SDKs read **`ANTHROPIC_API_KEY`** automatically; store keys in a secrets manager and rotate them.",
+      "Settings precedence, highest first: **managed → command line → project local → shared project → user**.",
+      "List keys such as `permissions.allow` **merge** across settings files instead of overriding.",
+      "CLAUDE.md is **context, not enforced configuration**; settings rules are enforced by the client.",
+      "MCP scopes: **local** (default, private), **project** (`.mcp.json`, shared), **user** (all your projects, private)."
+    ],
+    "sections": [
+      {
+        "heading": "API keys and environment variables",
+        "body": "Send your API key as `Authorization: Bearer <key>` on direct HTTP requests, or set the `ANTHROPIC_API_KEY` environment variable and the client SDKs pick it up automatically, so `Anthropic()` needs no key argument. Store keys in a secrets manager, rotate them periodically, and disable or delete any key you suspect has leaked.\n\nAn expiration limits how long a leaked key stays usable, but it is not a substitute for secret hygiene."
+      },
+      {
+        "heading": "Claude Code settings scopes",
+        "body": "Claude Code reads settings from files with different scopes:\n- User, `~/.claude/settings.json`: you, in every project on this machine\n- Shared project, `.claude/settings.json`: everyone in the project, once you commit it\n- Project local, `.claude/settings.local.json`: you, in this project only\n- Managed: deployed by your organization; nothing you set overrides it, apart from a few security-sensitive exceptions\n\nWhen the same key is set in several places, the highest level wins: managed, then command line (such as `--settings`), then project local, shared project and user. List keys such as `permissions.allow` combine across files instead. Environment variables aren't a level in this stack: which of a variable and its paired key applies is decided per pair.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Settings precedence, highest first.",
+          "steps": [
+            {
+              "label": "Managed",
+              "sublabel": "organization"
+            },
+            {
+              "label": "Command line",
+              "sublabel": "--settings"
+            },
+            {
+              "label": "Project local",
+              "sublabel": "settings.local.json"
+            },
+            {
+              "label": "Shared project",
+              "sublabel": "settings.json"
+            },
+            {
+              "label": "User",
+              "sublabel": "~/.claude"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "CLAUDE.md versus settings",
+        "body": "CLAUDE.md files are loaded into context at the start of every session. They are context, not enforced configuration: specific, concise instructions are followed more consistently, but they are not a hard enforcement layer. Files found up the directory tree are concatenated into context rather than overriding each other.\n\nUse settings for technical enforcement, such as blocking tools, commands or file paths with `permissions.deny`, and CLAUDE.md for behavioral guidance such as code style. Settings rules are enforced by the client regardless of what Claude decides to do."
+      },
+      {
+        "heading": "MCP and plugin configuration files",
+        "body": "MCP servers have three scopes. Local (the default) and user servers are stored in `~/.claude.json` and stay private to you; project servers live in `.mcp.json` at the project root, which you check into version control so the team shares them. If the same server is defined in several scopes, local wins over project and project over user; fields aren't merged.\n\n`.mcp.json` supports `${VAR}` and `${VAR:-default}` expansion, but in a remote server's `url` and `headers` Claude Code reads credential variables such as `ANTHROPIC_API_KEY` as empty. Copy the value into a variable with a name of your own instead.\n\nA plugin's optional manifest lives at `.claude-plugin/plugin.json`. Every other plugin file, including `skills/`, `hooks/` and `.mcp.json`, goes at the plugin root."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-config-local-override",
+      "q-config-lists-merge",
+      "q-config-claude-md-vs-settings"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+        "title": "Authentication",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/settings",
+        "title": "Settings files and precedence",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/memory",
+        "title": "How Claude remembers your project",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/mcp",
+        "title": "Connect Claude Code to tools via MCP",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugins-reference",
+        "title": "Plugin manifest reference",
+        "checkedOn": "2026-09-27"
+      }
+    ]
   }
 ]

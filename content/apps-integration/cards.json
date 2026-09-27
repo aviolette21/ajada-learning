@@ -42,5 +42,230 @@
     "example": "Events: `message_start`, `content_block_delta`s, `message_delta`, `message_stop`. Show each `text_delta` as it arrives.",
     "source": { "url": "https://platform.claude.com/docs/en/build-with-claude/streaming", "title": "Streaming messages", "checkedOn": "2026-09-26" },
     "isVocab": true
+  },
+  {
+    "id": "c-success-criteria",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "term": "Success criteria",
+    "definition": "The measurable targets an LLM app must meet. Good criteria are **specific**, **measurable**, **achievable** and **relevant** to the app's purpose and users.",
+    "whyItMatters": "An LLM app starts with clear criteria, then evals that measure them. Instead of \"good performance\", specify e.g. an F1 of at least 0.85 on a held-out test set.",
+    "example": "Bad: \"Safe outputs\". Good: < 0.1% of 10,000 trials flagged for toxicity by the content filter.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-multidimensional-criteria",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "term": "Multidimensional criteria",
+    "definition": "Most use cases need evaluation along several success criteria at once, such as task fidelity, consistency, tone, privacy, latency and price.",
+    "whyItMatters": "One accuracy number isn't enough: the guide's good example pairs an F1 target with toxicity and response-time targets.",
+    "example": "On 10,000 held-out posts: F1 ≥ 0.85, 99.5% of outputs non-toxic, 95% response time < 200ms.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-llm-vs-traditional-ml",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "term": "Claude vs traditional ML",
+    "definition": "Signs an LLM like Claude fits a classification task better: little labeled data, changing categories, unstructured text, semantic rules, need for explanations.",
+    "whyItMatters": "Claude can classify with a few dozen labeled examples and adapt to new classes without extensive relabeling; traditional ML needs massive labeled datasets.",
+    "example": "Also: edge cases and ambiguous inputs, and multilingual support without separate models per language.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-model-start-strategy",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "term": "Efficiency-first vs capability-first",
+    "definition": "Two ways to pick a starting model: begin fast and cheap (Claude Haiku 4.5) and upgrade only if needed, or begin strongest (Claude Opus 5.5) and optimize down.",
+    "whyItMatters": "Efficiency-first suits tight latency, cost-sensitive, high-volume straightforward tasks; capability-first suits complex reasoning where accuracy outweighs cost.",
+    "example": "Either way, evaluate whether performance meets your requirements before changing models.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-eval-thresholds",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "term": "Evaluation thresholds",
+    "definition": "Clear targets that eval results are judged against, such as 95% accuracy, set so you can tell what counts as a good result.",
+    "whyItMatters": "Raw accuracy and cost numbers alone don't decide anything; thresholds let you tell at scale, with impartial empiricism, which method is best and what to change.",
+    "example": "Accuracy: 95% (out of 100 tests); cost per classification: 50% lower on average than the current method.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-model-snapshot-id",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "term": "Pinned model ID (snapshot)",
+    "definition": "Each Claude model ID is a pinned version: the model stays constant for that ID's lifetime. From the 4.6 generation on, IDs are dateless, e.g. `claude-sonnet-5`.",
+    "whyItMatters": "A dateless ID is **not** an evergreen pointer. Anthropic doesn't update an existing ID's weights; an updated version ships under a new ID.",
+    "example": "`claude-opus-4-7` (dateless, 4.6+) vs `claude-sonnet-4-5-20250929` (dated, before 4.6).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-model-alias",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "term": "Model alias (before 4.6)",
+    "definition": "On the Claude API, a short name for a pre-4.6 model, such as `claude-sonnet-4-5`, that points to the most recent dated snapshot for that minor version.",
+    "whyItMatters": "The pinning guarantee covers model IDs, not these convenience aliases. A 4.6+ ID like `claude-sonnet-4-6` is not an alias; it is the snapshot.",
+    "example": "Alias `claude-sonnet-4-5` vs dated IDs like `claude-sonnet-4-5-20250929`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-model-lifecycle",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "term": "Model lifecycle states",
+    "definition": "**Active** (fully supported), **Legacy** (no more updates), **Deprecated** (still works; has a replacement and retirement date), **Retired** (requests fail).",
+    "whyItMatters": "Deprecated models are likely less reliable. Publicly released models get at least 60 days' notice; migrate all usage before the retirement date.",
+    "example": "Find stragglers: Console Usage page → Export → CSV of usage by API key and model.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-prompt-eng-loop",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "term": "Prompt engineering loop",
+    "definition": "Anthropic's flow for building an LLM feature: test cases, preliminary prompt, iterative testing and refinement, final validation, then ship.",
+    "whyItMatters": "It starts from success criteria and test cases, not the prompt. A/B testing compares performance against a baseline model or an earlier version.",
+    "example": "Edge cases to include: irrelevant or nonexistent input, overly long input, ambiguous cases.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-anthropic-api-key-env",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": "ANTHROPIC_API_KEY",
+    "definition": "The environment variable the Claude client SDKs read your API key from automatically, so code can create a client without passing a key.",
+    "whyItMatters": "Set it and `Anthropic()` needs no key argument. Store keys in a secrets manager, rotate them periodically, and disable any key you suspect has leaked.",
+    "example": "`export ANTHROPIC_API_KEY=sk-ant-api03-...` then `client = Anthropic()`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-settings-scopes",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": "Claude Code settings scopes",
+    "definition": "Four scopes: **user** (you, all projects), **shared project** (committed, whole team), **project local** (you, one project), **managed** (your organization).",
+    "whyItMatters": "Pick the file by who a setting should affect: team permissions and hooks in `.claude/settings.json`, personal overrides in `.claude/settings.local.json`.",
+    "example": "User file: `~/.claude/settings.json` (theme, default model, your own permission rules).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-cc-settings-precedence",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": "Settings precedence",
+    "definition": "Highest first: managed, command line, project local, shared project, user. A key set at a higher level overrides the same key lower down.",
+    "whyItMatters": "List keys like `permissions.allow` merge across files instead, and nothing you set overrides managed values, apart from a few security-sensitive exceptions.",
+    "example": "Team file sets `\"model\": \"claude-sonnet-5\"`; your `.claude/settings.local.json` can pick Opus for you alone.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-mcp-scopes",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": "MCP server scopes",
+    "definition": "**Local** (the default; this project, private), **project** (`.mcp.json`, shared via version control) and **user** (all your projects, private).",
+    "whyItMatters": "Local and user servers are stored in `~/.claude.json`, not the repo. A name defined in several scopes uses local, then project, then user; fields aren't merged.",
+    "example": "`claude mcp add --transport http shared-server --scope project https://example.com/mcp`",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-mcp-json",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": ".mcp.json",
+    "definition": "The file at the project root that holds project-scoped MCP servers. Check it into version control so everyone on the team gets the same MCP tools.",
+    "whyItMatters": "It expands `${VAR}` and `${VAR:-default}`, but in a remote server's `url` and `headers` credential names like `ANTHROPIC_API_KEY` read as empty.",
+    "example": "`\"Authorization\": \"Bearer ${API_KEY}\"` in a server's `headers`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-plugin-manifest",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "term": "plugin.json (plugin manifest)",
+    "definition": "An optional file at `.claude-plugin/plugin.json` carrying a plugin's metadata; `name` is the only required key.",
+    "whyItMatters": "Only the manifest goes in `.claude-plugin/`. Every other file sits at the plugin root, where the defaults are `skills/`, `hooks/hooks.json` and `.mcp.json`.",
+    "example": "A plugin's MCP servers go in `.mcp.json` at the plugin root, or in the manifest's `mcpServers` key.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins-reference",
+      "title": "Plugin manifest reference",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
   }
 ]
