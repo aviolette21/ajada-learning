@@ -7,7 +7,235 @@
     "definition": "A program that exposes capabilities to AI apps through the Model Context Protocol, using three building blocks: **tools**, **resources** and **prompts**.",
     "whyItMatters": "Questions test who controls each block: tools are model-controlled, resources are application-controlled, prompts are user-controlled.",
     "example": "A travel server exposes a `searchFlights` tool, a `calendar://events/2024` resource and a \"Plan a vacation\" prompt.",
-    "source": { "url": "https://modelcontextprotocol.io/docs/learn/server-concepts", "title": "Understanding MCP servers", "checkedOn": "2026-09-26" },
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-09-27"
+    },
     "isVocab": true
+  },
+  {
+    "id": "c-tool-definition",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "Tool definition",
+    "definition": "A user-defined tool entry: a **name** matching `^[a-zA-Z0-9_-]{1,128}$`, a detailed plaintext **description**, and an `input_schema` (a JSON Schema object).",
+    "whyItMatters": "The API builds a special system prompt from your tool definitions. Optional `input_examples` must be valid against `input_schema`, or the request returns a 400.",
+    "example": "`get_weather` with a required `location` string and an optional `unit` of \"celsius\" or \"fahrenheit\".",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-tool-description",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "Writing tool descriptions",
+    "definition": "By far the most important factor in tool performance: say what the tool does, when to use it (and when not), what each parameter means, and its caveats.",
+    "whyItMatters": "Aim for at least 3–4 sentences per tool. Also consolidate related operations into fewer tools, and namespace names by service, like `github_list_prs`.",
+    "example": "Rather than `create_pr`, `review_pr` and `merge_pr`, one tool with an `action` parameter.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-tool-choice",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "tool_choice",
+    "definition": "A request field that controls tool calling: **auto** (Claude decides), **any** (must use one of the tools), **tool** (must use the named tool) or **none**.",
+    "whyItMatters": "`any` and `tool` fail on Claude Opus 5.5, Fable 5.1 and Mythos 5.1, and with manual extended thinking; use `auto`, with strict tool use for schema-valid inputs.",
+    "example": "`{\"type\": \"tool\", \"name\": \"get_weather\"}` forces that tool on models that support forced tool use.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-parallel-tool-use",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "Parallel tool use",
+    "definition": "By default, Claude may return several `tool_use` blocks in one response. You choose how to run them: concurrently, sequentially or in any combination.",
+    "whyItMatters": "Return every `tool_result` together in one user message, before any text. A separate user message per result \"teaches\" Claude to avoid parallel calls.",
+    "example": "Set `disable_parallel_tool_use: true` inside `tool_choice` for at most one tool call per response (with `auto`).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-client-vs-server-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "Client tools vs server tools",
+    "definition": "Client tools (yours, plus Anthropic-schema tools such as `bash`) run in your application. Server tools (such as `web_search`) run on Anthropic's infrastructure.",
+    "whyItMatters": "For client tools your application drives the loop and returns each `tool_result`. For server tools you never construct a `tool_result`; you read the results.",
+    "example": "`text_editor` has an Anthropic-published, trained-in schema, but your code still executes each call.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-is-error",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "is_error (tool_result)",
+    "definition": "An optional `tool_result` field: set it to `true` when the tool execution resulted in an error, with the error message in the content.",
+    "whyItMatters": "Write instructive errors: what went wrong and what Claude should try next, not just \"failed\". You don't need to handle `is_error` results for server tools.",
+    "example": "`\"content\": \"Rate limit exceeded. Retry after 60 seconds.\", \"is_error\": true`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-tool-runner",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "term": "Tool runner (SDK)",
+    "definition": "A beta SDK helper that runs your tools when Claude calls them, sends the results back and manages conversation state, looping until Claude stops calling tools.",
+    "whyItMatters": "When you need human-in-the-loop approval, custom logging or conditional execution, the docs say to write the manual loop instead.",
+    "example": "Python: define tools with `@beta_tool`, then call `runner.until_done()` to get the final message.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+      "title": "Tool runner (SDK)",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-mcp-transports",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "term": "MCP transports (stdio vs Streamable HTTP)",
+    "definition": "**stdio**: standard input/output between local processes on the same machine. **Streamable HTTP**: HTTP POST plus optional SSE, enabling remote servers.",
+    "whyItMatters": "Local stdio servers typically serve a single client; remote Streamable HTTP servers typically serve many and support standard HTTP auth (MCP recommends OAuth).",
+    "example": "Claude Desktop runs the filesystem server locally over stdio; the Sentry MCP server is remote, over Streamable HTTP.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-mcp-connector",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "term": "MCP connector",
+    "definition": "A beta Messages API feature that connects to remote MCP servers without a separate MCP client: servers in `mcp_servers`, each used by one `mcp_toolset`.",
+    "whyItMatters": "Only tool calls are currently supported, and the server must be publicly exposed over HTTP (Streamable HTTP or SSE); local stdio servers can't connect directly.",
+    "example": "Allowlist: set `enabled: false` in `default_config`, then enable specific tools in `configs`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-agent-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "Agent Skill",
+    "definition": "A filesystem-based directory with a `SKILL.md` file (YAML frontmatter and instructions), plus optional scripts and resources Claude uses when relevant.",
+    "whyItMatters": "Claude matches requests against the `description`, so it must say what the Skill does **and** when to use it. Use Skills only from trusted sources.",
+    "example": "A `pdf-processing` Skill holding SKILL.md, FORMS.md, REFERENCE.md and `scripts/fill_form.py`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-skill-progressive-disclosure",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "Progressive disclosure (Skills)",
+    "definition": "Skills load in stages: metadata always (about 100 tokens per Skill), the SKILL.md body when triggered (under 5k tokens), bundled files only as needed.",
+    "whyItMatters": "You can install many Skills without context penalty. Scripts run through bash, and only their output enters context, never their code.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-skill-vs-subagent",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "Skill vs subagent",
+    "definition": "A skill is reusable content loaded into your current context. A subagent is an isolated worker with its own context window that returns a summary.",
+    "whyItMatters": "Use a subagent for tasks that read many files or would flood your conversation. Use a skill for reference material or an invocable workflow.",
+    "example": "They combine: a subagent can preload specific skills with its `skills:` field.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
+  },
+  {
+    "id": "c-disable-model-invocation",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "disable-model-invocation",
+    "definition": "Skill frontmatter that hides a skill from Claude until you invoke it with `/<name>`; for these user-only skills, nothing loads until then.",
+    "whyItMatters": "The docs recommend it for skills with side effects: it saves context and ensures only you trigger them.",
+    "example": "A `/deploy` skill with `disable-model-invocation: true` runs only when you invoke it.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-mcp-tool-search",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "MCP tool search (Claude Code)",
+    "definition": "On by default: only MCP tool names and server instructions load at session start, and full tool schemas are deferred until Claude needs a tool.",
+    "whyItMatters": "Adding servers has minimal context impact, and there's no fixed per-server tool cap. Set `alwaysLoad: true` for a server whose tools Claude needs every turn.",
+    "example": "`ENABLE_TOOL_SEARCH=false` loads all MCP tools upfront, with no deferral.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": true
+  },
+  {
+    "id": "c-plugin-trust",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "term": "Plugin trust",
+    "definition": "A Claude Code plugin you install can execute arbitrary code on your machine with your user privileges, so review it whichever marketplace it comes from.",
+    "whyItMatters": "Permission rules and the sandbox cover Claude's tool calls, not code the plugin runs by itself: hooks and MCP servers run outside the sandbox.",
+    "example": "Before installing, read `hooks/hooks.json`, `.mcp.json` and every file in `bin/`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/security",
+      "title": "Plugin security and trust",
+      "checkedOn": "2026-09-27"
+    },
+    "isVocab": false
   }
 ]

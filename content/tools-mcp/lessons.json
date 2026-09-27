@@ -1,0 +1,244 @@
+[
+  {
+    "id": "l-tool-implementation",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "title": "Implementing tools",
+    "summary": "Tool use lets Claude call functions you define (client tools) or that Anthropic runs (server tools). You describe each tool with a name, a detailed description and an `input_schema`; for client tools, your code runs each call and returns a `tool_result`. The description is by far the most important factor in tool performance.",
+    "keyPoints": [
+      "Descriptions matter most: what the tool does, when to use it (and when not), each parameter, caveats. Aim for **at least 3–4 sentences**.",
+      "`tool_choice`: **auto** (default with tools), **any**, **tool**, **none**. Opus 5.5, Fable 5.1 and Mythos 5.1 return a 400 for `any` and `tool`.",
+      "Parallel calls: return **every** `tool_result` in **one** user message, with results before any text.",
+      "Set `is_error: true` for a failed or skipped call, with an instructive message on what to try next.",
+      "Client tools (yours, and Anthropic-schema ones like `bash`) run in your app; server tools (like `web_search`) run on Anthropic's infrastructure."
+    ],
+    "sections": [
+      {
+        "heading": "Defining a tool",
+        "body": "A user-defined tool in the `tools` parameter has a `name` (matching `^[a-zA-Z0-9_-]{1,128}$`), a `description` and an `input_schema`, a JSON Schema object. The API builds a special system prompt from your tool definitions.\n\nAnthropic's best practices:\n\n- Provide extremely detailed descriptions: what the tool does, when to use it (and when not), what each parameter means, and caveats\n- For complex or format-sensitive inputs, add `input_examples`; each must be valid against the schema, or the request returns a 400\n- Consolidate related operations into fewer tools, such as one tool with an `action` parameter\n- Prefix names with the service, like `github_list_prs`\n- Return only high-signal information, with stable identifiers"
+      },
+      {
+        "heading": "Controlling when tools are called",
+        "body": "With the default `tool_choice` of `auto`, Claude decides whether to call a tool. `any` requires one of your tools, `tool` forces a named tool, and `none` prevents tool use. With `any` or `tool`, the API prefills the assistant message, so Claude won't write text before the `tool_use` block.\n\nForced tool use isn't always available. Manual extended thinking doesn't support `any` or `tool`, and on Claude Opus 5.5, Fable 5.1 and Mythos 5.1 they return a 400 error. There, use `auto` with strict tool use (`strict: true`) for schema-valid inputs, or structured outputs for a response in a fixed JSON shape."
+      },
+      {
+        "heading": "Running the loop",
+        "body": "For client tools, your application drives a loop: send the request, get `stop_reason: \"tool_use\"`, run each tool, send the results back in a user message, and repeat while `stop_reason` is `\"tool_use\"`. Server tools run their own loop on Anthropic's infrastructure, and you read the results.\n\nWhen Claude returns several `tool_use` blocks, you choose the execution order. Independent, read-only calls are usually safe to run in parallel; calls with side effects or ordering requirements might be better run sequentially. Either way, send one `tool_result` per call, all in one user message, before any text. Set `is_error: true` for a failure or a call you skipped, and say what went wrong and what to try next.\n\nThe SDK tool runner automates this loop. When you need human-in-the-loop approval, custom logging or conditional execution, write the manual loop instead.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Repeat while stop_reason is \"tool_use\".",
+          "steps": [
+            {
+              "label": "Request with tools"
+            },
+            {
+              "label": "tool_use",
+              "sublabel": "stop_reason"
+            },
+            {
+              "label": "Run the tools",
+              "sublabel": "your code"
+            },
+            {
+              "label": "tool_result",
+              "sublabel": "one user message"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-tool-description-quality",
+      "q-forced-tool-use-400",
+      "q-parallel-tool-results"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+        "title": "Define tools",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+        "title": "Handle tool calls",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+        "title": "Parallel tool use",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+        "title": "Tool runner (SDK)",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-mcp-server-dev",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "title": "Building and connecting MCP servers",
+    "summary": "An MCP server exposes tools, resources and prompts to AI applications over a transport: stdio for a local process, or Streamable HTTP for a remote server. You build one with an MCP SDK, then connect it to a host such as Claude Code, or to the Messages API through the MCP connector.",
+    "keyPoints": [
+      "Building blocks: **tools** (model-controlled), **resources** (application-driven), **prompts** (user-controlled).",
+      "**stdio**: local, typically one client. **Streamable HTTP**: remote, typically many clients, standard HTTP auth (MCP recommends OAuth).",
+      "In a stdio server, **never write to stdout**: it corrupts the JSON-RPC messages. Log to stderr.",
+      "The MCP connector needs a **publicly exposed HTTP** server and currently supports only **tool calls**.",
+      "Claude Code: `claude mcp add --transport http <name> <url>` for remote servers; a stdio server's command goes after `--`."
+    ],
+    "sections": [
+      {
+        "heading": "What a server offers",
+        "body": "MCP follows a client-server architecture: a host such as Claude Code or Claude Desktop creates one MCP client for each server it connects to. Servers provide three building blocks:\n\n- Tools: functions the model can call to perform actions\n- Resources: passive, read-only data for context, each with a unique URI\n- Prompts: reusable templates the user invokes explicitly, for example as slash commands\n\nClients discover each kind with `*/list` methods, which lets the listings be dynamic."
+      },
+      {
+        "heading": "Choosing a transport",
+        "body": "Both transports carry the same JSON-RPC 2.0 messages.\n\n- stdio: the client launches the server as a subprocess, and they talk over standard input and output on the same machine, with no network overhead\n- Streamable HTTP: HTTP POST for client-to-server messages, with optional Server-Sent Events for streaming; it enables remote servers and standard HTTP authentication\n\nIn a stdio server, never write logs to stdout: `print()` in Python or `console.log()` in TypeScript corrupts the JSON-RPC messages. Write to stderr instead. For HTTP-based servers, stdout logging is fine.\n\nA Streamable HTTP server must validate the `Origin` header, and when running locally it should bind only to localhost (127.0.0.1), to prevent DNS rebinding attacks.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "From SDK to a connected server.",
+          "steps": [
+            {
+              "label": "Build the server",
+              "sublabel": "MCP SDK"
+            },
+            {
+              "label": "Pick a transport",
+              "sublabel": "stdio or HTTP"
+            },
+            {
+              "label": "Connect a host",
+              "sublabel": "Claude Code or connector"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Connecting servers to Claude",
+        "body": "In Claude Code, HTTP servers are the recommended option for remote servers, and the SSE transport is deprecated: `claude mcp add --transport http <name> <url>`. A local stdio server takes its launch command after `--`, as in `claude mcp add --transport stdio myserver -- npx server`.\n\nFrom the Messages API, the MCP connector (beta) connects to remote servers without a separate MCP client. Define each server in `mcp_servers`, with a URL that starts with https, and reference it from exactly one `mcp_toolset` in `tools`, where you can allowlist or denylist tools. Only tool calls are supported, and local stdio servers can't be connected directly."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-mcp-primitives",
+      "q-mcp-stdio-logging",
+      "q-mcp-connector-requirements"
+    ],
+    "sources": [
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+        "title": "Understanding MCP servers",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+        "title": "Architecture overview",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server",
+        "title": "Build an MCP server",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio",
+        "title": "stdio",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http",
+        "title": "Streamable HTTP",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/mcp",
+        "title": "Connect Claude Code to tools via MCP",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+        "title": "MCP connector",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  },
+  {
+    "id": "l-agentic-customisation",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "title": "Customising agents with skills, subagents, MCP and plugins",
+    "summary": "Claude Code's built-in tools cover most coding tasks; extensions customise what Claude knows, connect it to external services and automate workflows. Skills add on-demand knowledge, subagents isolate work, MCP connects external systems, and plugins package them. Review third-party skills, MCP servers and plugins before you trust them.",
+    "keyPoints": [
+      "Skills use **progressive disclosure**: metadata (~100 tokens each) always, the SKILL.md body when triggered, files and script output as needed.",
+      "A Skill's `description` must say what it does **and** when to use it; Claude matches requests against it.",
+      "Skill: reusable content in your context. **Subagent**: isolated worker that returns a summary. **MCP**: external services. **Plugin**: packaging.",
+      "In Claude Code, MCP tool search is on by default: tool names load at start, full schemas when needed.",
+      "A plugin can run code with **your user privileges**; hooks and MCP servers run outside the sandbox."
+    ],
+    "sections": [
+      {
+        "heading": "Match the feature to the goal",
+        "body": "Claude Code combines the model with built-in tools for file operations, search, execution and web access, which cover most coding tasks. Extensions plug into different parts of the agentic loop:\n\n- CLAUDE.md: persistent context loaded every session\n- Skills: reusable knowledge and invocable workflows, loaded on demand\n- MCP: connections to external services and data\n- Subagents: isolated context that returns a summary\n- Hooks: actions that run on lifecycle events\n- Plugins: skills, subagents, hooks and MCP servers packaged as one installable unit\n\nThey combine. MCP can provide the database connection while a skill documents your schema and query patterns. Route a side task that floods your conversation through a subagent. For a skill with side effects, set `disable-model-invocation: true` so only you trigger it."
+      },
+      {
+        "heading": "Agent Skills and progressive disclosure",
+        "body": "A Skill is a directory with a `SKILL.md` file: YAML frontmatter (`name` and `description` are required) plus instructions, with optional scripts and reference files. Skills load in stages:\n\n- Level 1, metadata: always loaded, about 100 tokens per Skill\n- Level 2, the SKILL.md body: loaded when a request matches the description, under 5k tokens\n- Level 3, bundled files: read only as needed; scripts run through bash, and only their output enters context\n\nSo you can install many Skills without context penalty. On the Claude API, Skills require the code execution tool; in Claude Code, put them in `~/.claude/skills/` or `.claude/skills/`.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Each level loads only when it's needed.",
+          "steps": [
+            {
+              "label": "Metadata",
+              "sublabel": "always"
+            },
+            {
+              "label": "SKILL.md body",
+              "sublabel": "when triggered"
+            },
+            {
+              "label": "Files and scripts",
+              "sublabel": "as needed"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Trusting third-party extensions",
+        "body": "Use Skills only from trusted sources. A malicious Skill can direct Claude to invoke tools or execute code in ways that don't match its stated purpose, so audit every bundled file first. Verify you trust each MCP server before connecting it: servers that fetch external content can expose you to prompt injection.\n\nA plugin you install can execute arbitrary code with your user privileges, whichever marketplace it comes from. Permission rules and the sandbox cover Claude's tool calls, not code the plugin runs by itself: hooks and MCP servers run outside the sandbox. Before installing, read `hooks/hooks.json`, `.mcp.json` and every file in `bin/`."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-skill-progressive-disclosure",
+      "q-extension-choose-subagent",
+      "q-plugin-trust-sandbox"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/features-overview",
+        "title": "Extend Claude Code",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+        "title": "Agent Skills",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/mcp",
+        "title": "Connect Claude Code to tools via MCP",
+        "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugins/security",
+        "title": "Plugin security and trust",
+        "checkedOn": "2026-09-27"
+      }
+    ]
+  }
+]

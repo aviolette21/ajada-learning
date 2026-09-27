@@ -6,16 +6,714 @@
     "topic": "MCP server primitives",
     "stem": "Your MCP server offers three things: (1) a `send_message` action, (2) read-only database schemas for context, and (3) a \"Summarize my meetings\" template users pick from a slash-command menu. Which MCP building blocks are these?",
     "choices": [
-      { "id": "a", "text": "(1) Resource, (2) Tool, (3) Prompt", "reason": "Swapped: actions the model calls are tools; passive read-only data is a resource." },
-      { "id": "b", "text": "(1) Tool, (2) Resource, (3) Prompt", "reason": "Correct: tools are functions the model calls, resources are passive read-only data, prompts are user-invoked templates." },
-      { "id": "c", "text": "(1) Tool, (2) Prompt, (3) Resource", "reason": "Schemas are passive data (a resource); a reusable template the user invokes is a prompt." },
-      { "id": "d", "text": "All three are tools, since the model uses each of them", "reason": "MCP has three distinct building blocks, each with a different controller: model, application or user." }
+      {
+        "id": "a",
+        "text": "(1) Resource, (2) Tool, (3) Prompt",
+        "reason": "Swapped: actions the model calls are tools; passive read-only data is a resource."
+      },
+      {
+        "id": "b",
+        "text": "(1) Tool, (2) Resource, (3) Prompt",
+        "reason": "Correct: tools are functions the model calls, resources are passive read-only data, prompts are user-invoked templates."
+      },
+      {
+        "id": "c",
+        "text": "(1) Tool, (2) Prompt, (3) Resource",
+        "reason": "Schemas are passive data (a resource); a reusable template the user invokes is a prompt."
+      },
+      {
+        "id": "d",
+        "text": "All three are tools, since the model uses each of them",
+        "reason": "MCP has three distinct building blocks, each with a different controller: model, application or user."
+      }
     ],
     "answer": "b",
     "takeaway": "**Tools** = model-controlled actions, **Resources** = application-controlled read-only context, **Prompts** = user-invoked templates.",
     "mnemonic": "Tools: model. Resources: app. Prompts: user.",
     "difficulty": "medium",
-    "source": { "url": "https://modelcontextprotocol.io/docs/learn/server-concepts", "title": "Understanding MCP servers", "checkedOn": "2026-09-26" },
-    "relatedCardIds": ["c-mcp-server"]
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-tool-description-quality",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "Your agent has 12 tools, each with a one-line description such as \"Gets data.\" Claude often picks the wrong tool or misuses parameters. Following Anthropic's guidance on defining tools, what should you change first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Split each tool into several narrower tools, one per action",
+        "reason": "The guidance is the opposite: consolidate related operations into fewer tools, which reduces selection ambiguity."
+      },
+      {
+        "id": "b",
+        "text": "Shorten the names and drop the descriptions to save tokens",
+        "reason": "Descriptions are by far the most important factor in tool performance; removing them leaves Claude with more open questions."
+      },
+      {
+        "id": "c",
+        "text": "Write detailed descriptions: what each tool does, when to use it, what each parameter means, and its caveats",
+        "reason": "Correct: detailed descriptions are by far the most important factor in tool performance. Aim for at least 3–4 sentences per tool."
+      },
+      {
+        "id": "d",
+        "text": "Add `input_examples` to every tool instead of writing descriptions",
+        "reason": "Clear descriptions are most important; `input_examples` are an optional extra for complex, nested or format-sensitive inputs."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Tool quality starts with the **description**: what it does, when (and when not) to use it, each parameter, and caveats.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-choice-force-named",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "On a model that supports forced tool use, you want every response to call your `record_summary` tool: never a different tool, and never a plain-text answer. Which `tool_choice` fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`{\"type\": \"tool\", \"name\": \"record_summary\"}`",
+        "reason": "Correct: `tool` forces Claude to always use that particular tool."
+      },
+      {
+        "id": "b",
+        "text": "`{\"type\": \"any\"}`",
+        "reason": "`any` tells Claude it must use one of the provided tools, but it doesn't force a particular tool."
+      },
+      {
+        "id": "c",
+        "text": "`{\"type\": \"auto\"}`",
+        "reason": "`auto`, the default when tools are provided, lets Claude decide whether to call any tool at all."
+      },
+      {
+        "id": "d",
+        "text": "`{\"type\": \"none\"}`",
+        "reason": "`none` prevents Claude from using any tools."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "**auto**: Claude decides. **any**: some tool. **tool**: this tool. **none**: no tools.",
+    "mnemonic": "Auto decides, any picks, tool insists, none forbids.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-choice"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-forced-tool-use-400",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "You move an extraction job to Claude Opus 5.5. Requests that set `tool_choice` to `{\"type\": \"tool\", \"name\": \"extract\"}` now return a 400 error. You still need schema-valid tool inputs. What does the documentation recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to `{\"type\": \"any\"}`, which Opus 5.5 accepts",
+        "reason": "On Claude Opus 5.5, both `any` and `tool` return a 400 error; `auto` and `none` still work."
+      },
+      {
+        "id": "b",
+        "text": "Turn on manual extended thinking so forced tool use is allowed",
+        "reason": "Manual extended thinking itself doesn't support `any` or `tool`, so it can't bring forced tool use back."
+      },
+      {
+        "id": "c",
+        "text": "Retry the same request with exponential backoff",
+        "reason": "The 400 isn't transient: on this model, `any` and `tool` return a 400 error, so the same request fails again."
+      },
+      {
+        "id": "d",
+        "text": "Use `auto` with `strict: true` on the tool, and prompt Claude to call it",
+        "reason": "Correct: the docs point to `auto` with strict tool use for schema-valid inputs, and prompting still influences which tool `auto` picks."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Opus 5.5, Fable 5.1 and Mythos 5.1 reject forced tool use: use **`auto` plus strict tool use**, or structured outputs for a fixed JSON shape.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-choice"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-parallel-tool-results",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "Claude returns three `tool_use` blocks in one response. Your code runs them and sends each `tool_result` back in its own user message. As the conversation goes on, Claude stops making parallel calls. What's wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parallel calls are off by default; set `disable_parallel_tool_use: false`",
+        "reason": "Parallel tool use is on by default; `disable_parallel_tool_use: true` is only for turning it off."
+      },
+      {
+        "id": "b",
+        "text": "All three results belong together in one user message, before any text",
+        "reason": "Correct: a separate user message per result is the most common formatting mistake, and it \"teaches\" Claude to avoid parallel calls."
+      },
+      {
+        "id": "c",
+        "text": "The tools must run concurrently, or Claude treats the calls as sequential",
+        "reason": "The API doesn't prescribe an execution order: concurrent, sequential or a mix is your choice."
+      },
+      {
+        "id": "d",
+        "text": "The results must be sent in the same order as the `tool_use` blocks",
+        "reason": "Each result is matched to its call by `tool_use_id`; the problem here is splitting the results across messages."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Parallel calls need **one** user message holding every `tool_result`, results first and any text after.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Keep every result in a single user message so parallelism keeps working.",
+      "steps": [
+        {
+          "label": "Assistant turn",
+          "sublabel": "3 tool_use blocks"
+        },
+        {
+          "label": "Run the tools",
+          "sublabel": "any order"
+        },
+        {
+          "label": "One user message",
+          "sublabel": "3 tool_results, then text"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-parallel-skipped-call",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "Claude sends three dependent `tool_use` blocks in one turn. You run them in order, the first one fails, and you skip the other two. What should your next user message contain?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `tool_result` for all three: the failure, plus `is_error: true` and a brief note for each skipped call",
+        "reason": "Correct: return one `tool_result` for each `tool_use` block. For a call you chose not to run, send `is_error: true` and a brief explanation."
+      },
+      {
+        "id": "b",
+        "text": "Only the failed call's `tool_result`; skipped calls need nothing",
+        "reason": "Every `tool_use` block needs its own `tool_result`, including calls you chose not to run."
+      },
+      {
+        "id": "c",
+        "text": "A plain text message explaining the failure, with no `tool_result` blocks",
+        "reason": "Results go back as `tool_result` blocks matched by `tool_use_id`, and they come before any text in the message."
+      },
+      {
+        "id": "d",
+        "text": "Nothing yet; rerun the whole batch yourself until it succeeds",
+        "reason": "The documented pattern is to return `is_error: true` results; Claude can then reissue calls on the next turn."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every `tool_use` gets a `tool_result`, even calls you skipped: mark those `is_error: true` and say why.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use",
+      "c-is-error"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-client-vs-server-execution",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Client vs server tools",
+    "stem": "Your request enables `web_search`, Anthropic's `bash` tool and your own `get_inventory` tool. Which of them must your application execute and answer with `tool_result` blocks?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only `get_inventory`, because Anthropic defines the other two",
+        "reason": "Anthropic publishes the `bash` schema, but it's client-executed: your application runs each call and returns the result."
+      },
+      {
+        "id": "b",
+        "text": "All three, because the model never executes anything itself",
+        "reason": "The model doesn't, but Anthropic's servers run server tools like `web_search`; you never construct a `tool_result` for them."
+      },
+      {
+        "id": "c",
+        "text": "None of them; Claude runs every tool listed in `tools`",
+        "reason": "Only server tools run on Anthropic's infrastructure. User-defined and Anthropic-schema tools run in your application."
+      },
+      {
+        "id": "d",
+        "text": "`bash` and `get_inventory`; `web_search` runs on Anthropic's servers",
+        "reason": "Correct: tools differ by where the code executes. Both client tools run in your application; the server tool runs on Anthropic's infrastructure."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Ask **where the code runs**: user-defined and Anthropic-schema tools are yours to execute; server tools are Anthropic's.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-approval-manual-loop",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool approval",
+    "stem": "Your support agent uses the SDK tool runner. You're adding an `issue_refund` tool, and a person must approve each refund before it runs. What does Anthropic's tool runner page recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the tool runner, since it asks before running each tool",
+        "reason": "The tool runner runs tools automatically when Claude calls them and sends the results back; it doesn't wait for a person."
+      },
+      {
+        "id": "b",
+        "text": "Set `max_iterations` to 1 so at most one refund can happen",
+        "reason": "`max_iterations` only caps how many times the runner loops; it adds no approval step."
+      },
+      {
+        "id": "c",
+        "text": "Write the manual tool-use loop, so your code can pause for approval before executing",
+        "reason": "Correct: the page says to use the manual loop when you need human-in-the-loop approval, custom logging or conditional execution."
+      },
+      {
+        "id": "d",
+        "text": "Call `runner.until_done()` and review the final message",
+        "reason": "`until_done()` returns the final message after the runner has already run the tools, too late to approve a refund."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Risky tool that needs a human yes? Drive the loop yourself; the tool runner executes tools automatically.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+      "title": "Tool runner (SDK)",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-tool-runner"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-mcp-stdio-logging",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your Python MCP server uses the stdio transport. After you add `print()` calls for debugging, the server breaks and the client can't talk to it reliably. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Log with the standard `logging` module, which writes to stderr, and keep `print()` out",
+        "reason": "Correct: never write to stdout in a stdio server. The standard `logging` module writes to stderr, so the JSON-RPC messages stay intact."
+      },
+      {
+        "id": "b",
+        "text": "Flush stdout after every `print()` so the lines don't interleave",
+        "reason": "Writing to stdout at all corrupts the JSON-RPC messages; `print()` writes to stdout by default, flushed or not."
+      },
+      {
+        "id": "c",
+        "text": "Prefix each debug line with `#` so the client skips it",
+        "reason": "In a stdio server, anything written to stdout corrupts the JSON-RPC messages, however it's marked."
+      },
+      {
+        "id": "d",
+        "text": "Remove all logging, since MCP servers can't log",
+        "reason": "Servers can log: the guide recommends the standard `logging` module, with one logger per module."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In a stdio server, **stdout carries the protocol**: send logs to stderr. HTTP servers can log to stdout.",
+    "mnemonic": "stdout for messages, stderr for logs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server",
+      "title": "Build an MCP server",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-connector-requirements",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "Your team's MCP server runs locally over stdio and exposes tools and resources. You want a Messages API backend to use it through the MCP connector. What has to change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing; put the server's launch command in `mcp_servers`",
+        "reason": "An `mcp_servers` entry takes `type: \"url\"` and an https URL, and local stdio servers can't be connected directly."
+      },
+      {
+        "id": "b",
+        "text": "Pass an `authorization_token` so the API can reach your machine",
+        "reason": "`authorization_token` is an OAuth token for servers that require one; it doesn't make a local stdio server reachable."
+      },
+      {
+        "id": "c",
+        "text": "Expose it publicly over HTTP (Streamable HTTP or SSE) at an https URL, and expect only its tools",
+        "reason": "Correct: the server must be publicly exposed through HTTP, and of MCP's features only tool calls are currently supported."
+      },
+      {
+        "id": "d",
+        "text": "List its resources in the `mcp_toolset` so Claude can read them",
+        "reason": "The connector currently supports only MCP tool calls; an MCP toolset configures which of the server's tools are enabled."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The MCP connector needs a **public HTTP** server and uses only its **tools**; stdio servers stay local.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The connector reaches remote servers only; local stdio servers can't connect directly.",
+      "steps": [
+        {
+          "label": "Messages API request",
+          "sublabel": "mcp_servers + mcp_toolset"
+        },
+        {
+          "label": "Public https URL",
+          "sublabel": "Streamable HTTP or SSE"
+        },
+        {
+          "label": "MCP server",
+          "sublabel": "tool calls only"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-skill-progressive-disclosure",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "A team wants to install 30 Skills, each with a long SKILL.md, reference files and scripts, but worries they will fill the context window on every request. What loads into context before a Skill is triggered?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Every Skill's full SKILL.md body, so Claude can choose well",
+        "reason": "The SKILL.md body (Level 2, under 5k tokens) loads only when a request matches the Skill's description."
+      },
+      {
+        "id": "b",
+        "text": "Everything, including reference files and script code",
+        "reason": "Bundled files load only when read, and scripts run through bash: only their output enters context."
+      },
+      {
+        "id": "c",
+        "text": "Nothing; Claude finds a Skill only when you name it",
+        "reason": "Metadata is always loaded at startup and included in the system prompt, so Claude can use Skills automatically."
+      },
+      {
+        "id": "d",
+        "text": "Only each Skill's `name` and `description`, about 100 tokens per Skill",
+        "reason": "Correct: with progressive disclosure, only Level 1 metadata occupies context until a Skill is triggered."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Skills load in stages: **metadata always**, the SKILL.md body when triggered, files and script output only as needed.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Progressive disclosure: each level loads only when it's needed.",
+      "steps": [
+        {
+          "label": "Metadata",
+          "sublabel": "always · ~100 tokens"
+        },
+        {
+          "label": "SKILL.md body",
+          "sublabel": "when triggered"
+        },
+        {
+          "label": "Files and scripts",
+          "sublabel": "as needed"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-skill-progressive-disclosure",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-description-trigger",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "Your custom Skill's frontmatter says `description: Invoice helper`. Its SKILL.md body explains that it should be used whenever a user uploads an invoice, yet Claude rarely uses it. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rename it `claude-invoice-helper` so it stands out",
+        "reason": "A Skill name can't contain the reserved word \"claude\", and Claude matches requests against the description."
+      },
+      {
+        "id": "b",
+        "text": "Rewrite the `description` to say what the Skill does and when to use it",
+        "reason": "Correct: the description is what Claude matches your request against, so it must say both what the Skill does and when to use it."
+      },
+      {
+        "id": "c",
+        "text": "Move more of the trigger details into the SKILL.md body",
+        "reason": "The body enters context only after the Skill is triggered, so trigger details there can't help Claude decide."
+      },
+      {
+        "id": "d",
+        "text": "Paste the Skill's instructions into every user prompt",
+        "reason": "Skills load on demand precisely so you don't have to repeat the same guidance across conversations."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A Skill is triggered by its **description**: state what it does and when to use it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-extension-choose-subagent",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "In Claude Code, a side investigation reads dozens of files and produces output you won't reference again, and your main conversation's context keeps filling up. Which extension fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A subagent, which works in its own context and returns a summary",
+        "reason": "Correct: subagents give context isolation. The work happens separately and only a summary returns to your conversation."
+      },
+      {
+        "id": "b",
+        "text": "Put the investigation steps in CLAUDE.md",
+        "reason": "CLAUDE.md loads in full every session, so it adds context rather than isolating the work."
+      },
+      {
+        "id": "c",
+        "text": "A hook that runs the investigation after every edit",
+        "reason": "Hooks fire on lifecycle events for automation that must run every time; workflows that need reasoning suit skills."
+      },
+      {
+        "id": "d",
+        "text": "An MCP server",
+        "reason": "MCP connects Claude to external services and data; it doesn't isolate work from your conversation."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A side task floods your context? Route it through a **subagent**: only its summary comes back.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-skill-vs-subagent"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-side-effects",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skill invocation",
+    "stem": "Your Claude Code `/deploy` skill pushes to production. Sometimes Claude loads it on its own when you merely mention deployments. You want it to run only when you type `/deploy`. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the deploy steps into CLAUDE.md",
+        "reason": "CLAUDE.md loads every session and can't trigger a workflow with `/<name>`."
+      },
+      {
+        "id": "b",
+        "text": "Make the skill's description vaguer so it matches less often",
+        "reason": "Vague or overlapping descriptions make Claude load the wrong skill or miss one; they don't give you control."
+      },
+      {
+        "id": "c",
+        "text": "Set `disable-model-invocation: true` in the skill's frontmatter",
+        "reason": "Correct: the skill is invisible to Claude until you invoke it. The docs recommend this for skills with side effects; it also saves context."
+      },
+      {
+        "id": "d",
+        "text": "Package it in a plugin so it gets a namespace",
+        "reason": "Plugin namespacing (like `/my-plugin:review`) lets multiple plugins coexist; it doesn't stop Claude from loading the skill."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Skills with side effects should be **user-only**: set `disable-model-invocation: true`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-disable-model-invocation"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-mcp-tool-search-context",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "MCP tool search",
+    "stem": "You plan to connect eight MCP servers, each with dozens of tools, to Claude Code on the Anthropic API with default settings. A teammate warns that every tool schema will be sent with every request. What actually happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The teammate is right, so connect only a few servers",
+        "reason": "That's the behavior with `ENABLE_TOOL_SEARCH=false`. By default, MCP tool definitions are deferred."
+      },
+      {
+        "id": "b",
+        "text": "Claude Code caps each server at a fixed number of tools",
+        "reason": "Claude Code doesn't impose a fixed per-server tool cap; the practical limit is your context window budget."
+      },
+      {
+        "id": "c",
+        "text": "You must set `alwaysLoad: true` on each server before Claude can use its tools",
+        "reason": "`alwaysLoad: true` does the opposite: it loads every tool from that server into context at session start."
+      },
+      {
+        "id": "d",
+        "text": "Tool search defers the schemas: only tool names and server instructions load at start",
+        "reason": "Correct: tool search is on by default, so adding more MCP servers has minimal impact on your context window."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "With tool search (the default), idle MCP tools cost little context; keep `alwaysLoad` for the few tools needed every turn.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-mcp-tool-search"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-plugin-trust-sandbox",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Plugin security",
+    "stem": "A coworker's marketplace offers a plugin with hooks and a stdio MCP server. A teammate says: \"Our permission rules and sandbox will contain anything it does, so we don't need to review it.\" What's accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "True: the plugin's hooks and server processes run inside the sandbox",
+        "reason": "Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions."
+      },
+      {
+        "id": "b",
+        "text": "False: those controls cover Claude's tool calls, not the plugin's hooks or server processes, so review its files first",
+        "reason": "Correct: permission rules apply to tool calls; hooks and MCP servers run outside the sandbox. Read `hooks/hooks.json`, `.mcp.json` and `bin/`."
+      },
+      {
+        "id": "c",
+        "text": "True, because a coworker's marketplace counts as a trusted tier",
+        "reason": "A marketplace a coworker or your organization publishes is third-party, and its name says who publishes the catalog, not what a plugin does."
+      },
+      {
+        "id": "d",
+        "text": "False, but only its skills need review, since they hold the code",
+        "reason": "Skills enter context as instructions. Code the plugin runs by itself lives in its hooks, MCP servers and `bin/`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A plugin runs code **as you**: permission rules cover Claude's tool calls, not its hooks or MCP server processes.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/security",
+      "title": "Plugin security and trust",
+      "checkedOn": "2026-09-27"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-agentic-customisation"
   }
 ]
