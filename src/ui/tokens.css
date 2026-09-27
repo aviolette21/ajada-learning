@@ -48,7 +48,7 @@ a { color: var(--accent-text); }
 code {
   padding: 1px 5px; border-radius: 5px; background: var(--code-bg); color: var(--code-text);
   font-family: var(--font-mono); font-size: 0.86em; font-weight: 500; line-height: 1; vertical-align: baseline;
-  overflow-wrap: anywhere; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  overflow-wrap: anywhere; -webkit-box-decoration-break: slice; box-decoration-break: slice;
 }
 /* Code inside bold text keeps its regular weight; bold mono gets heavy and blotchy. */
 strong code { font-weight: 500; }

@@ -7,7 +7,7 @@ import { LONG_TERM } from '../src/features/cards/Flashcard';
 
 // Every card in the bank must fit its face: no clipped lines, nothing wider than the card, and inline code in a real
 // monospace stack (WebKit's bare "monospace" default is Courier). Runs on the WebKit iPhone project. CI's Linux WebKit
-// falls back to a wider sans than iOS, so leave about a line of slack: check new cards locally with Verdana forced.
+// falls back to a wider sans than iOS, so leave about a line of slack: check new cards locally with CARD_FONTS=ci.
 
 interface Measure {
   term: string;
@@ -17,6 +17,20 @@ interface Measure {
 }
 
 const TOP = '.deck-slot .fc[role="button"]';
+
+// CARD_FONTS=ci swaps in fonts about as wide as CI's Linux WebKit fallbacks (Verdana text, Courier-width code), so a
+// card that fits locally but not in CI fails here too. CI itself never sets it.
+if (process.env.CARD_FONTS === 'ci') {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = `:root { --font: Verdana, sans-serif !important; --font-mono: ui-monospace, 'Courier New', monospace !important; }`;
+        document.head.append(style);
+      });
+    });
+  });
+}
 
 /** Measures the top card's faces. The back is laid out even while hidden, so no flip is needed. */
 function measure(page: Page): Promise<Measure> {

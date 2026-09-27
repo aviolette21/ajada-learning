@@ -5,8 +5,8 @@
     "subSkillId": "cc-operation",
     "term": "CLAUDE.md",
     "definition": "A markdown file of persistent instructions that Claude Code reads at the start of every session. Project `./CLAUDE.md` is shared via source control.",
-    "whyItMatters": "It's context, not enforced configuration: to block an action regardless, use a PreToolUse hook. Keep it concise (under 200 lines). `/init` drafts one.",
-    "example": "Other scopes: managed policy (organization), `~/.claude/CLAUDE.md` (user), `./CLAUDE.local.md` (personal, gitignored).",
+    "whyItMatters": "It's context, not enforced configuration: to block an action regardless, use a PreToolUse hook. Keep it under 200 lines; `/init` drafts one.",
+    "example": "Scopes: managed policy (organization), `~/.claude/CLAUDE.md` (user), `./CLAUDE.local.md` (personal, gitignored).",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
       "title": "How Claude remembers your project",
