@@ -352,7 +352,7 @@
       }
     ],
     "answer": "c",
-    "takeaway": "A policy hook must **`exit 2`** (or return a JSON deny); exit 1 is a non-blocking error, so the action proceeds.",
+    "takeaway": "A policy hook must **`exit 2`** (or return a JSON deny); without valid JSON, exit 1 is a non-blocking error for most events, so the action proceeds.",
     "mnemonic": "One is a warning; two is a wall.",
     "difficulty": "medium",
     "diagram": {

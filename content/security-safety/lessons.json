@@ -4,7 +4,7 @@
     "domainId": "security-safety",
     "subSkillId": "app-security",
     "title": "AI application security",
-    "summary": "Jailbreaks and prompt injection try to make Claude ignore its guidelines or your instructions. Who the attacker is decides the defense: your own user crafting inputs, or third-party content Claude reads for a trusted user. Prompt leaks are a separate risk, best caught first by monitoring outputs.",
+    "summary": "Jailbreaks and prompt injection try to make Claude ignore its guidelines or your instructions. Who the attacker is decides the defense: your own user crafting inputs, or third-party content Claude reads for a trusted user. Prompt leaks are a separate risk, so try catching them first by monitoring outputs.",
     "keyPoints": [
       "**Jailbreak / direct injection**: your user is the adversary. **Indirect injection**: the user is trusted, but third-party content carries the instructions.",
       "Deliver third-party content only in `tool_result` blocks, label its source, JSON-encode it, and state in the system prompt that it's untrusted data.",
@@ -67,7 +67,7 @@
     "domainId": "security-safety",
     "subSkillId": "guardrails",
     "title": "Guardrails and safe deployment",
-    "summary": "Guardrails are layers around Claude: screen input with a lightweight model, restrict what a successful attack could reach, verify outputs, and keep role-based apps in character. No layer is perfect, so combine them and keep monitoring.",
+    "summary": "Guardrails are layers around Claude: screen input with a lightweight model, restrict what a successful attack could reach, verify outputs, and keep role-based apps in character. No technique eliminates the risk, so combine them and keep monitoring.",
     "keyPoints": [
       "A **harmlessness screen** uses a lightweight model like Claude Haiku 4.5, with structured outputs, to classify input before the main conversation.",
       "Apply **least privilege**: no secrets Claude doesn't need, sandboxed tools, narrowly scoped permissions.",
@@ -136,7 +136,7 @@
     "summary": "Hooks are user-defined commands that Claude Code runs automatically at points in its lifecycle, giving deterministic control instead of relying on Claude to choose an action. They block through exit code 2 or JSON decisions, and because command hooks run with your full user permissions, treat them as code to review.",
     "keyPoints": [
       "`PreToolUse` fires **before** a tool call and can block it; `PostToolUse` fires **after** a tool call succeeds.",
-      "For most events only **exit 2** blocks through the code alone; exit 1 is a non-blocking error and the action proceeds.",
+      "For most events only **exit 2** blocks through the code alone; without valid JSON on stdout, exit 1 is a non-blocking error and the action proceeds.",
       "Or exit 0 with JSON: `PreToolUse` returns `permissionDecision` (`allow`, `deny`, `ask` or `defer`) in `hookSpecificOutput`.",
       "Command hooks run with your **full user permissions**; review and test them before adding them.",
       "`-p` and SDK sessions treat the folder as trusted, so a repo's committed hooks run; disable or review them first."
@@ -202,7 +202,7 @@
     "domainId": "security-safety",
     "subSkillId": "secrets-keys",
     "title": "Identity, secrets and keys",
-    "summary": "Claude API keys are static secrets, so give each workload the right identity, keep keys in a secrets manager, and cut off suspect keys at once. Admin API keys are a separate, more powerful credential. In Claude Code, deny rules keep sensitive files from Claude's tools, and the sandbox enforces it for every process.",
+    "summary": "Claude API keys are static secrets, so give each workload the right identity, keep keys in a secrets manager, and cut off suspect keys at once. Admin API keys are a separate credential for the Admin APIs. In Claude Code, deny rules keep sensitive files from Claude's tools, and the sandbox enforces it for every process.",
     "keyPoints": [
       "Use a **personal key** for your own work and a **service account key** for shared or automated workloads; workspace keys are legacy.",
       "Store keys in a secrets manager, rotate them periodically, and **disable** (reversible) or **delete** (permanent) any suspected leak.",

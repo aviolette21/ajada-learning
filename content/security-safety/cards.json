@@ -125,7 +125,7 @@
     "subSkillId": "claude-hooks",
     "term": "Hook exit code 2",
     "definition": "The blocking exit code for command hooks: on events that can block, it stops the action, and `PreToolUse` blocks the tool call.",
-    "whyItMatters": "For most events, exit 1 is a non-blocking error and the action proceeds. If your hook is meant to enforce a policy, use `exit 2`.",
+    "whyItMatters": "Without valid JSON on stdout, exit 1 is a non-blocking error for most events and the action proceeds. To enforce a policy, use `exit 2`.",
     "example": "Echo \"Blocked: rm commands are not allowed\" to stderr, then `exit 2`; Claude sees the message.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
