@@ -201,7 +201,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Study how the team routes tickets today: SLA criteria, existing rules and where they fail, edge cases, prioritization",
+        "text": "Study how tickets are routed today and where that process fails",
         "reason": "Correct: the guide says it's crucial to understand your existing system first; the more you know about how humans handle cases, the better."
       },
       {

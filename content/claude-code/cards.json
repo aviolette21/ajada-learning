@@ -50,7 +50,7 @@
     "subSkillId": "cc-operation",
     "term": "Plan mode",
     "definition": "A permission mode in which Claude researches and proposes changes without making them: it reads files, explores and writes a plan, but doesn't edit your source.",
-    "whyItMatters": "Use it to explore a codebase before changing it. Except in terminal sessions with bypass permissions available, edits stay blocked until you approve the plan.",
+    "whyItMatters": "Use it to explore a codebase before changing it. Edits stay blocked until you approve the plan, except in interactive terminal sessions with bypass available.",
     "example": "Press `Shift+Tab`, prefix one prompt with `/plan`, or start with `claude --permission-mode plan`.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",

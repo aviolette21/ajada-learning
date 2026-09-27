@@ -350,8 +350,8 @@
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
     "term": "Token counting API",
-    "definition": "`POST /v1/messages/count_tokens` takes the same inputs as a Messages request, except most server tools, the MCP connector and URL or file sources.",
-    "whyItMatters": "It is free (with RPM limits) and returns an estimate. Count under the model you'll use: Claude 4.7+ tokenizers yield about 30% more tokens than earlier models.",
+    "definition": "`POST /v1/messages/count_tokens` returns an input-token estimate for Messages inputs, except most server tools, the MCP connector and URL or file sources.",
+    "whyItMatters": "It is free, with its own RPM limits. Count under the model you'll use: Claude 4.7+ tokenizers yield about 30% more tokens than earlier models.",
     "example": "Before a migration, count one request under each model and compare the two `input_tokens` values.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",

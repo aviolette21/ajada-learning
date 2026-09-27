@@ -51,7 +51,7 @@
       {
         "id": "a",
         "text": "`plan`",
-        "reason": "Correct: plan mode is for exploring before changing anything. Claude reads, explores and writes a plan; edits stay blocked until you approve it, except in terminal sessions with bypass permissions available."
+        "reason": "Correct: plan mode is for exploring before changing anything. Claude reads, explores and writes a plan; edits stay blocked until you approve it, except in interactive terminal sessions with bypass available."
       },
       {
         "id": "b",
@@ -61,7 +61,7 @@
       {
         "id": "c",
         "text": "`dontAsk`",
-        "reason": "`dontAsk` runs only pre-approved tools and denies anything that would prompt; it is meant for locked-down CI and scripts, not for exploring first."
+        "reason": "`dontAsk` allows reads and pre-approved tools and denies anything that would prompt; it suits locked-down CI and scripts, while plan mode is for exploring before changing."
       },
       {
         "id": "d",

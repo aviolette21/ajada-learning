@@ -248,12 +248,12 @@
       {
         "id": "c",
         "text": "Your thinking config is outdated; switch to `thinking: {\"type\": \"enabled\"}`",
-        "reason": "Sending `thinking.type.enabled` to Claude 4.7 and later models itself returns a 400, and your requests worked before the loop change."
+        "reason": "The same thinking config worked before the loop change, so it isn't the cause; on Claude 4.7 and later models, `enabled` itself returns a 400."
       },
       {
         "id": "d",
-        "text": "Your loop filtered out thinking blocks; pass every `thinking` and `redacted_thinking` block back exactly as received",
-        "reason": "Correct: thinking blocks in the latest assistant message that are edited, reordered, filtered out or reconstructed return a 400; pass them back unchanged."
+        "text": "Your loop dropped the thinking blocks; pass them back exactly as received",
+        "reason": "Correct: edited, reordered, filtered-out or reconstructed thinking blocks in the latest assistant message return a 400; pass every `thinking` and `redacted_thinking` block back."
       }
     ],
     "answer": "d",

@@ -922,7 +922,7 @@
       },
       {
         "id": "d",
-        "text": "An error can follow a 200 when streaming; this one means the API is temporarily overloaded",
+        "text": "A mid-stream error after a 200: the API is temporarily overloaded",
         "reason": "Correct: streamed errors can follow a 200 response, and `overloaded_error` (529) can happen when the API has high traffic across all users."
       }
     ],
