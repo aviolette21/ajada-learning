@@ -436,7 +436,8 @@
       "checkedOn": "2026-09-27"
     },
     "relatedCardIds": [
-      "c-model-snapshot-id"
+      "c-model-snapshot-id",
+      "c-model-lifecycle"
     ],
     "lessonId": "l-systems-lifecycle"
   },
@@ -569,7 +570,7 @@
       {
         "id": "d",
         "text": "A `managed-settings.json` file on your machine",
-        "reason": "Managed settings are deployed by your organization to everyone it reaches; you don't create or edit them."
+        "reason": "Managed settings are deployed by your organization and reach every project on every machine it deploys them to; they're for security policy, not a personal per-project override."
       }
     ],
     "answer": "a",
@@ -668,7 +669,7 @@
       {
         "id": "b",
         "text": "Block the path with a `permissions.deny` rule in settings",
-        "reason": "Correct: settings rules are enforced by the client regardless of what Claude decides; CLAUDE.md instructions are not a hard enforcement layer."
+        "reason": "Correct: settings rules such as `permissions.deny` are enforced by the client regardless of what Claude decides; CLAUDE.md is not a hard enforcement layer."
       },
       {
         "id": "c",

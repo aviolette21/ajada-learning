@@ -49,7 +49,7 @@
     "domainId": "apps-integration",
     "subSkillId": "requirements",
     "title": "Understanding requirements",
-    "summary": "Turning a business need into an LLM solution starts with success criteria you can measure, then a check that Claude fits the task, then a starting model chosen by your constraints. The rule to remember: define specific, measurable criteria and a way to test them before you prompt.",
+    "summary": "Turning a business need into an LLM solution means checking that Claude fits the task, setting success criteria you can measure, and choosing a starting model by your constraints. The rule to remember: define specific, measurable criteria and a way to test them before you prompt.",
     "keyPoints": [
       "Good success criteria are **specific, measurable, achievable and relevant**; even hazy goals like safety can be quantified.",
       "Most use cases need **multidimensional** criteria, such as accuracy plus toxicity plus response time.",
@@ -60,11 +60,11 @@
     "sections": [
       {
         "heading": "Write measurable success criteria",
-        "body": "Building a successful LLM application starts with clearly defining your success criteria, then designing evaluations to measure performance against them. Good criteria are:\n- Specific: \"accurate sentiment classification\", not \"good performance\"\n- Measurable: quantitative metrics or well-defined qualitative scales\n- Achievable: based on benchmarks, prior experiments, AI research or expert knowledge\n- Relevant: aligned with the app's purpose and user needs\n\nEven hazy topics can be quantified: instead of \"safe outputs\", aim for less than 0.1% of outputs out of 10,000 trials flagged for toxicity by the content filter.\n\nMost use cases need several criteria at once. The guide's good example, on a held-out test set of 10,000 diverse posts: an F1 score of at least 0.85, 99.5% of outputs non-toxic, and 95% response time < 200ms."
+        "body": "Building a successful LLM application starts with clearly defining your success criteria, then designing evaluations to measure performance against them. Good criteria are:\n\n- Specific: \"accurate sentiment classification\", not \"good performance\"\n- Measurable: quantitative metrics or well-defined qualitative scales\n- Achievable: based on benchmarks, prior experiments, AI research or expert knowledge\n- Relevant: aligned with the app's purpose and user needs\n\nEven hazy topics can be quantified: instead of \"safe outputs\", aim for less than 0.1% of outputs out of 10,000 trials flagged for toxicity by the content filter.\n\nMost use cases need several criteria at once. The guide's good example, on a held-out test set of 10,000 diverse posts: an F1 score of at least 0.85, 99.5% of outputs non-toxic, and 95% response time < 200ms."
       },
       {
         "heading": "Decide whether Claude fits",
-        "body": "Anthropic's ticket-routing guide lists signs that an LLM like Claude suits a classification task better than traditional ML:\n- Limited labeled data: Claude can classify with just a few dozen labeled examples\n- Categories likely to change: Claude adapts without extensive relabeling\n- Complex, unstructured text inputs\n- Rules based on semantic understanding\n- A need for interpretable reasoning\n- Edge cases and ambiguous inputs\n- Multilingual support without separate models\n\nBefore automating, study how people do the task today: which criteria set the SLA, which rules exist and where they fail, and how edge cases are handled. Then define a clear list of categories: Claude's routing is directly proportional to how well-defined they are. Set success criteria with measurable benchmarks and thresholds, such as 95% accuracy.",
+        "body": "Anthropic's ticket-routing guide lists signs that an LLM like Claude suits a classification task better than traditional ML:\n\n- Limited labeled data: Claude can classify with just a few dozen labeled examples\n- Categories likely to change: Claude adapts without extensive relabeling\n- Complex, unstructured text inputs\n- Rules based on semantic understanding\n- A need for interpretable reasoning\n- Edge cases and ambiguous inputs\n- Multilingual support without separate models\n\nBefore automating, study how people do the task today: which criteria set the SLA, which rules exist and where they fail, and how edge cases are handled. Then define a clear list of categories: Claude's routing is directly proportional to how well-defined they are. Set success criteria with measurable benchmarks and thresholds, such as 95% accuracy.",
         "diagram": {
           "kind": "flow",
           "caption": "The ticket-routing guide's order, from requirements to prompt.",
@@ -90,7 +90,7 @@
       },
       {
         "heading": "Choose an approach by constraints",
-        "body": "For ticket routing, the guide says model choice depends on the trade-offs between cost, accuracy and response time. Anthropic's model-selection guide describes two starting strategies:\n- Efficiency-first: begin with Claude Haiku 4.5, test, and upgrade only for specific capability gaps. Best for tight latency, cost-sensitive and high-volume, straightforward tasks.\n- Capability-first: begin with Claude Opus 5.5, then lower effort or downgrade models over time. Best for complex reasoning and where accuracy outweighs cost.\n\nEither way, decide with benchmark tests specific to your use case, using your actual prompts and data.\n\nNot every success criterion or failing eval is best solved by prompt engineering. For example, you can sometimes improve latency and cost more easily by selecting a different model."
+        "body": "For ticket routing, the guide says model choice depends on the trade-offs between cost, accuracy and response time. Anthropic's model-selection guide describes two starting strategies:\n\n- Efficiency-first: begin with Claude Haiku 4.5, test, and upgrade only for specific capability gaps. Best for tight latency, cost-sensitive and high-volume, straightforward tasks.\n- Capability-first: begin with Claude Opus 5.5, then lower effort or downgrade models over time. Best for complex reasoning and where accuracy outweighs cost.\n\nEither way, decide with benchmark tests specific to your use case, using your actual prompts and data.\n\nNot every success criterion or failing eval is best solved by prompt engineering. For example, you can sometimes improve latency and cost more easily by selecting a different model."
       }
     ],
     "checkQuestionIds": [
@@ -126,7 +126,7 @@
     "domainId": "apps-integration",
     "subSkillId": "systems-lifecycle",
     "title": "The LLM app life cycle",
-    "summary": "An LLM feature moves through a loop: test cases, a preliminary prompt, iterative testing and refinement, final validation, then shipping and continued evaluation. Models have a life cycle too, so pin model IDs, watch for deprecations, and re-test before you migrate.",
+    "summary": "An LLM feature moves through a loop: test cases, a preliminary prompt, iterative testing and refinement, final validation, then shipping; Anthropic's content-moderation guide adds continuous evaluation in production. Models have a life cycle too, so pin model IDs, watch for deprecations, and re-test before you migrate.",
     "keyPoints": [
       "Flow: **test cases → preliminary prompt → iterative testing and refinement → final validation → ship**.",
       "Every Claude model ID is a **pinned snapshot**; from 4.6 on, dateless IDs are not evergreen pointers.",
@@ -167,7 +167,7 @@
       },
       {
         "heading": "Deprecation and migration",
-        "body": "Lifecycle states:\n- Active: fully supported and recommended\n- Legacy: no more updates; may be deprecated in the future\n- Deprecated: still works, with a recommended replacement and a retirement date\n- Retired: no longer available; requests fail\n\nAnthropic gives customers with active deployments at least 60 days' notice before retiring a publicly released model. Test your app with the replacement well before the retirement date, then migrate all usage. To find remaining usage, export from the Console Usage page: the CSV breaks usage down by API key and model.\n\nTreat a migration as a code change. For example, a request to `claude-opus-5-5` must omit `temperature`, `top_p` and `top_k` or leave them at their defaults, and manual thinking budgets are rejected; a rejected setting returns a 400 error."
+        "body": "Lifecycle states:\n\n- Active: fully supported and recommended\n- Legacy: no more updates; may be deprecated in the future\n- Deprecated: still works, with a recommended replacement and a retirement date\n- Retired: no longer available; requests fail\n\nAnthropic gives customers with active deployments at least 60 days' notice before retiring a publicly released model. Test your app with the replacement well before the retirement date, then migrate all usage. To find remaining usage, export from the Console Usage page: the CSV breaks usage down by API key and model.\n\nTreat a migration as a code change. For example, a request to `claude-opus-5-5` must omit `temperature`, `top_p` and `top_k` or leave them at their defaults, and manual thinking budgets are rejected; a rejected setting returns a 400 error."
       }
     ],
     "checkQuestionIds": [
@@ -223,7 +223,7 @@
       },
       {
         "heading": "Claude Code settings scopes",
-        "body": "Claude Code reads settings from files with different scopes:\n- User, `~/.claude/settings.json`: you, in every project on this machine\n- Shared project, `.claude/settings.json`: everyone in the project, once you commit it\n- Project local, `.claude/settings.local.json`: you, in this project only\n- Managed: deployed by your organization; nothing you set overrides it, apart from a few security-sensitive exceptions\n\nWhen the same key is set in several places, the highest level wins: managed, then command line (such as `--settings`), then project local, shared project and user. List keys such as `permissions.allow` combine across files instead. Environment variables aren't a level in this stack: which of a variable and its paired key applies is decided per pair.",
+        "body": "Claude Code reads settings from files with different scopes:\n\n- User, `~/.claude/settings.json`: you, in every project on this machine\n- Shared project, `.claude/settings.json`: everyone in the project, once you commit it\n- Project local, `.claude/settings.local.json`: you, in this project only\n- Managed: deployed by your organization; nothing you set overrides it, apart from a few security-sensitive exceptions\n\nWhen the same key is set in several places, the highest level wins: managed, then command line (such as `--settings`), then project local, shared project and user. List keys such as `permissions.allow` combine across files instead. Environment variables aren't a level in this stack: which of a variable and its paired key applies is decided per pair.",
         "diagram": {
           "kind": "flow",
           "caption": "Settings precedence, highest first.",
