@@ -51,7 +51,7 @@
     "term": "tool_choice",
     "definition": "A request field that controls tool calling: **auto** (Claude decides), **any** (must use one of the tools), **tool** (must use the named tool) or **none**.",
     "whyItMatters": "`any` and `tool` fail on Claude Opus 5.5, Fable 5.1 and Mythos 5.1, and with manual extended thinking; use `auto`, with strict tool use for schema-valid inputs.",
-    "example": "`{\"type\": \"tool\", \"name\": \"get_weather\"}` forces that tool on models that support forced tool use.",
+    "example": "`{\"type\": \"tool\", \"name\": \"get_weather\"}` forces that tool where supported.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",

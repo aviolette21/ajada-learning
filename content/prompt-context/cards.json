@@ -21,7 +21,7 @@
     "term": "Compaction (server-side)",
     "definition": "Replaces the older turns of a conversation with a summary Claude writes on the server, so you need no summarization code of your own.",
     "whyItMatters": "Keeps a long conversation or agent task inside the context window. **On demand**, you decide when to compact; **at a token threshold**, the API does.",
-    "example": "On-demand compaction uses the `compact-2026-09-04` beta header and the top-level `compaction` parameter.",
+    "example": "On-demand compaction uses the top-level `compaction` parameter and the `compact-2026-09-04` beta header.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "title": "Compaction overview",

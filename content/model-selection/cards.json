@@ -164,7 +164,7 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "term": "anthropic-version (header)",
-    "definition": "A required request header naming the API version, for example `2023-06-01`.",
+    "definition": "A required request header naming the API version, such as `2023-06-01`.",
     "whyItMatters": "Raw HTTP calls also need `content-type: application/json` and an API key (`Authorization: Bearer` or legacy `x-api-key`); the SDKs send these for you.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
