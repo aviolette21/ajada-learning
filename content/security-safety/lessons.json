@@ -8,7 +8,7 @@
     "keyPoints": [
       "**Jailbreak / direct injection**: your user is the adversary. **Indirect injection**: the user is trusted, but third-party content carries the instructions.",
       "Deliver third-party content only in `tool_result` blocks, label its source, JSON-encode it, and state in the system prompt that it's untrusted data.",
-      "Screen tool outputs with a small classifier (for example Claude Haiku 4.5); if it flags injection, return an error or stripped summary.",
+      "Screen tool outputs with a small classifier (for example Claude Haiku 5.5); if it flags injection, return an error or stripped summary.",
       "For repeat offenders, adjust responses and consider **throttling or banning** them.",
       "For prompt leaks, try **output screening and post-processing** first; no method is foolproof."
     ],
@@ -29,7 +29,7 @@
               "sublabel": "raw output"
             },
             {
-              "label": "Haiku 4.5 screen",
+              "label": "Haiku 5.5 screen",
               "sublabel": "injection_suspected?"
             },
             {
@@ -53,7 +53,7 @@
       {
         "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
         "title": "Mitigate jailbreaks and prompt injections",
-        "checkedOn": "2026-09-27"
+        "checkedOn": "2026-10-13"
       },
       {
         "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
@@ -69,7 +69,7 @@
     "title": "Guardrails and safe deployment",
     "summary": "Guardrails are layers around Claude: screen input with a lightweight model, restrict what a successful attack could reach, verify outputs, and keep role-based apps in character. No technique eliminates the risk, so combine them and keep monitoring.",
     "keyPoints": [
-      "A **harmlessness screen** uses a lightweight model like Claude Haiku 4.5, with structured outputs, to classify input before the main conversation.",
+      "A **harmlessness screen** uses a lightweight model like Claude Haiku 5.5, with structured outputs, to classify input before the main conversation.",
       "Apply **least privilege**: no secrets Claude doesn't need, sandboxed tools, narrowly scoped permissions.",
       "To reduce hallucinations, allow \"I don't know\", ground in direct quotes, and **verify with citations**, retracting unsupported claims.",
       "These techniques **reduce** hallucinations but don't eliminate them; always validate critical information.",
@@ -78,7 +78,7 @@
     "sections": [
       {
         "heading": "Layered defenses",
-        "body": "Anthropic's jailbreak guide recommends combining strategies:\n\n- Pre-screen user input with a lightweight model like Claude Haiku 4.5, using structured outputs to constrain the verdict to a simple classification.\n- Filter input for known injection patterns.\n- Write system prompts that set boundaries and say how to refuse.\n- Limit Claude's access with least privilege, so a successful injection does minimal damage.\n- Regularly analyze outputs for signs of successful injection, and use what you find to refine prompts, validation and filtering.",
+        "body": "Anthropic's jailbreak guide recommends combining strategies:\n\n- Pre-screen user input with a lightweight model like Claude Haiku 5.5, using structured outputs to constrain the verdict to a simple classification.\n- Filter input for known injection patterns.\n- Write system prompts that set boundaries and say how to refuse.\n- Limit Claude's access with least privilege, so a successful injection does minimal damage.\n- Regularly analyze outputs for signs of successful injection, and use what you find to refine prompts, validation and filtering.",
         "diagram": {
           "kind": "flow",
           "caption": "The screen runs before the main conversation.",
@@ -87,7 +87,7 @@
               "label": "User message"
             },
             {
-              "label": "Haiku 4.5 screen",
+              "label": "Haiku 5.5 screen",
               "sublabel": "is_harmful?"
             },
             {
@@ -114,7 +114,7 @@
       {
         "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
         "title": "Mitigate jailbreaks and prompt injections",
-        "checkedOn": "2026-09-27"
+        "checkedOn": "2026-10-13"
       },
       {
         "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",

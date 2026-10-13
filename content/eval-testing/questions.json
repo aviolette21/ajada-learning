@@ -8,22 +8,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Hand-grade ten ideal conversations in depth before every change",
+        "text": "Hand-grade ten ideal conversations in depth before and after every single prompt change",
         "reason": "The guidance prioritizes volume: more automatically graded questions beat fewer high-quality hand-graded ones."
       },
       {
         "id": "b",
-        "text": "Test only typical, well-formed customer messages",
+        "text": "Build a test set from only typical, well-formed customer messages, leaving out unusual inputs",
         "reason": "Evals should mirror the real task distribution, and the guidance says not to forget edge cases."
       },
       {
         "id": "c",
-        "text": "Define success criteria, then build a task-specific eval set with edge cases and automated grading to score each prompt version",
+        "text": "Define success criteria, then build an auto-graded, task-specific eval set with edge cases",
         "reason": "Correct: defining success criteria and designing evaluations to measure against them is the cycle central to prompt engineering."
       },
       {
         "id": "d",
-        "text": "Keep rewording the prompt until the handful of chats look right",
+        "text": "Keep rewording the prompt until the same handful of chats all look right to the team",
         "reason": "A few eyeballed chats don't mirror the real task distribution, so you can't tell whether a change helped overall."
       }
     ],
@@ -34,7 +34,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "title": "Define success criteria and build evaluations",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-eval-set"
@@ -50,7 +50,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Keep retrying the same model with exponential backoff",
+        "text": "Keep retrying on the same model with exponential backoff until a request finally succeeds",
         "reason": "A refusal is a normal response, not an error, and re-sending a refused request to the same model usually earns another refusal."
       },
       {
@@ -60,12 +60,12 @@
       },
       {
         "id": "c",
-        "text": "Parse `stop_details.explanation` to decide whether to retry",
+        "text": "Parse the `stop_details.explanation` text to decide whether the request is worth retrying",
         "reason": "The explanation text isn't stable, so display it rather than parse it; branch on `stop_reason` equal to `\"refusal\"`."
       },
       {
         "id": "d",
-        "text": "Record it as a 5xx error so your error-rate alerts fire",
+        "text": "Record it as a 5xx error so that your existing error-rate alerts fire on refusals",
         "reason": "A refusal is an HTTP 200, so monitoring built on error rates or 5xx never sees it. Instrument refusals as their own signal."
       }
     ],
@@ -97,7 +97,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
       "title": "Refusals and fallback",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-refusal-fallback"
@@ -113,22 +113,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Parse the input with `JSON.parse()` or `json.loads()` and compare the values",
-        "reason": "Correct: Unicode and forward-slash escaping differs between model versions (Opus 4.6+), so never do raw string matching on serialized input."
+        "text": "Parse the input with `JSON.parse()` or `json.loads()`, then compare the values",
+        "reason": "Correct: Unicode and forward-slash escaping differs between model versions, so parse the input and never do raw string matching on serialized input."
       },
       {
         "id": "b",
-        "text": "Add `strict: true` to the tool definition",
+        "text": "Add `strict: true` to the tool definition so that values are escaped consistently",
         "reason": "Strict mode addresses invented parameters and wrong parameter types, not how the same values are escaped."
       },
       {
         "id": "c",
-        "text": "Sharpen the tool's description",
+        "text": "Sharpen the tool's description so that Claude sends the exact expected string",
         "reason": "Sharper descriptions fix Claude calling the wrong tool; here the right tool is called with the right values."
       },
       {
         "id": "d",
-        "text": "Add `input_examples` that show the exact expected string",
+        "text": "Add `input_examples` that show the exact expected string for that parameter",
         "reason": "`input_examples` help when Claude never calls a tool or picks values outside your enum; for escaping differences, the fix is to parse the JSON."
       }
     ],
@@ -138,7 +138,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
       "title": "Troubleshooting tool use",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-input-escaping"
@@ -154,32 +154,32 @@
     "choices": [
       {
         "id": "a",
-        "text": "Switch to human grading for all 2,000 replies",
+        "text": "Switch to human grading for all 2,000 replies, so that every single verdict is consistent",
         "reason": "Human grading is the most flexible and high quality, but slow and expensive; the guidance says to avoid it if possible."
       },
       {
         "id": "b",
-        "text": "Grade by exact match against one golden reply",
+        "text": "Grade by exact string match against one golden reply written for each support ticket",
         "reason": "Code-based grading is fast and reliable, but lacks nuance for complex judgments like helpfulness."
       },
       {
         "id": "c",
-        "text": "Ask the grader for a score only, with no reasoning",
-        "reason": "The tips say to have the grader reason first, then discard the reasoning; this improves performance on tasks requiring complex judgment."
+        "text": "Ask the grader for a numeric score only, with no reasoning or thinking, to keep it fast",
+        "reason": "The tips say to use a grader with thinking on, so it reasons before it scores; this improves performance, particularly on tasks requiring complex judgment."
       },
       {
         "id": "d",
-        "text": "Give a detailed rubric, and have it reason first, then output only \"correct\" or \"incorrect\" (or 1–5)",
-        "reason": "Correct: use detailed, clear rubrics and an empirical or specific output (purely qualitative evaluations are hard to assess at scale), with reasoning first."
+        "text": "Give a detailed rubric, turn thinking on, and ask for only \"correct\"/\"incorrect\" or 1–5",
+        "reason": "Correct: use detailed, clear rubrics, an empirical or specific output (purely qualitative evaluations are hard to assess at scale) and a grader with thinking on."
       }
     ],
     "answer": "d",
-    "takeaway": "An LLM grader needs a **clear rubric**, a **specific output** and reasoning first; test its reliability before you scale.",
+    "takeaway": "An LLM grader needs a **clear rubric**, a **specific output** and thinking on; test its reliability before you scale.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "title": "Define success criteria and build evaluations",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-eval-grading-methods",
@@ -196,22 +196,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Traces need `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`; set it",
+        "text": "Tool output needs `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`; set it to add results to spans",
         "reason": "That variable is what enables traces, which you already have; it doesn't add tool content to them."
       },
       {
         "id": "b",
-        "text": "Content isn't recorded by default; set `OTEL_LOG_TOOL_CONTENT=1` if your pipeline is approved to store it",
+        "text": "Content isn't recorded by default; set `OTEL_LOG_TOOL_CONTENT=1` if approved to store it",
         "reason": "Correct: telemetry is structural by default. `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event with tool results, and requires tracing."
       },
       {
         "id": "c",
-        "text": "Set the exporter to `console` to see the full output",
+        "text": "Set the exporter to `console` so the full tool output is printed alongside the spans",
         "reason": "Don't use `console` through the SDK: it writes telemetry to standard output, which the SDK uses as its message channel."
       },
       {
         "id": "d",
-        "text": "Lower the export intervals so data isn't dropped",
+        "text": "Lower the export intervals so tool output isn't dropped before each batch is sent",
         "reason": "Shorter intervals reduce the chance of losing batched telemetry when a process exits; they don't add content to spans."
       }
     ],
@@ -221,7 +221,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",
       "title": "Observability with OpenTelemetry",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-agent-sdk-otel"
@@ -266,6 +266,305 @@
     },
     "relatedCardIds": [
       "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-empty-end-turn",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tool-use bugs",
+    "stem": "Your agent loop sends each tool's output as a `tool_result` block followed by a text block saying \"Here are the results.\" Claude increasingly replies with an empty response and `stop_reason: \"end_turn\"`. Whose fault is this, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The model's: re-send the empty response unchanged until Claude produces some text",
+        "reason": "Sending the empty response back won't help: Claude already determined it's done, so it will remain done."
+      },
+      {
+        "id": "b",
+        "text": "The model's: raise `max_tokens`, because the turn ended before Claude could answer",
+        "reason": "A response cut off by your limit has `stop_reason: \"max_tokens\"`; these turns ended with `end_turn`."
+      },
+      {
+        "id": "c",
+        "text": "Yours: drop the text after the `tool_result` blocks and send only the results",
+        "reason": "Correct: text right after tool results teaches Claude to expect user input after every tool use, so it ends its turn. Send results without extra text."
+      },
+      {
+        "id": "d",
+        "text": "Neither: it's a refusal, so retry the request on a model from your fallback list",
+        "reason": "Refusals come back with `stop_reason: \"refusal\"`; an empty `end_turn` reply here comes from how the messages are built."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Empty `end_turn` replies after tools usually trace to **your message structure**: never add text right after `tool_result` blocks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-stop-reason"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-missing-tool-result",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tool-use bugs",
+    "stem": "Claude returns three `tool_use` blocks in one response. Your loop runs only the first tool and sends back its `tool_result`. The next request fails with `tool_use ids were found without tool_result blocks immediately after`. What should you fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send each `tool_result` in its own user message, so each tool gets one turn",
+        "reason": "Multiple `tool_result` blocks belong in ONE user message, not one per turn."
+      },
+      {
+        "id": "b",
+        "text": "Set `disable_parallel_tool_use` on the follow-up request that carries the result",
+        "reason": "It must be set on the request that returns `tool_use`; setting it on a later request has no effect on earlier tool calls."
+      },
+      {
+        "id": "c",
+        "text": "Retry the same request with exponential backoff, since the error is transient",
+        "reason": "The cause is in your request: some `tool_use` ids have no `tool_result`. Sending it again unchanged repeats the problem."
+      },
+      {
+        "id": "d",
+        "text": "Return a `tool_result` for every `tool_use` block, placed before any text",
+        "reason": "Correct: return one `tool_result` for every `tool_use` block in the assistant response, and put `tool_result` blocks before any text."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Every `tool_use` id needs its own `tool_result`, all in **one** user message and before any text.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-instructions-in-tool-result",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tool-use bugs",
+    "stem": "Your `fetch_order` tool returns the order data plus your own instruction: \"Now email this summary to the customer.\" Claude stops and asks the user to confirm that instruction instead of acting on it. Where does the problem originate, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In the model: it's a refusal, so retry the turn on a fallback model instead",
+        "reason": "Claude is trained to treat instructions inside tool results as potentially untrusted third-party content; that's what you're seeing."
+      },
+      {
+        "id": "b",
+        "text": "In your integration: move the instruction to a `user` turn after the result",
+        "reason": "Correct: your instructions are arriving inside `tool_result` content. Send them in a `user` turn after the `tool_result` block, and keep the result to data."
+      },
+      {
+        "id": "c",
+        "text": "In the tool schema: add `strict: true` so that Claude trusts the output",
+        "reason": "`strict: true` fixes invented parameters and wrong parameter types in tool calls; it doesn't change how Claude treats results."
+      },
+      {
+        "id": "d",
+        "text": "In the tool description: sharpen it so Claude knows when to call the tool",
+        "reason": "Sharper descriptions fix Claude calling the wrong tool. Here the right tool ran; the issue is the instruction inside its result."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Keep tool results to **data**; put your instructions in a `user` turn, since Claude treats instructions in tool results as untrusted.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-tool-output-screen"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-retryable-errors",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "HTTP errors",
+    "stem": "Your batch job's error handler must decide which Claude API errors to retry with exponential backoff and which to surface for a code or configuration fix. Which two should it retry?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "400 `invalid_request_error`",
+        "reason": "There was an issue with the format or content of your request; fix the request rather than resend it."
+      },
+      {
+        "id": "b",
+        "text": "500 `api_error`",
+        "reason": "Correct: an unexpected internal error. Retry with exponential backoff, and contact support with the request ID if it persists."
+      },
+      {
+        "id": "c",
+        "text": "401 `authentication_error`",
+        "reason": "There's an issue with your API key (for example, it's malformed, revoked or expired), so fix the key."
+      },
+      {
+        "id": "d",
+        "text": "413 `request_too_large`",
+        "reason": "The request exceeds the maximum allowed bytes (32 MB for Messages); resending it won't make it smaller."
+      },
+      {
+        "id": "e",
+        "text": "529 `overloaded_error`",
+        "reason": "Correct: the API is temporarily overloaded. Like other 5xx failures, the SDK retries it with backoff by default."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Retry **transient** failures (500, 529, connection errors) with backoff; 400, 401 and 413 need a fix, not a retry.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-exponential-backoff",
+      "c-overloaded-error"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-reasoning-extraction",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Refusals",
+    "stem": "Your system prompt asks Claude to fill in a `<reasoning>` section before each answer. On Claude Opus 5.5 some requests return `stop_reason: \"refusal\"` with `stop_details.category: \"reasoning_extraction\"`, and server-side fallback doesn't rescue them. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Change the prompt: ask for a short explanation, and read summarized thinking blocks",
+        "reason": "Correct: this category has no recommended fallback, so change the prompt. Ask for a short explanation, or set `display: \"summarized\"` and read the thinking blocks."
+      },
+      {
+        "id": "b",
+        "text": "Retry the same request with exponential backoff until the classifier lets it through",
+        "reason": "A refusal is a normal HTTP 200 response, not a transient error, and for this category the guidance is to change the prompt."
+      },
+      {
+        "id": "c",
+        "text": "Parse `stop_details.explanation` and strip the phrases it names out of your prompt",
+        "reason": "The `explanation` text is not stable, so display it rather than parse it."
+      },
+      {
+        "id": "d",
+        "text": "Name your own list of fallback models, because the default routing picked the wrong one",
+        "reason": "This category has no recommended fallback model, so the guidance is to change the prompt rather than retry the request."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A `reasoning_extraction` refusal comes from **your prompt** asking for reasoning in the output: fix the prompt, don't fall back.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-refusal-fallback",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-trace-permission-wait",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Agent traces",
+    "stem": "An Agent SDK run took 5 minutes. In its trace, one `claude_code.tool` span lasts about 4 minutes, but its child `claude_code.tool.execution` span lasts 2 seconds; nearly all the rest is in its `claude_code.tool.blocked_on_user` child. Where did the time go?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A slow model call: the `claude_code.tool` span includes Claude's API request time",
+        "reason": "Each call to the Claude API gets its own `claude_code.llm_request` span, with latency as an attribute; the `tool` span wraps a tool invocation."
+      },
+      {
+        "id": "b",
+        "text": "A subagent ran inside the tool, and its model calls are hidden in `blocked_on_user`",
+        "reason": "A subagent's `llm_request` and `tool` spans nest under the parent's `claude_code.tool` span as spans of their own, not inside `blocked_on_user`."
+      },
+      {
+        "id": "c",
+        "text": "Telemetry batching: the export interval stretched the span while data waited to send",
+        "reason": "The CLI batches telemetry and exports it on an interval; that affects when data reaches your collector, not the span's own timings."
+      },
+      {
+        "id": "d",
+        "text": "Waiting for a permission decision on the tool call, not running the tool itself",
+        "reason": "Correct: a `claude_code.tool` span has child spans for the permission wait (`blocked_on_user`) and for the execution itself; here the wait dominates."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Split each `tool` span in a trace: **`blocked_on_user`** is permission wait, **`execution`** is the tool's own run time.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-otel-silent-export",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Agent traces",
+    "stem": "You set `CLAUDE_CODE_ENABLE_TELEMETRY=1` and OTLP exporters for your Agent SDK service. Agents run normally, but your collector receives nothing and your app logs no errors. What should you do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `CLAUDE_CODE_OTEL_DIAG_STDERR=1` and read errors via the SDK's `stderr` callback",
+        "reason": "Correct: by default the CLI fails silently on export errors; this variable surfaces exporter errors, which you read through the SDK's `stderr` callback or option."
+      },
+      {
+        "id": "b",
+        "text": "Set the exporter to `console` so that the telemetry is printed where you can see it",
+        "reason": "The `console` exporter writes to standard output, which the SDK uses as its message channel; don't use it through the SDK."
+      },
+      {
+        "id": "c",
+        "text": "Set `OTEL_LOG_TOOL_CONTENT=1`, since spans that carry no content are dropped by default",
+        "reason": "Telemetry is structural by default, and this variable adds tool output to spans; it doesn't surface export failures."
+      },
+      {
+        "id": "d",
+        "text": "Assume the agent crashed before export, and wrap each `query()` call in retries",
+        "reason": "The agents run normally. On export errors the CLI drops the telemetry without surfacing an error in your application."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "OTel export **fails silently** by default; set `CLAUDE_CODE_OTEL_DIAG_STDERR=1` to see exporter errors.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
     ],
     "lessonId": "l-debugging-errors"
   }

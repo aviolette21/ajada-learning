@@ -97,13 +97,13 @@
     "domainId": "apps-integration",
     "subSkillId": "requirements",
     "term": "Efficiency-first vs capability-first",
-    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 4.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
+    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 5.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
     "whyItMatters": "Efficiency-first suits tight latency, cost-sensitive, high-volume straightforward tasks; capability-first suits complex reasoning where accuracy outweighs cost.",
     "example": "Either way, evaluate whether performance meets your requirements.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "title": "Choosing the right model",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -133,7 +133,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
       "title": "Model IDs and versioning",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -148,7 +148,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
       "title": "Model IDs and versioning",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -623,11 +623,11 @@
     "term": "Latency reduction levers",
     "definition": "Anthropic's latency guide: choose the right model, minimize prompt and output tokens, and stream responses.",
     "whyItMatters": "Engineer a prompt that works well first, then reduce latency: doing it prematurely might hide what top performance looks like.",
-    "example": "Ask for a sentence or paragraph count rather than a word count. Claude Haiku 4.5 offers the fastest response times.",
+    "example": "Ask for a sentence or paragraph count rather than a word count. Claude Haiku 5.5 offers the fastest response times.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
       "title": "Reducing latency",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": false
   },

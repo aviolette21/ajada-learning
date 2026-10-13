@@ -13,7 +13,7 @@
       },
       {
         "id": "b",
-        "text": "Deliver emails in `tool_result` blocks and state in the system prompt that tool content is untrusted data",
+        "text": "Deliver emails in `tool_result` blocks and say in the system prompt that tool content is untrusted",
         "reason": "Correct: Claude treats instructions inside tool results with skepticism, and the system prompt should say such content never overrides it."
       },
       {
@@ -23,7 +23,7 @@
       },
       {
         "id": "d",
-        "text": "Give the agent broad access to secrets so it can verify senders itself",
+        "text": "Give the agent broad access to secrets so it can verify each sender's identity before acting on the email",
         "reason": "The guidance is least privilege: don't give Claude secrets it doesn't need, so a successful injection does minimal damage."
       }
     ],
@@ -34,7 +34,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-prompt-injection"
@@ -50,12 +50,12 @@
     "choices": [
       {
         "id": "a",
-        "text": "Deliver the user's messages inside `tool_result` blocks",
+        "text": "Deliver the user's messages inside `tool_result` blocks so Claude treats them with skepticism",
         "reason": "That's a defense against indirect injection in third-party content. Here your own user is the adversary: a jailbreak or direct injection."
       },
       {
         "id": "b",
-        "text": "JSON-encode each user message before sending it",
+        "text": "JSON-encode each user message before sending it so it can't break out of its delimiters",
         "reason": "JSON-encoding is listed for untrusted third-party strings (indirect injection), not for a user who crafts inputs to bypass your guardrails."
       },
       {
@@ -65,7 +65,7 @@
       },
       {
         "id": "d",
-        "text": "Screen tool outputs with a Claude Haiku 4.5 classifier",
+        "text": "Screen tool outputs with a Claude Haiku 5.5 classifier before Claude acts on them",
         "reason": "That screens content your tools return. This attack arrives in the user's own messages, not in tool results."
       }
     ],
@@ -75,7 +75,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-direct-prompt-injection",
@@ -97,12 +97,12 @@
       },
       {
         "id": "b",
-        "text": "Add the layered instructions now, since more safeguards can only help",
+        "text": "Add the layered no-leak instructions now, since more safeguards in the prompt can only help",
         "reason": "The guide warns leak-proofing adds complexity that may degrade performance on other parts of the task; use it only when absolutely necessary."
       },
       {
         "id": "c",
-        "text": "Nothing, because a system prompt can't be revealed to users",
+        "text": "Nothing, because a system prompt is never revealed to the users who chat with the app",
         "reason": "The guide says prompt leaks can expose information you expect to be hidden in your prompt, and that no method is foolproof."
       },
       {
@@ -117,7 +117,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
       "title": "Reduce prompt leak",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-prompt-leak"
@@ -129,26 +129,26 @@
     "domainId": "security-safety",
     "subSkillId": "app-security",
     "topic": "Indirect prompt injection",
-    "stem": "Your agent passes each tool's raw output to a Claude Haiku 4.5 classifier constrained with structured outputs. For one fetched web page it returns `injection_suspected: true`. Following Anthropic's guide, what should your app do next?",
+    "stem": "Your agent passes each tool's raw output to a Claude Haiku 5.5 classifier constrained with structured outputs. For one fetched web page it returns `injection_suspected: true`. Following Anthropic's guide, what should your app do next?",
     "choices": [
       {
         "id": "a",
-        "text": "Return an error or a stripped summary as the `tool_result`, and consider surfacing the attempt to the user",
+        "text": "Return an error or a stripped summary as the `tool_result`, and consider telling the user",
         "reason": "Correct: if `injection_suspected` is true, the guide says to return an error or a stripped summary instead of the raw content, and consider telling the user."
       },
       {
         "id": "b",
-        "text": "Return the raw page anyway, since Claude treats tool results with skepticism",
+        "text": "Return the raw page anyway, since Claude already treats tool results with skepticism",
         "reason": "Skepticism is one layer. The screen's point is to return the content as a `tool_result` only if it reports no injection attempt."
       },
       {
         "id": "c",
-        "text": "Move the page text into the system prompt so your policy outranks it",
+        "text": "Move the page text into the system prompt so your own policy instructions outrank it",
         "reason": "Third-party content should never go in `system` prompts; deliver it only in `tool_result` blocks."
       },
       {
         "id": "d",
-        "text": "Ask the classifier whether the injection would succeed before deciding",
+        "text": "Ask the classifier a follow-up question about whether the injection would actually succeed",
         "reason": "The guide's screen asks only whether such instructions are present, not whether they would succeed."
       }
     ],
@@ -164,7 +164,7 @@
           "sublabel": "raw output"
         },
         {
-          "label": "Haiku 4.5 screen",
+          "label": "Haiku 5.5 screen",
           "sublabel": "injection_suspected?"
         },
         {
@@ -176,7 +176,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-output-screen",
@@ -193,22 +193,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Pre-screen input with a lightweight model like Claude Haiku 4.5, constrained to a classification with structured outputs",
+        "text": "Pre-screen input with a lightweight model like Claude Haiku 5.5, using structured outputs",
         "reason": "Correct: a harmlessness screen uses a lightweight model to pre-screen user input, with structured outputs constraining the response to a simple classification."
       },
       {
         "id": "b",
-        "text": "Put each user message in a `tool_result` block so Claude distrusts it",
+        "text": "Put each user message in a `tool_result` block so Claude treats it with built-in distrust",
         "reason": "Tool results are how you deliver third-party content (indirect injection). Here the user is the adversary, so screen their input."
       },
       {
         "id": "c",
-        "text": "Rely on Claude's built-in resilience alone",
+        "text": "Rely on Claude's built-in resilience alone, since it's already inherently resistant to such attacks",
         "reason": "Claude is inherently resilient to such attacks, but the guide's extra steps exist to strengthen your guardrails further."
       },
       {
         "id": "d",
-        "text": "Screen with a second Claude Opus 5.5 call that replies in free text",
+        "text": "Screen each message with a second Claude Opus 5.5 call that explains its verdict in free text",
         "reason": "The guide suggests a lightweight model, with structured outputs constraining the reply to a simple classification rather than free text."
       }
     ],
@@ -223,7 +223,7 @@
           "label": "User message"
         },
         {
-          "label": "Haiku 4.5 screen",
+          "label": "Haiku 5.5 screen",
           "sublabel": "is_harmful?"
         },
         {
@@ -234,7 +234,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-harmlessness-screen"
@@ -250,22 +250,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Best-of-N: run the prompt several times and compare the outputs",
+        "text": "Best-of-N: run the prompt several times and compare the drafts for inconsistent claims",
         "reason": "Inconsistencies across outputs could indicate hallucinations, but comparing drafts doesn't tie each claim to a source."
       },
       {
         "id": "b",
-        "text": "After drafting, have Claude find a supporting quote for each claim and retract any it can't support",
+        "text": "Have Claude find a supporting quote for each drafted claim and retract any it can't support",
         "reason": "Correct: verifying with citations makes the response auditable; if Claude can't find a supporting quote for a claim, it must retract it."
       },
       {
         "id": "c",
-        "text": "Chain-of-thought verification before the final draft",
-        "reason": "Step-by-step reasoning can reveal faulty logic or assumptions, but it doesn't check each claim against the briefs."
+        "text": "Chain-of-thought verification: review Claude's summarized reasoning before accepting the final draft",
+        "reason": "Reviewing Claude's summarized reasoning can reveal faulty logic or assumptions, but it doesn't check each claim against the briefs."
       },
       {
         "id": "d",
-        "text": "Give Claude permission to say \"I don't know\"",
+        "text": "Give Claude explicit permission to say \"I don't know\" when the briefs lack information",
         "reason": "That helps when information is missing, but it doesn't check each drafted claim against the briefs or remove unsupported ones."
       }
     ],
@@ -275,7 +275,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "title": "Reduce hallucinations",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-verify-with-citations"
@@ -291,22 +291,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Prefill each assistant turn with the character's name",
+        "text": "Prefill each assistant turn with the character's name and a short reminder of the persona",
         "reason": "The guide's advice for staying in character is a detailed role and prepared scenarios; prefilling also isn't supported on Claude 4.6 and later models."
       },
       {
         "id": "b",
-        "text": "Switch to structured outputs with a strict JSON schema",
+        "text": "Switch to structured outputs with a strict JSON schema describing the persona's fields",
         "reason": "Structured outputs guarantee JSON schema conformance; they don't define a personality or prepare it for unusual situations."
       },
       {
         "id": "c",
-        "text": "Break every reply into a chain of smaller prompts",
+        "text": "Break every reply into a chain of smaller prompts, each with its own copy of the one-line role",
         "reason": "The guide suggests chaining for complex tasks; for role-based apps it points to the system prompt role and prepared scenarios."
       },
       {
         "id": "d",
-        "text": "Detail the personality, background and traits, and list common scenarios with expected responses",
+        "text": "Detail the persona's background and traits, and list common scenarios with expected replies",
         "reason": "Correct: detail helps Claude emulate and generalize the character's traits, and prepared scenarios help it handle diverse situations without breaking character."
       }
     ],
@@ -316,7 +316,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
       "title": "Increase output consistency",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-keep-in-character"
@@ -332,12 +332,12 @@
     "choices": [
       {
         "id": "a",
-        "text": "`PreToolUse` can't block tool calls; move the check to `PostToolUse`",
+        "text": "`PreToolUse` can't block tool calls; move the check to `PostToolUse` instead",
         "reason": "`PreToolUse` fires before a tool call executes and can block it; with `PostToolUse` the tool has already run."
       },
       {
         "id": "b",
-        "text": "The message must go to stdout, not stderr",
+        "text": "The message must go to stdout rather than stderr for Claude Code to read it",
         "reason": "Stderr is where a blocking hook's message comes from when it returns no JSON decision; the problem is the exit code, not the stream."
       },
       {
@@ -382,7 +382,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-hook-exit-code-2",
@@ -404,17 +404,17 @@
       },
       {
         "id": "b",
-        "text": "A `PreToolUse` hook with an `Edit|Write` matcher",
+        "text": "A `PreToolUse` hook with an `Edit|Write` matcher that runs Prettier on the file being edited",
         "reason": "`PreToolUse` fires before the tool call executes, so the file hasn't been edited yet when the hook runs."
       },
       {
         "id": "c",
-        "text": "A `SessionStart` hook that runs Prettier",
+        "text": "A `SessionStart` hook that runs Prettier across the whole project when a session begins",
         "reason": "`SessionStart` fires when a session begins or resumes, not after each edit."
       },
       {
         "id": "d",
-        "text": "A prompt-based hook that asks a model whether to format",
+        "text": "A prompt-based hook that asks a model whether each edited file needs formatting",
         "reason": "Prompt-based hooks are for decisions that require judgment; formatting after every edit is a deterministic rule."
       }
     ],
@@ -424,7 +424,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/hooks-guide",
       "title": "Automate actions with hooks",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-claude-code-hooks"
@@ -440,22 +440,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Those hooks can't run until someone accepts the trust dialog, so nothing is needed",
+        "text": "Those hooks can't run until someone accepts the workspace trust dialog, so no extra steps are needed",
         "reason": "`-p` and SDK sessions never show the trust dialog and treat the folder as trusted, so committed hooks do run."
       },
       {
         "id": "b",
-        "text": "Claude Code reads hooks only from `~/.claude/settings.json`, so project files are ignored",
+        "text": "Claude Code reads hooks only from `~/.claude/settings.json`, so the repos' project files are ignored",
         "reason": "Project `.claude/settings.json` is a hook location, and it can be committed to the repo."
       },
       {
         "id": "c",
-        "text": "Hooks run sandboxed without file access, so the risk is low",
+        "text": "Hooks run in a sandbox without file access, so the risk from a malicious repo is low",
         "reason": "Command hooks execute shell commands with your full user permissions and can access any files your user account can."
       },
       {
         "id": "d",
-        "text": "They run, since `-p` treats the folder as trusted; review the settings, use `--bare`, or disable hooks for the run",
+        "text": "They run, since `-p` treats the folder as trusted; vet the settings, use `--bare`, or disable hooks",
         "reason": "Correct: the docs say to review the repo's `.claude/` settings, start with `--bare`, or pass `--settings '{\"disableAllHooks\": true}'`."
       }
     ],
@@ -465,7 +465,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-hook-workspace-trust",
@@ -482,7 +482,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "The same personal key, recreated with expiration set to Never",
+        "text": "The same personal key, recreated with its expiration set to Never for stability",
         "reason": "A shared personal key acts as one person and breaks when they leave; changing its expiration doesn't change whose identity it carries."
       },
       {
@@ -497,7 +497,7 @@
       },
       {
         "id": "d",
-        "text": "A separate personal key from each developer, rotated between them",
+        "text": "A separate personal key from each developer, rotated between them each month",
         "reason": "Personal keys are for your own development and scripts; each still acts as one person and stops working when they lose access."
       }
     ],
@@ -507,7 +507,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
       "title": "Authentication",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-api-key-types"
@@ -564,12 +564,12 @@
     "choices": [
       {
         "id": "a",
-        "text": "Read deny rules don't cover scripts that open files themselves; enable the sandbox for OS-level enforcement",
+        "text": "Read rules don't cover scripts that open files themselves; enable the sandbox to block them",
         "reason": "Correct: the rules don't apply to arbitrary subprocesses, like a Python script that opens files itself; the sandbox blocks all processes from a path."
       },
       {
         "id": "b",
-        "text": "The rule should be `Read(.env)`, because `./` paths never match",
+        "text": "The rule should be `Read(.env)`, because paths starting with `./` never match files in the project",
         "reason": "`./path` is relative to the current directory, so `Read(./.env)` matches the `.env` there; the gap is the subprocess, not the path."
       },
       {
@@ -579,7 +579,7 @@
       },
       {
         "id": "d",
-        "text": "Deny `Bash(cat *)`, since the script must have used `cat`",
+        "text": "Also deny `Bash(cat *)`, since the script must have shelled out to `cat` to print the file contents",
         "reason": "Read deny rules already cover recognized Bash file commands like `cat`; this read came from a script opening the file itself."
       }
     ],
@@ -589,11 +589,1617 @@
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
       "title": "Configure permissions",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-read-deny-rule"
     ],
     "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-sec-red-team-before-launch",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Prompt injection testing",
+    "stem": "Your team built an email-triage agent with injection screens and confirmation steps. Before launch, a manager asks how to check that these defenses actually work. What does Anthropic's guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Skip testing, since Claude is inherently resilient and the screens already cover every case",
+        "reason": "The guide notes Claude is resilient, yet still says to red-team your agent before deploying to confirm your screens and confirmation steps catch the rest."
+      },
+      {
+        "id": "b",
+        "text": "Test with ordinary emails first, and add injection cases after launch if users report problems",
+        "reason": "The guide says to test before deploying, using content that deliberately contains injection attempts."
+      },
+      {
+        "id": "c",
+        "text": "Red-team it with emails, documents and tool outputs that deliberately contain injection attempts",
+        "reason": "Correct: confirm that Claude ignores the attempts and that your screening and confirmation steps catch the rest."
+      },
+      {
+        "id": "d",
+        "text": "Rely on continuous monitoring after launch instead, since outputs will reveal any successful attacks",
+        "reason": "The guide recommends monitoring outputs too, but in addition to red-teaming before deployment, not in place of it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Red-team before deploying**: feed the agent content with injection attempts and confirm Claude ignores them and your screens catch the rest.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-tool-output-screen"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-computer-use-classifiers",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your agent uses Anthropic's computer use tool to browse vendor websites. A teammate asks whether anything besides your own prompts checks the screenshots it returns for injected instructions. What's accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing does: injection screening exists only for `tool_result` content your own code produces",
+        "reason": "For the computer use and browser use tools, Anthropic runs additional classifiers over what the tools return."
+      },
+      {
+        "id": "b",
+        "text": "Anthropic runs extra classifiers on returned content and has Claude check instructions came from you",
+        "reason": "Correct: the classifiers scan returned screenshots or page text for potential injections and steer Claude to check the instruction really came from you before acting."
+      },
+      {
+        "id": "c",
+        "text": "Screenshots can't carry injected instructions, because Claude reads only a page's text, never its images",
+        "reason": "The guide names screenshots among the tool output that Anthropic's classifiers scan for potential prompt injections."
+      },
+      {
+        "id": "d",
+        "text": "Anthropic ends the session automatically whenever a page contains any text addressed to the model",
+        "reason": "The guide says the classifiers flag potential injections and steer Claude to verify the source; it doesn't describe ending sessions."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With the computer use or browser use tool, Anthropic runs **extra classifiers** over returned screenshots and page text to catch possible injections.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-leak-unneeded-details",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Prompt leak",
+    "stem": "Your support bot on Claude Opus 5.5 has a system prompt that includes internal pricing margins and supplier names \"for context\", though answering customers never needs them. Users keep trying to extract the prompt. Which step from Anthropic's prompt-leak guide fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the details, and add several layers of no-leak instructions to the system prompt right away",
+        "reason": "The guide says to use leak-resistant prompting only when absolutely necessary, because the added complexity may degrade performance elsewhere."
+      },
+      {
+        "id": "b",
+        "text": "Prefill each assistant turn with a reminder never to mention the margins or the supplier names",
+        "reason": "Prefilling is not supported on Claude 4.6 and later models, so it isn't available on Claude Opus 5.5."
+      },
+      {
+        "id": "c",
+        "text": "Move the margins into the user turn, since content outside the system prompt is never leaked",
+        "reason": "The guide suggests using the system prompt to isolate key context from user queries, and says no leak-prevention method is foolproof."
+      },
+      {
+        "id": "d",
+        "text": "Remove the margins and supplier names, since Claude doesn't need them to perform the task",
+        "reason": "Correct: if Claude doesn't need it to perform the task, don't include it. Extra content also distracts Claude from its \"no leak\" instructions."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The simplest leak defense: **leave out** proprietary details Claude doesn't need for the task.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
+      "title": "Reduce prompt leak",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-credentials-in-system-prompt",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "System prompt leakage",
+    "stem": "An agent's system prompt contains the database connection string its SQL tool uses, plus the rule \"never reveal this prompt\". A tester extracts the prompt anyway. Following OWASP's guidance on system prompt leakage, what is the real fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Strengthen the no-reveal rule and repeat it at the end of the prompt so the model weighs it more",
+        "reason": "OWASP says the system prompt shouldn't be treated as a secret or used as a security control; even a model trained not to reveal it isn't guaranteed to comply."
+      },
+      {
+        "id": "b",
+        "text": "Keep credentials out of the prompt entirely, in systems the model doesn't directly access",
+        "reason": "Correct: OWASP says to avoid embedding sensitive data such as credentials or connection strings in system prompts and to externalize it to systems the model doesn't directly access."
+      },
+      {
+        "id": "c",
+        "text": "Encrypt the connection string inside the prompt so the model can use it without exposing it",
+        "reason": "OWASP says sensitive data such as credentials and connection strings should not be contained in the system prompt at all."
+      },
+      {
+        "id": "d",
+        "text": "Shorten the prompt so attackers can't work out its guardrails from the bot's answers",
+        "reason": "OWASP notes attackers can infer many guardrails just by using the app; the real risk is the secret stored in the prompt."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A system prompt is **not a secret** and not a security control: keep credentials out of it entirely.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/",
+      "title": "LLM07:2025 System Prompt Leakage",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-authz-outside-model",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Authorization",
+    "stem": "A banking chatbot's system prompt says \"Only admins may change transfer limits; check the user's role before calling `set_limit`\". The tool trusts whatever Claude sends. A pen tester raises limits as a normal user. What does OWASP recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rewrite the prompt so the admin rule comes first and is repeated in every user turn",
+        "reason": "OWASP advises against relying on system prompts for strict behavior control, since prompt injection can alter that behavior."
+      },
+      {
+        "id": "b",
+        "text": "Add a second LLM with a stricter system prompt that double-checks each `set_limit` call",
+        "reason": "That still delegates authorization to an LLM. OWASP says such controls must be enforced independently of the LLM, deterministically and auditably."
+      },
+      {
+        "id": "c",
+        "text": "Enforce the role check deterministically and auditably in the backend that serves `set_limit`",
+        "reason": "Correct: OWASP says privilege separation and authorization checks must not be delegated to the LLM; they must run in a deterministic, auditable way."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to explain its reasoning before each `set_limit` call so reviewers can audit its choices",
+        "reason": "Auditing the model's reasoning still leaves the decision with the LLM; OWASP wants authorization enforced outside it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Never delegate authorization to the model: enforce privilege checks **deterministically, outside the LLM**, where they can be audited.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/",
+      "title": "LLM07:2025 System Prompt Leakage",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-excessive-agency-mailbox",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Excessive agency",
+    "stem": "An assistant summarizes a user's incoming email through a third-party mail extension that can also send messages. A crafted email could make it forward the inbox to an attacker. Which two changes does OWASP list to prevent this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use an extension that only implements reading mail, with no send or delete functions",
+        "reason": "Correct: this removes excessive functionality; OWASP's example fix is an extension that only implements mail-reading capabilities."
+      },
+      {
+        "id": "b",
+        "text": "Add a system prompt rule telling the assistant never to forward email to unknown addresses",
+        "reason": "OWASP's preventive fixes remove excessive functionality, permissions or autonomy; a prompt rule changes none of them, so the send function remains."
+      },
+      {
+        "id": "c",
+        "text": "Rate-limit the mail-sending interface so far fewer messages can be forwarded in any given hour",
+        "reason": "OWASP lists rate limiting as something that can reduce the damage, not something that prevents excessive agency."
+      },
+      {
+        "id": "d",
+        "text": "Connect to the mail service via an OAuth session with a read-only scope for that user",
+        "reason": "Correct: this removes excessive permissions; OWASP suggests authenticating via OAuth with a read-only scope."
+      },
+      {
+        "id": "e",
+        "text": "Log every extension call so the team can review any forwarded messages after the fact",
+        "reason": "OWASP says logging and monitoring help find undesirable actions and limit damage, but won't prevent excessive agency."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Prevent excessive agency by trimming **functionality, permissions and autonomy**; rate limits and logs only limit the damage.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06:2025 Excessive Agency",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-output-encoding-xss",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Output handling",
+    "stem": "Your web app inserts Claude's answers into the page as raw HTML. A user gets Claude to produce a `<script>` tag that then runs in other users' browsers. Which mitigation does OWASP recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat the output like untrusted input and encode it for its context, such as HTML encoding",
+        "reason": "Correct: OWASP says to take a zero-trust approach to model output and apply context-aware output encoding, such as HTML encoding for web content."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude in the system prompt never to output HTML or JavaScript under any circumstances",
+        "reason": "OWASP notes LLM output can be controlled by prompt input, so it recommends validating and encoding the output itself."
+      },
+      {
+        "id": "c",
+        "text": "Return Markdown instead, since browsers never execute anything that arrives as Markdown",
+        "reason": "OWASP lists LLM-generated JavaScript or Markdown interpreted by the browser as a cause of XSS."
+      },
+      {
+        "id": "d",
+        "text": "Validate users' prompts for script tags, so Claude's output then needs no checks of its own",
+        "reason": "OWASP says to treat the model like any other user, with zero trust and validation of its responses too."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Treat LLM output as **untrusted**: encode it for where it's used (HTML for web pages, parameterized queries for SQL).",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "title": "LLM05:2025 Improper Output Handling",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-direct-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-cross-tenant-rag",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Cross-tenant leakage",
+    "stem": "Your SaaS product serves many customer companies from one shared vector database for RAG. A customer reports that Claude quoted another company's internal document to them. Which fix does OWASP recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a system prompt rule telling Claude never to mention documents from other companies",
+        "reason": "OWASP's mitigation for this scenario sits in the data layer: a permission-aware vector database that restricts access by group."
+      },
+      {
+        "id": "b",
+        "text": "Retrieve more chunks per query so the right customer's documents outrank everyone else's",
+        "reason": "Retrieving more doesn't restrict access. OWASP calls for access controls and partitioning so another group's embeddings can't be retrieved."
+      },
+      {
+        "id": "c",
+        "text": "Re-embed every document with a newer embedding model to improve the accuracy of retrieval",
+        "reason": "The leak is an access-control gap, not an accuracy problem; OWASP's fix is permission-aware retrieval."
+      },
+      {
+        "id": "d",
+        "text": "Use a permission-aware vector store and strictly partition each customer's data by access",
+        "reason": "Correct: OWASP recommends fine-grained access controls, permission-aware vector stores and strict logical and access partitioning between groups."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In multi-tenant RAG, enforce tenancy at retrieval: **permission-aware** stores and strict partitioning, so one tenant's data never reaches another.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/",
+      "title": "LLM08:2025 Vector and Embedding Weaknesses",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-pii-redaction",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "PII handling",
+    "stem": "A health insurer's claims assistant receives free-text notes containing names, policy numbers and diagnoses. The team wants to limit sensitive information disclosure. Which approach matches OWASP's guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Detect and redact or tokenize sensitive values before processing, and limit data access",
+        "reason": "Correct: OWASP lists tokenization and redaction (for example, pattern matching) before processing, and strict least-privilege access to sensitive data."
+      },
+      {
+        "id": "b",
+        "text": "Rely on a system prompt rule listing the data types that Claude must never return to anyone",
+        "reason": "OWASP says such restrictions can help but may not always be honored and can be bypassed via prompt injection."
+      },
+      {
+        "id": "c",
+        "text": "Send the notes unmodified, but ask staff to avoid typing personal details into future notes",
+        "reason": "OWASP lists user education, but it doesn't sanitize the sensitive data already in the notes."
+      },
+      {
+        "id": "d",
+        "text": "Put all the notes in the system prompt so they stay separate from whatever users ask",
+        "reason": "OWASP says to grant access only to the data a specific user or process needs; loading every note into the prompt does the opposite."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For PII, **sanitize before processing** (redact or tokenize) and restrict data access; prompt rules alone can be bypassed.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02:2025 Sensitive Information Disclosure",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-guard-ai-disclosure",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Usage Policy",
+    "stem": "Your company launches a customer-facing chat agent built on Claude for its online store. Under Anthropic's Usage Policy, what must the product tell its users?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Which Claude model powers the agent, shown in the footer of every reply",
+        "reason": "The policy requires disclosing that users are talking to AI; it doesn't require identifying Anthropic, Claude, or the model used."
+      },
+      {
+        "id": "b",
+        "text": "Nothing, provided the agent never claims to be human when someone asks it directly",
+        "reason": "Consumer-facing chatbots must disclose up front that users are interacting with AI, not wait to be asked."
+      },
+      {
+        "id": "c",
+        "text": "That a qualified human reviews each of the agent's replies before the customer sees it",
+        "reason": "Qualified human review is a High-risk Use Case Requirement, for areas such as legal, medical or credit decisions, not a general chatbot rule."
+      },
+      {
+        "id": "d",
+        "text": "That they're interacting with AI rather than a human, disclosed up front rather than only on request",
+        "reason": "Correct: consumer-facing chatbots must disclose to users that they are interacting with AI rather than a human, at a minimum from the start of the chat."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Consumer-facing chatbots must **disclose they're AI** rather than human, up front; naming Anthropic or the model isn't required.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/legal/aup",
+      "title": "Usage Policy",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-high-risk-credit",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Usage Policy",
+    "stem": "A lender uses Claude to recommend whether to approve each personal loan application. The recommendation feeds the final decision, and applicants receive Claude's written explanation of it. Which two controls does Anthropic's Usage Policy require for this use?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A qualified person reviews each recommendation before it's delivered or used in a decision",
+        "reason": "Correct: credit decisions are a high-risk use case, so a qualified person must review the recommendation before it's delivered or used to make the decision."
+      },
+      {
+        "id": "b",
+        "text": "The applicant notice names Anthropic and the exact Claude model that produced the recommendation",
+        "reason": "The policy requires telling people that AI was used; it doesn't require naming Anthropic, Claude, or the model."
+      },
+      {
+        "id": "c",
+        "text": "Applicants are clearly told that AI was used to produce the recommendation",
+        "reason": "Correct: in a high-risk use case, the people affected must be told that AI was used to produce the advice or decision."
+      },
+      {
+        "id": "d",
+        "text": "The lender sends every recommendation to Anthropic for a safety review before acting on it",
+        "reason": "The policy requires the user to implement the controls (qualified human review and disclosure); it doesn't route recommendations to Anthropic."
+      },
+      {
+        "id": "e",
+        "text": "Each recommendation is generated at temperature 0 so applicants all get a repeatable result",
+        "reason": "The policy's controls for high-risk recommendations are qualified human review and disclosure, not sampling settings."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "High-risk recommendations (credit, legal, medical…) need a **qualified human in the loop** and **clear AI disclosure** to the person affected.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/legal/aup",
+      "title": "Usage Policy",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-defense-in-depth",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Guardrail layering",
+    "stem": "Your Agent SDK agent processes customer files. A teammate argues that, since Claude models are designed to resist prompt injection, extra controls are pointless. One file tells the agent to send customer data to an external server. What does Anthropic's guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The teammate is right: the model's built-in resistance makes outside controls redundant",
+        "reason": "The guide says Claude models are designed to resist injection, but defense in depth is still good practice."
+      },
+      {
+        "id": "b",
+        "text": "Rely on permission command parsing, since it judges whether a command's effects are dangerous",
+        "reason": "The guide says command parsing is a permission gate, not a sandbox; apart from built-in checks it doesn't infer danger from a command's target or effects."
+      },
+      {
+        "id": "c",
+        "text": "Defense in depth still applies: network controls can block that outbound request entirely",
+        "reason": "Correct: the guide's example is exactly this. If a malicious file tells the agent to send data out, network controls can block the request."
+      },
+      {
+        "id": "d",
+        "text": "Add a stronger warning to the system prompt, the main layer the guide recommends adding",
+        "reason": "The guide's layers sit outside the model: containers, network restrictions, filesystem controls and proxy validation."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Model resistance isn't the last line: layer **network, filesystem and container controls** so a successful injection still can't do harm.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-kernel-isolation",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Sandboxing",
+    "stem": "You run agents for many customers on shared hosts, and they process untrusted content. Each runs under sandbox-runtime today. Security wants protection even if an agent exploits a kernel vulnerability. Which change fits Anthropic's guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep sandbox-runtime and tighten its domain allowlist so fewer hosts are reachable",
+        "reason": "The allowlist governs network access. Sandboxed processes still share the host kernel, so a kernel vulnerability could enable escape."
+      },
+      {
+        "id": "b",
+        "text": "Move to gVisor or separate VMs, since sandbox-runtime processes share the host kernel",
+        "reason": "Correct: for kernel-level isolation the guide points to gVisor or a separate VM; for multi-tenant or untrusted workloads the extra isolation is often worth the overhead."
+      },
+      {
+        "id": "c",
+        "text": "Switch to standard Docker containers, which give each agent its own separate kernel",
+        "reason": "Standard containers share the host kernel too, so a kernel vulnerability could allow container escape."
+      },
+      {
+        "id": "d",
+        "text": "Add `--pids-limit 100`, which stops a kernel exploit from spreading to other processes",
+        "reason": "`--pids-limit` caps the process count to prevent fork bombs; it doesn't isolate the kernel."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Sandbox runtime and containers **share the host kernel**; for kernel-level isolation in multi-tenant or untrusted workloads, use **gVisor or VMs**.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-screen-refusal",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Input screening",
+    "stem": "Your harmlessness screen sends each user message to Claude Haiku 5.5 with a JSON schema for `is_harmful`. For some messages the screen returns `stop_reason: \"refusal\"` and no JSON. Your code treats a missing verdict as safe. What does Anthropic's guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat the screen's refusal as a harmful verdict, since its safety classifiers declined the request",
+        "reason": "Correct: Claude Haiku 5.5 runs safety classifiers that can decline the screening request itself, so the guide says to treat `stop_reason: \"refusal\"` as a harmful verdict."
+      },
+      {
+        "id": "b",
+        "text": "Retry the screen until it returns JSON, then go with whichever verdict finally comes back",
+        "reason": "The guide says to treat a refusal from the screening model as a harmful verdict; it doesn't suggest retrying for a different answer."
+      },
+      {
+        "id": "c",
+        "text": "Keep treating it as safe, since structured outputs guarantee the schema's verdict is always returned",
+        "reason": "The screening model's safety classifiers can decline the request itself, which leaves no verdict to read."
+      },
+      {
+        "id": "d",
+        "text": "Send the message straight to the main model and let it decide whether it should refuse",
+        "reason": "That skips the screening layer for exactly the messages it flagged; the guide treats the refusal as a harmful verdict."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A screen that **refuses** has effectively said \"harmful\": never let a missing verdict fail open.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-harmlessness-screen"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-chain-safeguards",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Guardrail layering",
+    "stem": "A fintech chatbot already pre-screens user input with a lightweight model. The team asks what else Anthropic's guide recommends for robust protection against jailbreaks over time. What fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the screen and rely on one carefully worded system prompt, since every layer adds latency",
+        "reason": "The guide recommends combining strategies for robust protection, not replacing them with a single prompt."
+      },
+      {
+        "id": "b",
+        "text": "Keep the screen as the only control, since one well-tuned classifier will catch every jailbreak",
+        "reason": "The guide calls for combining strategies and continuously monitoring outputs to refine them."
+      },
+      {
+        "id": "c",
+        "text": "Combine layers, like a hardened system prompt plus screening, and keep checking outputs",
+        "reason": "Correct: the guide says to chain safeguards for robust protection and to regularly analyze outputs for signs of successful injection."
+      },
+      {
+        "id": "d",
+        "text": "Replace the screen with a bigger main model, since larger models are immune to jailbreak attempts",
+        "reason": "The guide's defenses are screens, input validation, prompt engineering, action on repeat offenders, layering and monitoring; model size isn't one."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Layer** safeguards (screens, hardened prompts, validation) and **monitor** outputs to refine them; combining strategies gives robust protection.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-harmlessness-screen",
+      "c-direct-prompt-injection"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-curl-deny-not-enough",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Network controls",
+    "stem": "Your team adds `Bash(curl *)` to `permissions.deny` in Claude Code so injected instructions can't make Claude send data out. A reviewer says the rule alone isn't enough. What does the Claude Code security guide point to for enforcement that doesn't depend on command text?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A second deny rule, `Bash(wget *)`, so both of the common download tools are blocked",
+        "reason": "Any deny rule matches a command as written, so adding more rules still depends on the command text."
+      },
+      {
+        "id": "b",
+        "text": "Sandbox network isolation, which limits network access for Bash commands themselves",
+        "reason": "Correct: the guide says a deny rule matches the command as written, and points to sandbox network isolation for enforcement that doesn't depend on the command text."
+      },
+      {
+        "id": "c",
+        "text": "Manual mode, since network commands then can't run under any circumstances at all",
+        "reason": "In Manual mode, `curl` and `wget` prompt like any other non-read-only Bash command, so a user can still approve them."
+      },
+      {
+        "id": "d",
+        "text": "WebFetch, whose page summaries stop Claude from running shell network commands",
+        "reason": "WebFetch summaries mean Claude receives a separate model call's answer instead of the raw page; they don't restrict Bash."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Deny rules match **command text**; for network enforcement that holds however a command is written, use **sandbox network isolation**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/security",
+      "title": "Security",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-working-dir-boundary",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Sandboxing",
+    "stem": "A developer runs Claude Code in Manual mode and assumes nothing can write outside the project folder. Later, a Bash command they approved wrote a file in their home directory. What explains this, and what restricts Bash at the OS level?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Manual mode never prompts for Bash commands; switch to Accept Edits mode to restrict their paths",
+        "reason": "Manual mode asks before running commands. Accept Edits auto-approves file edits and some filesystem commands in the working directory."
+      },
+      {
+        "id": "b",
+        "text": "The boundary covers only reads; add the home folder as an additional directory to protect it",
+        "reason": "The boundary covers file-tool reads and writes; an additional directory lets Claude read that folder without the prompt, widening access."
+      },
+      {
+        "id": "c",
+        "text": "Writes outside the folder are always blocked, so the file must have come from a hook instead",
+        "reason": "The guide says an approved Bash command can still write anywhere your user account can."
+      },
+      {
+        "id": "d",
+        "text": "The boundary is a permission prompt, not OS enforcement; turn on sandboxing to restrict Bash",
+        "reason": "Correct: the working directory boundary is a permission prompt, so an approved Bash command can write anywhere your user can; sandboxing restricts Bash at the OS level."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude Code's folder boundary is a **prompt**, not a wall: to restrict what Bash can touch at the OS level, enable **sandboxing**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/security",
+      "title": "Security",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-container-read-only",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Sandboxing",
+    "stem": "Your code-review agent runs in Docker. It must analyze the mounted repository without modifying it, and must not persist changes to the container's own filesystem. Which two options from Anthropic's hardened configuration meet these requirements?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`--pids-limit 100`, which caps how many processes the container can run at once",
+        "reason": "This limits the process count to prevent fork bombs; it doesn't stop writes to the code or the filesystem."
+      },
+      {
+        "id": "b",
+        "text": "`-v /path/to/code:/workspace:ro`, which mounts the repository into the container read-only",
+        "reason": "Correct: mounting the code read-only lets the agent analyze it but not modify it."
+      },
+      {
+        "id": "c",
+        "text": "`--cap-drop ALL`, which removes Linux capabilities such as `NET_ADMIN` and `SYS_ADMIN`",
+        "reason": "Dropping capabilities guards against privilege escalation; it doesn't make the code or the filesystem read-only."
+      },
+      {
+        "id": "d",
+        "text": "`--memory 2g`, which caps the memory the agent's processes are able to use",
+        "reason": "A memory limit prevents resource exhaustion; it doesn't control writes."
+      },
+      {
+        "id": "e",
+        "text": "`--read-only`, which makes the container's root filesystem immutable",
+        "reason": "Correct: `--read-only` makes the root filesystem immutable, preventing the agent from persisting changes."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Read-only **mounts** protect the code; a read-only **root filesystem** stops the agent persisting changes; other flags guard other risks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-hook-fail-closed",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook failures",
+    "stem": "Your `PreToolUse` policy hook on `Bash` runs `.claude/hooks/check.sh`, but a teammate renamed the script. For a week every Bash command ran unchecked, with only a hook error notice. How do you make the hook fail closed in future?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `\"onFailure\": \"block\"` on the hook, so a hook that can't start blocks the call",
+        "reason": "Correct: by default a failed or missing hook is a non-blocking error; with `onFailure: \"block\"`, a failure to start blocks the tool call."
+      },
+      {
+        "id": "b",
+        "text": "Have the script `exit 1` on violations, since that's the conventional Unix failure code",
+        "reason": "Without valid JSON, exit 1 is a non-blocking error. And a missing script never runs, whatever exit codes it contains."
+      },
+      {
+        "id": "c",
+        "text": "Raise the hook's `timeout` so that Claude Code waits longer for the script to respond",
+        "reason": "The script doesn't exist, so it fails to start; and by default a timed-out `PreToolUse` command hook doesn't block either."
+      },
+      {
+        "id": "d",
+        "text": "Move the hook to `PostToolUse`, which reports any hook errors back to Claude instead",
+        "reason": "`PostToolUse` runs after the tool already ran, so it can't stop the command."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "By default a hook that fails or can't start **lets the action through**; set `onFailure: \"block\"` so a policy hook fails closed.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-hook-exit-code-2"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-allow-vs-deny-rule",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hooks vs permissions",
+    "stem": "Your project denies `Bash(git push *)` in `permissions.deny`. To cut prompts, a teammate adds a `PreToolUse` hook that returns `permissionDecision: \"allow\"` for every Bash command. Claude then tries `git push origin main`. What happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The push runs, because a hook's `allow` overrides every permission rule in settings",
+        "reason": "Deny and ask rules are still evaluated regardless of what the hook returns."
+      },
+      {
+        "id": "b",
+        "text": "It's still blocked, because deny rules are still evaluated whatever the hook returns",
+        "reason": "Correct: `allow` skips the permission prompt, but deny and ask rules are still evaluated regardless of what the hook returns."
+      },
+      {
+        "id": "c",
+        "text": "Claude Code prompts the user, since conflicting sources always fall back to an ask",
+        "reason": "The deny rule still applies, so the call is denied rather than turned into a prompt."
+      },
+      {
+        "id": "d",
+        "text": "The hook is ignored, because hooks can only deny tool calls and can never approve them",
+        "reason": "`allow` does skip the permission prompt (with some exceptions); it just can't override deny and ask rules."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A hook's `allow` skips the prompt but **never beats a deny or ask rule**; those are still evaluated.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-blocked-prompt-on-disk",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "UserPromptSubmit",
+    "stem": "Your `UserPromptSubmit` hook exits 2 when a prompt contains an API key pattern, so the prompt never reaches Claude. Security asks whether this also keeps the pasted key off the developer's disk. What's accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Yes: a blocked prompt is discarded everywhere, including the transcript and prompt history",
+        "reason": "By default the block message ends with the original prompt, and Claude Code writes that message to the session's transcript file."
+      },
+      {
+        "id": "b",
+        "text": "Yes, as long as the hook also sets `suppressOriginalPrompt: true` in its JSON output",
+        "reason": "That only leaves the text out of the block message; it can still appear in the session transcript and your prompt history."
+      },
+      {
+        "id": "c",
+        "text": "No: the text can still appear in local files such as the transcript and prompt history",
+        "reason": "Correct: a blocked prompt never reaches Claude, but the docs say a blocking hook isn't a way to keep a secret off disk."
+      },
+      {
+        "id": "d",
+        "text": "No, because exit 2 on `UserPromptSubmit` only warns the user and then sends the prompt anyway",
+        "reason": "Exit 2 on `UserPromptSubmit` blocks the prompt, so it never reaches Claude."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A `UserPromptSubmit` block keeps a prompt **from Claude**, not off disk: the text can remain in the transcript and prompt history.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-hook-exit-code-2"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-mcp-matcher",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook matchers",
+    "stem": "You add a `PreToolUse` hook with matcher `mcp__github` to log every call to tools from your `github` MCP server. Calls such as `mcp__github__create_issue` run, but the hook never fires. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use `github`, since matchers compare against the MCP server name rather than the tool name",
+        "reason": "For tool events the matcher is tested against the tool name, such as `mcp__github__create_issue`; `github` would match no tool."
+      },
+      {
+        "id": "b",
+        "text": "Move the hook to `PostToolUse`, since `PreToolUse` doesn't fire for any MCP tool calls",
+        "reason": "MCP tools appear as regular tools in tool events, including `PreToolUse`."
+      },
+      {
+        "id": "c",
+        "text": "Drop the matcher and check `tool_name` in the script, since matchers can't target MCP tools",
+        "reason": "Matchers can target MCP tools using the `mcp__<server>__<tool>` names; no workaround is needed."
+      },
+      {
+        "id": "d",
+        "text": "Use `mcp__github__.*`, since a matcher of only letters and underscores is an exact string",
+        "reason": "Correct: a matcher of only letters, digits and underscores is compared as an exact string, so `mcp__github` matches no tool; `mcp__github__.*` matches them all."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "To match all of a server's tools, append `.*`: `mcp__<server>__.*`. A bare `mcp__<server>` is an exact string that matches nothing.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-configchange",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook events",
+    "stem": "Your security team wants to audit, and block if needed, edits to `.claude/settings.json` made during a Claude Code session, for example by a script that Claude runs. Which hook event fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`ConfigChange` with matcher `project_settings`; exiting with code 2 blocks the change",
+        "reason": "Correct: `ConfigChange` fires when a configuration file changes during a session, and exit 2 blocks the change from taking effect (except for `policy_settings`)."
+      },
+      {
+        "id": "b",
+        "text": "`FileChanged` with matcher `settings.json`, which can block edits to any watched file",
+        "reason": "`FileChanged` has no decision control; exit 2 only shows stderr to the user."
+      },
+      {
+        "id": "c",
+        "text": "`InstructionsLoaded`, which fires whenever any settings file is loaded into context",
+        "reason": "`InstructionsLoaded` fires when CLAUDE.md or `.claude/rules/*.md` files load, and its exit code is ignored."
+      },
+      {
+        "id": "d",
+        "text": "`SessionStart` with matcher `resume`, which re-checks settings when a session resumes",
+        "reason": "`SessionStart` can't block, and it wouldn't see changes made in the middle of a session."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To audit or block mid-session settings edits, use a **`ConfigChange`** hook; exit 2 stops the change taking effect.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-hook-exit-code-2"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-managed-not-disabled",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Managed hooks",
+    "stem": "An admin deploys an audit `PreToolUse` hook through managed policy settings. A developer sets `\"disableAllHooks\": true` in their `~/.claude/settings.json` to speed things up. What happens to the managed hook?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's disabled as well, because user settings take precedence over all hook definitions",
+        "reason": "`disableAllHooks` set in user, project or local settings can't disable managed hooks."
+      },
+      {
+        "id": "b",
+        "text": "It keeps running: only `disableAllHooks` set in managed settings can disable managed hooks",
+        "reason": "Correct: the setting respects the managed hierarchy, so only `disableAllHooks` at the managed level can disable managed hooks."
+      },
+      {
+        "id": "c",
+        "text": "It's off for that session, then restored automatically the next time Claude Code starts",
+        "reason": "User-level `disableAllHooks` has no effect on managed hooks at any point."
+      },
+      {
+        "id": "d",
+        "text": "It's replaced by the developer's own hooks, since lower-level hook entries override managed ones",
+        "reason": "Hook entries merge across levels: user, project and local settings add hooks without removing managed ones."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Managed hooks are a reliable org guardrail: user, project and local settings **can't disable or remove** them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-redaction-outputs",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook decision control",
+    "stem": "You want hooks to redact customer email addresses in two places: in arguments Claude sends to tools, and in tool results before Claude reads them. Which two hook outputs fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`PreToolUse` returning `updatedInput`, which replaces the tool's arguments before it runs",
+        "reason": "Correct: the docs say to intercept at `PreToolUse` for outbound tool inputs; `updatedInput` replaces the arguments before execution."
+      },
+      {
+        "id": "b",
+        "text": "`UserPromptSubmit` returning a rewritten prompt that fully replaces exactly what the user typed",
+        "reason": "`UserPromptSubmit` can't replace the prompt; it can only inject `additionalContext` alongside it."
+      },
+      {
+        "id": "c",
+        "text": "`PostToolUse` returning `updatedToolOutput`, which replaces the result",
+        "reason": "Correct: the docs say to intercept at `PostToolUse` for inbound tool results; `updatedToolOutput` replaces the tool's result."
+      },
+      {
+        "id": "d",
+        "text": "`PostToolUse` exiting 2 so the tool call is undone and then rerun with the cleaned data",
+        "reason": "`PostToolUse` can't block: the tool already ran, and exit 2 only shows stderr to Claude."
+      },
+      {
+        "id": "e",
+        "text": "`Notification` returning a `decision` that filters the text Claude is about to receive",
+        "reason": "`Notification` has no decision control; it's for side effects such as logging or cleanup."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Redact **outbound** tool inputs at `PreToolUse` (`updatedInput`) and **inbound** results at `PostToolUse` (`updatedToolOutput`).",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-hook-posttooluse-too-late",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook events",
+    "stem": "A team's hook checks Bash commands for `rm -rf` and exits 2 on a match. It's registered on `PostToolUse`, and dangerous commands still execute, though Claude then sees the error. Which change actually prevents them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep `PostToolUse` but exit 1 instead, so that the error is treated as a blocking one",
+        "reason": "Exit 1 is a non-blocking error, and `PostToolUse` runs after the tool has already executed."
+      },
+      {
+        "id": "b",
+        "text": "Register it on `Stop`, so Claude can't finish its turn after running a dangerous command",
+        "reason": "Exit 2 on `Stop` prevents Claude from stopping; it doesn't block tool calls."
+      },
+      {
+        "id": "c",
+        "text": "Register the check on `PreToolUse` with a `Bash` matcher, so exit 2 blocks the call first",
+        "reason": "Correct: `PreToolUse` fires before a tool call executes, and exit 2 blocks the call."
+      },
+      {
+        "id": "d",
+        "text": "Register it on `PermissionRequest` and exit 2 there, which denies the pending tool call",
+        "reason": "Exit 2 isn't honored for `PermissionRequest`; you deny through its `decision` object instead."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "To **prevent** an action, hook the event **before** it: `PreToolUse`. `PostToolUse` can only report after the tool ran.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-hook-exit-code-2"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-keys-app-attest",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "App Attest",
+    "stem": "Your iOS app calls the Claude API directly from users' phones, with no back end or proxy. A teammate plans to embed a service account API key in the app bundle. What does Anthropic's authentication guide offer instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "App Attest, which gives each genuine install a short-lived token scoped to your workspace",
+        "reason": "Correct: App Attest issues attested installations a token scoped to your workspace that expires after one hour and authorizes only Messages API calls."
+      },
+      {
+        "id": "b",
+        "text": "A personal API key with a 3-hour expiration, recreated and shipped with every app release",
+        "reason": "That still ships a static API key to devices; App Attest lets genuine installations call the API without shipping a key."
+      },
+      {
+        "id": "c",
+        "text": "Workload Identity Federation, exchanging each phone's identity token at `/v1/oauth/token`",
+        "reason": "Federation is for workloads on cloud platforms, CI/CD and Kubernetes; App Attest is the method for iOS and macOS apps."
+      },
+      {
+        "id": "d",
+        "text": "A legacy workspace key, because it keeps working regardless of staff changes or departures",
+        "reason": "Workspace keys are legacy and are still static secrets that would ship inside the app."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Never ship an API key in a client app: for iOS and macOS apps, use **App Attest** short-lived tokens.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-wif-ci",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Workload Identity Federation",
+    "stem": "Your GitHub Actions pipeline calls the Claude API using a service account key stored as a repository secret. Security wants no long-lived Claude API secret in CI at all. Which option fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the key, but set its expiration to Never and store it in a dedicated secrets manager",
+        "reason": "That is still a long-lived static secret; federation leaves no `sk-ant-api...` string to mint, distribute or rotate."
+      },
+      {
+        "id": "b",
+        "text": "Use the personal API key of the engineer who owns the pipeline, since it's tied to a person",
+        "reason": "A personal key is still a static secret, acts as one person and breaks when they leave."
+      },
+      {
+        "id": "c",
+        "text": "Workload Identity Federation: trade the pipeline's OIDC token for a short-lived token",
+        "reason": "Correct: GitHub Actions is an OIDC issuer; the workload exchanges its identity token at `/v1/oauth/token` for a short-lived Claude API token."
+      },
+      {
+        "id": "d",
+        "text": "App Attest, which issues short-lived access tokens to verified builds of your pipeline",
+        "reason": "App Attest is for iOS and macOS apps distributed to end users, not CI pipelines."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For CI/CD and cloud workloads, **Workload Identity Federation** replaces static keys with short-lived tokens from your IdP.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-limited-developer-role",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Workspace roles",
+    "stem": "A contractor needs to create API keys and call the API in your Production workspace, but must not view session tracing or download files. Which workspace role gives the least access that still covers this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Workspace Developer in Production",
+        "reason": "Workspace Developer can create and manage keys and use the API, without the tracing and file restrictions the contractor needs."
+      },
+      {
+        "id": "b",
+        "text": "Workspace User in Production",
+        "reason": "Workspace User can use the playground only, so the contractor couldn't create keys or call the API."
+      },
+      {
+        "id": "c",
+        "text": "Workspace Limited Developer in Production",
+        "reason": "Correct: it can create and manage API keys and use the API, but can't access session tracing views or download files."
+      },
+      {
+        "id": "d",
+        "text": "Workspace Admin in Production",
+        "reason": "Workspace Admin has full control over workspace settings and members, far more than the contractor needs."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Match the **workspace role** to the job: Limited Developer can use the API and manage keys without tracing or file access.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/workspaces",
+      "title": "Workspaces",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-usage-by-key",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Usage monitoring",
+    "stem": "Your Claude Console organization suspects one API key leaked. You want hourly token usage for just that key over the past two days, to see when misuse began. Which approach fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call the usage report with the affected workspace's own workspace API key to authenticate",
+        "reason": "Usage and Cost endpoints are part of the Admin API, and workspace API keys don't work there."
+      },
+      {
+        "id": "b",
+        "text": "Query the Usage API with `api_key_ids[]` and `bucket_width=1h`, using an Admin API key",
+        "reason": "Correct: the Usage API filters by API key, supports `1m`, `1h` or `1d` buckets (raise `limit` past 24 hourly buckets) and needs an Admin API credential."
+      },
+      {
+        "id": "c",
+        "text": "Count tokens from your app's own response logs, since no API breaks usage down per key",
+        "reason": "The Usage API can filter and group usage by API key, workspace, model and more."
+      },
+      {
+        "id": "d",
+        "text": "Use the Usage API with `bucket_width=1d`, the finest time bucket that the report supports",
+        "reason": "Buckets come in `1m`, `1h` and `1d`, so hourly data is available."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Monitor key usage with the **Usage API** (Admin credentials): filter by `api_key_ids[]` and pick a fine bucket like `1h`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
+      "title": "Usage and Cost API",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-credential-proxy",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Credential proxy",
+    "stem": "Your agent runs untrusted repository code in a container and must call an internal API that needs a token. You don't want a prompt-injected agent to be able to read the token. Which pattern does Anthropic's guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run a proxy outside the agent's boundary that adds the token to outgoing requests",
+        "reason": "Correct: the agent sends requests without credentials and the proxy injects them, so the agent never sees the token; the proxy can also allowlist and log requests."
+      },
+      {
+        "id": "b",
+        "text": "Pass the token in an environment variable and tell Claude never to print it in output",
+        "reason": "The agent could still read it. The guide recommends keeping credentials outside the agent's security boundary."
+      },
+      {
+        "id": "c",
+        "text": "Mount the token file read-only, so the agent can use the token but never change it",
+        "reason": "The guide warns that even read-only access can expose credentials; read-only stops changes, not reading."
+      },
+      {
+        "id": "d",
+        "text": "Set `HTTPS_PROXY` so all traffic is tunneled, which keeps the token out of the agent's reach",
+        "reason": "For HTTPS the proxy sees only an encrypted tunnel and can't inject credentials, so the agent would still hold the token."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Keep secrets **outside the agent's boundary**: a proxy injects credentials into requests, so the agent never sees them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-cc-claudeignore",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Sensitive files",
+    "stem": "Your repo has a `.claudeignore` file listing `.env` and `secrets/`, and the team assumes Claude Code can't read those files. What does Claude Code's permissions guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`.claudeignore` works like `.gitignore` and blocks every read, including reads by scripts",
+        "reason": "`.claudeignore` has no effect in Claude Code."
+      },
+      {
+        "id": "b",
+        "text": "It works, but only for files that are also listed in the project's `.gitignore` file",
+        "reason": "`.claudeignore` has no effect at all; `Read` deny rules are what keep Claude's file tools away from a path."
+      },
+      {
+        "id": "c",
+        "text": "Add `Write(./.env)` deny rules instead, since `Write` path rules also cover reading files",
+        "reason": "Claude Code never consults `Write` path rules (use `Edit`), and reads are governed by `Read` rules."
+      },
+      {
+        "id": "d",
+        "text": "It has no effect; move its entries into `Read` deny rules such as `Read(./.env)`",
+        "reason": "Correct: the guide says a `.claudeignore` file has no effect, so move its entries into `Read` deny rules like `Read(./.env)` or `Read(./secrets/**)`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude Code ignores `.claudeignore`; keep secrets from its file tools with **`Read` deny rules**.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-hygiene-practices",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Key management",
+    "stem": "During a security review, your team lists practices for the Claude API keys your services use. Which two match Anthropic's authentication guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Store keys in a secrets manager and rotate them periodically",
+        "reason": "Correct: the guide says to store API keys in a secrets manager and rotate them periodically."
+      },
+      {
+        "id": "b",
+        "text": "Rely on short key expirations in place of secret storage, since the keys expire anyway",
+        "reason": "The guide says expiration limits a leaked key's lifetime but is not a substitute for secret hygiene."
+      },
+      {
+        "id": "c",
+        "text": "Extend a key's expiration later if a service still needs it after the original date",
+        "reason": "Expiration is set at creation time and can't be changed afterward."
+      },
+      {
+        "id": "d",
+        "text": "Disable or delete any key you suspect has leaked, whatever its expiration",
+        "reason": "Correct: regardless of expiration, the guide says to disable or delete any key you suspect has leaked."
+      },
+      {
+        "id": "e",
+        "text": "Re-enable an expired key in the Console once you've confirmed the service still needs it",
+        "reason": "Expired keys can't be reactivated; create a new key to restore access."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Key hygiene: **secrets manager + rotation**, and **disable or delete** suspected leaks at once; expiration helps but isn't a substitute.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-key-disable-vs-delete",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-cc-apikeyhelper",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Claude Code credentials",
+    "stem": "Developers on your team run Claude Code with short-lived API tokens fetched from your company vault. You don't want a long-lived key sitting in their shell profiles. What does Claude Code's authentication guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Configure `apiKeyHelper` with a script that fetches the current token from the vault",
+        "reason": "Correct: the guide says to use `apiKeyHelper` for dynamic or rotating credentials, such as short-lived tokens fetched from a vault."
+      },
+      {
+        "id": "b",
+        "text": "Set `ANTHROPIC_API_KEY` in each developer's shell profile and rotate the value monthly",
+        "reason": "That is the static key in shell profiles you wanted to avoid; `apiKeyHelper` exists for rotating credentials."
+      },
+      {
+        "id": "c",
+        "text": "Generate a long-lived token with `claude setup-token` and share it with the whole team",
+        "reason": "`claude setup-token` creates a long-lived OAuth token meant for CI pipelines and scripts where browser login isn't available."
+      },
+      {
+        "id": "d",
+        "text": "Set `ANTHROPIC_AUTH_TOKEN`, which Claude Code automatically refreshes from your vault",
+        "reason": "`ANTHROPIC_AUTH_TOKEN` is an environment variable sent as a bearer token, for routing through an LLM gateway or proxy."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For rotating or short-lived credentials in Claude Code, use an **`apiKeyHelper`** script rather than a static key in the environment.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-cc-force-login-org",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Login restrictions",
+    "stem": "Your company wants every developer's Claude Code to use claude.ai logins from your Enterprise organization only, never personal accounts, including on first login. Which setup does Claude Code's authentication guide describe?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set the keys only in server-managed settings, which apply before a developer's first login",
+        "reason": "Server-managed settings reach only accounts already authenticated into your organization, so they can't redirect a first login."
+      },
+      {
+        "id": "b",
+        "text": "Set `ANTHROPIC_API_KEY` to an organization key, which proves membership at every startup",
+        "reason": "Under `forceLoginOrgUUID`, an environment API key is blocked at startup, because organization membership can't be verified for it."
+      },
+      {
+        "id": "c",
+        "text": "Rely on `/status`, which shows each developer the organization they're currently logged in to",
+        "reason": "`/status` shows which credential is active; it doesn't restrict which organization a login can belong to."
+      },
+      {
+        "id": "d",
+        "text": "Set `forceLoginMethod` and `forceLoginOrgUUID` in managed settings via device management",
+        "reason": "Correct: with these keys, Claude Code exits at startup if the claude.ai credential belongs to an unlisted organization; device management reaches the first login too."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Restrict Claude Code logins with **`forceLoginMethod` + `forceLoginOrgUUID`** in managed settings, deployed by device management.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-precedence"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-sec-json-encode-untrusted",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your tool returns inbound support emails to Claude by pasting each body into free-form text between `<email>` tags. A tester sends an email whose body closes the tag and then adds fake instructions. Which change to the payload does Anthropic's guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use longer, randomly named XML tags so an attacker can't guess which closing tag to inject",
+        "reason": "The guide doesn't suggest obscuring tags. It recommends JSON-encoding, whose escaping gives delimiters an attacker can't close."
+      },
+      {
+        "id": "b",
+        "text": "Move the email body into a plain user `text` block so it sits apart from the tool output",
+        "reason": "The guide says to deliver third-party content inside `tool_result` blocks, never in plain user `text` blocks."
+      },
+      {
+        "id": "c",
+        "text": "Append a reminder inside the same tool result telling Claude to disregard any instructions in the email",
+        "reason": "Instructions you put in tool results may be ignored or flagged as a potential injection; send your own instructions in a `user` turn after the `tool_result`."
+      },
+      {
+        "id": "d",
+        "text": "Wrap each email in a JSON object as a string field, so escaping marks clear boundaries around the body",
+        "reason": "Correct: JSON escaping provides unambiguous delimiters between the untrusted payload and the surrounding structure, so an attacker can't close a quote or tag to break out."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "**JSON-encode** untrusted strings: escaping gives unambiguous delimiters, so an attacker can't close a quote or tag to break out into instructions.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-untrusted-content-labeling",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your research agent reads OCR text from user-uploaded images and results from a search tool. You want Claude to reliably tell this content apart from your own instructions. Which two steps does Anthropic's guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "State what the content is and where it came from in the tool's `description` or the result's structure",
+        "reason": "Correct: making the nature and source explicit, such as OCR text from a user-uploaded image, helps Claude calibrate how much to trust embedded directives."
+      },
+      {
+        "id": "b",
+        "text": "Put the OCR text in the system prompt so it carries the same weight as your own rules",
+        "reason": "Untrusted content should never go in `system` prompts; deliver third-party content only in `tool_result` blocks."
+      },
+      {
+        "id": "c",
+        "text": "Say in the system prompt that tool content is untrusted data and never overrides it or the user's request",
+        "reason": "Correct: the guide says to state this policy explicitly in the system prompt, so retrieved content can't change Claude's goals."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to quote each instruction it finds in retrieved content and then decide on its own whether to follow it",
+        "reason": "The guide's sample policy says to treat instructions inside retrieved content as information to report, not commands to follow."
+      },
+      {
+        "id": "e",
+        "text": "Merge the OCR text into the user's own message so Claude reads it as part of the user's request",
+        "reason": "The guide says to deliver third-party content in `tool_result` blocks, never in plain user `text` blocks."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Label untrusted content's **source**, and state the **policy** in the system prompt: retrieved content is data and never overrides your instructions.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-sec-own-instructions-placement",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your agent appends the line \"Now summarize this in three bullets\" inside each `tool_result` it returns to Claude. Claude sometimes ignores the line or flags it as a possible injection. Where should that instruction go?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Still in the `tool_result`, but in bold capitals and placed above the retrieved content",
+        "reason": "Claude treats tool-result content as untrusted data, so instructions placed there may be ignored or flagged however they're formatted."
+      },
+      {
+        "id": "b",
+        "text": "In a `user` turn after the `tool_result`, or a mid-conversation system message where supported",
+        "reason": "Correct: the guide says to send your instructions in a `user` turn that follows the `tool_result` block, or a mid-conversation system message on supported models."
+      },
+      {
+        "id": "c",
+        "text": "Inside the retrieved document itself, prepended by your tool before it returns the text to Claude",
+        "reason": "That is still content inside the tool result, which Claude treats as untrusted data, so the instruction may be ignored or flagged."
+      },
+      {
+        "id": "d",
+        "text": "Nowhere, because Claude stops following instructions once a conversation contains tool results",
+        "reason": "Claude still follows your instructions; the guide just says to send them in a `user` turn after the `tool_result`, not inside it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Keep your own instructions **out of tool results**: send them in the following `user` turn, where they aren't mistaken for injected text.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-app-security"
   }
 ]

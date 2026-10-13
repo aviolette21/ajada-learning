@@ -64,12 +64,12 @@
     "domainId": "eval-testing",
     "subSkillId": "debugging-errors",
     "term": "Tool input escaping differences",
-    "definition": "Unicode and forward-slash escaping in tool inputs differs between model versions (Opus 4.6+), so raw string comparisons can start failing with newer models.",
+    "definition": "Unicode and forward-slash escaping in tool inputs differs between model versions, so raw string comparisons can start failing with newer models.",
     "whyItMatters": "Parse tool inputs with `json.loads()` or `JSON.parse()` and compare values. Never do raw string matching on serialized input.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
       "title": "Troubleshooting tool use",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": false
   },

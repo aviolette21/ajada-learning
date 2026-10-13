@@ -49,13 +49,13 @@
     "domainId": "security-safety",
     "subSkillId": "app-security",
     "term": "Tool-output injection screen",
-    "definition": "A small classifier call, for example with Claude Haiku 4.5, that checks each raw tool output for injection before it goes back as a `tool_result`.",
+    "definition": "A small classifier call, for example with Claude Haiku 5.5, that checks each raw tool output for injection before it goes back as a `tool_result`.",
     "whyItMatters": "If it flags an attempt, return an error or a stripped summary instead of the raw content, and consider surfacing the attempt to the user.",
     "example": "Structured outputs constrain the verdict to one boolean, `injection_suspected`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": false
   },
@@ -64,13 +64,13 @@
     "domainId": "security-safety",
     "subSkillId": "guardrails",
     "term": "Harmlessness screen",
-    "definition": "A lightweight model, such as Claude Haiku 4.5, that pre-screens user input before it reaches your main conversation.",
+    "definition": "A lightweight model, such as Claude Haiku 5.5, that pre-screens user input before it reaches your main conversation.",
     "whyItMatters": "A first guardrail layer against jailbreaks. Use structured outputs to constrain its response to a simple classification.",
     "example": "A JSON schema with one required boolean, `is_harmful`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },

@@ -130,22 +130,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Nothing needed: cached prefixes last 24 hours",
+        "text": "Nothing needed: cached prefixes stay valid for 24 hours after they're written",
         "reason": "The default cache lifetime is **5 minutes**, which is why these requests keep missing."
       },
       {
         "id": "b",
-        "text": "Add more cache breakpoints",
+        "text": "Add more cache breakpoints to cache each section separately",
         "reason": "Up to 4 breakpoints let you cache sections separately; they don't make any entry live longer."
       },
       {
         "id": "c",
-        "text": "Use the 1-hour cache duration with `\"ttl\": \"1h\"` on `cache_control`",
+        "text": "Set `\"ttl\": \"1h\"` on `cache_control` to use the 1-hour cache duration",
         "reason": "Correct: the 1-hour option exists for gaps longer than 5 minutes; its writes cost 2× base input instead of 1.25×."
       },
       {
         "id": "d",
-        "text": "Trim the system prompt below the minimum cacheable length",
+        "text": "Trim the system prompt below the minimum cacheable length so it stops writing",
         "reason": "A prompt shorter than the model's minimum cacheable length can't be cached at all, so you'd lose caching entirely."
       }
     ],
@@ -156,7 +156,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "title": "Prompt caching",
-      "checkedOn": "2026-09-26"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-cache-control",
@@ -169,22 +169,22 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Tokens",
-    "stem": "Before choosing a model, you want a rough token estimate for a 70,000-character English document. Using the ratio in Anthropic's glossary, about how many tokens is it?",
+    "stem": "You're budgeting for a model released before Claude 4.7 and want a rough token estimate for a 70,000-character English document. Using the ratio in Anthropic's glossary, about how many tokens is it?",
     "choices": [
       {
         "id": "a",
         "text": "About 70,000 tokens",
-        "reason": "That treats every character as a token. Tokens can be single characters, but the glossary's rough ratio is about 3.5 English characters per Claude token."
+        "reason": "That treats every character as a token. Tokens can be single characters, but for these models the glossary's rough ratio is about 3.5 English characters per token."
       },
       {
         "id": "b",
         "text": "About 20,000 tokens",
-        "reason": "Correct: at the glossary's rough ratio of about 3.5 English characters per token, 70,000 ÷ 3.5 ≈ 20,000. The exact number varies with the language."
+        "reason": "Correct: on models before Claude 4.7, a token is about 3.5 English characters, so 70,000 ÷ 3.5 ≈ 20,000. The exact number depends on the model and the language."
       },
       {
         "id": "c",
         "text": "About 14,000 tokens",
-        "reason": "That assumes about 5 characters per token; the glossary puts a Claude token at approximately 3.5 English characters, so the count is higher."
+        "reason": "That assumes about 5 characters per token; the glossary puts a token on these models at approximately 3.5 English characters, so the count is higher."
       },
       {
         "id": "d",
@@ -193,13 +193,13 @@
       }
     ],
     "answer": "b",
-    "takeaway": "Anthropic's glossary gives a **rough** ratio of about 3.5 English characters per token; the exact number varies with the language.",
+    "takeaway": "On models before Claude 4.7, a token is roughly **3.5 English characters**; Claude 4.7 and later produce about 30% more tokens for the same text.",
     "mnemonic": "Glossary rule of thumb: characters ÷ 3.5.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-token",
@@ -216,7 +216,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "The API returns a 400 \"prompt is too long\" error",
+        "text": "The API returns a 400 \"prompt is too long\" error before generating any output",
         "reason": "That error is for input that **alone** exceeds the window. Here the 990k input fits; only input plus `max_tokens` is over."
       },
       {
@@ -226,12 +226,12 @@
       },
       {
         "id": "c",
-        "text": "The API drops the oldest turns first-in, first-out to make room",
+        "text": "The API drops the oldest turns first-in, first-out to make room for the output",
         "reason": "Rolling first-in, first-out management is something chat interfaces such as claude.ai can do; in API requests previous turns are preserved completely."
       },
       {
         "id": "d",
-        "text": "The API accepts it; if output reaches the window limit, it stops with `stop_reason: \"model_context_window_exceeded\"`",
+        "text": "It's accepted; output may stop with `stop_reason: \"model_context_window_exceeded\"`",
         "reason": "Correct: on Claude 4.5 models and newer, input plus `max_tokens` may exceed the window, and generation stops at the limit with this stop reason."
       }
     ],
@@ -264,7 +264,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-context-window-exceeded",
@@ -281,18 +281,18 @@
     "choices": [
       {
         "id": "a",
-        "text": "As token count grows, accuracy and recall degrade, so curating what goes in context matters",
+        "text": "Accuracy and recall degrade as token count grows, so curate what's in the context",
         "reason": "Correct: the docs call this context rot. More context isn't automatically better, so choosing what's in context is as important as the space available."
       },
       {
         "id": "b",
-        "text": "The request exceeds the context window, so the wiki is truncated",
+        "text": "The request exceeds the context window, so the API truncates the end of the wiki",
         "reason": "600k tokens is well inside a 1M-token window, so nothing has been cut off."
       },
       {
         "id": "c",
-        "text": "Requests this long are billed at a long-context premium that lowers quality",
-        "reason": "For models with a 1M-token window, long-context requests are billed at standard pricing, and pricing doesn't change answer quality anyway."
+        "text": "Requests this long are billed at a long-context premium tier that lowers quality",
+        "reason": "Most 1M-window models bill long context at standard pricing (Claude Haiku 5.5 charges more over 100k tokens), and price doesn't change answer quality anyway."
       },
       {
         "id": "d",
@@ -306,7 +306,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-context-rot",
@@ -323,22 +323,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Right: only uncached `input_tokens` count toward the window",
+        "text": "Right: only uncached `input_tokens` count toward the context window limit",
         "reason": "With caching, input is split across `input_tokens`, `cache_read_input_tokens` and `cache_creation_input_tokens`, and all three count toward the window."
       },
       {
         "id": "b",
-        "text": "Cached tokens count only on the first request, when the cache is written",
+        "text": "Partly: cached tokens count only on the first request, when the cache is written",
         "reason": "Cache writes and cache reads both count: `cache_creation_input_tokens` and `cache_read_input_tokens` each count toward the window."
       },
       {
         "id": "c",
-        "text": "Wrong: cached prefixes still occupy the window; caching changes what you pay for them, not whether they count",
+        "text": "Wrong: cached prefixes still occupy the window; caching only changes their price",
         "reason": "Correct: the docs say cached prompt prefixes still occupy the context window. Caching changes the price of those tokens, not whether they count."
       },
       {
         "id": "d",
-        "text": "Right, but only for a prefix in the system prompt; cached messages still count",
+        "text": "Right, but only for a prefix in the system prompt; cached messages still count fully",
         "reason": "Everything in the request counts toward the window, the system prompt included, whether or not it is cached."
       }
     ],
@@ -370,7 +370,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-context-window",
@@ -387,22 +387,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Pretraining on question-and-answer pairs is what teaches Claude to follow instructions",
+        "text": "Pretraining on curated question-and-answer pairs is what teaches Claude to follow instructions",
         "reason": "Pretraining uses a large **unlabeled** corpus, and pretrained models are not inherently good at answering questions or following instructions."
       },
       {
         "id": "b",
-        "text": "Claude is a bare pretrained model, so fine-tune it through the Claude API first",
+        "text": "Claude is a bare pretrained model, so fine-tune it through the Claude API before relying on it",
         "reason": "Claude is not a bare language model: it is already fine-tuned to be a helpful assistant. The Claude API does not currently offer fine-tuning."
       },
       {
         "id": "c",
-        "text": "RLHF only adds factual knowledge; instruction-following comes from pretraining alone",
+        "text": "RLHF only adds factual knowledge; instruction-following comes from pretraining on its own",
         "reason": "RLHF trains the model to behave consistently with human preferences, including following instructions more effectively."
       },
       {
         "id": "d",
-        "text": "Pretraining teaches next-word prediction, but Claude has also been fine-tuned and trained with RLHF to be a helpful assistant",
+        "text": "Pretraining teaches next-word prediction; fine-tuning and RLHF made it a helpful assistant",
         "reason": "Correct: pretrained models often need deep prompting skill, so fine-tuning and RLHF refine them; Claude has been fine-tuned to be a helpful assistant."
       }
     ],
@@ -412,7 +412,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-pretraining"
@@ -428,22 +428,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Make outputs more varied, because lower temperature explores rarer word choices",
+        "text": "Make outputs more varied, because lower temperature explores rarer, more surprising word choices",
         "reason": "This is backwards: exploring rare, uncommon or surprising word choices is what **higher** temperature encourages."
       },
       {
         "id": "b",
-        "text": "Make outputs more conservative, because lower temperature sticks to the most probable phrasing",
+        "text": "Make outputs more conservative, sticking closely to the most probable phrasing and answers",
         "reason": "Correct: lower temperatures give more conservative, deterministic outputs; higher temperatures give more creative and diverse ones, which is the opposite of what they need."
       },
       {
         "id": "c",
-        "text": "Make the replies shorter, but no less varied",
+        "text": "Make the replies shorter and more concise, but leave how varied they are unchanged",
         "reason": "Temperature controls the randomness of the model's predictions, not how long the output is."
       },
       {
         "id": "d",
-        "text": "Nothing, because temperature only affects fiction",
+        "text": "Nothing noticeable, because temperature only changes the output of fiction prompts",
         "reason": "Temperature controls the randomness of predictions in text generation generally; for fiction, higher temperature can vary the answers as well as the phrasing."
       }
     ],
@@ -453,7 +453,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-temperature"
@@ -469,12 +469,12 @@
     "choices": [
       {
         "id": "a",
-        "text": "This is expected: even with temperature 0, identical inputs can produce different outputs across API calls",
+        "text": "It's expected: even at temperature 0, identical inputs can give different outputs",
         "reason": "Correct: the glossary says results are not fully deterministic even with temperature set to 0."
       },
       {
         "id": "b",
-        "text": "Temperature 0 is fully deterministic, so something in the request must have changed",
+        "text": "Temperature 0 is fully deterministic, so something in the request itself must have changed",
         "reason": "The glossary says the opposite: even with temperature 0, results will not be fully deterministic."
       },
       {
@@ -484,7 +484,7 @@
       },
       {
         "id": "d",
-        "text": "Raise the temperature to 1 so outputs become stable",
+        "text": "Raise the temperature to 1 so that the outputs settle into one stable answer",
         "reason": "Higher temperature leads to more creative and diverse outputs, so replies would vary **more**, not less."
       }
     ],
@@ -494,7 +494,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-non-determinism",
@@ -635,22 +635,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "The SDK already retries transient errors twice by default with backoff; tune or disable that with `max_retries`",
+        "text": "The SDK already retries transient errors twice by default; tune it with `max_retries`",
         "reason": "Correct: each of your 4 tries makes up to 3 SDK attempts (1 + 2 retries), so 12 in total. `max_retries` configures or disables the SDK's retries."
       },
       {
         "id": "b",
-        "text": "The SDK never retries, so the API must be replaying requests itself",
+        "text": "The SDK never retries on its own, so the API must be replaying failed requests server-side",
         "reason": "The official SDKs do retry automatically: connection errors, rate limits and 5xx errors, twice by default."
       },
       {
         "id": "c",
-        "text": "The SDK retries only 400 errors, so the extra attempts come from somewhere else",
+        "text": "The SDK retries only 400 errors, so the extra attempts must come from elsewhere in your stack",
         "reason": "The SDKs retry **transient** failures such as connection errors, rate limits and 5xx errors; a 400 means a problem with the request itself."
       },
       {
         "id": "d",
-        "text": "The SDK ignores `retry-after`, so it retries at once; lower your loop's delay to match",
+        "text": "The SDK ignores `retry-after` and retries at once; lower your own loop's delay to match",
         "reason": "The SDKs retry with exponential backoff and honor the `retry-after` header when present."
       }
     ],
@@ -661,7 +661,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-sdk-retries",
@@ -678,23 +678,23 @@
     "choices": [
       {
         "id": "a",
-        "text": "`content_block_start` → deltas → `message_start` → `message_stop`",
+        "text": "`content_block_start` → `content_block_delta`s → `content_block_stop` → `message_start` → `message_delta`s → `message_stop`",
         "reason": "`message_start` comes first, carrying a `Message` with empty `content`, before any content block."
       },
       {
         "id": "b",
-        "text": "`message_start` → per block: `content_block_start`, `content_block_delta`s, `content_block_stop` → `message_delta`s → `message_stop`",
+        "text": "`message_start` → blocks (`content_block_start`, deltas, `content_block_stop`) → `message_delta`s → `message_stop`",
         "reason": "Correct: this is the documented flow, and the last event is always `message_stop`."
       },
       {
         "id": "c",
-        "text": "`message_start` → `message_delta`s → content blocks → `message_stop`",
+        "text": "`message_start` → `message_delta`s → blocks (`content_block_start`, deltas, `content_block_stop`) → `message_stop`",
         "reason": "The `message_delta` events, with top-level changes such as usage, come **after** the content blocks."
       },
       {
         "id": "d",
-        "text": "`message_start` → `content_block_delta`s only → `message_stop`",
-        "reason": "Each content block also has a `content_block_start` and a `content_block_stop`, and the message ends with one or more `message_delta` events."
+        "text": "`message_start` → `content_block_delta`s only, with no block start or stop → `message_delta`s → `message_stop`",
+        "reason": "Each content block also has a `content_block_start` before its deltas and a `content_block_stop` after them."
       }
     ],
     "answer": "b",
@@ -724,7 +724,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-stream-event-flow",
@@ -741,22 +741,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Read the tool input from the `message_start` event",
+        "text": "Read the complete tool input from the `message_start` event, which arrives before the deltas",
         "reason": "`message_start` carries a `Message` whose `content` is empty; the tool input arrives later, in deltas."
       },
       {
         "id": "b",
-        "text": "Treat the tool input as a string, since that's its final type",
+        "text": "Treat the tool input as a plain string throughout, since a string is the final type of `input`",
         "reason": "The deltas are strings, but the final `tool_use.input` is always an **object**."
       },
       {
         "id": "c",
-        "text": "Wait for a `text_delta` that carries the finished tool input",
+        "text": "Wait for a later `text_delta` event, which carries the finished tool input as one JSON object",
         "reason": "`text_delta` updates text blocks. A `tool_use` block's input only arrives as `input_json_delta` partial JSON."
       },
       {
         "id": "d",
-        "text": "Accumulate the partial JSON strings and parse once at `content_block_stop`, or use the SDK helpers",
+        "text": "Accumulate the partial JSON strings and parse once at `content_block_stop`, or use SDK helpers",
         "reason": "Correct: the deltas are partial JSON strings. Accumulate them and parse once the `content_block_stop` event arrives, or let the SDKs do it for you."
       }
     ],
@@ -766,7 +766,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-input-json-delta"
@@ -782,12 +782,12 @@
     "choices": [
       {
         "id": "a",
-        "text": "Treat any unrecognized event as an error and retry the request",
+        "text": "Treat any unrecognized event type as a protocol error and retry the whole request",
         "reason": "An unfamiliar event isn't an error: under the versioning policy, new event types may be added."
       },
       {
         "id": "b",
-        "text": "Treat `ping` events as a sign that the connection has stalled",
+        "text": "Treat `ping` events as a sign that the connection has stalled, and reconnect when one arrives",
         "reason": "Streams may include any number of `ping` events; they are a normal part of the stream."
       },
       {
@@ -797,7 +797,7 @@
       },
       {
         "id": "d",
-        "text": "Turn off streaming, since unexpected events mean the stream is corrupted",
+        "text": "Turn off streaming, since unexpected event types mean the stream itself is corrupted",
         "reason": "Unknown event types are expected over time, not a sign of corruption; the guide says to handle them gracefully."
       }
     ],
@@ -807,7 +807,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-stream-event-flow",
@@ -866,7 +866,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "The prompt has more tokens than the model's context window",
+        "text": "The prompt has more tokens than the model's context window allows in a single request",
         "reason": "413 `request_too_large` is about the request's size against the endpoint's limit (32 MB for Messages), not its token count."
       },
       {
@@ -876,12 +876,12 @@
       },
       {
         "id": "c",
-        "text": "Your organization hit its rate limit for tokens per minute",
+        "text": "Your organization hit its tokens-per-minute rate limit on the Messages endpoint",
         "reason": "Rate limits cap requests and tokens per minute; a 413 is the request-size error."
       },
       {
         "id": "d",
-        "text": "The same request would work on Amazon Bedrock, which allows larger requests",
+        "text": "The same request would succeed on Amazon Bedrock, which accepts larger request bodies",
         "reason": "Bedrock limits requests to 20 MB, which is **smaller** than the direct API's 32 MB."
       }
     ],
@@ -891,7 +891,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-request-size-limits"
@@ -907,17 +907,17 @@
     "choices": [
       {
         "id": "a",
-        "text": "Your API key is invalid or revoked",
+        "text": "Your API key is invalid or was revoked partway through streaming the response",
         "reason": "Key problems are `authentication_error` (HTTP 401), and the request was already accepted with a 200."
       },
       {
         "id": "b",
-        "text": "Your organization hit its rate limit",
+        "text": "Your organization hit its rate limit while the response was being streamed",
         "reason": "Rate limits are `rate_limit_error` (HTTP 429). `overloaded_error` means the API itself is temporarily overloaded."
       },
       {
         "id": "c",
-        "text": "It can be ignored: a 200 status means the response completed",
+        "text": "It can be ignored: a 200 status means the response completed successfully",
         "reason": "When streaming, an error can occur **after** the API returns 200, so the status alone doesn't mean the response finished."
       },
       {
@@ -932,7 +932,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-stream-error-events",
@@ -949,13 +949,13 @@
     "choices": [
       {
         "id": "a",
-        "text": "Claude Haiku 4.5",
-        "reason": "Haiku 4.5 is for the lowest latency and price: real-time apps, high-volume processing and sub-agent tasks, not the highest capability."
+        "text": "Claude Haiku 5.5",
+        "reason": "Haiku 5.5 is for the lowest latency and price: real-time apps, high-volume processing and sub-agent tasks, not the highest capability."
       },
       {
         "id": "b",
-        "text": "Claude Sonnet 5",
-        "reason": "Sonnet 5 is for speed and capability on everyday coding, agent and enterprise work, not for when Opus 5.5 at max effort falls short."
+        "text": "Claude Sonnet 5.5",
+        "reason": "Sonnet 5.5 is for speed and capability on everyday coding, agent and enterprise work, not for when Opus 5.5 at max effort falls short."
       },
       {
         "id": "c",
@@ -974,7 +974,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "title": "Choosing the right model",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-current-models",
@@ -1033,17 +1033,17 @@
     "choices": [
       {
         "id": "a",
-        "text": "Run these requests with batch processing, as advised for thinking budgets above 32k",
+        "text": "Use batch processing, which the guide advises for thinking budgets above 32k",
         "reason": "Correct: thinking beyond 32k tokens makes long-running requests that can hit system timeouts and open-connection limits, so the guide says to use batch processing."
       },
       {
         "id": "b",
-        "text": "Switch to `thinking: {\"type\": \"adaptive\"}` on the same model",
+        "text": "Switch to `thinking: {\"type\": \"adaptive\"}` on the same model to avoid the timeouts",
         "reason": "Adaptive thinking isn't available on models that support only extended thinking; `type: \"adaptive\"` returns a 400 error there."
       },
       {
         "id": "c",
-        "text": "Set `budget_tokens` to 512 so that thinking finishes quickly",
+        "text": "Set `budget_tokens` to 512 so that thinking finishes well before any timeout",
         "reason": "The minimum budget is 1,024 tokens; the API rejects smaller values."
       },
       {
@@ -1058,7 +1058,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "title": "Extended thinking",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-thinking-budget",
@@ -1071,12 +1071,12 @@
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
     "topic": "Cost estimation",
-    "stem": "A synchronous workload on Claude Sonnet 5 ($2 / input MTok, $10 / output MTok) uses 10M input tokens and 2M output tokens a day, with no caching. What is the daily cost at base prices?",
+    "stem": "A synchronous workload on Claude Sonnet 5.5 ($2 / input MTok, $10 / output MTok) uses 10M input tokens and 2M output tokens a day, with no caching. What is the daily cost at base prices?",
     "choices": [
       {
         "id": "a",
         "text": "$24",
-        "reason": "That bills all 12M tokens at the $2 input rate. Output has its own price: $10 per MTok on Claude Sonnet 5."
+        "reason": "That bills all 12M tokens at the $2 input rate. Output has its own price: $10 per MTok on Claude Sonnet 5.5."
       },
       {
         "id": "b",
@@ -1091,11 +1091,11 @@
       {
         "id": "d",
         "text": "$104",
-        "reason": "That swaps the prices, billing input at $10 and output at $2. Input is the cheaper side: $2 per MTok on Claude Sonnet 5."
+        "reason": "That swaps the prices, billing input at $10 and output at $2. Input is the cheaper side: $2 per MTok on Claude Sonnet 5.5."
       }
     ],
     "answer": "b",
-    "takeaway": "Cost = input MTok × input price + output MTok × output price; output tokens cost **5×** input on Sonnet 5.",
+    "takeaway": "Cost = input MTok × input price + output MTok × output price; output tokens cost **5×** input on Sonnet 5.5.",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
@@ -1118,7 +1118,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
       "title": "Models overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-price-per-mtok",
@@ -1164,6 +1164,2620 @@
     },
     "relatedCardIds": [
       "c-token-counting"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-tech-sse-one-way-updates",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "SSE vs WebSockets",
+    "stem": "A web dashboard shows progress updates that your server pushes while a long Claude job runs. The browser never needs to send messages back on that channel. Which browser API fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A WebSocket, because only WebSockets let a server push data to the browser",
+        "reason": "Server-sent events also deliver data from server to client, over a persistent HTTP connection; WebSockets aren't the only way to push."
+      },
+      {
+        "id": "b",
+        "text": "Server-sent events through `EventSource`, a one-way stream from server to page",
+        "reason": "Correct: server-sent events are unidirectional, server to client, which makes `EventSource` an excellent choice when the client doesn't need to send data back."
+      },
+      {
+        "id": "c",
+        "text": "`EventSource`, with the page sending its replies back over that same connection",
+        "reason": "Unlike WebSockets, server-sent events are unidirectional: messages are delivered only from the server to the client."
+      },
+      {
+        "id": "d",
+        "text": "A new HTTP request every second that polls the server until the job has finished",
+        "reason": "An `EventSource` opens a persistent connection, and the server sends events over it as they happen, so the page doesn't keep asking."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Server-to-client only? Use **server-sent events** (`EventSource`); WebSockets are for when the client must send messages too.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
+      "title": "EventSource",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-websocket-two-way",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "SSE vs WebSockets",
+    "stem": "Your browser-based voice assistant streams audio chunks to your server while the server streams Claude's replies back, all on one long-lived connection. It needs wide browser support today. Which browser API fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "WebTransport, because it's the simplest option and has the widest browser support",
+        "reason": "WebTransport has features WebSockets lack, but it's more complex to use and its cross-browser support isn't as wide."
+      },
+      {
+        "id": "b",
+        "text": "`WebSocketStream`, the standard Promise-based interface that every engine supports",
+        "reason": "`WebSocketStream` handles backpressure, but it's non-standard and currently supported in only one rendering engine."
+      },
+      {
+        "id": "c",
+        "text": "The `WebSocket` interface, which opens a two-way session between browser and server",
+        "reason": "Correct: the WebSocket API opens a two-way interactive session, so you can send messages and receive responses without polling, with good browser and server support."
+      },
+      {
+        "id": "d",
+        "text": "Repeated HTTP requests from the browser that poll the server for each new reply chunk",
+        "reason": "With the WebSocket API you can send messages to a server and receive responses without having to poll the server for a reply."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Both sides send on one connection? Use **WebSockets**; the `WebSocket` interface is the stable, widely supported choice.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+      "title": "WebSocket API (WebSockets)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sse-connection-limit",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Each tab of your app opens an `EventSource` stream from `app.example.com` to show Claude's replies. The site is served over HTTP/1.1, and users with many tabs open find that new tabs just hang. What explains it, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Without HTTP/2, a browser allows only 6 SSE connections per domain; serve the streams over HTTP/2",
+        "reason": "Correct: when not used over HTTP/2, SSE is limited to 6 open connections per browser + domain, across all tabs. Over HTTP/2 the limit is negotiated (default 100)."
+      },
+      {
+        "id": "b",
+        "text": "Each tab has its own cap of 6 connections, so one tab must be opening too many streams; merge them",
+        "reason": "The limit is per browser + domain and shared across all tabs, so many tabs with one stream each reach it together."
+      },
+      {
+        "id": "c",
+        "text": "Add a short `retry:` field to the stream so that hanging tabs reconnect and grab a free slot sooner",
+        "reason": "`retry` only sets how long the browser waits before reconnecting after a lost connection; it doesn't raise the connection limit."
+      },
+      {
+        "id": "d",
+        "text": "Wait for Chrome and Firefox to raise the cap, which both browsers plan to do in an upcoming release",
+        "reason": "The issue has been marked \"Won't fix\" in Chrome and Firefox, so the fix is on your side: serve the streams over HTTP/2."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Over HTTP/1.1, SSE shares a cap of **6 connections per browser + domain**; serve streams over **HTTP/2**.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "title": "Using server-sent events",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sse-parser-rules",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Your runtime has no `EventSource`, so you're writing your own parser for a `text/event-stream` response. Which two rules of the event stream format must it follow?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat every line as its own message, since each line of the stream is one complete event",
+        "reason": "Messages are separated by a **pair** of newlines, and one message can span several lines of fields."
+      },
+      {
+        "id": "b",
+        "text": "End a message at a blank line: messages are separated by a pair of newlines",
+        "reason": "Correct: each message is a block of text terminated by a pair of newline characters."
+      },
+      {
+        "id": "c",
+        "text": "Read a line that starts with a colon as the name of the event's type",
+        "reason": "A line that starts with a colon is in essence a comment, and is ignored; the type comes from the `event` field."
+      },
+      {
+        "id": "d",
+        "text": "Join consecutive `data:` lines of one message, with a newline between each",
+        "reason": "Correct: when consecutive lines begin with `data:`, they're concatenated, with a newline character inserted between each one."
+      },
+      {
+        "id": "e",
+        "text": "Treat `retry` as the number of reconnect attempts to make before giving up",
+        "reason": "`retry` is the reconnection time in milliseconds; a non-integer value is ignored."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "SSE messages end at a **blank line**; consecutive `data:` lines join with newlines, and lines starting with `:` are comments.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "title": "Using server-sent events",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sse-named-events",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Your browser code sets `evtSource.onmessage`, and the network panel shows events arriving, but the handler never runs. Every event in the stream has an `event:` field, such as `event: content_block_delta`. What's wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `EventSource` needs `withCredentials: true` before it can deliver any events to the page",
+        "reason": "`withCredentials` only says whether cross-origin (CORS) credentials are sent; the events are already arriving."
+      },
+      {
+        "id": "b",
+        "text": "Add a `message` listener with `addEventListener`, which receives events of every type",
+        "reason": "A `message` listener catches events with no `event` field (or `event: message`); it won't trigger on other event types."
+      },
+      {
+        "id": "c",
+        "text": "The connection's `readyState` is `CLOSED`; call `close()`, then open a new `EventSource`",
+        "reason": "Events are reaching the page, so the connection is open; `close()` would end it and set `readyState` to `CLOSED`."
+      },
+      {
+        "id": "d",
+        "text": "Named events fire under their own names; use `addEventListener(\"content_block_delta\")`",
+        "reason": "Correct: if a message has an `event` field, the event fired has that name and needs its own listener; `onmessage` handles messages without one."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`onmessage` only sees **unnamed** events; listen for named SSE events with `addEventListener(name, ...)`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
+      "title": "EventSource",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sse-reconnect",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Your page uses `EventSource` to show a generated report. After the last event the server closes the connection, then the browser connects again and the server generates the whole report a second time. What should the page do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call `evtSource.close()` at the final event: a closed connection is restarted by default",
+        "reason": "Correct: by default, if the connection between the client and server closes, it's restarted. The `.close()` method terminates it."
+      },
+      {
+        "id": "b",
+        "text": "Have the server send `retry: 0` at the end of the stream, so the browser knows not to reconnect",
+        "reason": "`retry` sets the reconnection wait in milliseconds after a lost connection; it changes when the browser reconnects, not whether."
+      },
+      {
+        "id": "c",
+        "text": "Have the server end the stream with a comment line, which tells the browser the stream is complete",
+        "reason": "A line starting with a colon is a comment and is ignored; servers send comments as keep-alives, not as end markers."
+      },
+      {
+        "id": "d",
+        "text": "Remove the `id` field from events, because the last event ID is what makes the browser reconnect",
+        "reason": "`id` sets the `EventSource` object's last event ID value; restarting a closed connection is the default either way."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`EventSource` **restarts closed connections by default**; call `close()` when the stream is truly finished.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "title": "Using server-sent events",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sse-keepalive",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Your server relays Claude's output to the browser over server-sent events. While a slow tool runs, no events are sent for a minute, and a proxy in between drops the idle connection. What's the standard fix within the event stream format?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have the browser send heartbeat messages to the server over the `EventSource` connection",
+        "reason": "Server-sent events are a one-way connection, so the client can't send events to the server on it."
+      },
+      {
+        "id": "b",
+        "text": "Send a `retry:` field so that the proxy waits longer before it closes an idle connection",
+        "reason": "`retry` is the browser's reconnection time after a lost connection; it doesn't stop an idle connection being dropped."
+      },
+      {
+        "id": "c",
+        "text": "Have the server send a comment line (one starting with `:`) periodically as a keep-alive",
+        "reason": "Correct: a line starting with a colon is a comment the client ignores, and a server can send one periodically to keep the connection alive."
+      },
+      {
+        "id": "d",
+        "text": "Change the response's MIME type to `application/json` so proxies treat it as a normal reply",
+        "reason": "The server must respond to an event stream using the MIME type `text/event-stream`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Keep idle SSE streams alive with periodic **comment lines** (starting with `:`), which clients ignore.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
+      "title": "Using server-sent events",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sdk-vs-raw-http",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "Your team is replacing hand-written HTTP calls to the Claude API with an official client SDK. Which three things will the SDK take care of for you?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Sending the auth, `anthropic-version` and `content-type` headers",
+        "reason": "Correct: automatic header management (authentication, `anthropic-version`, `content-type`) is one of the listed SDK benefits."
+      },
+      {
+        "id": "b",
+        "text": "Sending `anthropic-workspace-id` automatically for keys that need it",
+        "reason": "The SDK sends the auth, version and content-type headers; you pass `anthropic-workspace-id` yourself when your key needs it."
+      },
+      {
+        "id": "c",
+        "text": "Retrying failed requests and enforcing request timeouts",
+        "reason": "Correct: built-in retry logic and request timeouts and connection management are listed SDK benefits."
+      },
+      {
+        "id": "d",
+        "text": "Raising your organization's rate limits after repeated 429 errors",
+        "reason": "Limits are set by usage tier; for higher limits you use **Request tier increase** on the Console's Rate limits page."
+      },
+      {
+        "id": "e",
+        "text": "Following `next_page` cursors through list endpoint results",
+        "reason": "Correct: the SDK provides an auto-paginating iterator that follows `next_page` for you (forward only)."
+      },
+      {
+        "id": "f",
+        "text": "Splitting Messages requests over 32 MB so they avoid a 413 error",
+        "reason": "32 MB is the API's maximum request size for Messages; larger requests get a 413 `request_too_large` error."
+      }
+    ],
+    "answer": [
+      "a",
+      "c",
+      "e"
+    ],
+    "takeaway": "SDKs add **headers, retries, timeouts, types, streaming and auto-pagination**; workspace IDs, limits and request size stay your job.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-sdk-retries"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-workspace-header",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "REST headers",
+    "stem": "Your service switches from a single-workspace API key to a key with access to several workspaces. Requests go through an official client SDK. What must your code now add to each request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: the SDK reads the workspace from the key and sends the header for you",
+        "reason": "The SDK sends the auth, version and content-type headers; you pass `anthropic-workspace-id` yourself when your key needs it."
+      },
+      {
+        "id": "b",
+        "text": "An `anthropic-workspace-id` header naming the workspace the request runs in",
+        "reason": "Correct: `anthropic-workspace-id` is required with a multi-workspace API key, and the SDK leaves that header to you."
+      },
+      {
+        "id": "c",
+        "text": "An `x-api-key` header, which picks a workspace when sent with `Authorization`",
+        "reason": "`x-api-key` is a legacy fallback for `Authorization` that carries your API key; it doesn't select a workspace."
+      },
+      {
+        "id": "d",
+        "text": "An `anthropic-beta` header, since multi-workspace keys are still a beta feature",
+        "reason": "Beta headers are for beta features. A request picks its workspace with `anthropic-workspace-id`, required with multi-workspace keys."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Multi-workspace keys need **`anthropic-workspace-id`** on each request; the SDK doesn't add it for you.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-key-types",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sdk-timeout-retries",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Timeouts",
+    "stem": "A chat endpoint creates its Python client with `Anthropic(timeout=20.0)` so that users fail fast. When the API is slow, users still wait about a minute before they see an error. Why, and what should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A float `timeout` is ignored; only an `httpx2.Timeout` object replaces the 10-minute default",
+        "reason": "`timeout` accepts a float or an `httpx2.Timeout` object, so `timeout=20.0` does set a 20-second limit."
+      },
+      {
+        "id": "b",
+        "text": "`timeout` covers only streaming calls; non-streaming ones keep the default 10-minute limit",
+        "reason": "The `timeout` option sets the default for all requests on the client, or can be overridden per request."
+      },
+      {
+        "id": "c",
+        "text": "The API answers slow requests with a 504 after 60 s, and a client timeout can't end them sooner",
+        "reason": "On timeout the SDK itself raises `APITimeoutError`; the 20-second limit applies, but each timed-out attempt is retried."
+      },
+      {
+        "id": "d",
+        "text": "Timed-out requests are retried twice by default; lower `max_retries` for this client",
+        "reason": "Correct: requests that time out are retried twice by default, so three 20-second attempts add up to about a minute. `max_retries` configures this."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "SDK timeouts are **retried twice** by default, so the worst-case wait is about the timeout × 3; tune `max_retries` too.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sdk-raw-headers",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "For each Messages call, your Python service must log one of the response headers along with the reply, but `client.messages.create()` returns only the parsed `Message`. What's the supported way to get both?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read `message._request_id`, which exposes every response header on the returned object",
+        "reason": "`_request_id` carries the value of the `request-id` response header only, not every header."
+      },
+      {
+        "id": "b",
+        "text": "Name the header in `extra_headers`, so that its value gets copied into the returned `Message`",
+        "reason": "`extra_headers` sends extra **request** headers; it doesn't copy response headers into the result."
+      },
+      {
+        "id": "c",
+        "text": "Call `client.messages.with_raw_response.create()`, read `.headers`, then call `.parse()`",
+        "reason": "Correct: `.with_raw_response` returns the raw response, headers included, and `.parse()` gives the object `messages.create()` would have returned."
+      },
+      {
+        "id": "d",
+        "text": "Use `with_streaming_response` without a context manager, so the headers stay readable",
+        "reason": "`.with_streaming_response` requires a context manager, so that the response is reliably closed."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Need headers too? Use **`.with_raw_response`**, then `.parse()` for the usual `Message`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-request-id",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-sdk-auto-pagination",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Pagination",
+    "stem": "A cleanup script calls `client.messages.batches.list(limit=20)` and loops over the result's `.data`. Your account has hundreds of batches, but the script only ever sees 20. What's the simplest fix with the Python SDK?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read `last_id` from the first page, which holds the total number of batches",
+        "reason": "`last_id` is the cursor for fetching the next page, not a count of batches."
+      },
+      {
+        "id": "b",
+        "text": "Loop over the `list()` call itself; the SDK fetches more pages as needed",
+        "reason": "Correct: list methods are paginated, and iterating with `for` (or `async for`) automatically fetches more pages as needed."
+      },
+      {
+        "id": "c",
+        "text": "Call `has_next_page()` first, which loads every remaining item into `.data`",
+        "reason": "`.has_next_page()` only tells you whether another page exists; `.get_next_page()` fetches it."
+      },
+      {
+        "id": "d",
+        "text": "Switch to the async client, whose `list()` returns every page in one call",
+        "reason": "The async client paginates too; you iterate it with `async for`, which fetches more pages as needed."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Iterate the list call itself: SDK **auto-pagination** fetches the following pages for you.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-message-batches"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-pagination-schemes",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Pagination",
+    "stem": "Your raw HTTP pager works for `GET /v1/sessions`: it passes each `next_page` back as `page` until `next_page` is `null`. Reused for `GET /v1/models`, it stops after the first page, though more models exist. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The Models API returns every model in a single response, so there's no further page to fetch",
+        "reason": "List endpoints return results in pages, the Models API included; it just uses a different cursor scheme."
+      },
+      {
+        "id": "b",
+        "text": "`next_page` appears only when you also pass `order=desc`, which the Models API requires",
+        "reason": "`order` sets the sort direction on endpoints that support sorting; it doesn't decide whether `next_page` is returned."
+      },
+      {
+        "id": "c",
+        "text": "The Models API pages backward only, so your pager has to follow `prev_page` instead",
+        "reason": "Only `GET /v1/sessions` returns `prev_page`; on other list endpoints the field is absent."
+      },
+      {
+        "id": "d",
+        "text": "Models uses `after_id`/`before_id` and returns `has_more` and `last_id`, not `next_page`",
+        "reason": "Correct: Message Batches, Models and several Admin API endpoints take `after_id` and `before_id`, and return `has_more`, `first_id` and `last_id`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Not every list endpoint pages alike: Models and Batches use **`after_id` + `has_more`**, not `page`/`next_page`.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-beta-header-google",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Beta headers",
+    "stem": "Your code enables two betas by sending two separate `anthropic-beta` headers. Both features work on the Claude API, but after you move to Claude on Google Cloud, only one of them takes effect. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put both beta names in one `anthropic-beta` header, separated by a comma",
+        "reason": "Correct: Google Cloud reads only one `anthropic-beta` header and ignores the rest, so list every beta in one comma-separated header."
+      },
+      {
+        "id": "b",
+        "text": "Move the beta names into an `anthropic_beta` array in the JSON request body",
+        "reason": "The body's `anthropic_beta` array is for Bedrock's InvokeModel API; Google Cloud takes beta names in the `anthropic-beta` header."
+      },
+      {
+        "id": "c",
+        "text": "Rename both betas, because Google Cloud uses its own platform-specific beta names",
+        "reason": "Beta names are the same on every platform that accepts them, though not every platform accepts every beta."
+      },
+      {
+        "id": "d",
+        "text": "Send each beta in a separate request, since only one beta can apply per request",
+        "reason": "You can use multiple betas in one request by listing all the names in the header, separated by commas."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Several betas? Send **one** `anthropic-beta` header with comma-separated names; Google Cloud ignores extra copies.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/beta-headers",
+      "title": "Beta headers",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-anthropic-version"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-beta-invalid-name",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Beta headers",
+    "stem": "After a teammate edits the beta list in a raw HTTP client, every request fails with a 400 `invalid_request_error` whose message begins \"Unexpected value(s)\" and names the `anthropic-beta` header. What's the most likely cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API is overloaded, so the request should be retried with exponential backoff",
+        "reason": "The error names the `anthropic-beta` header: the API rejected a value in your request, which a retry would send again."
+      },
+      {
+        "id": "b",
+        "text": "The `anthropic-version` header was dropped from the request during the edit",
+        "reason": "The message names the `anthropic-beta` header, which is what the API returns a 400 about for an invalid beta name."
+      },
+      {
+        "id": "c",
+        "text": "A beta name is misspelled, or your organization lacks access to that beta",
+        "reason": "Correct: an invalid beta name, or a beta your organization doesn't have access to, returns a 400 that names the `anthropic-beta` header."
+      },
+      {
+        "id": "d",
+        "text": "Betas can't be combined, so adding a second name made the whole header invalid",
+        "reason": "Multiple betas are allowed: list them comma-separated in one header, or send the header more than once."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A 400 naming `anthropic-beta` means a **wrong or inaccessible beta name**; use the exact documented name.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/beta-headers",
+      "title": "Beta headers",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-beta-endpoint-header",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Beta headers",
+    "stem": "Your raw HTTP client calls `POST /v1/sessions` with auth, `anthropic-version` and `content-type` headers, and the calls fail. The same request made with the SDK's `client.beta.sessions` works. What is the raw client missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `betas` field in the JSON body that lists `managed-agents-2026-04-01`",
+        "reason": "`betas` is the SDK's parameter; over raw HTTP the Claude API takes beta names in the `anthropic-beta` header."
+      },
+      {
+        "id": "b",
+        "text": "The `anthropic-beta: managed-agents-2026-04-01` header, on every request",
+        "reason": "Correct: `/v1/agents`, `/v1/sessions` and `/v1/environments` need `managed-agents-2026-04-01` on every request; `client.beta` adds it for you."
+      },
+      {
+        "id": "c",
+        "text": "The `agent-memory-2026-07-22` header, which also covers Sessions endpoints",
+        "reason": "`agent-memory-2026-07-22` is for `/v1/memory_stores`, where it replaces `managed-agents-2026-04-01`; sending both there returns a 400."
+      },
+      {
+        "id": "d",
+        "text": "Nothing in its headers: the Sessions API can only be called through an SDK",
+        "reason": "The SDK adds endpoint-specific beta headers automatically; you add them yourself only when making raw HTTP requests."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Beta endpoints such as Sessions need their **endpoint-specific beta header** on every raw request; `client.beta` adds it for you.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/beta-headers",
+      "title": "Beta headers",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-api-version-changes",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "API versioning",
+    "stem": "Your integration sends `anthropic-version: 2023-06-01` and validates every response against a strict schema that rejects anything unexpected. Which two kinds of change can Anthropic still make under that same version?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Adding new values to the output, such as extra fields in a response",
+        "reason": "Correct: within a version Anthropic may add values to the output, so a schema that rejects anything unexpected can break."
+      },
+      {
+        "id": "b",
+        "text": "Removing an existing input parameter that your requests still send",
+        "reason": "For a given version, Anthropic preserves existing input parameters."
+      },
+      {
+        "id": "c",
+        "text": "Renaming an existing output field that your response parser reads",
+        "reason": "For a given version, Anthropic preserves existing output parameters."
+      },
+      {
+        "id": "d",
+        "text": "Adding new variants to enum-like values, such as stream event types",
+        "reason": "Correct: Anthropic may add new variants to enum-like output values, for example streaming event types."
+      },
+      {
+        "id": "e",
+        "text": "Making an existing optional input parameter required on every request",
+        "reason": "Within a version Anthropic preserves existing input parameters; the input change it may make is adding **optional** inputs."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "A version keeps existing parameters, but **outputs and enum values can grow**: parse responses tolerantly.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/versioning",
+      "title": "Versions",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-api-versioning",
+      "c-anthropic-version"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-env-base-url",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Environment config",
+    "stem": "Integration tests should send the app's Claude calls to a local mock server at `http://localhost:8083`. The app builds its client with a bare `Anthropic()`, and you don't want to change that code. What should the test environment set?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`ANTHROPIC_LOG=debug`, so the SDK sends its requests through a local debug server",
+        "reason": "`ANTHROPIC_LOG` (`debug` or `info`) turns on the SDK's logging through Python's `logging` module; it doesn't change where requests go."
+      },
+      {
+        "id": "b",
+        "text": "`ANTHROPIC_API_KEY=localhost:8083`, since the key's value picks the host to call",
+        "reason": "`ANTHROPIC_API_KEY` is the default source of the API key the client sends, not of the host it calls."
+      },
+      {
+        "id": "c",
+        "text": "A `default_headers` entry that replaces `anthropic-version` with the mock's address",
+        "reason": "Default headers change request headers, and the SDK warns that overriding them can cause undefined behaviour; they don't change the URL."
+      },
+      {
+        "id": "d",
+        "text": "`ANTHROPIC_BASE_URL=http://localhost:8083`, which the client uses for `base_url`",
+        "reason": "Correct: the client's `base_url` can come from the `ANTHROPIC_BASE_URL` env var, so the unchanged `Anthropic()` call targets the mock server."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Point the SDK at another host with **`ANTHROPIC_BASE_URL`** (or `base_url`); `ANTHROPIC_API_KEY` supplies the key.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-stream-stop-reason",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Streaming events",
+    "stem": "Your streaming handler saves `stop_reason` from the `message_start` event. Your dashboard now shows `stop_reason` as `null` for every streamed response, though the replies look complete. What's wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's `null` in `message_start`; read `stop_reason` from the `message_delta` event",
+        "reason": "Correct: when streaming, `stop_reason` is `null` in the initial `message_start` event, provided in `message_delta`, and absent from other events."
+      },
+      {
+        "id": "b",
+        "text": "A `null` stop reason means Claude refused, so route these requests to a fallback model",
+        "reason": "A refusal is reported as `stop_reason: \"refusal\"`; `null` is just the initial value in `message_start`."
+      },
+      {
+        "id": "c",
+        "text": "The streams are being cut off early; retry each request until a `stop_reason` is set",
+        "reason": "The replies are complete. `stop_reason` is always `null` in `message_start`, so a retry would show the same."
+      },
+      {
+        "id": "d",
+        "text": "Read `stop_reason` from the final `message_stop` event, which is where it's reported",
+        "reason": "`stop_reason` is provided in the `message_delta` event, and not in any other event, `message_stop` included."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When streaming, take `stop_reason` from **`message_delta`**; it's `null` in `message_start`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-stop-reason",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-httpx-mocking",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "Your Python test suite mocks HTTP calls with `respx`, which patches `httpx`. The mocks work for your other clients, but the Anthropic SDK's requests aren't intercepted and go out to the network. What's the documented fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pass a plain `httpx.Client` as `http_client`, so the SDK sends through the patched library",
+        "reason": "`http_client` must be an `httpx2` client; passing a client from the separate `httpx` package raises a `TypeError`."
+      },
+      {
+        "id": "b",
+        "text": "Set `ANTHROPIC_LOG=debug`, which routes the SDK's traffic through the standard `logging` module",
+        "reason": "`ANTHROPIC_LOG` enables the SDK's logging; it doesn't change how or where requests are sent."
+      },
+      {
+        "id": "c",
+        "text": "Call `httpx2.alias_httpx()` once at startup, before anything else imports `httpx`",
+        "reason": "Correct: the SDK sends with `httpx2`, so tools that patch `httpx` don't see its requests by default; `alias_httpx()` makes `import httpx` resolve to `httpx2`."
+      },
+      {
+        "id": "d",
+        "text": "Set `max_retries=0`, because the SDK's retried requests skip any mocks you have installed",
+        "reason": "`max_retries` configures automatic retries; the mocks miss because the SDK uses `httpx2`, not `httpx`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The Python SDK sends with **`httpx2`**: tools that patch `httpx` need `httpx2.alias_httpx()` called first.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech-env-sdk-logging",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Environment config",
+    "stem": "A production Python service intermittently misbehaves when calling Claude. You want the SDK's own log output, without editing any code. What should you set before the service starts?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`ANTHROPIC_BASE_URL`, pointed at a logging proxy that ships inside the SDK",
+        "reason": "`ANTHROPIC_BASE_URL` sets the base URL requests go to; the SDK's logging is turned on with `ANTHROPIC_LOG`."
+      },
+      {
+        "id": "b",
+        "text": "`ANTHROPIC_LOG=debug`, which turns on the SDK's logging via Python's `logging`",
+        "reason": "Correct: the SDK uses the standard library `logging` module, and setting `ANTHROPIC_LOG` to `debug` or `info` enables it."
+      },
+      {
+        "id": "c",
+        "text": "`max_retries=0` on the client, so the SDK prints each failure it would have retried",
+        "reason": "`max_retries` configures or disables automatic retries; it isn't a logging switch, and it means editing code."
+      },
+      {
+        "id": "d",
+        "text": "A `default_headers` value asking the API to include debug details in each response",
+        "reason": "Default headers set request headers, and the SDK warns that overriding them can cause undefined behaviour; logging uses `ANTHROPIC_LOG`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Turn on the Python SDK's logs with **`ANTHROPIC_LOG=debug`** (or `info`); no code change needed.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-sdks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-llm-fast-mode-ttft",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Fast mode",
+    "stem": "A voice assistant on Claude Opus 5.5 feels slow because users wait a long time before the first word arrives; once text starts, it streams quickly enough. A teammate proposes fast mode. What should the team expect?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A big cut in that initial wait, since fast mode makes time to first token up to 2.5x faster",
+        "reason": "The up to 2.5x gain is in output tokens per second. The docs say fast mode's benefits are focused on OTPS, not time to first token."
+      },
+      {
+        "id": "b",
+        "text": "Not much help there: fast mode's gains are in output tokens per second, not time to first token",
+        "reason": "Correct: fast mode's speed benefits are focused on output tokens per second (OTPS), not time to first token (TTFT), so the initial wait isn't what it improves."
+      },
+      {
+        "id": "c",
+        "text": "A faster first word, because fast mode swaps in a smaller model that can start generating sooner",
+        "reason": "Fast mode runs the same model with a faster inference configuration: same weights and behavior, not a different model."
+      },
+      {
+        "id": "d",
+        "text": "No effect at all, because fast mode only applies to requests sent through the Message Batches API",
+        "reason": "It's the other way round: fast mode is not available with the Batch API. It works on regular requests, and its gain is most visible when streaming."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Fast mode raises **output tokens per second** (up to 2.5x); it isn't a fix for time to first token.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-ttft"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-fast-mode-same-model",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Fast mode",
+    "stem": "A product manager hesitates to enable fast mode on Claude Opus 5.5 for a coding assistant, worried that answers will get worse in exchange for the extra speed. What is accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Quality drops a little, because fast mode runs a distilled copy of the model at lower effort",
+        "reason": "Fast mode keeps the same model weights and behavior; the docs say there is no change to intelligence or capabilities."
+      },
+      {
+        "id": "b",
+        "text": "Quality holds, and fast mode is billed at standard rates while it is in research preview",
+        "reason": "Fast mode is billed at premium pricing: $8 / $40 per MTok input / output on Claude Opus 5.5."
+      },
+      {
+        "id": "c",
+        "text": "Quality is unchanged: it's the same model on a faster inference setup, at a premium price",
+        "reason": "Correct: fast mode runs the same model with a faster inference configuration, with no change to intelligence or capabilities, at premium pricing."
+      },
+      {
+        "id": "d",
+        "text": "Quality is unchanged, but fast mode only works on requests under 200k input tokens long",
+        "reason": "Fast mode pricing applies across the full context window, including requests over 200k input tokens."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Fast mode is the **same model with faster output** at a premium price; intelligence and capabilities don't change.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-fast-mode-opus-46",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Fast mode",
+    "stem": "A service sends `speed: \"fast\"` with the fast-mode beta header to `claude-opus-4-6`. Requests succeed with no errors, but output is no faster and the bill shows standard rates. What explains it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 4.6 lacks fast mode, so it runs at standard speed and `usage.speed` says \"standard\"",
+        "reason": "Correct: unlike other unsupported models, Opus 4.6 returns no error. It silently runs at standard speed and standard rates, and `usage.speed` shows \"standard\"."
+      },
+      {
+        "id": "b",
+        "text": "The fast-mode rate limit was exceeded, so the API quietly fell back to standard speed and standard rates",
+        "reason": "Exceeding fast mode's rate limit returns a 429 with a `retry-after` header; it doesn't fall back silently. Falling back is something you code yourself."
+      },
+      {
+        "id": "c",
+        "text": "Fast mode needs streaming turned on; without it, requests run at standard speed and rates",
+        "reason": "Fast mode is compatible with streaming, where the gain is most visible, but the docs' basic fast-mode example is a non-streaming request."
+      },
+      {
+        "id": "d",
+        "text": "Fast mode is free during its research preview, so the bill only ever shows standard rates",
+        "reason": "Fast mode isn't free: requests that run at fast speed are billed at its premium rates."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Check `usage.speed`: on Opus 4.6, `speed: \"fast\"` runs at standard speed without an error; on Opus 4.7 it returns an error.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-fast-mode-facts",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Fast mode",
+    "stem": "A team plans to use fast mode for an interactive coding agent. One deployment runs on Claude Opus 5.5 through the Claude API; a second runs on Amazon Bedrock. Which statements are accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Sending the agent's overnight jobs through the Batch API halves fast mode's price",
+        "reason": "Fast mode is not available with the Batch API."
+      },
+      {
+        "id": "b",
+        "text": "Fast mode works for the Claude API deployment but isn't available on Amazon Bedrock",
+        "reason": "Correct: fast mode for Claude Opus 5.5 is a research preview on the Claude API only; it is not available on Amazon Bedrock, Google Cloud or Microsoft Foundry."
+      },
+      {
+        "id": "c",
+        "text": "Fast requests share the standard Opus rate limit, so they eat into standard capacity",
+        "reason": "Fast mode has a dedicated rate limit, separate from standard Opus rate limits, with its own response headers."
+      },
+      {
+        "id": "d",
+        "text": "On Claude Opus 5.5, fast mode costs $8 per MTok input and $40 per MTok output",
+        "reason": "Correct: that is fast mode's premium pricing for Claude Opus 5.5; prompt caching and data residency multipliers apply on top."
+      },
+      {
+        "id": "e",
+        "text": "Fast mode also works on Claude Opus 4.7, where it falls back to standard speed",
+        "reason": "On Claude Opus 4.7, `speed: \"fast\"` returns an error. It's Claude Opus 4.6 that silently runs at standard speed."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Fast mode: Claude API only, premium price ($8 / $40 on Opus 5.5), its own rate limit, and no Batch API.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-message-batches"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-effort-fewer-tool-calls",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Effort",
+    "stem": "An agent on Claude Sonnet 5.5 runs at `high` effort. On routine tickets it explains its plan, makes many separate tool calls and writes long summaries. The team wants fewer, terser tool calls without switching models. What should they change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise effort to `max`, so the model plans better and needs fewer tool calls overall",
+        "reason": "Higher effort tends to make more tool calls, explain the plan first and give detailed summaries: the opposite of what they want."
+      },
+      {
+        "id": "b",
+        "text": "Leave effort alone: it only scales thinking tokens, so tool behavior needs prompt changes",
+        "reason": "Effort affects all tokens in the response, including tool calls and function arguments, not just thinking."
+      },
+      {
+        "id": "c",
+        "text": "Set a separate effort value on each noisy tool definition and leave the other tools as is",
+        "reason": "Effort is set on the request with `output_config.effort` (or per message, in beta); it isn't a per-tool setting."
+      },
+      {
+        "id": "d",
+        "text": "Lower `output_config.effort`, since lower effort combines work into fewer, terser calls",
+        "reason": "Correct: lower effort levels tend to make fewer tool calls, combine operations, skip the preamble and use terse confirmations."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Effort shapes **every** output token, tool calls included: lower it for fewer, terser calls.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-effort-xhigh",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Effort",
+    "stem": "A team runs an autonomous refactoring agent on Claude Opus 5.5 for over an hour per task, with token budgets in the millions. Evals show quality gains above `high`, but they don't want unconstrained token spending. Which effort level fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`xhigh`, the level meant for long-running agentic and coding tasks",
+        "reason": "Correct: `xhigh` gives extended capability for long-horizon work: long-running agentic and coding tasks (over 30 minutes) with budgets in the millions."
+      },
+      {
+        "id": "b",
+        "text": "`max`, the level that puts a cap on how many tokens get spent",
+        "reason": "`max` is the opposite: absolute maximum capability with **no** constraints on token spending."
+      },
+      {
+        "id": "c",
+        "text": "`medium`, Claude Opus 5.5's default, which is tuned for long tasks",
+        "reason": "`medium` is the default on Claude Opus 5.5, but it's a balanced level with moderate token savings, not the long-horizon one."
+      },
+      {
+        "id": "d",
+        "text": "`low`, because long agent tasks need the most token-efficient level",
+        "reason": "`low` is for simpler tasks that need the best speed and lowest costs, such as subagents, with some capability reduction."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`xhigh` is for long-horizon agentic and coding work; `max` removes every constraint on token spending.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-adaptive-skips-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Adaptive thinking",
+    "stem": "After moving a workload from manual extended thinking to Claude Opus 5.5, a developer notices that some simple requests come back with no `thinking` block at all, while harder ones still have one. What explains this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The thinking budget is too low; set `budget_tokens` to at least 1,024 on those requests",
+        "reason": "On Claude Opus 5.5, `thinking: {\"type\": \"enabled\"}` with `budget_tokens` returns a 400 error; adaptive thinking is the only mode."
+      },
+      {
+        "id": "b",
+        "text": "Adaptive thinking decides per request whether to think, and can skip it on simple ones",
+        "reason": "Correct: with adaptive thinking, when the model skips thinking for a simple request, no thinking block is produced, whatever `display` is set to."
+      },
+      {
+        "id": "c",
+        "text": "The default `display: \"omitted\"` setting strips thinking blocks out of simple responses",
+        "reason": "`omitted` still returns thinking blocks, just with an empty `thinking` field; it doesn't remove them."
+      },
+      {
+        "id": "d",
+        "text": "Thinking was switched off on those requests because effort was set above `high`",
+        "reason": "Thinking can't be turned off on Claude Opus 5.5 at any effort level; effort steers how often and how deeply Claude thinks."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Adaptive thinking means Claude decides **whether** and **how much** to think; a missing block on an easy request is expected.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-variability-statements",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Temperature",
+    "stem": "A team runs two features on Claude: a fiction generator that should produce varied stories, and an extraction job whose outputs they compare across runs. Which statements match Anthropic's glossary?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Higher temperature can vary the fiction's answers as well as its phrasing",
+        "reason": "Correct: higher temperatures give more creative, diverse outputs, with variation in phrasing and, for fiction, in answers too."
+      },
+      {
+        "id": "b",
+        "text": "Lower temperature pushes the model to explore rare, surprising word choices",
+        "reason": "That describes higher temperature; lower temperature sticks to the most probable phrasing and answers."
+      },
+      {
+        "id": "c",
+        "text": "Setting temperature to 0 makes the extraction job fully deterministic",
+        "reason": "Even with temperature set to 0, results won't be fully deterministic; identical inputs may differ across API calls."
+      },
+      {
+        "id": "d",
+        "text": "Identical extraction inputs may produce different outputs across API calls",
+        "reason": "Correct: the glossary warns of non-determinism in APIs, even at temperature 0, on Anthropic's service and through third-party cloud providers."
+      },
+      {
+        "id": "e",
+        "text": "Running through a third-party cloud provider removes run-to-run variation",
+        "reason": "The non-determinism applies both to Anthropic's first-party inference and to inference through third-party cloud providers."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Temperature tunes **diversity**, but even at 0 the API isn't fully deterministic, on any provider.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-temperature",
+      "c-non-determinism"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-input-exceeds-window",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "A request to Claude Opus 5.5, which has a 1M-token context window, carries a stack of documents totalling 1.2M input tokens before any output. What happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API accepts it, then stops with `stop_reason: \"model_context_window_exceeded\"`",
+        "reason": "That stop reason is for input that fits while input plus `max_tokens` exceeds the window. Here the input alone is over."
+      },
+      {
+        "id": "b",
+        "text": "The API drops the oldest content first-in, first-out until what remains fits the window",
+        "reason": "Rolling first-in, first-out handling is something chat interfaces like claude.ai can do; the API preserves the content you send."
+      },
+      {
+        "id": "c",
+        "text": "The API rejects it with a 400 `invalid_request_error` (\"prompt is too long\")",
+        "reason": "Correct: if the input alone exceeds the model's context window, the API returns a 400 \"prompt is too long\" error on every model."
+      },
+      {
+        "id": "d",
+        "text": "The API processes it and bills tokens past 1M at a long-context premium",
+        "reason": "Input alone over the window isn't processed at any price: the API returns a 400 error on every model."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Input over the window gets a **400**; input that fits but overflows with `max_tokens` is accepted on Claude 4.5+ and may stop with `model_context_window_exceeded`.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-context-window-exceeded"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-haiku55-thinking-history",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "After moving a multi-turn chat from Claude Haiku 4.5 to Claude Haiku 5.5, input tokens per turn grow faster than the roughly 30% tokenizer increase can explain. What else is adding input tokens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Haiku 5.5 bills each earlier turn's thinking a second time, as output, on every request",
+        "reason": "Kept thinking blocks from earlier turns count as **input** tokens; they aren't billed again as output."
+      },
+      {
+        "id": "b",
+        "text": "Prompt caching stopped working, since Haiku 5.5 needs 4,096 tokens to cache",
+        "reason": "It's the reverse: the minimum cacheable prompt drops to 512 tokens on Haiku 5.5, down from 4,096 on Haiku 4.5."
+      },
+      {
+        "id": "c",
+        "text": "Haiku 5.5 injects context-awareness tags with the remaining token budget into every turn",
+        "reason": "Context-awareness tags aren't injected on Haiku 5.5; to give it an explicit budget for an agentic loop, use task budgets (beta)."
+      },
+      {
+        "id": "d",
+        "text": "Haiku 5.5 keeps thinking blocks from all earlier turns in context, counted as input",
+        "reason": "Correct: Haiku 4.5 kept only the latest turn's thinking blocks; Haiku 5.5 keeps all of them. Thinking block clearing removes older ones."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "On Haiku 5.5, earlier turns' thinking stays in context as **input**; trim it with thinking block clearing.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5",
+      "title": "What's new in Claude Haiku 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-token"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-task-budgets",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "A long-running agent on Claude Sonnet 5 relied on the API's injected updates about its remaining context to pace its work. After moving it to Claude Opus 5.5, those updates no longer appear. What should the team use instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Task budgets (beta), which give the model an explicit budget for its loop",
+        "reason": "Correct: Claude Opus 4.7 and later Opus models don't receive the injected context-awareness tags; task budgets (beta) give them an explicit budget."
+      },
+      {
+        "id": "b",
+        "text": "A beta header that turns context awareness back on for Claude Opus 5.5",
+        "reason": "Context awareness is automatic on the models that have it, with nothing to enable, and Opus 4.7 and later Opus models don't receive the tags."
+      },
+      {
+        "id": "c",
+        "text": "Copies of the context-awareness tags, inserted into each request by the app",
+        "reason": "The docs say you never send these tags yourself; the API injects them, and only on models with context awareness."
+      },
+      {
+        "id": "d",
+        "text": "Server-side compaction, which reports the remaining budget after each tool call",
+        "reason": "Compaction summarizes earlier parts of the conversation so it can continue past the window limit; it isn't a budget signal."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Injected context-awareness tags exist only on some Sonnet and Haiku models; on Opus 4.7+, Sonnet 5.5 and Haiku 5.5, use **task budgets** (beta).",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-context-window"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-window-what-counts",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "An agent on Claude Sonnet 5.5 hits \"prompt is too long\" well before the team expected. Their context budget counted only the user and assistant messages. Which explanations are correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Its tool definitions count toward the context window",
+        "reason": "Correct: everything in the request counts toward the window, including your tool definitions."
+      },
+      {
+        "id": "b",
+        "text": "The model's training data takes up part of the window",
+        "reason": "The context window is a working memory for the request; it's different from the corpus the model was trained on."
+      },
+      {
+        "id": "c",
+        "text": "The system prompt counts toward the context window",
+        "reason": "Correct: the system prompt is part of the request, and everything in the request counts toward the window."
+      },
+      {
+        "id": "d",
+        "text": "Cache reads are counted twice: as reads and as input",
+        "reason": "With caching, input is split across three usage fields (`input_tokens` and the two cache fields), and all three count; it isn't double-counted."
+      },
+      {
+        "id": "e",
+        "text": "The API rejects any input plus `max_tokens` over the window",
+        "reason": "On Claude 4.5 models and newer, input plus `max_tokens` over the window is accepted; generation may stop with `model_context_window_exceeded`."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Budget the **whole request**: system prompt, messages, tool results and tool definitions all count, plus the output.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-context-window"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-words-per-million-tokens",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Tokens",
+    "stem": "A team wants to send a 700,000-word document collection to Claude Opus 5.5 (1M-token window) in one request. A teammate says it fits, because 1M tokens holds about 750k words. What does the models overview say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It fits: 1M tokens holds about 750k words on every current Claude model",
+        "reason": "About 750k words per 1M tokens was the figure for models before the current tokenizer, which was introduced with Claude Opus 4.7."
+      },
+      {
+        "id": "b",
+        "text": "It fits easily, since 1M tokens is roughly 2.5M words on the current tokenizer",
+        "reason": "2.5M is the rough count of Unicode **characters** in 1M tokens; the word count is roughly 555k."
+      },
+      {
+        "id": "c",
+        "text": "Probably not: on the current tokenizer, 1M tokens is only roughly 555k words",
+        "reason": "Correct: on the tokenizer introduced with Claude Opus 4.7, 1M tokens is roughly 555k words. The 750k figure belongs to older models."
+      },
+      {
+        "id": "d",
+        "text": "It fits only on Claude Fable 5.1, which has a bigger context window than Opus 5.5",
+        "reason": "All four current models (Fable 5.1, Opus 5.5, Sonnet 5.5 and Haiku 5.5) have the same 1M-token context window."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On the current tokenizer, 1M tokens is roughly **555k words**; older models fit about 750k.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-token",
+      "c-context-window"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-multishot-with-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Few-shot prompting",
+    "stem": "A math tutoring app on Claude Opus 5.5 (thinking always on) must solve problems with the school's own method. The prompt only describes the method in prose, and results are inconsistent. What does Anthropic's prompting guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask Claude to write out its reasoning in `<thinking>` tags inside the response",
+        "reason": "On Claude Opus 5.5, a prompt that asks the model to write out its reasoning, for example in `<thinking>` tags, may be declined; rely on thinking instead."
+      },
+      {
+        "id": "b",
+        "text": "Turn thinking off so that the examples in the prompt can take full effect",
+        "reason": "Thinking is always on for Claude Opus 5.5, and multishot examples work **with** thinking, not against it."
+      },
+      {
+        "id": "c",
+        "text": "Replace the prose with a hand-written step-by-step plan for every problem type",
+        "reason": "The guide prefers general instructions over prescriptive steps; Claude's reasoning frequently exceeds what a human would prescribe."
+      },
+      {
+        "id": "d",
+        "text": "Add worked examples, each one showing a problem, the method and the answer",
+        "reason": "Correct: multishot examples work with thinking. Worked examples shape how Claude approaches similar problems in its own thinking blocks."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "With thinking on, **worked examples** (problem, method, answer) steer how Claude reasons; don't ask it to print its reasoning.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-few-shot-prompting"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-zero-to-multishot",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Few-shot prompting",
+    "stem": "A zero-shot prompt (instructions only, no examples) asks Claude to turn meeting notes into action items, but the format and tone vary from run to run. What is the most reliable next step?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a single example and tell Claude to copy its exact wording every time",
+        "reason": "The guide suggests 3–5 examples, diverse enough that Claude doesn't pick up unintended patterns; a single example to copy is neither."
+      },
+      {
+        "id": "b",
+        "text": "Add 3–5 relevant, diverse examples of the output, wrapped in `<example>` tags",
+        "reason": "Correct: examples are one of the most reliable ways to steer format, tone and structure; the guide suggests 3–5 that are relevant, diverse and tagged."
+      },
+      {
+        "id": "c",
+        "text": "Restate the format as short ALL-CAPS rules without explaining the reasons",
+        "reason": "The guide says explaining why a behavior matters helps Claude deliver more targeted responses, because Claude generalizes from the explanation."
+      },
+      {
+        "id": "d",
+        "text": "Paste the examples into the meeting notes themselves so they read as part of the input",
+        "reason": "The guide says to wrap examples in `<example>` tags so Claude can distinguish them from instructions; mixed into the notes, they blur together."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Going from zero-shot to **multishot** (3–5 relevant, diverse, tagged examples) is the most reliable way to steer format and tone.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-few-shot-prompting"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-why-thinking-helps",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Adaptive thinking",
+    "stem": "On multi-step math problems, a Claude Haiku 5.5 app answers less accurately with thinking turned off than with it on. Why does thinking tend to help on tasks like this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Thinking raises the sampling temperature, so more candidate answers are explored",
+        "reason": "Thinking isn't a sampling setting: it's Claude working through the problem in its own words, in `thinking` blocks, before it answers."
+      },
+      {
+        "id": "b",
+        "text": "Thinking gives the model a built-in calculator that it calls while answering",
+        "reason": "No tool is involved: thinking is generated text in which Claude restates the problem, tries approaches and checks its results."
+      },
+      {
+        "id": "c",
+        "text": "Claude gets to try approaches and check intermediate results before it answers",
+        "reason": "Correct: without thinking, the model answers in a single pass; with it, Claude restates the problem, tries approaches, checks intermediate results and drops dead ends."
+      },
+      {
+        "id": "d",
+        "text": "Thinking tokens are free, so the model can spend more on the answer at no cost",
+        "reason": "Thinking tokens are billed as output tokens, even when the thinking text isn't returned, and they count toward `max_tokens`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Thinking replaces single-pass answering with **scratch work and checking**, paid for as output tokens.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-summarized-not-raw",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Thinking output",
+    "stem": "For an audit trail, a developer wants Claude's raw chain of thought on Claude Opus 5 and sets `thinking.display` to `\"summarized\"`. What will they actually get?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A summary written by a separate model; no `display` value ever returns the raw chain",
+        "reason": "Correct: summarization is done by a different model from the one you target, and no `display` setting returns the raw chain of thought."
+      },
+      {
+        "id": "b",
+        "text": "The raw chain of thought, since `summarized` only trims whitespace and formatting",
+        "reason": "The thinking text you receive is a summary of Claude's full thinking process, not the raw chain of thought."
+      },
+      {
+        "id": "c",
+        "text": "The raw chain, as long as the prompt also asks Claude to restate it in the response",
+        "reason": "On Claude Opus 5, a request that tries to elicit the model's internal reasoning in the response text may be refused with `reasoning_extraction`."
+      },
+      {
+        "id": "d",
+        "text": "A summary that is billed only for its own tokens, so it costs less than full thinking",
+        "reason": "You're charged for the full thinking tokens, not the summary tokens, so the billed output count won't match what you see."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Thinking text is a **summary** (or omitted), never the raw chain, and you pay for the full thinking either way.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-display-omitted-latency",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Thinking output",
+    "stem": "A chat app on Claude Sonnet 4.6 uses adaptive thinking but never shows thinking to users. The team wants reply text to start streaming sooner while keeping thinking's quality benefit. What should they set?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`display: \"summarized\"`, so the thinking text is shorter and streams faster",
+        "reason": "`summarized` is already the default on Claude Sonnet 4.6; it's the setting that streams thinking text ahead of the reply."
+      },
+      {
+        "id": "b",
+        "text": "`thinking: {\"type\": \"disabled\"}`, so that no thinking delays the reply",
+        "reason": "That gives up thinking altogether, which the team wants to keep; `display` changes what's returned, not whether Claude thinks."
+      },
+      {
+        "id": "c",
+        "text": "A much lower `max_tokens`, so thinking is cut short and text starts earlier",
+        "reason": "Thinking tokens count toward `max_tokens`, so set it high enough to leave room for both the thinking and the response text."
+      },
+      {
+        "id": "d",
+        "text": "`display: \"omitted\"`, so the server skips streaming the thinking tokens",
+        "reason": "Correct: with `omitted`, the server streams only each thinking block's signature, so the text begins sooner. You're still charged for the full thinking."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`display: \"omitted\"` cuts **time to first text token**, not cost: Claude still thinks, and the thinking is still billed.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-ttft"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-llm-haiku-low-effort-agent",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Effort",
+    "stem": "A Claude Haiku 5.5 agent with a long agent prompt runs at `low` effort to save cost. It often skips a search, stops early or skips a check. What does the effort guidance for Claude Haiku 5.5 suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stay at `low` and turn thinking off with `\"disabled\"` so the agent acts more decisively",
+        "reason": "Turning thinking off gives **less** thinking, not more thoroughness; the guidance points to a higher effort level for this."
+      },
+      {
+        "id": "b",
+        "text": "Raise effort back to the `medium` default, or to `high` for longer agent tasks",
+        "reason": "Correct: at `low`, the model is more likely to skip a search, stop early or skip a check in long agent prompts. Use `medium` for most work and `high` for longer agent tasks."
+      },
+      {
+        "id": "c",
+        "text": "Set `max` effort with thinking disabled to force the most thorough checking",
+        "reason": "On Claude Haiku 5.5, `thinking: {\"type\": \"disabled\"}` at `xhigh` or `max` effort returns a 400 error."
+      },
+      {
+        "id": "d",
+        "text": "Lower effort further to `minimal`, which makes agents follow instructions literally",
+        "reason": "There is no `minimal` level: the effort levels are `low`, `medium`, `high`, `xhigh` and `max`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "On Haiku 5.5, `low` suits chat and simple, high-volume requests; long agent tasks need `medium` or `high`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-tradeoff-opus55-default-effort",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "A team swaps `claude-opus-5` for `claude-opus-5-5` without setting effort. Requests succeed, but on their hardest tasks the answers look less thorough than before. What is the most likely cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5 turns thinking off by default, so hard tasks get no reasoning",
+        "reason": "Thinking is always on in Claude Opus 5.5; it can't be disabled at all."
+      },
+      {
+        "id": "b",
+        "text": "Claude Opus 5.5 ignores effort unless a manual `budget_tokens` value is also sent with it",
+        "reason": "A manual budget (`type: \"enabled\"` with `budget_tokens`) returns a 400 error on Claude Opus 5.5; effort is the control for thinking depth."
+      },
+      {
+        "id": "c",
+        "text": "Claude Opus 5.5 defaults to `medium` effort, where Claude Opus 5 defaulted to `high`",
+        "reason": "Correct: a request that omits `effort` runs at `medium` on Claude Opus 5.5, one level lower than on Claude Opus 5. Set effort explicitly and re-run your sweep."
+      },
+      {
+        "id": "d",
+        "text": "Claude Opus 5.5 thinks less per turn than Claude Opus 5 at every effort level",
+        "reason": "It's the reverse: at the same effort setting it tends to think **more** per turn than Claude Opus 5, most of all at `xhigh` and `max`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Upgrades can change **defaults**: Opus 5.5 runs at `medium` unless you set effort, so set it and re-run your evals.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
+      "title": "What's new in Claude Opus 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-current-models"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-manual-thinking-models",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Extended thinking",
+    "stem": "A gateway forwards one request shape, `thinking: {\"type\": \"enabled\", \"budget_tokens\": 8000}`, to several models. Which models run it as extended thinking instead of returning a 400 error?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Haiku 4.5",
+        "reason": "Correct: Claude Haiku 4.5 supports only manual extended thinking, so `type: \"enabled\"` with a budget works there."
+      },
+      {
+        "id": "b",
+        "text": "Claude Haiku 5.5",
+        "reason": "Claude Haiku 5.5 uses adaptive thinking; `enabled` with `budget_tokens` returns a 400 error."
+      },
+      {
+        "id": "c",
+        "text": "Claude Opus 4.8",
+        "reason": "Claude Opus 4.8 returns a 400 error for `enabled`; it accepts adaptive thinking instead."
+      },
+      {
+        "id": "d",
+        "text": "Claude Opus 4.5",
+        "reason": "Correct: Claude Opus 4.5 rejects `adaptive` and runs `enabled` with a budget as extended thinking."
+      },
+      {
+        "id": "e",
+        "text": "Claude Sonnet 5.5",
+        "reason": "Claude Sonnet 5.5 returns a 400 error for `enabled`; its thinking is adaptive and on by default."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Manual `budget_tokens` runs on Claude 4.5 models (and, deprecated, on 4.6); Claude 4.7 and later return a 400.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-sonnet55-between-tools",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "Code that ran on Claude Sonnet 5 sends `thinking: {\"type\": \"disabled\"}` at `medium` effort. On Claude Sonnet 5.5 every request now returns a 400 error. What fix keeps up-front thinking off?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Omit the `thinking` field, which leaves thinking off on Claude Sonnet 5.5",
+        "reason": "Omitting `thinking` (or sending `adaptive`) gives adaptive thinking, which is on by default on Claude Sonnet 5.5."
+      },
+      {
+        "id": "b",
+        "text": "Send `\"enabled\"` with `budget_tokens: 1024`, the smallest thinking budget allowed",
+        "reason": "Manual thinking budgets (`type: \"enabled\"` with `budget_tokens`) return a 400 error on Claude Sonnet 5.5."
+      },
+      {
+        "id": "c",
+        "text": "Keep `\"disabled\"` but raise effort to `xhigh`, where thinking can be switched off",
+        "reason": "`disabled` returns a 400 on Claude Sonnet 5.5, and even `between_tools` returns a 400 at `xhigh` or `max`."
+      },
+      {
+        "id": "d",
+        "text": "Send `thinking: {\"type\": \"between_tools\"}`, accepted at `high` effort or below",
+        "reason": "Correct: Sonnet 5.5 rejects `disabled`; `between_tools` is its lowest setting, accepted at `low`, `medium` and `high`, and still returns progress updates between tool calls."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "On Sonnet 5.5, `disabled` is gone: the lowest setting is `between_tools`, at `high` effort or below.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/whats-new-sonnet-5-5",
+      "title": "What's new in Claude Sonnet 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-haiku55-max-tokens",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "A classifier moved from Claude Haiku 4.5 to Claude Haiku 5.5 with its old `max_tokens: 200`. Some responses now stop after a `thinking` block, with no text block at all. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Haiku 5.5 has a lower output limit than Haiku 4.5, so longer labels get cut off",
+        "reason": "Haiku 5.5 returns up to 128k output tokens, up from 64k on Haiku 4.5."
+      },
+      {
+        "id": "b",
+        "text": "Thinking is on by default, and thinking tokens count toward that `max_tokens: 200`",
+        "reason": "Correct: adaptive thinking is on by default on Haiku 5.5, and thinking counts toward `max_tokens`, so a small limit can stop after a `thinking` block, before any text."
+      },
+      {
+        "id": "c",
+        "text": "The new tokenizer makes the prompt longer, so the API shortens the output to fit",
+        "reason": "The tokenizer changes how many tokens the same text counts as, but the shape of requests and responses doesn't depend on it."
+      },
+      {
+        "id": "d",
+        "text": "Thinking text is omitted by default, and the label is hidden inside that empty block",
+        "reason": "`display` only controls whether summarized thinking text is returned; the missing text block comes from running out of `max_tokens`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When thinking is on by default, **leave room in `max_tokens`** for thinking plus the answer.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5",
+      "title": "What's new in Claude Haiku 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-max-tokens"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-switch-keeps-reasoning",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "On the Claude API, a router sometimes moves a conversation that started on Claude Sonnet 5.5 to another model, passing the earlier thinking blocks back unchanged. Which switch keeps the earlier turns' reasoning?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Sonnet 5.5 to Claude Opus 5",
+        "reason": "Claude Opus 5 can't read Sonnet 5.5's thinking blocks, so the API drops them and later turns run without that reasoning."
+      },
+      {
+        "id": "b",
+        "text": "Sonnet 5.5 to Claude Haiku 5.5",
+        "reason": "On the Claude API and Google Cloud, Claude Opus 5.5 is the only other model that reads Sonnet 5.5's thinking blocks."
+      },
+      {
+        "id": "c",
+        "text": "Sonnet 5.5 to Claude Fable 5.1",
+        "reason": "Only Claude Opus 5.5 reads Sonnet 5.5's thinking blocks; any other switch drops them. The request still succeeds, and dropped blocks are not billed."
+      },
+      {
+        "id": "d",
+        "text": "Sonnet 5.5 to Claude Opus 5.5",
+        "reason": "Correct: on the Claude API and Google Cloud, Claude Opus 5.5 reads Sonnet 5.5's thinking blocks, so the conversation keeps its reasoning."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Thinking blocks are tied to models: from Sonnet 5.5, only a move **up to Opus 5.5** keeps the reasoning; other switches drop it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/whats-new-sonnet-5-5",
+      "title": "What's new in Claude Sonnet 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-fable-vs-opus-cost",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Cost estimation",
+    "stem": "A workload uses 20M input and 4M output tokens a day, with no caching. How much more per day would it cost on Claude Fable 5.1 ($10 / $50 per MTok) than on Claude Opus 5.5 ($4 / $20 per MTok)?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "$120 more",
+        "reason": "That counts only the input difference (20 × $6). Output adds another 4 × $30 = $120."
+      },
+      {
+        "id": "b",
+        "text": "$400 more",
+        "reason": "$400 is Fable 5.1's whole daily bill (20 × $10 + 4 × $50), not the difference."
+      },
+      {
+        "id": "c",
+        "text": "$240 more",
+        "reason": "Correct: Opus 5.5 costs 20 × $4 + 4 × $20 = $160; Fable 5.1 costs 20 × $10 + 4 × $50 = $400. The difference is $240."
+      },
+      {
+        "id": "d",
+        "text": "$160 more",
+        "reason": "$160 is Opus 5.5's whole daily bill (20 × $4 + 4 × $20), not the difference."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Fable 5.1 lists at **2.5×** Opus 5.5's per-token prices; move up for demanding long-horizon work or when Opus 5.5 evals at higher effort fall short.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Fable 5.1 costs $400 a day against $160 on Opus 5.5.",
+      "segments": [
+        {
+          "label": "Opus 5.5 · $160",
+          "weight": 160,
+          "tone": "neutral"
+        },
+        {
+          "label": "Extra on Fable 5.1 · $240",
+          "weight": 240,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-current-models"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-fast-mode-opus47",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Fast mode",
+    "stem": "A team on Claude Opus 4.7 wants fast mode for a latency-sensitive coding tool that calls the Claude API. What should they do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send `speed: \"fast\"` to Claude Opus 4.7; unsupported models fall back to standard speed",
+        "reason": "On Claude Opus 4.7, `speed: \"fast\"` returns an error. Only Claude Opus 4.6 silently runs at standard speed."
+      },
+      {
+        "id": "b",
+        "text": "Move to Claude Opus 5.5 and send `speed: \"fast\"` with the fast-mode beta header",
+        "reason": "Correct: fast mode is supported on Claude Opus 5.5, Claude Opus 5 and Claude Opus 4.8, not on Claude Opus 4.7."
+      },
+      {
+        "id": "c",
+        "text": "Switch to Claude Sonnet 5.5, which offers fast mode at standard per-token prices",
+        "reason": "Fast mode is supported only on Claude Opus 5.5, Opus 5 and Opus 4.8, and always at premium pricing."
+      },
+      {
+        "id": "d",
+        "text": "Run the requests through the Batch API, which applies fast mode automatically",
+        "reason": "Fast mode is not available with the Batch API."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Fast mode runs only on **Opus 5.5, Opus 5 and Opus 4.8**; Opus 4.7 rejects it with an error.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-progress-text-quiet",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "An agent UI shows the short notes Claude writes between tool calls as live progress. After moving from Claude Opus 5 to Claude Opus 5.5, the UI goes quiet between tool calls, with no errors. What changed?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Those notes now arrive in `thinking` blocks, empty at the default `display`",
+        "reason": "Correct: on Opus 5.5, text between tool calls comes back in progress-update `thinking` blocks, empty at the default `display: \"omitted\"`; set a `display` value that returns it."
+      },
+      {
+        "id": "b",
+        "text": "Forced tool use is rejected, so no text is written between tool calls",
+        "reason": "Forced tool use returns a 400 error on Opus 5.5: it would fail requests, not silently drop the notes."
+      },
+      {
+        "id": "c",
+        "text": "Opus 5.5 can't disable thinking, so it swaps those notes for longer hidden reasoning",
+        "reason": "Always-on thinking is a separate breaking change (`disabled` returns a 400); the notes still exist, inside `thinking` blocks."
+      },
+      {
+        "id": "d",
+        "text": "The `computer_20251124` tool is no longer accepted, so tool calls run without commentary",
+        "reason": "On the Claude API and Google Cloud that tool returns a 400 error: it fails requests rather than silencing notes."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Some upgrades change **response shape** without errors: on Opus 5.5, notes between tool calls arrive as `thinking` blocks.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
+      "title": "What's new in Claude Opus 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-streaming"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-tradeoff-opus55-migration-changes",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "A team is moving an integration from Claude Opus 5 to Claude Opus 5.5 on the Claude API. It sends `thinking: {\"type\": \"disabled\"}` and `tool_choice: {\"type\": \"any\"}`, and also uses prompt caching and fast mode. Which changes are required?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Drop fast mode, because Claude Opus 5.5 doesn't support `speed: \"fast\"`",
+        "reason": "Fast mode (research preview) is available for Claude Opus 5.5 on the Claude API."
+      },
+      {
+        "id": "b",
+        "text": "Switch caching to `\"ttl\": \"1h\"`, because Opus 5.5 has no 5-minute cache",
+        "reason": "Claude Opus 5.5 supports prompt caching (512-token minimum); the migration doesn't require a different cache duration."
+      },
+      {
+        "id": "c",
+        "text": "Remove `thinking: {\"type\": \"disabled\"}` and choose an effort level",
+        "reason": "Correct: thinking is always on in Claude Opus 5.5 and `disabled` returns a 400 error; lower effort where you used to disable thinking."
+      },
+      {
+        "id": "d",
+        "text": "Replace `output_config.effort` with a manual `budget_tokens` budget",
+        "reason": "A manual budget (`type: \"enabled\"` with `budget_tokens`) also returns a 400 error; effort is the control for thinking depth."
+      },
+      {
+        "id": "e",
+        "text": "Replace `tool_choice` `any` with `auto` and use strict tool use",
+        "reason": "Correct: forced tool use (`any` or `tool`) returns a 400 error on Opus 5.5; use `auto` with `strict: true`, or structured outputs."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "Opus 5 to 5.5: replace `disabled` thinking with an effort level and forced `tool_choice` with `auto` + strict; caching and fast mode carry over.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
+      "title": "What's new in Claude Opus 5.5",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-tool-choice",
+      "c-effort"
+    ],
+    "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-cost-effort-change-cache",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching",
+    "stem": "A long, cached conversation on Claude Opus 5.5 drops to `low` effort for routine follow-ups by changing the top-level `output_config.effort` between requests. Cache reads disappear after each change. How can it lower effort and keep the cache?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a second cache breakpoint right after the system prompt to protect that prefix",
+        "reason": "Top-level effort shapes the rendered prompt, so changing it doesn't preserve cached prefixes from earlier turns; extra breakpoints don't change that."
+      },
+      {
+        "id": "b",
+        "text": "Add an empty `role: \"system\"` message carrying the new `output_config.effort` (beta)",
+        "reason": "Correct: per-message effort (beta header `mid-conversation-output-config-2026-07-01`) leaves everything before it unchanged, so the cached prefix still matches."
+      },
+      {
+        "id": "c",
+        "text": "Put \"respond with low effort\" in the user message and keep the effort value unchanged",
+        "reason": "That's a prompt, not the effort parameter; the cache-friendly way to change the level mid-conversation is a per-message `output_config`."
+      },
+      {
+        "id": "d",
+        "text": "Switch to the 1-hour cache TTL so cached entries survive each change of effort level",
+        "reason": "TTL sets how long entries live; changing top-level effort changes the rendered prompt, so the old prefixes don't match whatever the TTL."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Changing **top-level** effort restarts the cache; on supported models, change it **per message** instead.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-thinking-billed-omitted",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Thinking costs",
+    "stem": "On Claude Opus 5.5, thinking blocks come back with an empty `thinking` field, yet `output_tokens` is far larger than the visible answer. A teammate suspects a billing error. What's going on?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A billing error: hidden thinking isn't charged, so the extra output should be refunded",
+        "reason": "You're still charged for the full thinking tokens; omitting the thinking text reduces latency, not cost."
+      },
+      {
+        "id": "b",
+        "text": "Only a summary of the thinking is billed, which is why the count looks so large",
+        "reason": "You're charged for the full thinking tokens, not summary tokens, so the billed count won't match what you see."
+      },
+      {
+        "id": "c",
+        "text": "Setting `display: \"summarized\"` would take those thinking tokens off the bill",
+        "reason": "`display` changes what's returned, not what's billed: the block is billed the same either way."
+      },
+      {
+        "id": "d",
+        "text": "It's expected: thinking is billed as output tokens even when its text isn't returned",
+        "reason": "Correct: Opus 5.5 defaults to `display: \"omitted\"`, but the full thinking is still billed as output tokens. Omitting reduces latency, not cost."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Hidden thinking is still **billed output**: budget for it even when you never see it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-haiku55-prompt-length",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Long context pricing",
+    "stem": "A Claude Haiku 5.5 request has a 70,000-token cached prefix (a cache read) plus 40,000 uncached input tokens. Which prices apply to it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The over-100,000-token prices, applied to the whole request",
+        "reason": "Correct: prompt length counts all input tokens, cache reads and writes included. At 110,000 tokens the request pays the higher prices, even though part of it is a cache hit."
+      },
+      {
+        "id": "b",
+        "text": "The up-to-100,000 prices, since only uncached input counts",
+        "reason": "A request's prompt length counts all of its input tokens, including cache reads and cache writes, not just uncached input."
+      },
+      {
+        "id": "c",
+        "text": "The higher prices, but only on tokens above 100,000",
+        "reason": "Each request is priced on its own: a request over the threshold pays the higher prices, not a split rate."
+      },
+      {
+        "id": "d",
+        "text": "Standard prices, as 1M-window models bill long context at standard rates",
+        "reason": "That holds for Claude 4.6 and later models **except** Claude Haiku 5.5, which is priced by prompt length."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Haiku 5.5 is priced by **prompt length**: over 100k input tokens (cache reads included), the whole request pays more.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "110k input tokens in all: over the 100k threshold, so the higher prices apply.",
+      "segments": [
+        {
+          "label": "Cache read · 70k",
+          "weight": 7,
+          "tone": "accent"
+        },
+        {
+          "label": "Uncached · 40k",
+          "weight": 4,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-tokenizer-migration-savings",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cost estimation",
+    "stem": "A team moves from Claude Sonnet 4.6 ($3 / $15 per MTok) to Claude Sonnet 5.5 ($2 / $10 per MTok) and budgets exactly one-third lower costs for the same prompts. What does the pricing page suggest they're missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: lower per-token prices cut the bill by exactly one-third",
+        "reason": "The per-token prices are a third lower, but Sonnet 5.5 uses the newer tokenizer, so the same text counts as more tokens."
+      },
+      {
+        "id": "b",
+        "text": "Sonnet 5.5 bills prompts over 200k tokens at a premium, eroding the saving",
+        "reason": "Claude 4.6 and later models (except Claude Haiku 5.5) include the full 1M-token window at standard pricing."
+      },
+      {
+        "id": "c",
+        "text": "The newer tokenizer makes about 30% more tokens from the same text",
+        "reason": "Correct: Claude 4.7 and later models use a tokenizer that produces approximately 30% more tokens for the same text (the exact increase varies); Sonnet 4.6 uses the previous one."
+      },
+      {
+        "id": "d",
+        "text": "Sonnet 5.5 cache reads cost more than Sonnet 4.6's, cancelling the discount",
+        "reason": "Sonnet 5.5 cache hits cost $0.10 per MTok (0.05× base input), below Sonnet 4.6's $0.30."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Per-token price isn't the whole story: Claude 4.7+ tokenizers count about **30% more tokens** for the same text, so recount.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-token-counting"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-batch-cache-read-price",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Batch and caching",
+    "stem": "A Message Batches job on Claude Sonnet 5.5 ($2 / MTok base input) reuses a cached prefix across requests. Cache reads are 0.05× base input on this model. What do those cache reads cost per MTok inside the batch?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "$0.10, because caching and batch discounts can't be combined",
+        "reason": "They can: caching multipliers stack with other pricing modifiers, including the Batch API discount."
+      },
+      {
+        "id": "b",
+        "text": "$1.00, the batch input price, since cached tokens aren't discounted in batches",
+        "reason": "The cache-read multiplier stacks with the batch discount, so cached tokens in a batch cost less than batch input."
+      },
+      {
+        "id": "c",
+        "text": "$0.20, the same cache-read price as on Claude Opus 5.5",
+        "reason": "$0.20 is Claude Opus 5.5's cache-read price; Claude Sonnet 5.5's is $0.10 before the batch discount."
+      },
+      {
+        "id": "d",
+        "text": "$0.05: the 0.05× cache rate, then the 50% batch discount",
+        "reason": "Correct: $2 × 0.05 = $0.10 per MTok, and the Batch API's 50% discount stacks on top, giving $0.05."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Cache multipliers and the 50% **batch discount stack**: apply the cache rate, then halve it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-usage-input-tokens",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Usage tracking",
+    "stem": "A cost dashboard prices input as `usage.input_tokens` × the base input price. After the app adopts prompt caching, input costs look implausibly low. What is wrong with the calculation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: with caching, `input_tokens` already includes cached tokens at a discount",
+        "reason": "`input_tokens` holds only the tokens **after** the last cache breakpoint, not all the input you sent."
+      },
+      {
+        "id": "b",
+        "text": "It ignores both cache usage fields, which are billed at their own rates",
+        "reason": "Correct: total input = `cache_read_input_tokens` + `cache_creation_input_tokens` + `input_tokens`, and reads and writes each have their own price multiplier."
+      },
+      {
+        "id": "c",
+        "text": "Cached tokens are free, so the low figure is right and only output needs tracking",
+        "reason": "Cache reads cost 10% of base input on most models, and 5-minute cache writes cost 25% more than base input, so neither is free."
+      },
+      {
+        "id": "d",
+        "text": "It should read `output_tokens`, where cached input tokens are reported",
+        "reason": "Cached input is reported in `cache_read_input_tokens` (and writes in `cache_creation_input_tokens`), not in output tokens."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With caching, `input_tokens` is only the **uncached tail**: total input = cache reads + cache writes + `input_tokens`.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "The docs' example: 100,050 input tokens in all, but `input_tokens` is only 50.",
+      "segments": [
+        {
+          "label": "cache_read_input_tokens · 100,000",
+          "weight": 8,
+          "tone": "success"
+        },
+        {
+          "label": "input_tokens · 50",
+          "weight": 1,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-cost-report-workspaces",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Usage tracking",
+    "stem": "Finance wants monthly API costs per workspace, in USD, that reconcile with Anthropic's billing. Today each app adds up the token counts from its own responses. What should the team use?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep summing response `usage` in each app, then convert the totals at list prices",
+        "reason": "The Usage and Cost API exists so you don't rely solely on response token counting, and its cost data is meant for reconciling with Anthropic billing."
+      },
+      {
+        "id": "b",
+        "text": "The Usage API, called with each app's existing workspace API key",
+        "reason": "These are Admin API endpoints: they need an Admin API key or another admin credential, and workspace API keys don't work."
+      },
+      {
+        "id": "c",
+        "text": "The Cost API (`/v1/organizations/cost_report`), grouped by workspace",
+        "reason": "Correct: the Cost API returns USD cost breakdowns that can be grouped by workspace, for reconciling with Anthropic billing. It needs Admin API credentials."
+      },
+      {
+        "id": "d",
+        "text": "The Cost API with hourly buckets, summed into monthly totals for each app",
+        "reason": "The Cost API has daily granularity only (`1d`), and it groups costs by workspace or description, not by app."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For billing-grade cost by workspace, use the **Cost API** with **Admin** credentials, not per-response token sums.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
+      "title": "Usage and Cost API",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-usage-api-dashboard",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Usage tracking",
+    "stem": "An engineer builds a near-real-time token dashboard on the Usage API (`/v1/organizations/usage_report/messages`). Which statements are accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Results can be grouped by model and filtered by API key or workspace",
+        "reason": "Correct: the Usage API can filter and group by API key, workspace, model, service tier, context window, data residency and speed (beta)."
+      },
+      {
+        "id": "b",
+        "text": "Priority Tier costs are included in the companion cost endpoint",
+        "reason": "Priority Tier costs aren't in the cost endpoint; track Priority Tier usage in the usage endpoint through `service_tier`."
+      },
+      {
+        "id": "c",
+        "text": "New usage typically appears within about 5 minutes of a request",
+        "reason": "Correct: usage and cost data typically appears within 5 minutes of request completion, though delays may occasionally be longer."
+      },
+      {
+        "id": "d",
+        "text": "Polling every few seconds is the recommended sustained rate",
+        "reason": "The API supports polling once per minute for sustained use; cache results for dashboards that need frequent updates."
+      },
+      {
+        "id": "e",
+        "text": "Code execution usage is reported alongside token usage in this endpoint",
+        "reason": "Code execution isn't in the usage endpoint; its costs appear in the cost endpoint under `Code Execution Usage`."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Usage API: tokens by model, key and workspace, typically **5 minutes** fresh, polled about once a minute.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
+      "title": "Usage and Cost API",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-token-counting"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-count-tokens-estimate",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Token counting",
+    "stem": "Before sending requests, an app calls the token counting endpoint to check budgets. The count is sometimes a few tokens off from the `usage` the Messages API later reports. What explains it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The count is an estimate; actual input tokens can differ from it by a small amount",
+        "reason": "Correct: the docs call the token count an estimate; the actual input tokens used when creating a message might differ by a small amount."
+      },
+      {
+        "id": "b",
+        "text": "The endpoint applies prompt caching, so cached blocks are counted differently",
+        "reason": "Token counting doesn't use caching logic; caching only happens during actual message creation, even if you send `cache_control`."
+      },
+      {
+        "id": "c",
+        "text": "You're billed for tokens Anthropic adds for system optimizations, which the count skips",
+        "reason": "Counts may include tokens Anthropic adds for system optimizations, but you're not billed for them; billing reflects only your content."
+      },
+      {
+        "id": "d",
+        "text": "The endpoint counts with one fixed tokenizer rather than your model's tokenizer",
+        "reason": "The endpoint counts under the tokenizer of the `model` you pass."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`count_tokens` is free and **model-specific**, but it's an estimate: expect small differences from actual usage.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "title": "Token counting",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-token-counting"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-cache-breakeven",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cache pricing",
+    "stem": "On a model with the standard cache multipliers (writes 1.25× for 5 minutes or 2× for 1 hour; reads 0.1×), a prefix is reused at 30-minute intervals, so it needs the 1-hour cache. After how many cache reads does the 1-hour write pay off?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "After the first cache read",
+        "reason": "One read pays off a 5-minute write (1.25×), but a 1-hour write costs 2× base input."
+      },
+      {
+        "id": "b",
+        "text": "Never, at these multipliers",
+        "reason": "The pricing page says the 1-hour write pays off after two cache reads."
+      },
+      {
+        "id": "c",
+        "text": "After two cache reads",
+        "reason": "Correct: at 0.1× per hit, caching pays off after one read for the 5-minute duration (1.25× write) or after two reads for the 1-hour duration (2× write)."
+      },
+      {
+        "id": "d",
+        "text": "Only after ten reads",
+        "reason": "Ten would follow from the 0.1× read price, but that is not the break-even point; the pricing page puts it at two reads for a 1-hour write."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "At standard multipliers, a 5-minute write pays off after **one** read and a 1-hour write after **two**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-cost-thinking-tokens-field",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Usage tracking",
+    "stem": "A team runs Claude Sonnet 4.5 with manual extended thinking (`budget_tokens: 16000`) and wants to know how many of each request's billed output tokens went to reasoning. What should they monitor?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: each request uses its full `budget_tokens`, so the budget is the answer",
+        "reason": "The budget is a target, not a strict cap: actual usage varies, and Claude may stop reasoning well before the budget runs out."
+      },
+      {
+        "id": "b",
+        "text": "The `usage.output_tokens_details.thinking_tokens` field in each response",
+        "reason": "Correct: that field reports how many billed output tokens were internal reasoning. When streaming, the breakdown appears only on the final `message_delta` event."
+      },
+      {
+        "id": "c",
+        "text": "The thinking breakdown in the first `message_start` event of each stream",
+        "reason": "When streaming, the thinking-token breakdown appears only on the final `message_delta` event."
+      },
+      {
+        "id": "d",
+        "text": "The gap between `max_tokens` and `output_tokens` on each response",
+        "reason": "`max_tokens` is the hard ceiling on total output; subtracting usage from it doesn't isolate reasoning tokens."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Track reasoning cost with `output_tokens_details.thinking_tokens`; `budget_tokens` is a **target**, not a meter.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget",
+      "c-message-delta-usage"
     ],
     "lessonId": "l-prompt-caching"
   }

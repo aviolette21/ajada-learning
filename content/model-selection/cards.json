@@ -49,13 +49,13 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "term": "Token",
-    "definition": "The smallest unit a language model works in: a word, subword, character or byte. The glossary puts a Claude token at approximately 3.5 English characters.",
-    "whyItMatters": "Limits and prices are counted in tokens, not characters; the exact ratio varies by language.",
-    "example": "At that ratio, 7,000 English characters is about 2,000 tokens.",
+    "definition": "The smallest unit a language model works in: a word, subword, character or byte. On models before Claude 4.7, a token is approximately 3.5 English characters.",
+    "whyItMatters": "Limits and prices count tokens, not characters, and the ratio depends on model and language: Claude 4.7 and later produce about 30% more tokens for the same text.",
+    "example": "On a pre-4.7 model, 7,000 English characters is about 2,000 tokens.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -66,11 +66,11 @@
     "term": "Context window",
     "definition": "All the text a model can reference when generating a response, including the response itself: its \"working memory\", not its training data.",
     "whyItMatters": "The system prompt, messages, tool definitions and the output (thinking included) all count; each response reports what it used in `usage`.",
-    "example": "Claude Opus 5.5 and Claude Sonnet 5 have a 1M-token window; Claude Sonnet 4.5 has 200k.",
+    "example": "Claude Opus 5.5 and Claude Sonnet 5.5 have a 1M-token window; Claude Sonnet 4.5 (deprecated) has 200k.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -290,13 +290,13 @@
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
     "term": "Current Claude models",
-    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5: speed + intelligence. Haiku 4.5: fastest.",
+    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5.5: speed + intelligence. Haiku 5.5: fastest",
     "whyItMatters": "If you're unsure, start with Claude Opus 5.5; use Claude Fable 5.1 when your evals on Opus 5.5 at higher effort still fall short.",
-    "example": "Comparative latency: Fable 5.1 slower, Opus 5.5 moderate, Sonnet 5 fast, Haiku 4.5 fastest.",
+    "example": "Comparative latency: Fable 5.1 slower, Opus 5.5 moderate, Sonnet 5.5 fast, Haiku 5.5 fastest.",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
       "title": "Models overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -306,12 +306,12 @@
     "subSkillId": "model-tradeoffs",
     "term": "Effort (output_config.effort)",
     "definition": "Controls how many tokens Claude spends responding, from low through medium, high and xhigh to max. It affects text, tool calls and thinking.",
-    "whyItMatters": "Lower it for speed-sensitive or simple tasks to cut latency and cost. Most models default to `high`; Claude Opus 5.5 defaults to `medium`.",
+    "whyItMatters": "Lower it for speed-sensitive or simple tasks to cut latency and cost. Most models default to `high`; Claude Opus 5.5 and Claude Haiku 5.5 default to `medium`.",
     "example": "`\"output_config\": {\"effort\": \"low\"}` for a simple, high-volume subtask.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
       "title": "Effort",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },
@@ -335,13 +335,13 @@
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
     "term": "Price per MTok",
-    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5: $2 input, $10 output.",
+    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5.5: $2 input, $10 output.",
     "whyItMatters": "Estimate cost as input MTok × input price + output MTok × output price. Batch API requests are 50% off.",
-    "example": "Claude Haiku 4.5: $1 / $5. Claude Opus 5.5: $4 / $20. Claude Fable 5.1: $10 / $50.",
+    "example": "Claude Haiku 5.5: from $0.10 / $0.50. Claude Opus 5.5: $4 / $20. Claude Fable 5.1: $10 / $50.",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
       "title": "Models overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "isVocab": true
   },

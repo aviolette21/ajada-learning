@@ -91,7 +91,7 @@
       "Good success criteria are **specific, measurable, achievable and relevant**; even hazy goals like safety can be quantified.",
       "Most use cases need **multidimensional** criteria, such as accuracy plus toxicity plus response time.",
       "Claude suits classification when labeled data is **scarce** (a few dozen examples), categories change, or rules are semantic.",
-      "Tight latency, cost-sensitive, high-volume work: start **efficiency-first** with Claude Haiku 4.5 and upgrade only if needed.",
+      "Tight latency, cost-sensitive, high-volume work: start **efficiency-first** with Claude Haiku 5.5 and upgrade only if needed.",
       "Not every failing criterion is a prompt problem: latency and cost can sometimes improve more easily by **selecting a different model**."
     ],
     "sections": [
@@ -127,7 +127,7 @@
       },
       {
         "heading": "Choose an approach by constraints",
-        "body": "For ticket routing, the guide says model choice depends on the trade-offs between cost, accuracy and response time. Anthropic's model-selection guide describes two starting strategies:\n\n- Efficiency-first: begin with Claude Haiku 4.5, test, and upgrade only for specific capability gaps. Best for tight latency, cost-sensitive and high-volume, straightforward tasks.\n- Capability-first: begin with Claude Opus 5.5, then lower effort or downgrade models over time. Best for complex reasoning and where accuracy outweighs cost.\n\nEither way, decide with benchmark tests specific to your use case, using your actual prompts and data.\n\nNot every success criterion or failing eval is best solved by prompt engineering. For example, you can sometimes improve latency and cost more easily by selecting a different model."
+        "body": "For ticket routing, the guide says model choice depends on the trade-offs between cost, accuracy and response time. Anthropic's model-selection guide describes two starting strategies:\n\n- Efficiency-first: begin with Claude Haiku 5.5, test, and upgrade only for specific capability gaps. Best for tight latency, cost-sensitive and high-volume, straightforward tasks.\n- Capability-first: begin with Claude Opus 5.5, then lower effort or downgrade models over time. Best for complex reasoning and where accuracy outweighs cost.\n\nEither way, decide with benchmark tests specific to your use case, using your actual prompts and data.\n\nNot every success criterion or failing eval is best solved by prompt engineering. For example, you can sometimes improve latency and cost more easily by selecting a different model."
       }
     ],
     "checkQuestionIds": [
@@ -149,7 +149,7 @@
       {
         "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
         "title": "Choosing the right model",
-        "checkedOn": "2026-09-27"
+        "checkedOn": "2026-10-13"
       },
       {
         "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
@@ -420,11 +420,11 @@
     "sections": [
       {
         "heading": "Long prompt, retrieval or batch?",
-        "body": "Anthropic's Contextual Retrieval post notes that if a knowledge base is smaller than 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG, and prompt caching makes that faster and cheaper. The post says larger knowledge bases need a more scalable solution, such as RAG, which chunks the corpus, embeds the chunks and adds the most relevant ones to the prompt at query time. Context windows have grown since: Claude Opus 5.5, Claude Sonnet 5 and other current models have a 1M-token context window.\n\nWhen no one is waiting on the answer, batch processing fits: the Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under 1 hour. Results can come back in any order, so always match them to requests by `custom_id`."
+        "body": "Anthropic's Contextual Retrieval post notes that if a knowledge base is smaller than 200,000 tokens (about 500 pages), you can include all of it in the prompt, with no need for RAG, and prompt caching makes that faster and cheaper. The post says larger knowledge bases need a more scalable solution, such as RAG, which chunks the corpus, embeds the chunks and adds the most relevant ones to the prompt at query time. Context windows have grown since: Claude Opus 5.5, Claude Sonnet 5.5 and other current models have a 1M-token context window.\n\nWhen no one is waiting on the answer, batch processing fits: the Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under 1 hour. Results can come back in any order, so always match them to requests by `custom_id`."
       },
       {
         "heading": "Latency and streaming",
-        "body": "First engineer a prompt that works well, then reduce latency; doing it too early can hide what top performance looks like. The guide's levers:\n\n- Choose the right model: Claude Haiku 4.5 offers the fastest response times\n- Minimize prompt and output tokens; ask for sentence or paragraph counts rather than word counts\n- Use `max_tokens` only as a blunt cap, since replies are cut off at the limit\n- Stream responses so users see output as it arrives\n\nTime to first token (TTFT) is the time until the first token of the response, which is particularly relevant for streaming UIs.",
+        "body": "First engineer a prompt that works well, then reduce latency; doing it too early can hide what top performance looks like. The guide's levers:\n\n- Choose the right model: Claude Haiku 5.5 offers the fastest response times\n- Minimize prompt and output tokens; ask for sentence or paragraph counts rather than word counts\n- Use `max_tokens` only as a blunt cap, since replies are cut off at the limit\n- Stream responses so users see output as it arrives\n\nTime to first token (TTFT) is the time until the first token of the response, which is particularly relevant for streaming UIs.",
         "diagram": {
           "kind": "flow",
           "caption": "Get the prompt working first, then apply the levers.",
@@ -467,7 +467,7 @@
       {
         "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
         "title": "Context windows",
-        "checkedOn": "2026-09-27"
+        "checkedOn": "2026-10-13"
       },
       {
         "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -477,7 +477,7 @@
       {
         "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
         "title": "Reducing latency",
-        "checkedOn": "2026-09-27"
+        "checkedOn": "2026-10-13"
       },
       {
         "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",

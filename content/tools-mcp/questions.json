@@ -50,22 +50,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Split each tool into several narrower tools, one per action",
+        "text": "Split each tool into several narrower tools, one per action, so each name explains itself",
         "reason": "The guidance is the opposite: consolidate related operations into fewer tools, which reduces selection ambiguity."
       },
       {
         "id": "b",
-        "text": "Shorten the names and drop the descriptions to save tokens",
-        "reason": "Descriptions are by far the most important factor in tool performance; removing them leaves Claude with more open questions."
+        "text": "Shorten the names and drop the descriptions so the tool definitions cost fewer tokens",
+        "reason": "Descriptions are by far the most important factor in tool performance; the more context Claude has, the better it decides when and how to use each tool."
       },
       {
         "id": "c",
-        "text": "Write detailed descriptions: what each tool does, when to use it, what each parameter means, and its caveats",
+        "text": "Write fuller descriptions: what each tool does, when to use it, its parameters and caveats",
         "reason": "Correct: detailed descriptions are by far the most important factor in tool performance. Aim for at least 3–4 sentences per tool."
       },
       {
         "id": "d",
-        "text": "Add `input_examples` to every tool instead of writing descriptions",
+        "text": "Add `input_examples` to every tool instead of writing descriptions, since examples show usage",
         "reason": "Clear descriptions are most important; `input_examples` are an optional extra for complex, nested or format-sensitive inputs."
       }
     ],
@@ -75,7 +75,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-description",
@@ -97,17 +97,17 @@
       },
       {
         "id": "b",
-        "text": "`{\"type\": \"any\"}`",
+        "text": "`{\"type\": \"any\"}`, so every response has to call a tool",
         "reason": "`any` tells Claude it must use one of the provided tools, but it doesn't force a particular tool."
       },
       {
         "id": "c",
-        "text": "`{\"type\": \"auto\"}`",
+        "text": "`{\"type\": \"auto\"}`, the default whenever tools are provided",
         "reason": "`auto`, the default when tools are provided, lets Claude decide whether to call any tool at all."
       },
       {
         "id": "d",
-        "text": "`{\"type\": \"none\"}`",
+        "text": "`{\"type\": \"none\"}`, with `record_summary` as the only tool",
         "reason": "`none` prevents Claude from using any tools."
       }
     ],
@@ -118,7 +118,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-choice"
@@ -134,17 +134,17 @@
     "choices": [
       {
         "id": "a",
-        "text": "Switch to `{\"type\": \"any\"}`, which Opus 5.5 accepts",
+        "text": "Switch to `{\"type\": \"any\"}`, which Opus 5.5 still accepts for forced calls",
         "reason": "On Claude Opus 5.5, both `any` and `tool` return a 400 error; `auto` and `none` still work."
       },
       {
         "id": "b",
-        "text": "Turn on manual extended thinking so forced tool use is allowed",
+        "text": "Turn on manual extended thinking, which allows forced tool use on this model",
         "reason": "Manual extended thinking itself doesn't support `any` or `tool`, so it can't bring forced tool use back."
       },
       {
         "id": "c",
-        "text": "Retry the same request with exponential backoff",
+        "text": "Retry the same request with exponential backoff until the 400 error clears",
         "reason": "The 400 isn't transient: on this model, `any` and `tool` return a 400 error, so the same request fails again."
       },
       {
@@ -154,12 +154,12 @@
       }
     ],
     "answer": "d",
-    "takeaway": "Opus 5.5, Fable 5.1 and Mythos 5.1 reject forced tool use: use **`auto` plus strict tool use**, or structured outputs for a fixed JSON shape.",
+    "takeaway": "Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1 reject forced tool use: use **`auto` plus strict tool use**, or structured outputs for a fixed JSON shape.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-choice",
@@ -235,22 +235,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "A `tool_result` for all three: the failure, plus `is_error: true` and a brief note for each skipped call",
+        "text": "A `tool_result` per call: the failure, plus `is_error: true` and a brief note for skipped ones",
         "reason": "Correct: return one `tool_result` for each `tool_use` block. For a call you chose not to run, send `is_error: true` and a brief explanation."
       },
       {
         "id": "b",
-        "text": "Only the failed call's `tool_result`; skipped calls need nothing",
+        "text": "Only the failed call's `tool_result`; calls you skipped never ran, so they need nothing",
         "reason": "Every `tool_use` block needs its own `tool_result`, including calls you chose not to run."
       },
       {
         "id": "c",
-        "text": "A plain text message explaining the failure, with no `tool_result` blocks",
+        "text": "A plain text message explaining the failure and the skipped calls, with no `tool_result` blocks",
         "reason": "Results go back as `tool_result` blocks matched by `tool_use_id`, and they come before any text in the message."
       },
       {
         "id": "d",
-        "text": "Nothing yet; rerun the whole batch yourself until it succeeds",
+        "text": "Nothing yet; rerun the whole batch yourself until it succeeds, then send all three results",
         "reason": "The documented pattern is to return `is_error: true` results; Claude can then reissue calls on the next turn."
       }
     ],
@@ -260,7 +260,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "title": "Parallel tool use",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-parallel-tool-use",
@@ -277,7 +277,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Only `get_inventory`, because Anthropic defines the other two",
+        "text": "Only `get_inventory`, because Anthropic defines and maintains the other two",
         "reason": "Anthropic publishes the `bash` schema, but it's client-executed: your application runs each call and returns the result."
       },
       {
@@ -302,7 +302,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "title": "How tool use works",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-client-vs-server-tools"
@@ -318,22 +318,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Keep the tool runner, since it asks before running each tool",
+        "text": "Keep the tool runner, since it already asks before running each of the tool calls",
         "reason": "The tool runner runs tools automatically when Claude calls them and sends the results back; it doesn't wait for a person."
       },
       {
         "id": "b",
-        "text": "Set `max_iterations` to 1 so at most one refund can happen",
+        "text": "Set `max_iterations` to 1 so that at most one refund can happen per run",
         "reason": "`max_iterations` only caps how many times the runner loops; it adds no approval step."
       },
       {
         "id": "c",
-        "text": "Write the manual tool-use loop, so your code can pause for approval before executing",
+        "text": "Write the manual tool-use loop, so your code can pause for approval first",
         "reason": "Correct: the page says to use the manual loop when you need human-in-the-loop approval, custom logging or conditional execution."
       },
       {
         "id": "d",
-        "text": "Call `runner.until_done()` and review the final message",
+        "text": "Call `runner.until_done()` and review the final message before replying",
         "reason": "`until_done()` returns the final message after the runner has already run the tools, too late to approve a refund."
       }
     ],
@@ -343,7 +343,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
       "title": "Tool runner (SDK)",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-tool-runner"
@@ -359,22 +359,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Log with the standard `logging` module, which writes to stderr, and keep `print()` out",
+        "text": "Log with the `logging` module, which writes to stderr, and drop `print()`",
         "reason": "Correct: never write to stdout in a stdio server. The standard `logging` module writes to stderr, so the JSON-RPC messages stay intact."
       },
       {
         "id": "b",
-        "text": "Flush stdout after every `print()` so the lines don't interleave",
+        "text": "Flush stdout after every `print()` call so the debug lines don't interleave",
         "reason": "Writing to stdout at all corrupts the JSON-RPC messages; `print()` writes to stdout by default, flushed or not."
       },
       {
         "id": "c",
-        "text": "Prefix each debug line with `#` so the client skips it",
+        "text": "Prefix each debug line with `#` so the client knows to skip those lines",
         "reason": "In a stdio server, anything written to stdout corrupts the JSON-RPC messages, however it's marked."
       },
       {
         "id": "d",
-        "text": "Remove all logging, since MCP servers can't log",
+        "text": "Remove all logging, since MCP servers have no safe channel for logs",
         "reason": "Servers can log: the guide recommends the standard `logging` module, with one logger per module."
       }
     ],
@@ -385,7 +385,7 @@
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server",
       "title": "Build an MCP server",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-mcp-transports"
@@ -401,22 +401,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "Nothing; put the server's launch command in `mcp_servers`",
+        "text": "Nothing; put the server's stdio launch command in the `mcp_servers` entry",
         "reason": "An `mcp_servers` entry takes `type: \"url\"` and an https URL, and local stdio servers can't be connected directly."
       },
       {
         "id": "b",
-        "text": "Pass an `authorization_token` so the API can reach your machine",
+        "text": "Pass an `authorization_token` so the API can reach the server on your machine",
         "reason": "`authorization_token` is an OAuth token for servers that require one; it doesn't make a local stdio server reachable."
       },
       {
         "id": "c",
-        "text": "Expose it publicly over HTTP (Streamable HTTP or SSE) at an https URL, and expect only its tools",
+        "text": "Expose it over HTTP at a public https URL, and expect only its tools to work",
         "reason": "Correct: the server must be publicly exposed through HTTP, and of MCP's features only tool calls are currently supported."
       },
       {
         "id": "d",
-        "text": "List its resources in the `mcp_toolset` so Claude can read them",
+        "text": "List its resources in the `mcp_toolset` so Claude can read them as context",
         "reason": "The connector currently supports only MCP tool calls; an MCP toolset configures which of the server's tools are enabled."
       }
     ],
@@ -444,7 +444,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
       "title": "MCP connector",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-mcp-connector",
@@ -461,7 +461,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Every Skill's full SKILL.md body, so Claude can choose well",
+        "text": "Every Skill's full SKILL.md body, so Claude can choose between them well",
         "reason": "The SKILL.md body (Level 2, under 5k tokens) loads only when a request matches the Skill's description."
       },
       {
@@ -504,7 +504,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
       "title": "Agent Skills",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-skill-progressive-disclosure",
@@ -521,7 +521,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Rename it `claude-invoice-helper` so it stands out",
+        "text": "Rename it `claude-invoice-helper` so its name stands out to Claude",
         "reason": "A Skill name can't contain the reserved word \"claude\", and Claude matches requests against the description."
       },
       {
@@ -531,7 +531,7 @@
       },
       {
         "id": "c",
-        "text": "Move more of the trigger details into the SKILL.md body",
+        "text": "Move more of the trigger details into the SKILL.md body, where Claude reads them",
         "reason": "The body enters context only after the Skill is triggered, so trigger details there can't help Claude decide."
       },
       {
@@ -546,7 +546,7 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
       "title": "Agent Skills",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-agent-skill"
@@ -567,7 +567,7 @@
       },
       {
         "id": "b",
-        "text": "Put the investigation steps in CLAUDE.md",
+        "text": "Put the investigation steps in CLAUDE.md so they're always available",
         "reason": "CLAUDE.md loads in full every session, so it adds context rather than isolating the work."
       },
       {
@@ -577,7 +577,7 @@
       },
       {
         "id": "d",
-        "text": "An MCP server",
+        "text": "An MCP server that runs the investigation as an external tool",
         "reason": "MCP connects Claude to external services and data; it doesn't isolate work from your conversation."
       }
     ],
@@ -587,7 +587,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
       "title": "Extend Claude Code",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-skill-vs-subagent"
@@ -603,7 +603,7 @@
     "choices": [
       {
         "id": "a",
-        "text": "Move the deploy steps into CLAUDE.md",
+        "text": "Move the deploy steps out of the skill and into CLAUDE.md instead",
         "reason": "CLAUDE.md loads every session and can't trigger a workflow with `/<name>`."
       },
       {
@@ -618,7 +618,7 @@
       },
       {
         "id": "d",
-        "text": "Package it in a plugin so it gets a namespace",
+        "text": "Package it in a plugin so the skill gets its own namespace",
         "reason": "Plugin namespacing (like `/my-plugin:review`) lets multiple plugins coexist; it doesn't stop Claude from loading the skill."
       }
     ],
@@ -628,7 +628,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
       "title": "Extend Claude Code",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-disable-model-invocation"
@@ -654,12 +654,12 @@
       },
       {
         "id": "c",
-        "text": "You must set `alwaysLoad: true` on each server before Claude can use its tools",
+        "text": "You must set `alwaysLoad: true` on each server before Claude can use any of its tools",
         "reason": "`alwaysLoad: true` does the opposite: it loads every tool from that server into context at session start."
       },
       {
         "id": "d",
-        "text": "Tool search defers the schemas: only tool names and server instructions load at start",
+        "text": "Tool search defers schemas: only tool names and server instructions load at start",
         "reason": "Correct: tool search is on by default, so adding more MCP servers has minimal impact on your context window."
       }
     ],
@@ -669,7 +669,7 @@
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
       "title": "Connect Claude Code to tools via MCP",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-mcp-tool-search"
@@ -685,22 +685,22 @@
     "choices": [
       {
         "id": "a",
-        "text": "True: the plugin's hooks and server processes run inside the sandbox",
+        "text": "True: the plugin's hooks and its server processes all run inside Claude Code's sandbox",
         "reason": "Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions."
       },
       {
         "id": "b",
-        "text": "False: those controls cover Claude's tool calls, not the plugin's hooks or server processes, so review its files first",
+        "text": "False: those controls cover Claude's tool calls, not the plugin's hooks or server processes",
         "reason": "Correct: permission rules apply to tool calls; hooks and MCP servers run outside the sandbox. Read `hooks/hooks.json`, `.mcp.json` and `bin/`."
       },
       {
         "id": "c",
-        "text": "True, because a coworker's marketplace counts as a trusted tier",
+        "text": "True, because a marketplace run by a coworker counts as a trusted tier",
         "reason": "A marketplace a coworker or your organization publishes is third-party, and its name says who publishes the catalog, not what a plugin does."
       },
       {
         "id": "d",
-        "text": "False, but only its skills need review, since they hold the code",
+        "text": "False, but only its skills need review, since skills hold the plugin's code",
         "reason": "Skills enter context as instructions; the code a plugin brings lives in its hooks, MCP servers and `bin/`, so review those too."
       }
     ],
@@ -710,10 +710,1529 @@
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/security",
       "title": "Plugin security and trust",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
       "c-plugin-trust"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-tool-result-text-first-400",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool results",
+    "stem": "After running a client tool, your app sends a user message whose content is a text block, \"Here are the results:\", followed by the `tool_result` block. The API returns a 400 error. What fixes it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send the text in its own user message first, then the `tool_result` in a second message",
+        "reason": "Tool results must immediately follow their tool use blocks: you can't include any messages between the assistant's tool use message and the tool result message."
+      },
+      {
+        "id": "b",
+        "text": "Put the `tool_result` block first in the content array, with any text after it",
+        "reason": "Correct: in the user message holding tool results, `tool_result` blocks must come first in the content array; any text must come after all of them."
+      },
+      {
+        "id": "c",
+        "text": "Send the result in a message with a `tool` role, the way other function-calling APIs do",
+        "reason": "Unlike APIs with special `tool` or `function` roles, the Claude API carries `tool_result` blocks inside ordinary `user` messages."
+      },
+      {
+        "id": "d",
+        "text": "Add `is_error: false` to the `tool_result` so the API accepts text placed before it",
+        "reason": "`is_error` only signals that the tool failed. The 400 comes from the ordering: text before a `tool_result` is rejected."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "In a tool-result message, `tool_result` blocks go **first**; any text comes after them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-is-error",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-invalid-call-prevention",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "During development, Claude often calls your `create_ticket` tool with a required parameter missing. Returning an `is_error` result lets it recover, but you want these invalid calls to stop happening in the first place. Which changes does Anthropic's guide point to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return an `is_error` result naming the missing parameter, so Claude retries with it filled in",
+        "reason": "That's recovery, not prevention: given an error result, Claude retries 2-3 times with corrections, but the invalid call has already happened."
+      },
+      {
+        "id": "b",
+        "text": "Write more detailed `description` values for the tool and its parameters",
+        "reason": "Correct: an invalid call usually means Claude lacked enough information; the docs' best bet during development is more-detailed `description` values."
+      },
+      {
+        "id": "c",
+        "text": "Resend the same request unchanged until Claude includes the missing parameter",
+        "reason": "An invalid call usually means Claude didn't have enough information; resending the same request adds none, so the mistake can repeat."
+      },
+      {
+        "id": "d",
+        "text": "Shorten the parameter descriptions so the schema is quicker for Claude to follow",
+        "reason": "This removes the information Claude lacks. The guide points the other way: more-detailed `description` values in your tool definitions."
+      },
+      {
+        "id": "e",
+        "text": "Set `strict: true` on the tool definition",
+        "reason": "Correct: strict tool use guarantees tool inputs always match your schema exactly, preventing missing parameters and type mismatches."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Prevent bad tool calls with **richer descriptions** and `strict: true`; `is_error` results only help Claude recover.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-strict-tool-use",
+      "c-is-error"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-server-client-mixed-turn",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Server tools",
+    "stem": "Claude calls `web_fetch` and your `run_command` tool in the same turn. The response has `stop_reason: \"tool_use\"`, a `server_tool_use` block with no result block, and a `tool_use` block. You run the command. What should the next request contain?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `run_command` tool_result, followed by a text block asking Claude to finish the fetch",
+        "reason": "Text after the results tells the API the assistant turn is over, leaving an unresolved server tool call: the request fails with a 400 `invalid_request_error`."
+      },
+      {
+        "id": "b",
+        "text": "A user message with `tool_result` blocks for both the `run_command` and the `web_fetch` calls",
+        "reason": "You don't run server tools: the API runs the deferred `web_fetch` after you return the client results, and the next response starts with its result block."
+      },
+      {
+        "id": "c",
+        "text": "The `run_command` tool_result, with `web_fetch` removed from `tools` since it was already called",
+        "reason": "A resume request that no longer defines the waiting server tool fails with a 400 saying no `web_fetch` tool was provided."
+      },
+      {
+        "id": "d",
+        "text": "A user message holding only the `run_command` tool_result, with the same `tools` as before",
+        "reason": "Correct: send only `tool_result` blocks for the client calls and keep the same `tools`; the API then runs the deferred server tool and Claude continues."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Mixed server and client turn: return **only** the client `tool_result` blocks, keep the same `tools`, and let the API run the server tool.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "tool_use + server_tool_use",
+          "sublabel": "stop_reason: tool_use"
+        },
+        {
+          "label": "You send",
+          "sublabel": "only tool_result blocks"
+        },
+        {
+          "label": "API runs web_fetch"
+        },
+        {
+          "label": "Claude continues"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools",
+      "title": "Server tools",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-server-tool-errors-no-is-error",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Client vs server tools",
+    "stem": "Your app enables Anthropic's `web_search` tool alongside your own `lookup_order` tool, and you're adding error handling. For which tool must your code send `tool_result` blocks with `is_error: true` when something fails?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only `lookup_order`; Claude itself handles errors from server tools like `web_search`",
+        "reason": "Correct: you return client tool errors with `is_error: true`. Claude handles server tool errors transparently, so you don't handle `is_error` results for them."
+      },
+      {
+        "id": "b",
+        "text": "Both of them, because every failed tool call needs an `is_error` result from your code",
+        "reason": "Unlike client tools, you do not need to handle `is_error` results for server tools such as web search; Claude handles those errors transparently."
+      },
+      {
+        "id": "c",
+        "text": "Only `web_search`, because errors from Anthropic's own tools must be acknowledged by you",
+        "reason": "It's the reverse: server tool errors (like `too_many_requests` for web search) are Claude's to handle; your own tool's failures are yours to report."
+      },
+      {
+        "id": "d",
+        "text": "Neither of them; the API detects every tool failure and retries the failed call by itself",
+        "reason": "Your code runs `lookup_order`, so only your code knows it failed: return the error in `content` with `is_error: true`."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`is_error` is for **your** tools' failures; server tool errors are handled by Claude without your code.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-is-error"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-web-fetch-prior-context-url",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Web fetch",
+    "stem": "Your agent has the web fetch tool. Claude builds status-page URLs itself from region names it knows, and every fetch comes back with a `url_not_in_prior_context` error. None of those URLs appear in user messages or tool results. What's going on?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The status domain has to be added to `allowed_domains` before web fetch will reach it",
+        "reason": "A URL blocked by domain filtering returns `url_not_allowed`. This error means the URL didn't appear earlier in the conversation."
+      },
+      {
+        "id": "b",
+        "text": "Claude can fetch only URLs already in the conversation, not ones it wrote itself",
+        "reason": "Correct: to limit exfiltration, Claude can't fetch URLs that appear only in its own output; pass them in a user message or a client tool result."
+      },
+      {
+        "id": "c",
+        "text": "Web fetch can't load these status pages because they are rendered with JavaScript",
+        "reason": "JavaScript-rendered pages are a real limit of web fetch, but `url_not_in_prior_context` says the URL didn't appear earlier in the conversation."
+      },
+      {
+        "id": "d",
+        "text": "Web fetch is serving cached copies, so set `use_cache: false` to reach the live pages",
+        "reason": "`use_cache: false` only bypasses cached content to get fresh pages; it doesn't change which URLs Claude is allowed to fetch."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Web fetch reaches only URLs **already in the conversation**: user messages, client tool results, or earlier search and fetch results.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
+      "title": "Web fetch tool",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-web-fetch-exfiltration-controls",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Web fetch",
+    "stem": "Your agent uses web fetch while reading untrusted customer emails next to internal account data. Security asks you to reduce the data exfiltration risk without disabling the tool. Which settings does the web fetch documentation suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `max_uses` to limit how many fetches each request can make",
+        "reason": "Correct: using the `max_uses` parameter to limit the number of requests is one of the documented ways to minimize exfiltration risk."
+      },
+      {
+        "id": "b",
+        "text": "Turn on `citations` so every fetched passage can be traced back to its source",
+        "reason": "Citations let Claude cite passages from fetched documents; they don't limit where requests go or how many are made."
+      },
+      {
+        "id": "c",
+        "text": "Lower `max_content_tokens` so less of each fetched page enters the context",
+        "reason": "`max_content_tokens` limits how much fetched content is included, to control token usage; it doesn't restrict outbound requests."
+      },
+      {
+        "id": "d",
+        "text": "Set `allowed_domains` to restrict fetches to known safe domains",
+        "reason": "Correct: restricting the tool to known safe domains with `allowed_domains` is one of the documented mitigations."
+      },
+      {
+        "id": "e",
+        "text": "Set `use_cache: false` so each fetch always goes straight to the live site",
+        "reason": "`use_cache: false` bypasses cached content to get fresh pages and adds latency; it doesn't reduce what the tool can reach."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Web fetch near sensitive data: cap it with `max_uses`, fence it with `allowed_domains`, or disable it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
+      "title": "Web fetch tool",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-disable-parallel-in-tool-choice",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "Your order system can't process two writes at once, so you want Claude to call at most one tool per response while still being free to answer in plain text. How should the request be configured?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add `disable_parallel_tool_use: true` as a top-level request parameter next to `tools`",
+        "reason": "It isn't a top-level request parameter: `disable_parallel_tool_use` goes inside the `tool_choice` object."
+      },
+      {
+        "id": "b",
+        "text": "Set `tool_choice` to `{\"type\": \"any\", \"disable_parallel_tool_use\": true}`",
+        "reason": "With `any`, the flag means Claude calls **exactly** one tool, so it can't answer in plain text; some newer models also reject `any`."
+      },
+      {
+        "id": "c",
+        "text": "Set `tool_choice` to `{\"type\": \"auto\", \"disable_parallel_tool_use\": true}`",
+        "reason": "Correct: with `auto`, `disable_parallel_tool_use: true` means at most one tool call per response, and Claude can still answer without a tool."
+      },
+      {
+        "id": "d",
+        "text": "Nothing; Claude calls one tool per response unless you enable parallel tool use",
+        "reason": "Parallel tool use is on by default; you turn it off with `disable_parallel_tool_use: true`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`disable_parallel_tool_use` lives **inside** `tool_choice`: with `auto` it means at most one call; with `any` or `tool`, exactly one.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use",
+      "c-tool-choice"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-forced-tool-no-preamble",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "On a model that supports forced tool use, you set `tool_choice` to `{\"type\": \"tool\", \"name\": \"get_weather\"}`. Product wants Claude to say what it's doing in a short sentence before the call, but no text ever appears, even when the prompt asks. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use `auto`, and tell Claude in the user message to use `get_weather` in its response",
+        "reason": "Correct: for explanations while still steering Claude to a specific tool, the docs suggest `auto` (the default) plus an explicit instruction in a `user` message."
+      },
+      {
+        "id": "b",
+        "text": "Keep the forced `tool` choice and move the instruction to explain into the system prompt",
+        "reason": "With `any` or `tool`, the API prefills the assistant message to force a tool, so Claude emits no natural-language text first, even if explicitly asked."
+      },
+      {
+        "id": "c",
+        "text": "Switch to `{\"type\": \"any\"}`, which lets Claude write a sentence before calling the tool",
+        "reason": "`any` also forces tool use through a prefilled assistant message, so Claude still won't write text before the `tool_use` block."
+      },
+      {
+        "id": "d",
+        "text": "Add an `input_examples` entry for the tool that includes an `explanation` field",
+        "reason": "Each example must be valid against the tool's `input_schema`; examples show valid inputs and don't change the prefill that suppresses text."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Forced `tool` or `any` choices prefill the turn, so there's no preamble text: use `auto` plus a prompt instruction instead.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-tool-choice"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-search-large-catalog",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool search",
+    "stem": "Your API agent sends about 200 tool definitions from GitHub, Slack, Sentry and other services on every request. They cost tens of thousands of tokens before any work starts, and Claude increasingly picks the wrong tool. Which approach does Anthropic document for this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Split the catalog across separate requests, sending about 50 tool definitions in each",
+        "reason": "Claude's tool selection accuracy degrades once you exceed 30–50 available tools, so 50 per request is still where it starts to slip."
+      },
+      {
+        "id": "b",
+        "text": "Cut every tool description down to one line so all 200 definitions fit in fewer tokens",
+        "reason": "Shorter descriptions still load every definition up front; the documented fix loads only the 3–5 tools a given request needs."
+      },
+      {
+        "id": "c",
+        "text": "Set `defer_loading: true` on every tool, including the tool search tool itself",
+        "reason": "At least one tool, normally the tool search tool itself, must stay non-deferred."
+      },
+      {
+        "id": "d",
+        "text": "Add the tool search tool and set `defer_loading: true` on tools not needed up front",
+        "reason": "Correct: Claude searches the catalog and loads only what it needs, typically cutting definition tokens by over 85% while selection accuracy stays high."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Hundreds of tools? Add **tool search** with `defer_loading: true`; selection accuracy degrades past 30–50 loaded tools.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
+      "title": "Tool search tool",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-tool-search",
+      "c-minimal-tool-set"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-search-contacts",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool set design",
+    "stem": "You're wrapping an address-book API for an agent. Your first tool, `list_contacts`, returns every contact, just like the API's main endpoint. The agent wastes context reading thousands of entries to find one person. What does Anthropic's post on writing tools for agents suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep `list_contacts` and tell the agent in its system prompt to scan the results carefully",
+        "reason": "Reading every contact token by token is the brute-force search the post warns about; better instructions don't stop the list from filling context."
+      },
+      {
+        "id": "b",
+        "text": "Replace it with a targeted tool such as `search_contacts` that finds the relevant person",
+        "reason": "Correct: the post suggests implementing `search_contacts` or `message_contact` instead of `list_contacts`, so the agent skips to the relevant entry."
+      },
+      {
+        "id": "c",
+        "text": "Wrap every endpoint of the API as its own tool, so the agent has the most flexibility",
+        "reason": "The post calls tools that merely wrap existing API endpoints a common error: more tools don't always lead to better outcomes."
+      },
+      {
+        "id": "d",
+        "text": "Return the contacts as compact JSON, so the full list costs fewer tokens to read through",
+        "reason": "A compact list still sends every contact into the agent's limited context; the post's fix is a tool built for the workflow."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Design tools around the agent's workflow (`search_contacts`), not around raw endpoints (`list_contacts`).",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-minimal-tool-set",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-tool-semantic-identifiers",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool responses",
+    "stem": "Your `find_documents` tool returns each match as a UUID, a `mime_type` and a `256px_image_url`. The agent often cites the wrong document and sometimes invents IDs. Some follow-up tools still need the UUIDs. What does Anthropic's post on writing tools recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return names and readable fields, with a `response_format` option to include IDs when needed",
+        "reason": "Correct: resolving UUIDs to meaningful language reduces hallucinations, and a `concise`/`detailed` `response_format` enum lets the agent get IDs for follow-up calls."
+      },
+      {
+        "id": "b",
+        "text": "Return the full raw API record for every match, so the agent has each field it could ever need",
+        "reason": "The post says to return only high-signal information and prioritize contextual relevance over flexibility; raw records add fields like `mime_type`."
+      },
+      {
+        "id": "c",
+        "text": "Keep the UUIDs but sort them alphabetically, so the agent can keep track of them more easily",
+        "reason": "Sorting doesn't help: the post found that resolving arbitrary alphanumeric UUIDs to meaningful language is what improves precision."
+      },
+      {
+        "id": "d",
+        "text": "Remove the follow-up tools that need UUIDs, so responses never have to include any IDs",
+        "reason": "The post's `search_user` → `send_message(id=...)` example shows agents may still need IDs; a `response_format` enum keeps both options."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Return **meaningful** names, not cryptic IDs; let a `response_format` parameter add IDs when a later call needs them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-sdk-readonly-hint-parallel",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Custom tools",
+    "stem": "Your Agent SDK app defines three custom lookup tools that only read data. Claude needs all three for most questions, but they never run in parallel with each other. What should you add to those tools?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`destructiveHint: false`, so the SDK knows the tools are safe to run together",
+        "reason": "`destructiveHint` is informational only; the annotation that controls parallel calls is `readOnlyHint`."
+      },
+      {
+        "id": "b",
+        "text": "`idempotentHint: true`, since repeating a lookup with the same arguments changes nothing",
+        "reason": "`idempotentHint` is informational only. Parallel calls with other read-only tools are controlled by `readOnlyHint`."
+      },
+      {
+        "id": "c",
+        "text": "`openWorldHint: false`, so the tools are treated as local and can run side by side",
+        "reason": "`openWorldHint` (the tool reaches systems outside your process) is informational only; it doesn't control parallel calls."
+      },
+      {
+        "id": "d",
+        "text": "`readOnlyHint: true`, since the tools don't modify their environment",
+        "reason": "Correct: `readOnlyHint` (default `false`) controls whether a tool can run in parallel with other read-only tools. It's metadata, not enforcement, so keep it accurate."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In the Agent SDK, `readOnlyHint: true` lets side-effect-free tools run in parallel; the other hints are informational.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-sdk-custom-tool",
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-mcp-host-one-client-per-server",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP architecture",
+    "stem": "Your IDE acts as an MCP host and connects to three MCP servers: a local filesystem server, a GitHub server and a remote Sentry server. How does MCP structure these connections?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "One shared MCP client in the IDE multiplexes all three servers over a single connection",
+        "reason": "The host creates one MCP client for each MCP server; there's no single client shared across servers."
+      },
+      {
+        "id": "b",
+        "text": "The host creates one MCP client per server, each keeping its own dedicated connection",
+        "reason": "Correct: an MCP host creates one MCP client for each MCP server, and each client maintains a dedicated connection with its server."
+      },
+      {
+        "id": "c",
+        "text": "Each server runs its own MCP client that connects back to the IDE to deliver context",
+        "reason": "It's the other way round: clients live in the host and obtain context from servers, the programs that provide context to clients."
+      },
+      {
+        "id": "d",
+        "text": "The three servers federate into one combined server, and the IDE talks only to that one",
+        "reason": "The host coordinates multiple clients, one per server; the servers stay separate programs that run locally or remotely."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Host** = the AI app; it creates **one client per server**; each **server** provides context to its client.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-remote-many-clients",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your company wants a single MCP server for its ticketing system that hundreds of employees' AI apps can connect to over the network. Which transport fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "stdio, since it gives optimal performance with no network overhead",
+        "reason": "stdio is for local processes on the same machine; its no-overhead benefit doesn't help clients across the network."
+      },
+      {
+        "id": "b",
+        "text": "stdio, with each employee's app pointed at the server's network address",
+        "reason": "stdio uses standard input/output streams between local processes; there's no network address for remote apps to connect to."
+      },
+      {
+        "id": "c",
+        "text": "Streamable HTTP, which enables remote servers that serve many clients",
+        "reason": "Correct: Streamable HTTP enables remote server communication, and remote servers using it typically serve many MCP clients."
+      },
+      {
+        "id": "d",
+        "text": "Either one, since a stdio server handles remote clients the same way",
+        "reason": "Local stdio servers typically serve a single MCP client; remote servers using Streamable HTTP typically serve many."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**stdio** = local, usually one client. **Streamable HTTP** = remote, many clients, standard HTTP auth (OAuth recommended).",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-unix-socket-transport",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your platform team wants clients to reach an internal MCP server over a Unix domain socket rather than stdio or Streamable HTTP. What does the MCP specification say about this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Allowed as a custom transport: keep JSON-RPC and reuse the stdio newline-delimited framing",
+        "reason": "Correct: custom transports must preserve the JSON-RPC message format, and ones over a reliable byte stream (Unix sockets, TCP) should reuse stdio framing."
+      },
+      {
+        "id": "b",
+        "text": "Not allowed: MCP messages may only travel over the stdio and Streamable HTTP bindings",
+        "reason": "Clients and servers MAY implement custom transports; the protocol is transport-agnostic over any channel that supports bidirectional message exchange."
+      },
+      {
+        "id": "c",
+        "text": "Allowed, but a socket transport should define its own message framing and JSON format",
+        "reason": "Custom transports MUST preserve the JSON-RPC message format, and byte-stream ones SHOULD reuse the stdio framing rather than define a new one."
+      },
+      {
+        "id": "d",
+        "text": "Allowed only if each message is wrapped in an HTTP POST, the same way Streamable HTTP works",
+        "reason": "HTTP POST is how the Streamable HTTP binding works; a byte-stream custom transport should reuse the stdio framing instead."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Sockets are a **custom transport**: same JSON-RPC messages and patterns, newline-delimited framing borrowed from stdio.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
+      "title": "Overview",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-websocket-push",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "You're connecting Claude Code to a remote MCP server that must push events to Claude unprompted. The vendor offers a `wss://` endpoint. Which statement about this setup is accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add it with `claude mcp add --transport ws`, then sign in through the OAuth flow",
+        "reason": "The `--transport` flag doesn't accept `ws`, and WebSocket servers don't support OAuth: their authentication is header-only."
+      },
+      {
+        "id": "b",
+        "text": "Use the SSE transport, since it's the only remote option that can push events",
+        "reason": "SSE is deprecated in Claude Code; WebSocket's persistent bidirectional connection suits remote servers that push events unprompted."
+      },
+      {
+        "id": "c",
+        "text": "Use HTTP instead, because an HTTP server can do everything a WebSocket one can",
+        "reason": "The docs recommend HTTP when your server **only responds** to requests; WebSocket suits remote servers that push events to Claude unprompted."
+      },
+      {
+        "id": "d",
+        "text": "Configure a `type: \"ws\"` entry in `.mcp.json` and pass auth in `headers`",
+        "reason": "Correct: configure WebSocket servers in `.mcp.json` or with `claude mcp add-json`; pass a static token in `headers` or generate one with `headersHelper`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Remote server that **pushes** events: WebSocket (`type: \"ws\"`, header auth). Request/response only: HTTP, which supports OAuth.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-tool-execution-error",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool errors",
+    "stem": "Your MCP server's `book_room` tool receives a date in the wrong format. You want the model to notice and retry with a corrected date. How should the server report the problem?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As a JSON-RPC protocol error, the standard channel for any bad tool input",
+        "reason": "Protocol errors are for unknown tools, malformed requests and server errors, and models are less likely to recover from them."
+      },
+      {
+        "id": "b",
+        "text": "In the tool result, with `isError: true` and a note on the expected format",
+        "reason": "Correct: input validation errors are tool execution errors, reported in tool results with `isError: true` so models can self-correct and retry."
+      },
+      {
+        "id": "c",
+        "text": "By dropping the request, so the client times out and the model calls it again",
+        "reason": "A silent drop gives the model nothing to act on; tool execution errors carry actionable feedback models use to self-correct."
+      },
+      {
+        "id": "d",
+        "text": "By removing `book_room` from `tools/list` until a valid date comes in",
+        "reason": "The tool list MUST NOT vary as a side effect of other requests on the connection; report the bad input in the tool result."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "MCP: bad **input** to a real tool → result with `isError: true`. Unknown tool or malformed request → protocol error.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "title": "Tools",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-is-error"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-elicitation-url-mode",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP elicitation",
+    "stem": "Midway through a `tools/call`, your MCP server needs the user to authorize a third-party account and supply an API key. How should the server collect this, according to MCP's client concepts guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use form-mode elicitation with a schema that includes a password field for the key",
+        "reason": "Servers must not use form mode to request sensitive information such as passwords, API keys or access tokens; those belong in URL mode."
+      },
+      {
+        "id": "b",
+        "text": "Use sampling to have the client's LLM ask the user for the key in the chat",
+        "reason": "Sampling is deprecated as of `2026-07-28`, and sending the key through the model is what URL mode avoids: it keeps data out of the LLM context."
+      },
+      {
+        "id": "c",
+        "text": "Use URL-mode elicitation, so the user completes it at a URL, out of band",
+        "reason": "Correct: in URL mode the data never passes through the client or the LLM context; clients show the full URL and get consent before opening it."
+      },
+      {
+        "id": "d",
+        "text": "Return an error asking the user to paste the key into their next chat message",
+        "reason": "Pasting the key into chat sends it through the client and the LLM context, which URL-mode elicitation exists to avoid."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Elicitation: **form** mode for ordinary structured input; **URL** mode for credentials and OAuth, kept out of the client and model.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/client-concepts",
+      "title": "Understanding MCP clients",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-connector-block-write-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "Through the MCP connector, your read-only calendar assistant uses a server whose tools include `search_events`, `update_event` and `delete_event`. Claude must never be able to call the two write tools. Which `mcp_toolset` configurations achieve this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`default_config` with `enabled: false`, plus `configs` enabling only `search_events`",
+        "reason": "Correct: the allowlist pattern sets `enabled: false` as the default and enables specific tools; tool-specific `configs` override `default_config`."
+      },
+      {
+        "id": "b",
+        "text": "`configs` that set `defer_loading: true` on `update_event` and `delete_event`",
+        "reason": "`defer_loading` only keeps a tool's description from being sent initially, for use with tool search; the tools stay enabled."
+      },
+      {
+        "id": "c",
+        "text": "No `mcp_toolset` at all, so Claude can see the server but can't call its tools",
+        "reason": "That fails validation: every server in `mcp_servers` must be referenced by exactly one MCPToolset."
+      },
+      {
+        "id": "d",
+        "text": "Default settings, plus `configs` setting `enabled: false` on both write tools",
+        "reason": "Correct: the denylist pattern enables all tools by default and disables unwanted ones, as recommended for read-only assistants."
+      },
+      {
+        "id": "e",
+        "text": "A second `mcp_toolset` for the same server, listing just the write tools as disabled",
+        "reason": "Each MCP server can be referenced by only one MCPToolset, so a second toolset for the same server is rejected."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Connector tool control lives in `mcp_toolset`: **allowlist** (default off, enable a few) or **denylist** (default on, disable a few).",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-token-audience",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP authorization",
+    "stem": "Your remote MCP server accepts any unexpired access token signed by your company's authorization server, including tokens issued for other internal APIs. According to MCP's authorization guide, what should you fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch the server to stdio so that it never has to accept access tokens",
+        "reason": "OAuth flows are designed for remotely hosted HTTP servers; stdio servers run locally, so this doesn't secure a server others reach remotely."
+      },
+      {
+        "id": "b",
+        "text": "Log each incoming `Authorization` header so token misuse can be traced later",
+        "reason": "The guide says never to log `Authorization` headers, tokens, codes or secrets; scrub headers and redact sensitive fields."
+      },
+      {
+        "id": "c",
+        "text": "Issue long-lived tokens so that clients need to re-authorize less often",
+        "reason": "The guide recommends short-lived access tokens: a stolen long-lived token keeps its access for longer."
+      },
+      {
+        "id": "d",
+        "text": "Check that each token's audience matches your server and reject the rest",
+        "reason": "Correct: a received token isn't necessarily meant for your server. Require the audience to match your server, which helps avoid token passthrough."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Remote MCP server: **always validate tokens**, including the audience, so tokens issued for other APIs are rejected.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
+      "title": "Understanding Authorization in MCP",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-mcp-connector-vs-client-helpers",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "Your Messages API app needs an MCP server's **prompts** and **resources**, not just its tools, and another server it uses runs locally over stdio. Which integration does the MCP connector page point you to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run your own MCP client and use the SDK's client-side MCP helpers",
+        "reason": "Correct: use the client-side helpers when you need local servers, prompts, resources, or more control over the connection with the base SDK."
+      },
+      {
+        "id": "b",
+        "text": "Add both servers to `mcp_servers` and list the prompts and resources in each toolset",
+        "reason": "Of the MCP spec's features, the connector currently supports only tool calls; a toolset configures which tools are enabled."
+      },
+      {
+        "id": "c",
+        "text": "Add the servers to `mcp_servers` with `type: \"stdio\"` and pass the launch command",
+        "reason": "`type` currently supports only \"url\", the URL must start with https://, and local stdio servers can't be connected directly."
+      },
+      {
+        "id": "d",
+        "text": "Pass an `authorization_token` so the connector can fetch the prompts and resources",
+        "reason": "`authorization_token` is an OAuth token for servers that require one; it doesn't add prompt or resource support to the connector."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`mcp_servers` = remote servers, **tools only**. Local servers, prompts or resources → your own MCP client plus the SDK helpers.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-ext-skill-teaches-mcp",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Claude Code is connected to your Postgres database through an MCP server, and queries run fine. But Claude keeps ignoring your team's table conventions and preferred query patterns. What's the best addition?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A second MCP server that exposes the same database with stricter tool descriptions",
+        "reason": "MCP already provides the connection and tools; knowledge about how to use those tools effectively is what a skill adds."
+      },
+      {
+        "id": "b",
+        "text": "A skill documenting your schema and query patterns, so Claude uses the MCP tools well",
+        "reason": "Correct: MCP provides the connection and a skill teaches Claude how to use it well, for example your database schema and query patterns."
+      },
+      {
+        "id": "c",
+        "text": "A hook that runs on every prompt and pastes the full schema into the conversation",
+        "reason": "Hooks suit actions that must run the same way every time without Claude thinking; reference material belongs in a skill that loads on demand."
+      },
+      {
+        "id": "d",
+        "text": "A subagent that owns the database, so the main conversation never runs any queries",
+        "reason": "Subagents are for context isolation, parallel tasks and specialized workers; the Skill + MCP pattern is the one for teaching query conventions."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**MCP** connects; a **skill** teaches. Pair them: the server runs queries, the skill holds the schema and query patterns.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-plugin-second-repo",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Your team built skills, hooks and an MCP server configuration for one repository. A second repository now needs the exact same setup, and other teams want it too. What fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Package them as a plugin and distribute it through a marketplace",
+        "reason": "Correct: a plugin bundles skills, hooks, subagents and MCP servers into one installable unit, to reuse across repositories or distribute via a marketplace."
+      },
+      {
+        "id": "b",
+        "text": "Copy all of it into each repository's CLAUDE.md so it loads at startup",
+        "reason": "CLAUDE.md holds persistent context Claude sees every session; it doesn't carry hooks or MCP server connections."
+      },
+      {
+        "id": "c",
+        "text": "Move everything into user-level config on each developer's own machine",
+        "reason": "User-wide definitions belong to one user; the docs' trigger for a second repository needing the same setup is to package it as a plugin."
+      },
+      {
+        "id": "d",
+        "text": "Turn the whole setup into a subagent that every repository can call by name",
+        "reason": "A subagent is an isolated worker that returns summaries; it doesn't package hooks or MCP servers for other repositories."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Same setup needed in a **second repo** or by other teams? Package it as a **plugin**.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-reference-docs-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Your CLAUDE.md has grown to 900 lines, mostly a detailed API reference Claude needs only when working on the payments service. Claude has started missing your core conventions. What does the Claude Code guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep everything in CLAUDE.md, but move the core conventions up to the very top of the file",
+        "reason": "CLAUDE.md loads in full every session; the guide says to keep it under 200 lines and move reference content to skills."
+      },
+      {
+        "id": "b",
+        "text": "Turn the API reference into an output style so it shapes every response",
+        "reason": "Output styles set Claude's role, tone and response format for a session; they aren't meant for reference material."
+      },
+      {
+        "id": "c",
+        "text": "Move the API reference into a skill that loads on demand; keep CLAUDE.md lean",
+        "reason": "Correct: put reference material Claude needs only sometimes in a skill, which loads on demand, and keep CLAUDE.md under 200 lines."
+      },
+      {
+        "id": "d",
+        "text": "Put the API reference in a hook that prints it whenever a session starts",
+        "reason": "Hooks suit actions that must run the same way every time; reference material Claude needs only sometimes belongs in a skill."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "CLAUDE.md = always-on rules, under 200 lines. Reference material needed only **sometimes** → a skill.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-mcp-browser-data",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Developers keep copying incident details from a monitoring dashboard in their browser into Claude Code, because Claude can't see that system. Which extension addresses this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A skill describing the dashboard's layout so Claude knows where to look",
+        "reason": "A skill adds knowledge and workflows; it doesn't give Claude access to an external system's data."
+      },
+      {
+        "id": "b",
+        "text": "An MCP server that connects Claude Code to the monitoring system",
+        "reason": "Correct: the guide's trigger is exactly this: if you keep copying data from a browser tab Claude can't see, connect that system as an MCP server."
+      },
+      {
+        "id": "c",
+        "text": "A CLAUDE.md section listing the dashboard's URL and its login steps",
+        "reason": "CLAUDE.md adds context Claude sees every session; it doesn't connect Claude to an external service."
+      },
+      {
+        "id": "d",
+        "text": "A subagent dedicated to reading incident details for the main session",
+        "reason": "A subagent isolates context and returns summaries; it doesn't connect Claude to an external service on its own."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Claude needs data from a system it **can't reach**? Connect that system with **MCP**.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-anthropic-schema-bash-vs-custom",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Built-in vs custom tools",
+    "stem": "Your API agent needs to run shell commands in a VM you control. A teammate proposes a custom `run_shell` tool with its own schema instead of Anthropic's `bash` tool. What's the main reason the docs give for preferring the Anthropic-schema tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Anthropic runs `bash` commands on its own servers, so you don't need to host a VM",
+        "reason": "`bash` is client-executed: Anthropic publishes the schema, but your application runs each command and returns the result."
+      },
+      {
+        "id": "b",
+        "text": "Custom tools can't run shell commands, because tool inputs must be plain JSON objects only",
+        "reason": "User-defined tools can call any application logic (a database query, an HTTP call, a file write); the difference is how reliably Claude uses them."
+      },
+      {
+        "id": "c",
+        "text": "Claude is trained on its exact schema, so it calls it more reliably and recovers better",
+        "reason": "Correct: Anthropic-schema tools are trained-in; Claude has been optimized on thousands of successful trajectories using these exact signatures."
+      },
+      {
+        "id": "d",
+        "text": "The `bash` tool skips the agentic loop, so your code never returns a `tool_result`",
+        "reason": "The execution model is identical to user-defined tools: a `tool_use` block, your code runs the operation, and you send back a `tool_result`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For shell, file editing, memory or computer use, prefer Anthropic's **trained-in schemas**; your app still executes them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-code-exec-server-vs-bash",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Built-in vs custom tools",
+    "stem": "You want Claude to run Python for ad-hoc data analysis in your API app, but you don't want to host or secure any execution environment yourself. Which tool fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Anthropic's `bash` tool, since Anthropic publishes and maintains its schema",
+        "reason": "`bash` is an Anthropic-schema tool, but it's client-executed: your application handles the execution."
+      },
+      {
+        "id": "b",
+        "text": "A custom `run_python` tool whose handler executes the code on your servers",
+        "reason": "With a user-defined tool you write the schema, execute the code and return the results: the hosting you want to avoid."
+      },
+      {
+        "id": "c",
+        "text": "Anthropic's `text_editor` tool, which writes the scripts and runs them for Claude",
+        "reason": "`text_editor` is also client-executed: Anthropic publishes the schema and your application performs the operations."
+      },
+      {
+        "id": "d",
+        "text": "The `code_execution` server tool, which Anthropic runs in its own sandbox",
+        "reason": "Correct: for server-executed tools like `code_execution`, Anthropic runs the code; you enable it and read the results instead of producing them."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Need code run with no infrastructure? **`code_execution`** is server-executed; `bash` and `text_editor` run in your app.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-api-no-network",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "A custom Skill's script calls your internal REST API using only the Python standard library, and it works in Claude Code. You upload the same Skill through the Skills API and use it with the code execution tool. The rest of the Skill works, but that step fails. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Skills on the Claude API run without network access, so the API call fails",
+        "reason": "Correct: on the Claude API, Skills run in a sandboxed container with no network access, so they can't make external API calls; Claude Code Skills have full network access."
+      },
+      {
+        "id": "b",
+        "text": "Skills uploaded through the API must also be uploaded on claude.ai before they sync",
+        "reason": "Skills don't sync across surfaces, but that affects where a Skill is available; it wouldn't make one step of a working Skill fail."
+      },
+      {
+        "id": "c",
+        "text": "The Skill is missing the code execution tool, which its scripts need in order to run",
+        "reason": "The stem says the code execution tool is in the request and the rest of the Skill works, so its container is running."
+      },
+      {
+        "id": "d",
+        "text": "API Skills can't run bundled scripts at all; only the SKILL.md instructions are loaded",
+        "reason": "Bundled scripts run through bash in the Skill's environment, and only their output enters context; that isn't specific to one surface."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Same Skill, different runtime: **API = no network, no runtime installs**; Claude Code = full network access.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-team-sharing",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "Your engineers use Claude Code and an internal app built on the Claude API. You want one custom Skill available to all of them without each person uploading or installing it. Which approaches achieve that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload it once in claude.ai settings, where it's shared with the organization",
+        "reason": "Custom Skills in claude.ai are individual to each user: each team member must upload separately."
+      },
+      {
+        "id": "b",
+        "text": "Upload it through the Claude API, where custom Skills are shared workspace-wide",
+        "reason": "Correct: custom Skills uploaded through the API are workspace-wide, so all workspace members can access them."
+      },
+      {
+        "id": "c",
+        "text": "Upload it in claude.ai and let it sync to the API and to Claude Code from there",
+        "reason": "Custom Skills don't sync across surfaces: Skills uploaded to claude.ai must be uploaded separately to the API."
+      },
+      {
+        "id": "d",
+        "text": "Commit it to the repository's `.claude/skills/` directory for Claude Code",
+        "reason": "Correct: Claude Code Skills can be project-based (`.claude/skills/`), and can also be shared through plugins."
+      },
+      {
+        "id": "e",
+        "text": "Ask a claude.ai admin to distribute it centrally to every member of the org",
+        "reason": "claude.ai does not support centralized admin management or org-wide distribution of custom Skills."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Skill sharing: claude.ai = per user; **API = workspace-wide**; Claude Code = project `.claude/skills/` or a plugin.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-untrusted-source",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "A teammate found a handy community Skill from an unknown author for processing invoices and wants to add it to your production agent, which can access customer data. What does Anthropic's Skills guidance say to do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read the SKILL.md description; if it matches the stated purpose, the Skill is safe",
+        "reason": "A malicious Skill can direct Claude to act in ways that don't match its stated purpose; review SKILL.md, scripts, images and other resources."
+      },
+      {
+        "id": "b",
+        "text": "Audit every bundled file, scripts included, as you would before installing software",
+        "reason": "Correct: use Skills only from trusted sources; if you must use an unknown one, audit it thoroughly and treat it like installing software."
+      },
+      {
+        "id": "c",
+        "text": "Install it, because Skills only add instructions and can't execute any code",
+        "reason": "Skills bundle executable scripts, and malicious Skills can invoke tools such as bash commands or code execution in harmful ways."
+      },
+      {
+        "id": "d",
+        "text": "Install it, since every Skill runs in a sandbox that blocks all outgoing network calls",
+        "reason": "Network access depends on the surface (Claude Code Skills have full network access), and Skills with data access could leak it externally."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Treat a Skill like **software**: trusted sources only, and audit every file, scripts included, before production use.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-sdk-tools-empty-builtins",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Built-in vs custom tools",
+    "stem": "Your Agent SDK support bot should use only your custom MCP tools, never built-ins like Bash or Read. You list your tools in `allowedTools`, yet Claude still sometimes tries Bash. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a scoped `disallowedTools` rule such as `\"Bash(rm *)\"` to deny risky calls",
+        "reason": "A scoped rule leaves the tool in context and denies only matching calls, so Claude may still try Bash; removing it needs `tools` or a bare name."
+      },
+      {
+        "id": "b",
+        "text": "List each custom tool in `allowedTools` again, using its full `mcp__` tool name",
+        "reason": "`allowedTools` works at the permission layer: listed tools skip the prompt, but other tools remain available to Claude."
+      },
+      {
+        "id": "c",
+        "text": "Pass `tools: []` so every built-in is removed and only your MCP tools remain",
+        "reason": "Correct: `tools` controls availability. `tools: []` removes all built-ins, so Claude can only use your MCP tools."
+      },
+      {
+        "id": "d",
+        "text": "Set `readOnlyHint: true` on the custom tools so Claude prefers them to built-ins",
+        "reason": "`readOnlyHint` controls whether a tool can run in parallel with other read-only tools; it doesn't hide built-ins."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`allowedTools` = skip the prompt; `tools` = what exists. To hide built-ins, use `tools: []` (or bare names in `disallowedTools`).",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-sdk-custom-tool"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-dynamic-workflow-audit",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "You want Claude Code to audit an entire large codebase for security issues, with a second set of agents verifying each finding before you see it. Which feature fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A single subagent that reads the whole codebase and returns one summary",
+        "reason": "Subagents suit quick, focused workers; a job that outgrows a handful of subagents, or needs findings cross-checked, suits a dynamic workflow."
+      },
+      {
+        "id": "b",
+        "text": "A skill holding the audit checklist, run inside your main conversation",
+        "reason": "A skill's content adds to your main context window; a codebase-wide audit with verified findings is the docs' example of a workflow."
+      },
+      {
+        "id": "c",
+        "text": "A `PostToolUse` hook that checks each file for issues as Claude edits it",
+        "reason": "Hooks fire at lifecycle events for automation that must run every time; they don't plan an audit or cross-check its findings."
+      },
+      {
+        "id": "d",
+        "text": "A dynamic workflow: a script Claude writes that runs many subagents",
+        "reason": "Correct: a dynamic workflow runs many subagents in the background and returns one result; the docs' example is an audit with agents verifying each finding."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A few focused tasks → **subagents**. Big jobs or cross-checked findings → a **dynamic workflow**.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-skill-vs-subagent",
+      "c-subagent-context"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-code-intelligence",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "In a large TypeScript monorepo, Claude Code reads many files just to find where a symbol is defined or used, which is slow and burns context. What does the Claude Code guide suggest adding?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A code intelligence plugin for TypeScript, which connects a language server",
+        "reason": "Correct: code intelligence gives symbol-level navigation and type errors; symbol lookups often replace broad file reads, so context use can go down."
+      },
+      {
+        "id": "b",
+        "text": "A subagent that greps the whole repository and reports where each symbol lives",
+        "reason": "A subagent isolates the reads from your context, but still reads the files; the guide's trigger here is a code intelligence plugin."
+      },
+      {
+        "id": "c",
+        "text": "A CLAUDE.md section that lists where each of the main symbols is defined",
+        "reason": "CLAUDE.md loads in full every session; for symbol hunting the guide points to a code intelligence plugin instead."
+      },
+      {
+        "id": "d",
+        "text": "A hook that indexes every file after each edit and prints the whole index",
+        "reason": "Hook output lands in context, so printing a full index adds context rather than saving it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Claude hunting for definitions? Install a **code intelligence plugin**: language-server lookups replace broad file reads.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ext-hook-vs-skill-split",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "You're moving your team's practices into Claude Code extensions. Which of these belong in hooks rather than skills?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Blocking any edit to `.env` files, with no exceptions",
+        "reason": "Correct: a rule that must hold every time belongs in a hook; a `PreToolUse` hook that blocks the edit is enforcement, not a request."
+      },
+      {
+        "id": "b",
+        "text": "A `/release` checklist that Claude adapts to each release",
+        "reason": "A checklist Claude decides how to apply is the docs' own example of a skill: a `/release` checklist."
+      },
+      {
+        "id": "c",
+        "text": "Your API style guide, for Claude to consult while coding",
+        "reason": "Reference material such as an API style guide is knowledge rather than a script, so it belongs in a skill."
+      },
+      {
+        "id": "d",
+        "text": "A debugging playbook Claude applies to each new bug",
+        "reason": "A debugging playbook needs Claude to decide how to apply the steps, which makes it a skill, not a hook."
+      },
+      {
+        "id": "e",
+        "text": "Posting a Slack message whenever a session ends",
+        "reason": "Correct: an action that should happen the same way every time without Claude thinking, like posting to Slack when a session ends, is a hook."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "**Hook** = fires every time, no judgment (block, lint, notify). **Skill** = knowledge or steps Claude applies with judgment.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-skill-script-vs-generated-code",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "Your invoice Skill describes how to validate a form, and Claude writes fresh validation code from those instructions on every run. Results vary and token use is high. What does the Agent Skills overview suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste the full validation code into SKILL.md so Claude can copy it on every run",
+        "reason": "The SKILL.md body enters context when the Skill triggers; a bundled script's code never does, and running it is more reliable."
+      },
+      {
+        "id": "b",
+        "text": "Move the validation steps into the Skill's `description` so they're always in context",
+        "reason": "The description is Level 1 metadata (~100 tokens per Skill) that Claude matches to decide when to trigger; it isn't where procedures go."
+      },
+      {
+        "id": "c",
+        "text": "Bundle a `validate.py` script that Claude runs, so only its output enters context",
+        "reason": "Correct: scripts give deterministic operations, and only their output uses tokens, making them far more efficient than generating equivalent code."
+      },
+      {
+        "id": "d",
+        "text": "Split the steps into several smaller Skills, each with its own trigger description",
+        "reason": "More Skills still leave Claude generating the code each time; bundled scripts are how a Skill gets reliable, low-token operations."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Deterministic step in a Skill? Ship it as a **script**: Claude runs it, and only the output costs tokens.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-skill-progressive-disclosure",
+      "c-agent-skill"
     ],
     "lessonId": "l-agentic-customisation"
   }

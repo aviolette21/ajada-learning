@@ -425,6 +425,6 @@ Some skills are general software engineering rather than Claude-specific: REST, 
 - Languages and tools: docs.python.org, nodejs.org, typescriptlang.org, git-scm.com, docs.github.com
 - Security and operations: owasp.org (including the OWASP Top 10 for LLM Applications at genai.owasp.org), csrc.nist.gov / nist.gov, sre.google
 - Cloud providers, for invoking Claude through them: docs.aws.amazon.com (Amazon Bedrock), cloud.google.com (Vertex AI), learn.microsoft.com
-- Agent frameworks the blueprint names, for questions about those frameworks: strandsagents.com, langchain-ai.github.io/langgraph (or docs.langchain.com), ai.pydantic.dev
+- Agent frameworks the blueprint names, for questions about those frameworks: strandsagents.com, langchain-ai.github.io/langgraph (or docs.langchain.com), ai.pydantic.dev (now redirecting to pydantic.dev/docs/ai)
 
 Prefer an Anthropic page whenever one covers the point. The other rules are unchanged: one source per question, fetched this session, nothing the source doesn't support.
