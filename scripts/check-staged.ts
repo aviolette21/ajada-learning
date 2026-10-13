@@ -42,7 +42,13 @@ const longest = (q: (typeof all)[number]) => {
 const stagedIds = new Set(staged.map((q) => q.id));
 const mine = all.filter((q) => stagedIds.has(q.id));
 console.log(`✓ ${staged.length} staged questions valid alongside the bank`);
+const shortest = (q: (typeof all)[number]) => {
+  if (Array.isArray(q.answer)) return false;
+  const min = Math.min(...q.choices.map((c) => c.text.length));
+  return q.choices.find((c) => c.id === q.answer)!.text.length === min;
+};
 console.log(`  correct choice is the longest: ${mine.filter(longest).length}/${mine.length} (aim ≤ 1/3)`);
+console.log(`  correct choice is the shortest: ${mine.filter(shortest).length}/${mine.length} (aim ≤ 1/3)`);
 console.log(`  by sub-skill: ${tally((q) => q.subSkillId ?? '?')}`);
 console.log(`  answer keys:  ${tally((q) => (Array.isArray(q.answer) ? 'multi' : String(q.answer)))}`);
 console.log(`  difficulty:   ${tally((q) => q.difficulty ?? '?')}`);
