@@ -1,1 +1,2692 @@
-[]
+[
+  {
+    "id": "g-accept-edits",
+    "term": "acceptEdits",
+    "aliases": [],
+    "definition": "Permission mode that runs reads, file edits and common filesystem commands (`mkdir`, `mv`, `cp`...) without asking. Suited to iterating on code you're reviewing.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-adaptive-thinking",
+    "term": "adaptive thinking",
+    "aliases": [
+      "type: \"adaptive\""
+    ],
+    "definition": "The thinking mode set with `thinking: {type: \"adaptive\"}`: Claude determines when and how deeply to think based on the request. Newer models use it by default.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-admin-api",
+    "term": "Admin API",
+    "aliases": [
+      "Admin API key"
+    ],
+    "definition": "Manages your organization's members, workspaces, invites and API keys programmatically. It needs an Admin API key (`sk-ant-admin...`), an `org:admin` OAuth token, or an unscoped personal/service account key.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/admin-api",
+      "title": "Admin API",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-agent-loop",
+    "term": "agent loop",
+    "aliases": [
+      "agentic loop"
+    ],
+    "definition": "The cycle behind Claude Code and the Agent SDK: Claude evaluates the prompt, calls tools, receives the results, and repeats until the task is complete.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-agent-skill",
+    "term": "Agent Skill",
+    "aliases": [
+      "skill",
+      "SKILL.md"
+    ],
+    "definition": "A filesystem-based directory with a `SKILL.md` file (YAML frontmatter and instructions), plus optional scripts and resources Claude uses when relevant.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-allowed-vs-disallowed-tools",
+    "term": "allowedTools",
+    "aliases": [
+      "disallowedTools",
+      "allowed_tools",
+      "disallowed_tools"
+    ],
+    "definition": "`allowedTools` auto-approves the listed tools; `disallowedTools` blocks them, even in bypassPermissions mode. Unlisted tools stay available.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-alternating-turns",
+    "term": "alternating turns",
+    "aliases": [
+      "alternating user and assistant turns"
+    ],
+    "definition": "Claude is trained on alternating `user` and `assistant` turns. Consecutive turns with the same role in a request are combined into a single turn.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-amazon-bedrock",
+    "term": "Amazon Bedrock",
+    "aliases": [
+      "Bedrock"
+    ],
+    "definition": "AWS's service for accessing Claude with AWS-native authentication, billing and security boundaries, using the same Messages API shape as Anthropic's first-party API.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-anthropic-api-key-env",
+    "term": "ANTHROPIC_API_KEY",
+    "aliases": [],
+    "definition": "The environment variable the Claude client SDKs read your API key from automatically, so code can create a client without passing a key.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-anthropic-beta",
+    "term": "anthropic-beta",
+    "aliases": [
+      "anthropic-beta header"
+    ],
+    "definition": "The request header that opts in to experimental (beta) features, e.g. `anthropic-beta: BETA_FEATURE_NAME`. The SDKs take beta names through a `betas` parameter and send the header for you.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/beta-headers",
+      "title": "Beta headers",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-anthropic-log",
+    "term": "ANTHROPIC_LOG",
+    "aliases": [
+      "ANTHROPIC_LOG=debug"
+    ],
+    "definition": "Environment variable that turns on logging in the Python SDK; set it to `debug` or `info`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-ratelimit-headers",
+    "term": "anthropic-ratelimit-* headers",
+    "aliases": [
+      "anthropic-ratelimit-*"
+    ],
+    "definition": "Response headers showing the limit enforced, what remains and when it fully replenishes, for requests, tokens, input tokens and output tokens.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-anthropic-version",
+    "term": "anthropic-version",
+    "aliases": [
+      "anthropic-version header"
+    ],
+    "definition": "A required request header naming the API version, such as `2023-06-01`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-anthropic-workspace-id",
+    "term": "anthropic-workspace-id",
+    "aliases": [],
+    "definition": "Request header naming the workspace a request runs in. Required with a multi-workspace API key; optional for other keys. A single-workspace key runs in its own workspace when you omit it.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-api-error-types",
+    "term": "API error types",
+    "aliases": [
+      "invalid_request_error",
+      "authentication_error",
+      "permission_error",
+      "not_found_error"
+    ],
+    "definition": "Each HTTP error has a type: 400 invalid_request_error, 401 authentication_error, 403 permission_error, 404 not_found_error, 429 rate_limit_error.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-api-key-types",
+    "term": "API key types",
+    "aliases": [
+      "service account key",
+      "personal key",
+      "workspace key"
+    ],
+    "definition": "**Personal** keys act as you, **service account** keys act as a service account, and legacy **workspace** keys belong to a workspace.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-api-versioning",
+    "term": "API version guarantees",
+    "aliases": [
+      "versioning policy"
+    ],
+    "definition": "Within an API version, Anthropic preserves existing input and output parameters, but may add optional inputs and new output values.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/versioning",
+      "title": "Versions",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-async-client",
+    "term": "AsyncAnthropic",
+    "aliases": [],
+    "definition": "The Python SDK's asynchronous client. It has the same interface as the sync `Anthropic` client, with calls you `await`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-sdk-retries",
+    "term": "automatic retries",
+    "aliases": [
+      "max_retries",
+      "maxRetries"
+    ],
+    "definition": "The official SDKs retry transient failures (connection errors, rate limits, 5xx errors) with exponential backoff, twice by default.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-auto-memory",
+    "term": "auto memory",
+    "aliases": [],
+    "definition": "Notes Claude Code writes for itself from your corrections and preferences, so it accumulates knowledge across sessions without you writing anything.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-auto-mode",
+    "term": "auto mode",
+    "aliases": [],
+    "definition": "Permission mode where a second model, a classifier, reviews Claude's actions instead of you, so long tasks run with background safety checks and fewer prompts.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-bare-flag",
+    "term": "--bare",
+    "aliases": [],
+    "definition": "A `claude -p` flag that skips auto-discovery of hooks, skills, plugins, MCP servers, auto memory and CLAUDE.md, reducing startup time. Without it, `-p` loads what an interactive session would.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-batch-result-types",
+    "term": "batch result types",
+    "aliases": [],
+    "definition": "Once a batch ends, each request has one result type: succeeded, errored, canceled or expired. Only succeeded results include the message.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-thinking-budget",
+    "term": "budget_tokens",
+    "aliases": [
+      "thinking budget"
+    ],
+    "definition": "The thinking budget in manual extended thinking: at least 1,024 tokens and less than `max_tokens`. It is a target, not a strict cap.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-bypass-permissions",
+    "term": "bypassPermissions",
+    "aliases": [],
+    "definition": "Permission mode that runs everything without asking. Use it only in isolated containers and VMs. Deny rules still block in this mode.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-cache-control",
+    "term": "cache_control",
+    "aliases": [
+      "cache breakpoint"
+    ],
+    "definition": "A content-block field marking a cache breakpoint: the prompt (tools, system, then messages) up to and including that block becomes the cacheable prefix.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-cache-usage-fields",
+    "term": "cache_read_input_tokens",
+    "aliases": [
+      "cache_creation_input_tokens"
+    ],
+    "definition": "Usage fields for prompt caching: `cache_creation_input_tokens` were written to the cache; `cache_read_input_tokens` were read from it. If both are 0, nothing was cached.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-canary",
+    "term": "canary",
+    "aliases": [
+      "canarying",
+      "canary release"
+    ],
+    "definition": "A partial, time-limited deployment of a change to part of a service (the canary), compared with the rest (the control) to decide whether to continue the rollout.",
+    "source": {
+      "url": "https://sre.google/workbook/canarying-releases/",
+      "title": "Canarying Releases",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-can-use-tool",
+    "term": "canUseTool",
+    "aliases": [
+      "can_use_tool"
+    ],
+    "definition": "An Agent SDK callback that decides at runtime on tool calls that permission modes and rules don't settle, such as calls matching an `ask` rule.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "title": "Configure permissions (Agent SDK)",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-manual-cot",
+    "term": "chain of thought",
+    "aliases": [
+      "chain-of-thought",
+      "CoT"
+    ],
+    "definition": "When thinking is off, asking Claude to think through a problem step by step, with tags like `<thinking>` and `<answer>` to separate reasoning from output.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-checkpointing",
+    "term": "checkpointing",
+    "aliases": [
+      "/rewind"
+    ],
+    "definition": "Claude Code captures your code's state before each prompt, so you can undo Claude's edits. `/rewind` rolls code and conversation back to a checkpoint.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/checkpointing",
+      "title": "Checkpointing",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-citations",
+    "term": "citations",
+    "aliases": [
+      "citation"
+    ],
+    "definition": "An API feature that returns the exact document passages supporting each claim. Turn it on with `citations.enabled=true` on each document.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "title": "Citations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cited-text",
+    "term": "cited_text",
+    "aliases": [],
+    "definition": "The citation field holding the exact passage Claude cites, returned with its location in the source document.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
+      "title": "Citations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-claude-agent-sdk",
+    "term": "Claude Agent SDK",
+    "aliases": [
+      "Agent SDK"
+    ],
+    "definition": "A Python and TypeScript library giving you the same tools, agent loop and context management that power Claude Code, in a process you operate.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-github-actions",
+    "term": "Claude Code GitHub Actions",
+    "aliases": [
+      "GitHub Actions",
+      "GitHub Action",
+      "claude-code-action"
+    ],
+    "definition": "A GitHub Action (`claude-code-action`) that runs Claude Code in your repo's workflows: mention `@claude` in a PR or issue, or run a prompt on any GitHub event.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/github-actions",
+      "title": "Claude Code GitHub Actions",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-claude-console",
+    "term": "Claude Console",
+    "aliases": [
+      "Console"
+    ],
+    "definition": "The web Console through which the Claude API is made available: try the API in the playground and generate API keys in Account Settings.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-managed-agents",
+    "term": "Claude Managed Agents",
+    "aliases": [
+      "Managed Agents"
+    ],
+    "definition": "A pre-built, configurable agent harness that runs in managed infrastructure, built around four concepts: agent, environment, session and events.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-claude-md",
+    "term": "CLAUDE.md",
+    "aliases": [
+      "./CLAUDE.md"
+    ],
+    "definition": "A markdown file of persistent instructions that Claude Code reads at the start of every session. Project `./CLAUDE.md` is shared via source control.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-google-agent-platform",
+    "term": "Claude on Google Cloud",
+    "aliases": [
+      "Google Cloud",
+      "Agent Platform"
+    ],
+    "definition": "Claude through Google Cloud's Agent Platform. Requests are nearly the Messages API, except `model` goes in the endpoint URL and `anthropic_version` goes in the request body.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
+      "title": "Claude on Google Cloud",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-cc-print-mode",
+    "term": "claude -p",
+    "aliases": [
+      "-p",
+      "--print",
+      "non-interactive mode",
+      "headless mode"
+    ],
+    "definition": "The `-p` (or `--print`) flag runs Claude Code non-interactively for scripts and CI. It exits 0 on success and non-zero when the run fails.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-clear-command",
+    "term": "/clear",
+    "aliases": [],
+    "definition": "Claude Code command that starts a new conversation with empty context. To free context but continue the same conversation, use `/compact` instead.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/commands",
+      "title": "Commands",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-client-sdks",
+    "term": "client SDK",
+    "aliases": [
+      "official SDK"
+    ],
+    "definition": "Anthropic's official, general-purpose Messages API clients for Python, TypeScript, C#, Go, Java, PHP and Ruby.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+      "title": "CLI, SDKs, and libraries",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-eval-grading-methods",
+    "term": "code-based grading",
+    "aliases": [
+      "LLM-based grading",
+      "human grading",
+      "LLM grader",
+      "model-based grading"
+    ],
+    "definition": "Code-based (fastest, most reliable, but lacks nuance), human (most flexible, but slow and expensive) and LLM-based (fast, flexible, suits complex judgment).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-code-execution-tool",
+    "term": "code execution tool",
+    "aliases": [
+      "code execution",
+      "code_execution"
+    ],
+    "definition": "A server tool that lets Claude run Bash commands and manipulate files, including writing code, in a secure, sandboxed container: useful for data analysis, calculations and generating files.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool",
+      "title": "Code execution tool",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-code-review",
+    "term": "Code Review",
+    "aliases": [
+      "@claude review",
+      "REVIEW.md"
+    ],
+    "definition": "A research-preview service that analyzes GitHub PRs and posts findings as inline comments, without approving or blocking. Tune it with `CLAUDE.md` or `REVIEW.md`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/code-review",
+      "title": "Code Review",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-compact-command",
+    "term": "/compact",
+    "aliases": [],
+    "definition": "Claude Code command that frees up context by summarizing the conversation so far. You can pass focus instructions for the summary.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/commands",
+      "title": "Commands",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-compaction",
+    "term": "compaction",
+    "aliases": [
+      "server-side compaction"
+    ],
+    "definition": "Replaces the older turns of a conversation with a summary Claude writes on the server, so you need no summarization code of your own.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-content-blocks",
+    "term": "content block",
+    "aliases": [],
+    "definition": "An input message's `content` is a string or an array of typed blocks. A string is shorthand for one block of type `text`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-context-editing",
+    "term": "context editing",
+    "aliases": [],
+    "definition": "Selectively clearing specific content, such as old tool results, from conversation history as it grows, to save cost, stay within limits and keep Claude focused on what matters.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-context-engineering",
+    "term": "context engineering",
+    "aliases": [],
+    "definition": "Strategies for curating and maintaining the optimal set of tokens in a model's context during inference, including everything that lands there besides the prompt.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-context-rot",
+    "term": "context rot",
+    "aliases": [],
+    "definition": "The degradation of accuracy and recall as the number of tokens in context grows. More context isn't automatically better.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-context-window",
+    "term": "context window",
+    "aliases": [],
+    "definition": "All the text a model can reference when generating a response, including the response itself: its \"working memory\", not its training data.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cc-continue-resume",
+    "term": "--continue",
+    "aliases": [
+      "--resume"
+    ],
+    "definition": "`claude --continue` reopens the most recent conversation in the current directory; `claude --resume` resumes a session by ID or name, or opens a picker.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-current-models",
+    "term": "current Claude models",
+    "aliases": [],
+    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5: speed + intelligence. Haiku 4.5: fastest.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cc-custom-skill",
+    "term": "custom command",
+    "aliases": [
+      "custom slash command",
+      ".claude/commands"
+    ],
+    "definition": "A skill's `SKILL.md` creates a /name command. Custom commands have been merged into skills, and existing `.claude/commands/` files keep working.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-custom-id",
+    "term": "custom_id",
+    "aliases": [],
+    "definition": "A unique ID you give each request in a Message Batch (1 to 64 letters, digits, hyphens or underscores) to match it with its result.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cc-subagent-file",
+    "term": "custom subagent",
+    "aliases": [
+      "subagent file"
+    ],
+    "definition": "A Markdown file with YAML frontmatter (only `name` and `description` are required) whose body becomes the subagent's system prompt.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-sdk-custom-tool",
+    "term": "custom tool",
+    "aliases": [
+      "createSdkMcpServer"
+    ],
+    "definition": "Your own function Claude can call: a name, description, input schema and handler, wrapped in an in-process MCP server with `createSdkMcpServer`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-data-residency",
+    "term": "data residency",
+    "aliases": [
+      "inference_geo",
+      "inference geo"
+    ],
+    "definition": "Controls where your data is processed and stored. **Inference geo** sets where model inference runs, per request through the `inference_geo` parameter or as a workspace default.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+      "title": "Data residency",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-key-disable-vs-delete",
+    "term": "disable an API key",
+    "aliases": [],
+    "definition": "**Disable** is reversible (status `inactive`; Re-enable restores it). **Delete** is permanent: the key is archived.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-disable-model-invocation",
+    "term": "disable-model-invocation",
+    "aliases": [
+      "disable-model-invocation: true"
+    ],
+    "definition": "Skill frontmatter that hides a skill from Claude until you invoke it with `/<name>`; for these user-only skills, nothing loads until then.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-dont-ask",
+    "term": "dontAsk",
+    "aliases": [],
+    "definition": "Permission mode that allows only file reads in your working directories and pre-approved tools; anything that would prompt is denied. Suited to locked-down CI and scripts.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-model-start-strategy",
+    "term": "efficiency-first",
+    "aliases": [
+      "capability-first"
+    ],
+    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 4.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-effort",
+    "term": "effort level",
+    "aliases": [
+      "output_config.effort",
+      "effort parameter"
+    ],
+    "definition": "Controls how many tokens Claude spends responding, from low through medium, high and xhigh to max. It affects text, tool calls and thinking.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-embeddings",
+    "term": "embeddings",
+    "aliases": [
+      "text embeddings"
+    ],
+    "definition": "Numerical representations of text that let you measure semantic similarity, used for search, recommendations and anomaly detection.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings",
+      "title": "Embeddings",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-eval-set",
+    "term": "eval set",
+    "aliases": [
+      "eval"
+    ],
+    "definition": "A set of test cases designed to measure an LLM application's performance against clearly defined success criteria.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-eval-thresholds",
+    "term": "evaluation thresholds",
+    "aliases": [],
+    "definition": "Clear targets that eval results are judged against, such as 95% accuracy, set so you can tell what counts as a good result.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-evaluator-optimizer",
+    "term": "evaluator-optimizer",
+    "aliases": [],
+    "definition": "A workflow where one LLM call generates a response while another provides evaluation and feedback, in a loop.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-eventsource",
+    "term": "EventSource",
+    "aliases": [],
+    "definition": "The browser interface for server-sent events: it opens a persistent HTTP connection and receives events in `text/event-stream` format until `close()` is called.",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
+      "title": "EventSource",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-excessive-agency",
+    "term": "excessive agency",
+    "aliases": [],
+    "definition": "An LLM risk: damaging actions performed in response to unexpected, ambiguous or manipulated model output. Root causes: excessive functionality, permissions or autonomy.",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06: Excessive Agency",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-hook-exit-code-2",
+    "term": "exit code 2",
+    "aliases": [
+      "exit 2"
+    ],
+    "definition": "The blocking exit code for command hooks: on events that can block, it stops the action, and `PreToolUse` blocks the tool call.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-exponential-backoff",
+    "term": "exponential backoff",
+    "aliases": [],
+    "definition": "Scheduling retries with exponentially growing waits. Google SRE says to always randomize the delays, so a brief blip doesn't make clients retry in sync, and to limit retries per request.",
+    "source": {
+      "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+      "title": "Addressing Cascading Failures",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-extended-thinking",
+    "term": "extended thinking",
+    "aliases": [
+      "thinking",
+      "thinking block",
+      "type: \"enabled\""
+    ],
+    "definition": "Claude works through a problem before answering, returned in `thinking` blocks billed as output tokens. Strictly, **extended thinking** is the manual mode (`type: \"enabled\"` + `budget_tokens`); newer models use adaptive thinking.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-fast-mode",
+    "term": "fast mode",
+    "aliases": [
+      "speed: \"fast\""
+    ],
+    "definition": "A research-preview option giving up to 2.5x higher output tokens per second on supported Opus models at premium pricing. Opt in with `speed: \"fast\"` plus its beta header.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
+      "title": "Fast mode (research preview)",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-feature-list-file",
+    "term": "feature list file",
+    "aliases": [
+      "feature list"
+    ],
+    "definition": "A JSON file of end-to-end feature requirements, all initially marked failing, that coding agents update only by changing each feature's `passes` field.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-few-shot-prompting",
+    "term": "few-shot prompting",
+    "aliases": [
+      "few-shot",
+      "multishot",
+      "multishot prompting"
+    ],
+    "definition": "Putting a few well-crafted examples in the prompt: one of the most reliable ways to steer Claude's output format, tone and structure.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-file-lifecycle",
+    "term": "file lifecycle",
+    "aliases": [
+      "expires_at"
+    ],
+    "definition": "Uploaded files can't be modified or renamed. They persist until you delete them or they reach an optional `expires_at`, set once at upload.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-files-api",
+    "term": "Files API",
+    "aliases": [
+      "file_id"
+    ],
+    "definition": "Upload a file once, get a `file_id`, and reference that ID in Messages requests instead of re-uploading the content each time.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-fork-session",
+    "term": "fork a session",
+    "aliases": [
+      "forkSession",
+      "fork_session",
+      "--fork-session"
+    ],
+    "definition": "Creates a new session that starts with a copy of the original's history, with its own session ID. The original stays unchanged. It branches history, not files on disk.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
+      "title": "Work with sessions",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-sdk-final-message",
+    "term": "get_final_message",
+    "aliases": [
+      "finalMessage",
+      ".get_final_message()",
+      ".finalMessage()"
+    ],
+    "definition": "SDK helpers that stream internally and return the complete Message object: `.get_final_message()` in Python, `.finalMessage()` in TypeScript.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-hallucination",
+    "term": "hallucination",
+    "aliases": [],
+    "definition": "When a language model generates text that is factually incorrect or inconsistent with the given context. Mitigations include allowing uncertainty, grounding answers in direct quotes and verifying with citations.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-harmlessness-screen",
+    "term": "harmlessness screen",
+    "aliases": [],
+    "definition": "A lightweight model, such as Claude Haiku 4.5, that pre-screens user input before it reaches your main conversation.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-hipaa-readiness",
+    "term": "HIPAA readiness",
+    "aliases": [
+      "HIPAA",
+      "PHI",
+      "BAA"
+    ],
+    "definition": "Lets organizations process protected health information (**PHI**) through eligible Claude API features, with a signed BAA. Processing PHI in the Claude Console isn't covered.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+      "title": "API and data retention",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-claude-code-hooks",
+    "term": "hook",
+    "aliases": [
+      "Claude Code hook"
+    ],
+    "definition": "User-defined shell commands that Claude Code runs automatically at specific points in its lifecycle, such as after a tool call (`PostToolUse`).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-idempotent",
+    "term": "idempotent",
+    "aliases": [
+      "idempotency"
+    ],
+    "definition": "An HTTP method is idempotent if one request has the same intended effect on the server as several identical ones. Safe methods, PUT and DELETE are; POST and PATCH aren't guaranteed to be.",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent",
+      "title": "Idempotent",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-image-sources",
+    "term": "image source",
+    "aliases": [
+      "base64"
+    ],
+    "definition": "An `image` content block's source can be base64 data, a URL to a hosted image, or a `file_id` from the Files API.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-indirect-prompt-injection",
+    "term": "indirect prompt injection",
+    "aliases": [],
+    "definition": "An attack where the user is trusted but Claude processes third-party content (web pages, emails, documents, tool results) with adversarial instructions.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-initializer-agent",
+    "term": "initializer agent",
+    "aliases": [
+      "initializer session"
+    ],
+    "definition": "The first session of a long-running harness: it sets up an `init.sh` script, a `claude-progress.txt` log and an initial git commit.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-input-json-delta",
+    "term": "input_json_delta",
+    "aliases": [],
+    "definition": "The delta type for a streamed `tool_use` block: partial JSON strings that build up the tool's `input`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-is-error",
+    "term": "is_error",
+    "aliases": [
+      "is_error: true"
+    ],
+    "definition": "An optional `tool_result` field: set it to `true` when the tool execution resulted in an error, with the error message in the content.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-is-error",
+    "term": "isError",
+    "aliases": [
+      "isError: true"
+    ],
+    "definition": "MCP flag on a tool result reporting a **tool execution error** (API failure, bad input, business logic) so the model can self-correct and retry, unlike a protocol error.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "title": "Tools",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-cache-aware-itpm",
+    "term": "ITPM",
+    "aliases": [
+      "input tokens per minute",
+      "input-tokens-per-minute",
+      "cache-aware ITPM"
+    ],
+    "definition": "For most Claude models, only uncached input tokens count toward input-tokens-per-minute (ITPM) limits; tokens read from cache don't.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-direct-prompt-injection",
+    "term": "jailbreak",
+    "aliases": [
+      "direct prompt injection"
+    ],
+    "definition": "An attack where the user of your application is the adversary, crafting inputs meant to bypass your guardrails.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-json-outputs",
+    "term": "JSON outputs",
+    "aliases": [
+      "output_config.format"
+    ],
+    "definition": "The structured outputs mode that constrains Claude's response to a JSON schema you supply, using constrained decoding.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-json-rpc",
+    "term": "JSON-RPC",
+    "aliases": [],
+    "definition": "The message format of MCP's data layer: clients and servers exchange JSON-RPC requests, responses and notifications for discovery and for primitives such as tools, resources and prompts.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-just-in-time-context",
+    "term": "just-in-time context",
+    "aliases": [
+      "just-in-time"
+    ],
+    "definition": "An agent keeps lightweight identifiers (file paths, stored queries, web links) and uses tools to load the data into context at runtime.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-langgraph",
+    "term": "LangGraph",
+    "aliases": [],
+    "definition": "A low-level orchestration framework and runtime for long-running, stateful agents, mixing deterministic steps and LLM-driven steps in one graph, with durable execution and human-in-the-loop.",
+    "source": {
+      "url": "https://docs.langchain.com/oss/python/langgraph/overview",
+      "title": "LangGraph overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-least-privilege",
+    "term": "least privilege",
+    "aliases": [
+      "minimum privileges"
+    ],
+    "definition": "Giving each tool, extension or agent only the permissions it needs, and acting on downstream systems as the specific user, to limit the scope of harmful actions.",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06: Excessive Agency",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-managed-settings",
+    "term": "managed settings",
+    "aliases": [
+      "managed-settings.json",
+      "managed policy"
+    ],
+    "definition": "Settings your organization deploys to every developer's machine. Claude Code applies them above every other level, so user, project, local or `--settings` values can't override them (bar a few security exceptions).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/managed-settings",
+      "title": "Managed settings",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-many-image-limit",
+    "term": "many-image requests",
+    "aliases": [],
+    "definition": "If one API request contains more than 20 images, a stricter per-image dimension limit applies to every image in that request.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-plugin-marketplace",
+    "term": "marketplace",
+    "aliases": [
+      "plugin marketplace",
+      "marketplace.json"
+    ],
+    "definition": "A catalog of plugins: a directory or repository with a `.claude-plugin/marketplace.json` file listing each plugin and where to fetch it. Users register it, then install plugins from it.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/create-marketplace",
+      "title": "Create a plugin marketplace",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-max-tokens",
+    "term": "max_tokens",
+    "aliases": [],
+    "definition": "The maximum number of tokens to generate before stopping. The model may stop **before** reaching it; it is only an absolute ceiling on output.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-max-turns-budget",
+    "term": "maxTurns",
+    "aliases": [
+      "maxBudgetUsd",
+      "max_turns",
+      "max_budget_usd",
+      "error_max_turns"
+    ],
+    "definition": "Agent SDK caps on tool-use turns and on spend. Hitting one ends the loop with an `error_max_turns` or `error_max_budget_usd` result.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-client",
+    "term": "MCP client",
+    "aliases": [],
+    "definition": "A component inside the MCP host that maintains a dedicated connection to one MCP server and obtains context from it for the host to use.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-mcp-connector",
+    "term": "MCP connector",
+    "aliases": [
+      "mcp_servers",
+      "mcp_toolset"
+    ],
+    "definition": "A beta Messages API feature that connects to remote MCP servers without a separate MCP client: servers in `mcp_servers`, each used by one `mcp_toolset`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-host",
+    "term": "MCP host",
+    "aliases": [],
+    "definition": "The AI application, such as Claude Code or an IDE, that coordinates MCP clients. It creates one MCP client for each MCP server it connects to.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-mcp-json",
+    "term": ".mcp.json",
+    "aliases": [],
+    "definition": "The file at the project root that holds project-scoped MCP servers. Check it into version control so everyone on the team gets the same MCP tools.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-server",
+    "term": "MCP server",
+    "aliases": [],
+    "definition": "A program that exposes capabilities to AI apps through the Model Context Protocol, using three building blocks: **tools**, **resources** and **prompts**.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-scopes",
+    "term": "MCP server scope",
+    "aliases": [
+      "MCP scope"
+    ],
+    "definition": "**Local** (the default; this project, private), **project** (`.mcp.json`, shared via version control) and **user** (all your projects, private).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-tool-search",
+    "term": "MCP tool search",
+    "aliases": [],
+    "definition": "On by default: only MCP tool names and server instructions load at session start, and full tool schemas are deferred until Claude needs a tool.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-transports",
+    "term": "MCP transport",
+    "aliases": [
+      "stdio",
+      "Streamable HTTP"
+    ],
+    "definition": "**stdio**: standard input/output between local processes on the same machine. **Streamable HTTP**: HTTP POST plus optional SSE, enabling remote servers.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-memory-tool",
+    "term": "memory tool",
+    "aliases": [
+      "/memories"
+    ],
+    "definition": "An Anthropic-provided, client-side tool: Claude requests file operations under `/memories`, and your application executes them on storage you control.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-message-batches",
+    "term": "Message Batches API",
+    "aliases": [
+      "Batches API",
+      "Batch API",
+      "message batch"
+    ],
+    "definition": "Asynchronous processing of large volumes of Messages requests at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-message-delta-usage",
+    "term": "message_delta",
+    "aliases": [
+      "message_delta usage"
+    ],
+    "definition": "The token counts in the `usage` field of a streaming `message_delta` event. They are **cumulative**.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-message-response",
+    "term": "Message object",
+    "aliases": [
+      "Message response"
+    ],
+    "definition": "A Messages API response: role assistant, `content` as an array of typed blocks, and fields such as `stop_reason`, usage, id and model.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-microsoft-foundry",
+    "term": "Microsoft Foundry",
+    "aliases": [
+      "Foundry"
+    ],
+    "definition": "Microsoft's platform for accessing Claude models with Azure-native endpoints and authentication; usage is billed through the Azure Marketplace.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
+      "title": "Claude in Microsoft Foundry",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-stream-error-events",
+    "term": "mid-stream error",
+    "aliases": [],
+    "definition": "When receiving a streaming (SSE) response, an error can occur after the API has already returned a 200 response.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-model-alias",
+    "term": "model alias",
+    "aliases": [],
+    "definition": "On the Claude API, a short name for a pre-4.6 model, such as `claude-sonnet-4-5`, that points to the most recent dated snapshot for that minor version.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp",
+    "term": "Model Context Protocol",
+    "aliases": [
+      "MCP"
+    ],
+    "definition": "**MCP**: an open-source standard for connecting AI applications to external systems such as data sources, tools and workflows.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro",
+      "title": "What is the Model Context Protocol (MCP)?",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-context-window-exceeded",
+    "term": "model_context_window_exceeded",
+    "aliases": [],
+    "definition": "A stop reason on Claude 4.5 models and newer: generation stopped because it reached the context window limit.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-model-lifecycle",
+    "term": "model lifecycle",
+    "aliases": [
+      "model lifecycle states"
+    ],
+    "definition": "**Active** (fully supported), **Legacy** (no more updates), **Deprecated** (still works; has a replacement and retirement date), **Retired** (requests fail).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-price-per-mtok",
+    "term": "MTok",
+    "aliases": [
+      "price per MTok"
+    ],
+    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5: $2 input, $10 output.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-lead-agent-subagents",
+    "term": "multi-agent system",
+    "aliases": [
+      "lead agent",
+      "multi-agent"
+    ],
+    "definition": "A multi-agent design: a lead agent plans the work, spawns subagents that explore in parallel with their own context windows, then synthesizes their findings.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-non-determinism",
+    "term": "non-determinism",
+    "aliases": [
+      "non-deterministic"
+    ],
+    "definition": "Identical inputs may produce different outputs across API calls. Even with temperature set to 0, results are not fully deterministic.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-oauth",
+    "term": "OAuth",
+    "aliases": [
+      "OAuth 2.1"
+    ],
+    "definition": "A standard authorization flow a client uses to establish that a user is authorized to access a remote server. MCP follows OAuth 2.1 conventions for remotely hosted, HTTP-based servers.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
+      "title": "Understanding authorization in MCP",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-agent-sdk-otel",
+    "term": "OpenTelemetry",
+    "aliases": [
+      "OTel",
+      "OTLP"
+    ],
+    "definition": "The Agent SDK can export metrics, log events and traces (beta) over OTLP. It's off until you set `CLAUDE_CODE_ENABLE_TELEMETRY=1` and choose an exporter.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-orchestrator-workers",
+    "term": "orchestrator-workers",
+    "aliases": [
+      "orchestrator-worker"
+    ],
+    "definition": "A workflow where a central LLM dynamically breaks down a task, delegates subtasks to worker LLMs and synthesizes their results.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-otpm",
+    "term": "OTPM",
+    "aliases": [
+      "output tokens per minute"
+    ],
+    "definition": "Output-tokens-per-minute rate limit. It counts only the tokens actually generated, in real time; `max_tokens` doesn't factor in.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-output-format",
+    "term": "--output-format",
+    "aliases": [
+      "--output-format json",
+      "--output-format stream-json",
+      "stream-json"
+    ],
+    "definition": "A `claude -p` flag controlling output: `text` (default), `json` (result, session ID and metadata) or `stream-json` (newline-delimited JSON for real-time streaming).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-output-style",
+    "term": "output style",
+    "aliases": [],
+    "definition": "A set of instructions that sets Claude's role, tone and response format for every response in a Claude Code session. Four built-in styles exist besides the default; you can write your own.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/output-styles",
+      "title": "Output styles",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-overloaded-error",
+    "term": "overloaded_error",
+    "aliases": [
+      "529"
+    ],
+    "definition": "The API is temporarily overloaded. 529 errors can occur when the API experiences high traffic across all users.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-owasp-llm-top-10",
+    "term": "OWASP",
+    "aliases": [
+      "OWASP Top 10 for LLM Applications"
+    ],
+    "definition": "The OWASP GenAI Security Project publishes the Top 10 for LLM Applications: the main risks, vulnerabilities and mitigations for developing and securing generative AI and LLM apps.",
+    "source": {
+      "url": "https://genai.owasp.org/llm-top-10/",
+      "title": "OWASP Top 10 for LLM Applications",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-parallelization",
+    "term": "parallelization",
+    "aliases": [
+      "sectioning",
+      "voting"
+    ],
+    "definition": "LLMs work on a task simultaneously and outputs are aggregated programmatically. **Sectioning** splits independent subtasks; **voting** repeats the same task.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-parallel-tool-use",
+    "term": "parallel tool use",
+    "aliases": [
+      "disable_parallel_tool_use",
+      "parallel tool calls"
+    ],
+    "definition": "By default, Claude may return several `tool_use` blocks in one response. You choose how to run them: concurrently, sequentially or in any combination.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-permission-mode",
+    "term": "permission mode",
+    "aliases": [
+      "permissionMode",
+      "--permission-mode",
+      "defaultMode"
+    ],
+    "definition": "Sets which actions Claude can take in a session without asking first: `default` (Manual), `acceptEdits`, `plan`, `auto`, `dontAsk` or `bypassPermissions`. Deny rules apply in every mode.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-permission-rule",
+    "term": "permission rule",
+    "aliases": [
+      "deny rule",
+      "allow rule",
+      "ask rule",
+      "permissions.deny",
+      "permissions.allow"
+    ],
+    "definition": "Allow, ask or deny rules for tools, such as `Bash(aws s3 ls)`. Evaluated deny, then ask, then allow; the first match wins, so a deny always beats a narrower allow.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-pii",
+    "term": "PII",
+    "aliases": [
+      "personal identifiable information",
+      "personally identifiable information"
+    ],
+    "definition": "**Personal identifiable information**: data that identifies a person. OWASP lists it among the sensitive data an LLM app can disclose, alongside financial, health and credential data.",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02: Sensitive Information Disclosure",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-model-snapshot-id",
+    "term": "pinned model ID",
+    "aliases": [
+      "dateless ID",
+      "dateless model ID"
+    ],
+    "definition": "Each Claude model ID is a pinned version: the model stays constant for that ID's lifetime. From the 4.6 generation on, IDs are dateless, e.g. `claude-sonnet-5`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cc-plan-mode",
+    "term": "plan mode",
+    "aliases": [],
+    "definition": "A permission mode in which Claude researches and proposes changes without making them: it reads files, explores and writes a plan, but doesn't edit your source.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-plugin",
+    "term": "plugin",
+    "aliases": [],
+    "definition": "A directory of skills, agents, hooks, MCP servers or other components that Claude Code installs and loads as one unit, usually with a `.claude-plugin/plugin.json` manifest.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/overview",
+      "title": "Plugins",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-plugin-manifest",
+    "term": "plugin.json",
+    "aliases": [
+      "plugin manifest"
+    ],
+    "definition": "An optional file at `.claude-plugin/plugin.json` carrying a plugin's metadata; `name` is the only required key.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins-reference",
+      "title": "Plugin manifest reference",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-postmortem",
+    "term": "postmortem",
+    "aliases": [],
+    "definition": "A written record of an incident: its impact, the actions taken, the root causes and follow-up actions to prevent recurrence. Google SRE practice is to keep postmortems blameless.",
+    "source": {
+      "url": "https://sre.google/sre-book/postmortem-culture/",
+      "title": "Postmortem Culture: Learning from Failure",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-post-tool-use",
+    "term": "PostToolUse",
+    "aliases": [
+      "PostToolUse hook"
+    ],
+    "definition": "The Claude Code hook event that fires after a tool call succeeds.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-prefill",
+    "term": "prefill",
+    "aliases": [
+      "prefilling",
+      "prefilled response",
+      "prefilled"
+    ],
+    "definition": "A partial assistant message on the last turn for Claude to continue from. Not supported starting with Claude 4.6 models: those requests return a 400.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-pretooluse-hook",
+    "term": "PreToolUse",
+    "aliases": [
+      "PreToolUse hook"
+    ],
+    "definition": "An Agent SDK hook callback that fires before a tool executes and can allow, deny or modify the call, for example by returning a deny decision.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-pretraining",
+    "term": "pretraining",
+    "aliases": [],
+    "definition": "Initial training on a large unlabeled text corpus. Autoregressive models like Claude's underlying model learn to predict the next word from prior context.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-skill-progressive-disclosure",
+    "term": "progressive disclosure",
+    "aliases": [],
+    "definition": "Skills load in stages: metadata always (about 100 tokens per Skill), the SKILL.md body when triggered (under 5k tokens), bundled files only as needed.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-prompt-caching",
+    "term": "prompt caching",
+    "aliases": [
+      "prompt cache"
+    ],
+    "definition": "An API feature that lets a request resume from a previously processed prompt prefix, reducing processing time and cost for prompts with repeated content.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-prompt-chaining",
+    "term": "prompt chaining",
+    "aliases": [],
+    "definition": "A workflow that splits a task into a sequence of steps, each LLM call processing the previous output, with optional programmatic checks (gates) between steps.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-prompt-injection",
+    "term": "prompt injection",
+    "aliases": [],
+    "definition": "A vulnerability where inputs alter an LLM's behavior or output in unintended ways. The input need not be human-visible, as long as the model parses it.",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "title": "LLM01: Prompt Injection",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-prompt-leak",
+    "term": "prompt leak",
+    "aliases": [
+      "prompt leakage",
+      "system prompt leakage"
+    ],
+    "definition": "Exposure of sensitive information you expect to stay hidden in your prompt, such as a proprietary formula in the system prompt.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
+      "title": "Reduce prompt leak",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-pydantic-ai",
+    "term": "PydanticAI",
+    "aliases": [
+      "Pydantic AI"
+    ],
+    "definition": "A Python AI SDK from Pydantic: a typed, extensible agent loop where switching to another model is a string swap.",
+    "source": {
+      "url": "https://pydantic.dev/docs/ai/overview/",
+      "title": "Pydantic AI",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-rag",
+    "term": "RAG",
+    "aliases": [
+      "retrieval augmented generation",
+      "retrieval-augmented generation"
+    ],
+    "definition": "**Retrieval augmented generation**: relevant documents are retrieved from an external knowledge base at query time and passed into the context window, grounding the response in evidence.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-rate-limit",
+    "term": "rate limit",
+    "aliases": [
+      "rate limiting"
+    ],
+    "definition": "The maximum number of API requests an organization can make over a period, measured per model class in requests (RPM), input tokens (ITPM) and output tokens (OTPM) per minute. Exceeding one returns a 429.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-read-deny-rule",
+    "term": "Read deny rule",
+    "aliases": [
+      "Read(./.env)"
+    ],
+    "definition": "A deny rule such as `Read(./.env)` that blocks Claude's file tools, recognized Bash file commands and redirections from reading a path.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-refusal-fallback",
+    "term": "refusal fallback",
+    "aliases": [],
+    "definition": "Re-sending a request that came back with `stop_reason: \"refusal\"` to another Claude model, which can usually still answer it.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-request-id",
+    "term": "request-id",
+    "aliases": [
+      "request_id",
+      "request ID"
+    ],
+    "definition": "A unique identifier on every API response, sent in the `request-id` header and in error response bodies as `request_id`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-request-size-limits",
+    "term": "request size limit",
+    "aliases": [
+      "request_too_large"
+    ],
+    "definition": "Maximum request size per endpoint: 32 MB for Messages and Token Counting, 256 MB for Message Batches, 500 MB for the Files API.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-retry-after",
+    "term": "retry-after",
+    "aliases": [
+      "retry-after header"
+    ],
+    "definition": "Sent with a 429 rate-limit error: the number of seconds to wait until you can retry the request. Earlier retries will fail.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-role-prompting",
+    "term": "role prompting",
+    "aliases": [
+      "role prompt"
+    ],
+    "definition": "Setting a role in the system prompt, such as \"You are a helpful coding assistant specializing in Python\", to focus Claude's behavior and tone.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-routing",
+    "term": "routing",
+    "aliases": [],
+    "definition": "A workflow that classifies an input and directs it to a specialized follow-up task, such as a different prompt, tool set or model.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-sandboxing",
+    "term": "sandboxing",
+    "aliases": [
+      "/sandbox",
+      "Bash sandbox"
+    ],
+    "definition": "In Claude Code, an OS-enforced boundary around the shell commands Claude runs: you set which files and network domains they can reach. It's off by default; turn it on with `/sandbox`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sandboxing",
+      "title": "Sandboxing",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-search-result-block",
+    "term": "search_result",
+    "aliases": [
+      "search result block",
+      "search result content block"
+    ],
+    "definition": "A content block (`type: \"search_result\"`) for your own retrieved content, so Claude can cite it the way it cites web search results, with the source and title you provide. Used in RAG apps.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
+      "title": "Search results",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-sse",
+    "term": "server-sent events",
+    "aliases": [
+      "SSE",
+      "server-sent event",
+      "text/event-stream"
+    ],
+    "definition": "**SSE**: a way for a server to push new data to a web page at any time over HTTP, as a stream of events, instead of the page asking for each update.",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events",
+      "title": "Server-sent events",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-client-vs-server-tools",
+    "term": "server tool",
+    "aliases": [
+      "client tool"
+    ],
+    "definition": "Client tools (yours, plus Anthropic-schema tools such as `bash`) run in your application. Server tools (such as `web_search`) run on Anthropic's infrastructure.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-setting-sources",
+    "term": "settingSources",
+    "aliases": [
+      "setting_sources",
+      "settingSources: []"
+    ],
+    "definition": "Agent SDK option choosing which filesystem settings load (user, project, local, plus CLAUDE.md and `.claude/` files). Omitted: same as the CLI. `[]`: none of them.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
+      "title": "Use Claude Code features in the SDK",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-cc-settings-precedence",
+    "term": "settings precedence",
+    "aliases": [],
+    "definition": "Highest first: managed, command line, project local, shared project, user. A key set at a higher level overrides the same key lower down.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-cc-settings-scopes",
+    "term": "settings scope",
+    "aliases": [
+      ".claude/settings.json",
+      "~/.claude/settings.json",
+      ".claude/settings.local.json",
+      "user settings",
+      "project settings",
+      "local settings"
+    ],
+    "definition": "Four scopes: **user** (you, all projects), **shared project** (committed, whole team), **project local** (you, one project), **managed** (your organization).",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-spend-cap-429",
+    "term": "spend cap",
+    "aliases": [
+      "spend-cap 429"
+    ],
+    "definition": "A 429 `rate_limit_error` returned once your organization reaches its tier's monthly spend cap. It has no `retry-after` header.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-stateless-api",
+    "term": "stateless",
+    "aliases": [
+      "stateless Messages API"
+    ],
+    "definition": "The Messages API keeps no conversation state between calls: you always send the full conversational history with each request.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "title": "Using the Messages API",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-stopping-condition",
+    "term": "stopping condition",
+    "aliases": [],
+    "definition": "A rule that ends an agent loop even if the task isn't finished, such as a maximum number of iterations.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-stop-reason",
+    "term": "stop_reason",
+    "aliases": [
+      "stop reason"
+    ],
+    "definition": "A response field saying why Claude stopped, e.g. `end_turn` (finished naturally) or `max_tokens` (hit your limit).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-stop-sequences",
+    "term": "stop_sequences",
+    "aliases": [
+      "stop sequence",
+      "stop_sequence"
+    ],
+    "definition": "A Messages API parameter: custom text sequences that make the model stop generating when it encounters one of them.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-strands-agents",
+    "term": "Strands Agents",
+    "aliases": [
+      "Strands"
+    ],
+    "definition": "An open-source toolkit for building AI agents in Python and TypeScript (agent harness and SDK). Agents run in-process; Amazon Bedrock is the default model provider, with others available.",
+    "source": {
+      "url": "https://strandsagents.com/llms.txt",
+      "title": "Strands Agents",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-stream-error-recovery",
+    "term": "stream error recovery",
+    "aliases": [],
+    "definition": "Recovering an interrupted stream: save the content received before the error, then send a continuation request so Claude resumes.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-stream-event-flow",
+    "term": "stream event flow",
+    "aliases": [
+      "message_start",
+      "message_stop",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop"
+    ],
+    "definition": "`message_start`, then each content block (start, one or more deltas, stop), then one or more message deltas, then a final `message_stop`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-streaming",
+    "term": "streaming",
+    "aliases": [
+      "\"stream\": true"
+    ],
+    "definition": "Setting `\"stream\": true` on a Messages request returns the response incrementally as server-sent events (SSE).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-strict-tool-use",
+    "term": "strict tool use",
+    "aliases": [
+      "strict: true",
+      "strict mode"
+    ],
+    "definition": "Setting `strict: true` on a tool definition constrains sampling so Claude's tool inputs strictly follow the tool's `input_schema`.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "title": "Strict tool use",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-agentic-memory",
+    "term": "structured note-taking",
+    "aliases": [
+      "agentic memory"
+    ],
+    "definition": "The agent regularly writes notes to memory outside its context window; the notes are pulled back into context at later times.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-structured-outputs",
+    "term": "structured outputs",
+    "aliases": [
+      "structured output"
+    ],
+    "definition": "Constrains Claude's responses to a schema so output is valid and parseable. Two features: **JSON outputs** (`output_config.format`) for the response, and **strict tool use** (`strict: true`) for tool inputs.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-subagent",
+    "term": "subagent",
+    "aliases": [
+      "sub-agent"
+    ],
+    "definition": "A specialized assistant that handles one kind of task in its own context window, with a custom system prompt, specific tool access and independent permissions, and returns only a summary.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-subagent-context",
+    "term": "subagent context isolation",
+    "aliases": [
+      "context isolation"
+    ],
+    "definition": "A non-fork subagent starts fresh: its own system prompt plus the Agent tool's prompt, without the parent's history. Only its final message returns.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-delegation-brief",
+    "term": "subagent task description",
+    "aliases": [
+      "task description"
+    ],
+    "definition": "What a lead agent gives each subagent: an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-success-criteria",
+    "term": "success criteria",
+    "aliases": [],
+    "definition": "The measurable targets an LLM app must meet. Good criteria are **specific**, **measurable**, **achievable** and **relevant** to the app's purpose and users.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-system-parameter",
+    "term": "system prompt",
+    "aliases": [
+      "system parameter"
+    ],
+    "definition": "The top-level Messages API field for instructions that apply from the start of a conversation, such as a goal or role.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+      "title": "Using the Messages API",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-temperature",
+    "term": "temperature",
+    "aliases": [],
+    "definition": "A parameter that controls the randomness of a model's predictions during text generation.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-thinking-display",
+    "term": "thinking display",
+    "aliases": [
+      "display: \"omitted\"",
+      "display: \"summarized\""
+    ],
+    "definition": "The `display` field of the thinking config. `\"summarized\"` returns a summary of Claude's reasoning; `\"omitted\"` (the default on many models) returns thinking blocks with an empty `thinking` field. Billing is the same.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-ttft",
+    "term": "time to first token",
+    "aliases": [
+      "TTFT"
+    ],
+    "definition": "The time from sending the prompt until the model generates the first token of its response.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-token",
+    "term": "token",
+    "aliases": [],
+    "definition": "The smallest unit a language model works in: a word, subword, character or byte. The glossary puts a Claude token at approximately 3.5 English characters.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-token-bucket",
+    "term": "token bucket",
+    "aliases": [],
+    "definition": "The algorithm the API uses for rate limiting: capacity is continuously replenished up to your maximum, rather than reset at fixed intervals.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-token-counting",
+    "term": "token counting",
+    "aliases": [
+      "count_tokens",
+      "Token Counting API"
+    ],
+    "definition": "`POST /v1/messages/count_tokens` returns an input-token estimate for Messages inputs, except most server tools, the MCP connector and URL or file sources.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "title": "Token counting",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-mcp-tool-annotations",
+    "term": "tool annotations",
+    "aliases": [
+      "readOnlyHint",
+      "destructiveHint",
+      "idempotentHint",
+      "openWorldHint"
+    ],
+    "definition": "Optional MCP hints about tool behavior, e.g. `readOnlyHint` (doesn't modify its environment) or `destructiveHint`. Clients must treat them as untrusted unless the server is trusted.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/schema",
+      "title": "Schema reference",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-tool-choice",
+    "term": "tool_choice",
+    "aliases": [],
+    "definition": "A request field that controls tool calling: **auto** (Claude decides), **any** (must use one of the tools), **tool** (must use the named tool) or **none**.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-tool-definition",
+    "term": "tool definition",
+    "aliases": [
+      "input_schema"
+    ],
+    "definition": "A user-defined tool entry: a **name** matching `^[a-zA-Z0-9_-]{1,128}$`, a detailed plaintext **description**, and an `input_schema` (a JSON Schema object).",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-tool-result",
+    "term": "tool_result",
+    "aliases": [
+      "tool_result block"
+    ],
+    "definition": "The content block your app sends on the next request with a tool's output, answering a `tool_use` block. Claude never sees your implementation, only the schema and the result.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-tool-result-clearing",
+    "term": "tool result clearing",
+    "aliases": [
+      "clear_tool_uses_20250919"
+    ],
+    "definition": "A context editing strategy, `clear_tool_uses_20250919`, that clears the oldest tool results once context passes a threshold, leaving placeholder text.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-tool-runner",
+    "term": "tool runner",
+    "aliases": [],
+    "definition": "A beta SDK helper that runs your tools when Claude calls them, sends results back and manages conversation state until Claude stops calling tools.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+      "title": "Tool runner (SDK)",
+      "checkedOn": "2026-09-27"
+    }
+  },
+  {
+    "id": "g-tool-search-tool",
+    "term": "tool search tool",
+    "aliases": [
+      "defer_loading",
+      "defer_loading: true"
+    ],
+    "definition": "Lets Claude work with hundreds or thousands of tools: tools marked `defer_loading: true` stay out of context until Claude searches the catalog and loads only the ones it needs.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
+      "title": "Tool search tool",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-tool-use",
+    "term": "tool use",
+    "aliases": [
+      "function calling",
+      "tool calling"
+    ],
+    "definition": "Lets Claude call functions you define or Anthropic provides. Claude decides when to call a tool from the request and the tool description, then returns a structured call that your app (client tools) or Anthropic (server tools) runs.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "title": "Tool use with Claude",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-tool-use-block",
+    "term": "tool_use",
+    "aliases": [
+      "tool_use block"
+    ],
+    "definition": "The response content block Claude emits to call a tool: the tool name plus a JSON object of arguments. Your app runs the operation and sends the output back in a `tool_result` block.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-updated-input",
+    "term": "updatedInput",
+    "aliases": [],
+    "definition": "A hook output field: in a `PreToolUse` hook it replaces the tool's arguments before the tool runs.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-user-prompt-submit",
+    "term": "UserPromptSubmit",
+    "aliases": [
+      "UserPromptSubmit hook"
+    ],
+    "definition": "The Claude Code hook event that fires when a prompt is submitted, before Claude processes it.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-web-fetch-tool",
+    "term": "web fetch tool",
+    "aliases": [
+      "web_fetch"
+    ],
+    "definition": "A server tool that lets Claude retrieve the full content of specified web pages and PDF documents. You pay only standard token costs for the fetched content.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
+      "title": "Web fetch tool",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-web-search-tool",
+    "term": "web search tool",
+    "aliases": [
+      "web_search"
+    ],
+    "definition": "A server tool giving Claude real-time web content, so it can answer with up-to-date information beyond its knowledge cutoff. Responses include citations for the sources used.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool",
+      "title": "Web search tool",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-websocket",
+    "term": "WebSocket",
+    "aliases": [
+      "WebSockets"
+    ],
+    "definition": "An API for a two-way interactive session between browser and server: either side can send messages without the client polling for replies.",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
+      "title": "The WebSocket API (WebSockets)",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-workflow-vs-agent",
+    "term": "workflow vs agent",
+    "aliases": [],
+    "definition": "**Workflows** run LLMs and tools through predefined code paths. **Agents** let the LLM dynamically direct its own process and tool use.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-workspace",
+    "term": "workspace",
+    "aliases": [],
+    "definition": "A way to organize API usage within an organization, separating projects, environments or teams while keeping centralized billing and administration.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/workspaces",
+      "title": "Workspaces",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-x-api-key",
+    "term": "x-api-key",
+    "aliases": [
+      "x-api-key header"
+    ],
+    "definition": "A request header carrying your API key from the Console. It is the legacy fallback for the `Authorization: Bearer` header, and is still supported.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-13"
+    }
+  },
+  {
+    "id": "g-xml-tags",
+    "term": "XML tags",
+    "aliases": [
+      "XML tag"
+    ],
+    "definition": "Wrapping each type of prompt content in its own tag, such as `<instructions>` or `<context>`, so Claude can parse a complex prompt unambiguously.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-09-26"
+    }
+  },
+  {
+    "id": "g-zdr",
+    "term": "zero data retention",
+    "aliases": [
+      "ZDR"
+    ],
+    "definition": "**ZDR**: an arrangement under which Anthropic doesn't store prompts or responses at rest after the API response returns. Enabled per organization, for eligible features only.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+      "title": "API and data retention",
+      "checkedOn": "2026-10-13"
+    }
+  }
+]
