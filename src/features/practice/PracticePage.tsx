@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
+import { QUIZ_SIZE, QUIZ_SIZES } from '../../study/quiz';
 import { missedQuestionIds } from '../../study/weakSpots';
 import { IconChevron, IconClock } from '../../ui/icons';
 import { Screen } from '../../ui/Screen';
+import { SegmentedControl } from '../../ui/SegmentedControl';
 import './practice.css';
 
 export function PracticePage() {
   const navigate = useNavigate();
-  const { domains } = useContent();
+  const { domains, questions, glossary } = useContent();
+  const [size, setSize] = useState<string>(String(QUIZ_SIZE));
   const { attempts, mockSessions } = useProgress();
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
   const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
@@ -19,10 +22,14 @@ export function PracticePage() {
   return (
     <Screen title="Practice">
       <section className="panel">
-        <button type="button" className="panel-link" onClick={() => navigate(`/practice/quiz?d=${selected.join(',')}`)}>
-          <span className="grow"><h2>Quick quiz</h2><span className="muted">10 questions · instant explanation after each</span></span>
+        <button type="button" className="panel-link" onClick={() => navigate(`/practice/quiz?n=${size}&d=${selected.join(',')}`)}>
+          <span className="grow"><h2>Practice quiz</h2><span className="muted">{size} questions · explanation after each · {questions.length} in the bank</span></span>
           <span className="chev"><IconChevron /></span>
         </button>
+        <div style={{ marginTop: 12 }}>
+          <SegmentedControl label="Questions per quiz" value={size} onChange={setSize}
+            options={QUIZ_SIZES.map((n) => ({ value: String(n), label: `${n} questions` }))} />
+        </div>
         <div className="chips" style={{ marginTop: 12 }} aria-label="Domains to include">
           {domains.map((d) => (
             <button key={d.id} type="button" className={`chip ${selected.includes(d.id) ? 'on' : ''}`} aria-pressed={selected.includes(d.id)} onClick={() => toggle(d.id)}>
@@ -36,7 +43,11 @@ export function PracticePage() {
         <span className="chev"><IconChevron /></span>
       </Link>
       <Link className="panel panel-link" to="/practice/mock">
-        <span className="grow"><h2><IconClock /> Mock exam</h2><span className="muted">53 questions · 120 min · weighted like the real exam</span></span>
+        <span className="grow"><h2><IconClock /> Mock exam</h2><span className="muted">53 questions · 120 min · weighted and scored like the real exam</span></span>
+        <span className="chev"><IconChevron /></span>
+      </Link>
+      <Link className="panel panel-link" to="/glossary">
+        <span className="grow"><h2>Glossary</h2><span className="muted">{glossary.length} terms · tap any underlined term in a question to see it</span></span>
         <span className="chev"><IconChevron /></span>
       </Link>
       <Link className="panel panel-link" to="/practice/history">

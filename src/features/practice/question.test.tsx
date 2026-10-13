@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { openTestDb, renderWithApp } from '../../../tests/renderWithApp';
 import { SAVE_FAILED } from '../../app/Notifier';
-import { fixtureContent } from '../../content/fixtures';
+import { fixtureContent, multiQuestion } from '../../content/fixtures';
+import { QuestionSchema } from '../../content/schema';
 import { QuestionRunner } from './QuestionRunner';
 import { QuestionView } from './QuestionView';
 import { VerdictSheet } from './VerdictSheet';
@@ -29,14 +30,14 @@ describe('QuestionView', () => {
     expect(choice(/Wrong one q-alpha-1/)).toHaveClass('choice-wrong');
     expect(choice(/Wrong one q-alpha-1/)).toHaveTextContent('your answer');
     expect(choice(/Wrong two q-alpha-1/)).toHaveClass('choice-muted');
-    expect(choice(/Right answer q-alpha-1/)).toBeDisabled();
+    expect(choice(/Right answer q-alpha-1/)).toHaveAttribute('aria-disabled', 'true');
     expect(choice(/Right answer q-alpha-1/)).toHaveTextContent(/^A/);
   });
 
   it('in exam mode highlights the selection and hides reasons', async () => {
     await renderWithApp(<QuestionView question={q1} chosen="c" onChoose={() => {}} mode="exam" />);
     expect(await screen.findByRole('button', { name: /Wrong two q-alpha-1/ })).toHaveClass('choice-selected');
-    expect(choice(/Right answer q-alpha-1/)).not.toBeDisabled();
+    expect(choice(/Right answer q-alpha-1/)).toHaveAttribute('aria-disabled', 'false');
     expect(screen.queryByText('Why a is right for q-alpha-1')).toBeNull();
   });
 
@@ -109,5 +110,53 @@ describe('QuestionRunner', () => {
     );
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
     expect(await screen.findByRole('link', { name: /Read the lesson/ })).toBeInTheDocument();
+  });
+});
+
+describe('multiple-response questions', () => {
+  const multi = QuestionSchema.parse(multiQuestion());
+
+  it('says how many to pick, waits for that many, then scores all-or-nothing', async () => {
+    const onFinish = vi.fn();
+    const { db } = await renderWithApp(<QuestionRunner questions={[multi]} mode="quiz" title="Quiz" onFinish={onFinish} onExit={() => {}} />);
+    expect(await screen.findByText('Select TWO.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Pick 2 more' })).toBeDisabled();
+    await userEvent.click(choice(/Multi right b/));
+    await userEvent.click(choice(/Multi wrong c/));
+    await userEvent.click(choice(/Multi wrong e/)); // a third pick is ignored until one is unpicked
+    expect(choice(/Multi wrong e/)).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText('Correct: why b is right')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    expect(await screen.findByText(/Not quite. The answers are B and D./)).toBeInTheDocument();
+    expect(choice(/Multi right d/)).toHaveTextContent('you missed this one');
+    expect(choice(/Multi wrong c/)).toHaveClass('choice-wrong');
+    await userEvent.click(screen.getByRole('button', { name: 'Finish' }));
+    expect(onFinish).toHaveBeenCalledWith({ correct: 0, total: 1 });
+    await waitFor(async () => expect(await db.getAttempts()).toMatchObject([{ chosen: ['b', 'c'], correct: false }]));
+  });
+
+  it('counts a fully right pick as correct', async () => {
+    await renderWithApp(<QuestionRunner questions={[multi]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: /Multi right d/ }));
+    await userEvent.click(choice(/Multi right b/));
+    await userEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    expect(await screen.findByText('Correct!')).toBeInTheDocument();
+  });
+});
+
+describe('glossary terms', () => {
+  const multi = QuestionSchema.parse(multiQuestion());
+
+  it('underlines a term once and shows its definition when tapped, without picking the choice', async () => {
+    const onChoose = vi.fn();
+    await renderWithApp(<QuestionView question={{ ...multi, choices: multi.choices.map((c) => (c.id === 'a' ? { ...c, text: 'Use a gizmo' } : c)) }}
+      chosen={null} onChoose={onChoose} mode="answer" />);
+    const terms = await screen.findAllByRole('button', { name: 'gizmo' });
+    expect(terms).toHaveLength(1); // the stem's mention; the repeat in choice A stays plain
+    await userEvent.click(terms[0]);
+    expect(await screen.findByRole('dialog', { name: 'Definition: gizmo' })).toHaveTextContent('A gizmo is a test term.');
+    await userEvent.click(screen.getByRole('button', { name: 'Got it' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /Definition/ })).toBeNull());
+    expect(onChoose).not.toHaveBeenCalled();
   });
 });

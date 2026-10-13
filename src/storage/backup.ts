@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ChoiceIdSchema } from '../content/schema';
+import { ChosenSchema } from '../content/schema';
 import { localDay } from '../study/scheduler';
 import type { AttemptMode } from '../study/types';
 import type { BackupData } from './db';
@@ -30,12 +30,12 @@ const FileSchema = z.object({
       }),
     })),
     attempts: z.array(z.looseObject({
-      id: z.int().optional(), questionId: z.string(), chosen: ChoiceIdSchema, correct: z.boolean(),
+      id: z.int().optional(), questionId: z.string(), chosen: ChosenSchema, correct: z.boolean(),
       mode: z.string().refine((m) => Object.hasOwn(ATTEMPT_MODES, m)), at: z.number(),
     })),
     mockSessions: z.array(z.looseObject({
       id: z.string(), startedAt: z.number(), durationMs: z.number().positive(), questionIds: z.array(z.string()),
-      answers: z.record(z.string(), ChoiceIdSchema), flagged: z.array(z.string()), currentIndex: count,
+      answers: z.record(z.string(), ChosenSchema), flagged: z.array(z.string()), currentIndex: count,
       submittedAt: z.number().optional(),
     }).refine((m) => m.currentIndex < m.questionIds.length)),
     lessonsDone: z.array(z.looseObject({ lessonId: z.string(), at: z.number() })),

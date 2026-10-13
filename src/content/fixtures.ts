@@ -25,8 +25,26 @@ function question(id: string, domainId: string, subSkillId: string, extra: Recor
   };
 }
 
+/** A "select TWO" question: 5 choices, b and d correct. */
+export function multiQuestion(id = 'q-alpha-multi') {
+  return question(id, 'alpha', 'a1', {
+    stem: `Which two gizmo settings for ${id}?`,
+    choices: [
+      { id: 'a', text: 'Multi wrong a', reason: 'Why a is wrong' },
+      { id: 'b', text: 'Multi right b', reason: 'Correct: why b is right' },
+      { id: 'c', text: 'Multi wrong c', reason: 'Why c is wrong' },
+      { id: 'd', text: 'Multi right d', reason: 'Correct: why d is right' },
+      { id: 'e', text: 'Multi wrong e', reason: 'Why e is wrong' },
+    ],
+    answer: ['b', 'd'],
+  });
+}
+
 export function fixtureRaw(): RawContent {
   return {
+    glossary: [
+      { id: 'g-gizmo', term: 'gizmo', aliases: ['GZM'], definition: 'A gizmo is a test term.', source },
+    ],
     domains: [
       { id: 'alpha', name: 'Alpha Domain', shortName: 'Alpha', weight: 60, order: 0, subSkills: [{ id: 'a1', name: 'Alpha One', weight: 60, official: true }] },
       { id: 'beta', name: 'Beta Domain', shortName: 'Beta', weight: 40, order: 1, subSkills: [{ id: 'b1', name: 'Beta One', official: false }] },

@@ -10,14 +10,13 @@ import './cards.css';
 import { DirectionToggle } from './DirectionToggle';
 
 export function CardsPage() {
-  const { cards, domains } = useContent();
+  const { cards, domains, glossary } = useContent();
   const { cardStates, settings, updateSettings } = useProgress();
   const { now } = useClock();
   const due = buildQueue({
     cardIds: cards.map((c) => c.id), states: cardStates, mode: settings.cardDirection, now: now(),
     newPerDay: settings.newCardsPerDay, rng: () => 0,
   }).length;
-  const vocab = cards.filter((c) => c.isVocab).length;
 
   return (
     <Screen title="Flashcards">
@@ -30,7 +29,7 @@ export function CardsPage() {
         <Link className="btn btn-primary btn-block" to="/cards/review">{due > 0 ? 'Start review' : 'Open review'}</Link>
       </section>
       <Link className="panel panel-link" to="/cards/glossary">
-        <span className="grow"><h2>Vocabulary glossary</h2><span className="muted">{vocab} term{vocab === 1 ? '' : 's'}, searchable</span></span>
+        <span className="grow"><h2>Glossary</h2><span className="muted">{glossary.length} term{glossary.length === 1 ? '' : 's'}, searchable</span></span>
         <span className="chev"><IconChevron /></span>
       </Link>
       <h3 className="section-title">Browse by domain</h3>

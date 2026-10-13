@@ -5,6 +5,7 @@ import { ClockProvider } from '../src/app/clock';
 import { ContentProvider } from '../src/app/ContentContext';
 import { NotifierProvider } from '../src/app/Notifier';
 import { ProgressProvider } from '../src/app/ProgressProvider';
+import { TermsProvider } from '../src/app/Terms';
 import { fixtureContent } from '../src/content/fixtures';
 import type { Content } from '../src/content/schema';
 import { AppDb } from '../src/storage/db';
@@ -38,13 +39,15 @@ export async function renderWithApp(ui: ReactNode, opts: RenderOptions = {}) {
       <ContentProvider content={content}>
         <NotifierProvider>
           <ProgressProvider db={db}>
-            <MemoryRouter initialEntries={[opts.route ?? '/']}>
-              <Routes>
-                <Route path={opts.path ?? '*'} element={ui} />
-                {opts.path && <Route path="*" element={<div data-testid="elsewhere" />} />}
-              </Routes>
-              <LocationProbe />
-            </MemoryRouter>
+            <TermsProvider>
+              <MemoryRouter initialEntries={[opts.route ?? '/']}>
+                <Routes>
+                  <Route path={opts.path ?? '*'} element={ui} />
+                  {opts.path && <Route path="*" element={<div data-testid="elsewhere" />} />}
+                </Routes>
+                <LocationProbe />
+              </MemoryRouter>
+            </TermsProvider>
           </ProgressProvider>
         </NotifierProvider>
       </ContentProvider>

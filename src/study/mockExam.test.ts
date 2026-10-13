@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import domainsJson from '../../content/domains.json';
-import { fixtureContent, manyQuestionsContent } from '../content/fixtures';
+import { fixtureContent, manyQuestionsContent, multiQuestion } from '../content/fixtures';
+import { QuestionSchema } from '../content/schema';
 import { allocate, buildMockExam, MOCK_DURATION_MS, mockAttempts, remainingMs, scoreMock } from './mockExam';
 import { mulberry32 } from './random';
 import type { Attempt, MockSession } from './types';
@@ -73,5 +74,21 @@ describe('timing and scoring', () => {
       { questionId: 'q-alpha-1', chosen: 'a', correct: true, mode: 'mock', at: 99 },
       { questionId: 'q-alpha-3', chosen: 'c', correct: false, mode: 'mock', at: 99 },
     ]);
+  });
+});
+
+describe('multiple-response scoring', () => {
+  it('scores a multiple-response item only when every pick is right', () => {
+    const content = fixtureContent();
+    const multi = QuestionSchema.parse(multiQuestion());
+    const byId = new Map([...content.questionById, [multi.id, multi]]);
+    const session: MockSession = {
+      id: 's', startedAt: 0, durationMs: 1, flagged: [], currentIndex: 0,
+      questionIds: ['q-alpha-1', multi.id],
+      answers: { 'q-alpha-1': 'a', [multi.id]: ['b'] },
+    };
+    expect(scoreMock(session, byId, content.domains).correct).toBe(1);
+    expect(scoreMock({ ...session, answers: { ...session.answers, [multi.id]: ['b', 'd'] } }, byId, content.domains).correct).toBe(2);
+    expect(mockAttempts(session, byId, 5)).toMatchObject([{ correct: true }, { chosen: ['b'], correct: false }]);
   });
 });

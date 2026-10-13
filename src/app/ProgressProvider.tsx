@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { ChoiceId, Question } from '../content/schema';
+import { isCorrect } from '../content/answers';
+import type { Chosen, Question } from '../content/schema';
 import { parseBackup, serializeBackup } from '../storage/backup';
 import type { AppDb } from '../storage/db';
 import { mockAttempts } from '../study/mockExam';
@@ -23,7 +24,7 @@ export interface Progress {
 
 /** Save methods report a failure to the user (a toast) and still reject, so a caller that awaits can react. */
 export interface ProgressApi extends Progress {
-  recordAnswer(question: Question, chosen: ChoiceId, mode: AttemptMode): Promise<void>;
+  recordAnswer(question: Question, chosen: Chosen, mode: AttemptMode): Promise<void>;
   saveCardState(state: StoredCardState): Promise<void>;
   markLessonDone(lessonId: string): Promise<void>;
   toggleFlag(itemId: string, kind: Flag['kind']): Promise<void>;
@@ -102,9 +103,9 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
     };
     return {
       ...state,
-      recordAnswer: reported(async (question: Question, chosen: ChoiceId, mode: AttemptMode) => {
+      recordAnswer: reported(async (question: Question, chosen: Chosen, mode: AttemptMode) => {
         const at = now();
-        const correct = chosen === question.answer;
+        const correct = isCorrect(question, chosen);
         const resurfaced = correct
           ? []
           : question.relatedCardIds.flatMap((cardId) =>

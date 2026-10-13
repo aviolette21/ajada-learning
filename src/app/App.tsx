@@ -26,6 +26,7 @@ import { ClockProvider } from './clock';
 import { ContentProvider } from './ContentContext';
 import { NotifierProvider } from './Notifier';
 import { ProgressProvider } from './ProgressProvider';
+import { TermsProvider } from './Terms';
 
 const systemNow = () => new Date();
 
@@ -47,7 +48,8 @@ export function Shell() {
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
           <Route path="/cards/review" element={<ReviewPage />} />
           <Route path="/cards/browse/:domainId" element={<BrowsePage />} />
-          <Route path="/cards/glossary" element={<GlossaryPage />} />
+          <Route path="/cards/glossary" element={<GlossaryPage back="/cards" />} />
+          <Route path="/glossary" element={<GlossaryPage />} />
           <Route path="/practice/mock" element={<MockIntroPage />} />
           <Route path="/practice/mock/:sessionId" element={<MockExamPage />} />
           <Route path="/practice/mock/:sessionId/results" element={<MockResultsPage />} />
@@ -73,9 +75,11 @@ export function App({ db, content }: { db: AppDb; content: Content }) {
         <ContentProvider content={content}>
           <NotifierProvider>
             <ProgressProvider db={db}>
-              <HashRouter>
-                <Shell />
-              </HashRouter>
+              <TermsProvider>
+                <HashRouter>
+                  <Shell />
+                </HashRouter>
+              </TermsProvider>
             </ProgressProvider>
           </NotifierProvider>
         </ContentProvider>

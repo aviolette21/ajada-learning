@@ -4,7 +4,10 @@ const text = z.string().trim().min(1);
 const slug = z.string().regex(/^[a-z0-9-]+$/);
 const upTo = (n: number) => text.max(n);
 
-export const ChoiceIdSchema = z.enum(['a', 'b', 'c', 'd']);
+export const CHOICE_IDS = ['a', 'b', 'c', 'd', 'e', 'f'] as const;
+export const ChoiceIdSchema = z.enum(CHOICE_IDS);
+/** What a learner picked: one id for a single-answer question, a list for a multiple-response one. */
+export const ChosenSchema = z.union([ChoiceIdSchema, z.array(ChoiceIdSchema)]);
 export const SourceSchema = z.object({ url: z.url({ protocol: /^https$/ }), title: text, checkedOn: z.iso.date() });
 
 const Tone = z.enum(['success', 'error', 'accent', 'neutral']);
@@ -42,6 +45,10 @@ export const DomainsFileSchema = z.array(DomainSchema).min(1);
 
 export const ChoiceSchema = z.object({ id: ChoiceIdSchema, text: upTo(140), reason: upTo(220) });
 
+/**
+ * Single-answer questions have 4 choices and `answer: "b"`. Multiple-response questions (the exam's "select TWO" items)
+ * have 5 or 6 choices and `answer: ["b", "e"]`: 2 or 3 ids, sorted, all of which must be picked to score.
+ */
 export const QuestionSchema = z.object({
   id: z.string().regex(/^q-[a-z0-9-]+$/),
   domainId: text,
@@ -50,9 +57,10 @@ export const QuestionSchema = z.object({
   stem: upTo(320),
   choices: z
     .array(ChoiceSchema)
-    .length(4)
-    .refine((cs) => cs.map((c) => c.id).join('') === 'abcd', { message: 'choices must have ids a, b, c, d in order' }),
-  answer: ChoiceIdSchema,
+    .min(4)
+    .max(6)
+    .refine((cs) => cs.every((c, i) => c.id === CHOICE_IDS[i]), { message: 'choices must have ids a, b, c, … in order' }),
+  answer: z.union([ChoiceIdSchema, z.array(ChoiceIdSchema).min(2).max(3)]),
   takeaway: upTo(170),
   mnemonic: upTo(100).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -60,6 +68,18 @@ export const QuestionSchema = z.object({
   source: SourceSchema,
   relatedCardIds: z.array(z.string()).default([]),
   lessonId: z.string().optional(),
+}).superRefine((q, ctx) => {
+  const ids = q.choices.map((c) => c.id);
+  if (typeof q.answer === 'string') {
+    if (q.choices.length !== 4) ctx.addIssue({ code: 'custom', path: ['choices'], message: 'a single-answer question has exactly 4 choices' });
+    if (!ids.includes(q.answer)) ctx.addIssue({ code: 'custom', path: ['answer'], message: `answer "${q.answer}" is not a choice` });
+    return;
+  }
+  if (q.choices.length < 5) ctx.addIssue({ code: 'custom', path: ['choices'], message: 'a multiple-response question has 5 or 6 choices' });
+  if (q.answer.some((a) => !ids.includes(a))) ctx.addIssue({ code: 'custom', path: ['answer'], message: 'every answer must be a choice' });
+  if (q.answer.join('') !== [...new Set(q.answer)].sort().join('')) {
+    ctx.addIssue({ code: 'custom', path: ['answer'], message: 'answer ids must be distinct and sorted' });
+  }
 });
 
 /**
@@ -99,7 +119,21 @@ export const LessonSchema = z.object({
   sources: z.array(SourceSchema).min(1),
 });
 
+/**
+ * A glossary term. Its `term` and every alias are underlined wherever they appear in question and lesson text, and
+ * tapping one shows the definition. Aliases are other spellings of the same thing ("MCP", "tool calling").
+ */
+export const GlossaryTermSchema = z.object({
+  id: z.string().regex(/^g-[a-z0-9-]+$/),
+  term: text,
+  aliases: z.array(text).default([]),
+  definition: upTo(240),
+  source: SourceSchema,
+});
+export const GlossaryFileSchema = z.array(GlossaryTermSchema);
+
 export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
+export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
 export type Diagram = z.infer<typeof DiagramSchema>;
 export type SubSkill = z.infer<typeof SubSkillSchema>;
@@ -109,14 +143,17 @@ export type Question = z.infer<typeof QuestionSchema>;
 export type Card = z.infer<typeof CardSchema>;
 export type LessonSection = z.infer<typeof LessonSectionSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
+export type GlossaryTerm = z.infer<typeof GlossaryTermSchema>;
 
 export interface Content {
   domains: Domain[];
   questions: Question[];
   cards: Card[];
   lessons: Lesson[];
+  glossary: GlossaryTerm[];
   domainById: Map<string, Domain>;
   questionById: Map<string, Question>;
   cardById: Map<string, Card>;
   lessonById: Map<string, Lesson>;
+  termById: Map<string, GlossaryTerm>;
 }

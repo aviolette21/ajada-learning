@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import type { RawContent } from '../src/content/validate';
 
@@ -12,5 +12,7 @@ export function readContentDir(dir: string): RawContent {
       if (name.endsWith('.json')) files[`${entry}/${name}`] = JSON.parse(readFileSync(join(sub, name), 'utf8'));
     }
   }
-  return { domains, files };
+  const glossaryPath = join(dir, 'glossary.json');
+  const glossary: unknown = existsSync(glossaryPath) ? JSON.parse(readFileSync(glossaryPath, 'utf8')) : undefined;
+  return { domains, glossary, files };
 }

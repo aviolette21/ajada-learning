@@ -3,7 +3,7 @@ import { accuracyBy } from './accuracy';
 import { shuffle } from './random';
 import type { Attempt } from './types';
 
-export const TODAY_QUESTION_COUNT = 10;
+export const TODAY_QUESTION_COUNT = 15;
 
 export function missedQuestionIds(attempts: Attempt[]): string[] {
   const latest = new Map<string, Attempt>();

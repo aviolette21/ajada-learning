@@ -1,3 +1,4 @@
+import { chosenIds, isCorrect } from '../content/answers';
 import type { Domain, Question } from '../content/schema';
 import { shuffle } from './random';
 import { PASS_SCORE, toScaledScore } from './readiness';
@@ -103,7 +104,7 @@ export function scoreMock(session: MockSession, questionById: Map<string, Questi
     const q = questionById.get(id);
     if (!q) continue;
     const row = tally.get(q.domainId);
-    const right = session.answers[id] === q.answer;
+    const right = isCorrect(q, session.answers[id]);
     if (row) {
       row.total++;
       if (right) row.correct++;
@@ -127,6 +128,6 @@ export function mockAttempts(session: MockSession, questionById: Map<string, Que
   return session.questionIds.flatMap((id) => {
     const q = questionById.get(id);
     const chosen = session.answers[id];
-    return q && chosen ? [{ questionId: id, chosen, correct: chosen === q.answer, mode: 'mock' as const, at }] : [];
+    return q && chosenIds(chosen).length > 0 ? [{ questionId: id, chosen, correct: isCorrect(q, chosen), mode: 'mock' as const, at }] : [];
   });
 }

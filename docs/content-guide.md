@@ -396,3 +396,35 @@ For every new or changed item, the reviewer:
 For the slice as a whole, the reviewer also checks the answer-letter balance, the difficulty mix (about 30% easy, 50% medium, 20% hard) and the diagram ratio (about 1 per 5 questions).
 
 The output is a per-item table (OK / FIX / DROP, with the problem and a supporting or contradicting quote). Wrong answer keys are Critical. Unsupported or false claims and second defensible answers are Important. Overstated wording is also Important for study content.
+
+---
+
+## 12. The practice-first bank (October 2026)
+
+The official exam guide is now in `docs/exam-blueprint.md`. It is the authority on **which topics** are tested; it never replaces the official docs as the source of an answer. The bank grew to about 530 questions (targets in `scripts/content-targets.ts`, roughly 5.2 × each sub-skill's weight, minimum 12). Cards stay at their first-bank counts: the learner studies mainly by answering questions.
+
+### Multiple-response questions
+
+The exam has "select TWO" items, so the bank has them too (about 1 in 7 questions).
+
+- 5 choices with 2 correct (`"answer": ["b", "e"]`), or occasionally 6 choices with 3 correct. Ids `a`…`f` in order; `answer` lists the correct ids, sorted.
+- Scoring is all-or-nothing: every correct choice and no wrong one. The app shows "Select TWO." itself, so don't write it into the stem; phrase the stem so more than one answer is natural ("Which two changes…", "Which steps should the team take?").
+- Every choice still has a `reason`. Correct choices' reasons start with "Correct:".
+- Each correct choice must be independently right; don't split one idea across two choices.
+- The answer-letter balance check covers single-answer questions only.
+
+### Choice lengths
+
+The correct choice must not be the giveaway. Keep the four choices close in length and specificity, and make sure the correct one is the longest in no more than about a third of a slice's questions. Distractors should sound as confident and as technical as the answer.
+
+### Sources for general engineering topics
+
+Some skills are general software engineering rather than Claude-specific: REST, JSON, async programming, version control, code review, refactoring, websockets, SDLC and systems life cycle, requirements, OWASP-style security, secrets management. When no Anthropic page covers the point, these **primary** sources are allowed too:
+
+- Web platform and protocols: developer.mozilla.org, rfc-editor.org / datatracker.ietf.org, json.org, websockets.spec.whatwg.org
+- Languages and tools: docs.python.org, nodejs.org, typescriptlang.org, git-scm.com, docs.github.com
+- Security and operations: owasp.org (including the OWASP Top 10 for LLM Applications at genai.owasp.org), csrc.nist.gov / nist.gov, sre.google
+- Cloud providers, for invoking Claude through them: docs.aws.amazon.com (Amazon Bedrock), cloud.google.com (Vertex AI), learn.microsoft.com
+- Agent frameworks the blueprint names, for questions about those frameworks: strandsagents.com, langchain-ai.github.io/langgraph (or docs.langchain.com), ai.pydantic.dev
+
+Prefer an Anthropic page whenever one covers the point. The other rules are unchanged: one source per question, fetched this session, nothing the source doesn't support.

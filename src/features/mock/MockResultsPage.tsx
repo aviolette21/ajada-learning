@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
+import { useTermLinks } from '../../app/Terms';
+import { isCorrect } from '../../content/answers';
 import type { Question } from '../../content/schema';
 import { scoreMock } from '../../study/mockExam';
 import { PASS_SCORE } from '../../study/readiness';
@@ -17,6 +19,7 @@ export function MockResultsPage() {
   const { questionById, domains, domainById } = useContent();
   const { mockSessions } = useProgress();
   const [wrongOnly, setWrongOnly] = useState(false);
+  const newLinks = useTermLinks();
   const session = mockSessions.find((s) => s.id === sessionId);
   if (!session?.submittedAt) return <Navigate to="/practice/mock" replace />;
 
@@ -24,7 +27,7 @@ export function MockResultsPage() {
   const review = session.questionIds
     .map((id) => questionById.get(id))
     .filter((q): q is Question => Boolean(q))
-    .filter((q) => !wrongOnly || session.answers[q.id] !== q.answer);
+    .filter((q) => !wrongOnly || !isCorrect(q, session.answers[q.id]));
 
   return (
     <Screen title="Results" back="/practice">
@@ -50,7 +53,7 @@ export function MockResultsPage() {
       {review.map((q) => (
         <div key={q.id} className="panel">
           <QuestionView question={q} chosen={session.answers[q.id] ?? null} mode="review" />
-          <div className="takeaway" style={{ marginTop: 10 }}><strong>💡 In one line:</strong> {renderInline(q.takeaway)}</div>
+          <div className="takeaway" style={{ marginTop: 10 }}><strong>💡 In one line:</strong> {renderInline(q.takeaway, newLinks())}</div>
           <a className="source" href={q.source.url} target="_blank" rel="noreferrer">📎 Source: {q.source.title}</a>
         </div>
       ))}

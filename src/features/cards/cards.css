@@ -67,7 +67,7 @@
 .glossary-letter { margin: 18px 0 4px; font-size: 12px; font-weight: 800; color: var(--muted); }
 .term-list { margin: 0; padding: 0; list-style: none; }
 .term-list li { padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
-.term-list .term { font-weight: 700; }
+.term-list .term-name { font-weight: 700; }
 .term-list .def { font-size: 13.5px; color: var(--text-2); }
 .term-row { display: flex; align-items: flex-start; gap: 8px; }
 .term-row .grow { flex: 1; }

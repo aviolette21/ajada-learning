@@ -14,7 +14,7 @@ describe('CardsPage', () => {
     expect(await screen.findByText('cards ready to review')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Start review/ })).toHaveAttribute('href', '/cards/review');
-    expect(screen.getByRole('link', { name: /Vocabulary glossary/ })).toHaveAttribute('href', '/cards/glossary');
+    expect(screen.getByRole('link', { name: /Glossary/ })).toHaveAttribute('href', '/cards/glossary');
     expect(screen.getByRole('link', { name: /Alpha Domain/ })).toHaveAttribute('href', '/cards/browse/alpha');
   });
   it('saves the direction choice', async () => {
@@ -47,15 +47,15 @@ describe('FlagButton', () => {
 });
 
 describe('GlossaryPage', () => {
-  it('groups vocab terms by letter and filters by search', async () => {
+  it('groups glossary terms by letter and searches terms, aliases and definitions', async () => {
     const c = fixtureContent();
-    expect(groupGlossary(c.cards, '')).toEqual([{ letter: 'A', cards: [c.cardById.get('c-alpha-one')] }]);
-    expect(groupGlossary(c.cards, 'definition')).toHaveLength(1);
-    expect(groupGlossary(c.cards, 'zzz')).toEqual([]);
+    expect(groupGlossary(c.glossary, '')).toEqual([{ letter: 'G', terms: [c.termById.get('g-gizmo')] }]);
+    expect(groupGlossary(c.glossary, 'gzm')).toHaveLength(1);
+    expect(groupGlossary(c.glossary, 'test term')).toHaveLength(1);
+    expect(groupGlossary(c.glossary, 'zzz')).toEqual([]);
 
-    await renderWithApp(<GlossaryPage />, { route: '/cards/glossary', path: '/cards/glossary' });
-    expect(await screen.findByText('Alpha term')).toBeInTheDocument();
-    expect(screen.queryByText('Beta term')).toBeNull();
+    await renderWithApp(<GlossaryPage />, { route: '/glossary', path: '/glossary' });
+    expect(await screen.findByText('gizmo')).toBeInTheDocument();
     await userEvent.type(screen.getByRole('searchbox', { name: 'Search terms' }), 'zzz');
     expect(screen.getByText('No terms match “zzz”.')).toBeInTheDocument();
   });

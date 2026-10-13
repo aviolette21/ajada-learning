@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
-import { pickQuizQuestions, QUIZ_SIZE } from '../../study/quiz';
+import { pickQuizQuestions, quizSize } from '../../study/quiz';
 import { QuestionRunner, type RunSummary } from './QuestionRunner';
 import { SessionSummary } from './SessionSummary';
 
@@ -13,7 +13,7 @@ export function QuizPage() {
   const { attempts } = useProgress();
   const [picked] = useState(() =>
     pickQuizQuestions({
-      questions, attempts, count: QUIZ_SIZE, rng: Math.random,
+      questions, attempts, count: quizSize(params.get('n')), rng: Math.random,
       domainIds: (params.get('d') ?? '').split(',').filter(Boolean),
     }),
   );

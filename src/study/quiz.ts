@@ -3,6 +3,13 @@ import { shuffle } from './random';
 import type { Attempt } from './types';
 
 export const QUIZ_SIZE = 10;
+export const QUIZ_SIZES = [10, 20, 30] as const;
+
+/** The quiz length from the ?n= search param: one of QUIZ_SIZES, else the default. */
+export function quizSize(param: string | null): number {
+  const n = Number(param);
+  return (QUIZ_SIZES as readonly number[]).includes(n) ? n : QUIZ_SIZE;
+}
 
 export function pickQuizQuestions(args: {
   questions: Question[];

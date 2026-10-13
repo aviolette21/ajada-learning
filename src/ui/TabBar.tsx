@@ -6,8 +6,8 @@ import { spring } from './motion';
 
 const TABS: { to: string; label: string; Icon: ComponentType; end?: boolean }[] = [
   { to: '/', label: 'Today', Icon: IconHome, end: true },
-  { to: '/learn', label: 'Learn', Icon: IconBook },
   { to: '/practice', label: 'Practice', Icon: IconPencil },
+  { to: '/learn', label: 'Learn', Icon: IconBook },
   { to: '/cards', label: 'Cards', Icon: IconCards },
 ];
 

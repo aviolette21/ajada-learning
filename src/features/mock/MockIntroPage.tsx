@@ -46,7 +46,9 @@ export function MockIntroPage() {
         <ul className="rules">
           <li>{MOCK_QUESTION_COUNT} questions, weighted by domain like the real exam</li>
           <li>120-minute timer; it keeps running if you leave</li>
-          <li>No explanations until you submit</li>
+          <li>Some questions say "Select TWO" (or THREE); you score only if every pick is right</li>
+          <li>No explanations until you submit, then every question is explained</li>
+          <li>Underlined terms still show their definition when tapped</li>
           <li>Flag questions to revisit; unanswered questions count as wrong</li>
           <li>Pass mark: {PASS_SCORE} / 1000</li>
         </ul>

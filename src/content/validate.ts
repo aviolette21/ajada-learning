@@ -2,17 +2,21 @@ import { z } from 'zod';
 import {
   CardSchema,
   DomainsFileSchema,
+  GlossaryFileSchema,
   LessonSchema,
   QuestionSchema,
   type Card,
   type Content,
   type Domain,
+  type GlossaryTerm,
   type Lesson,
   type Question,
 } from './schema';
 
 export interface RawContent {
   domains: unknown;
+  /** content/glossary.json; optional so fixtures and older callers can omit it. */
+  glossary?: unknown;
   /** Keyed by "<domain-id>/<questions|cards|lessons>.json". */
   files: Record<string, unknown>;
 }
@@ -26,16 +30,18 @@ function zodErrors(file: string, error: z.ZodError): string[] {
   return error.issues.map((i) => `${file}: ${i.path.join('.') || '(root)'}: ${i.message}`);
 }
 
-export function buildContent(domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[]): Content {
+export function buildContent(domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = []): Content {
   return {
     domains,
     questions,
     cards,
     lessons,
+    glossary,
     domainById: new Map(domains.map((d) => [d.id, d])),
     questionById: new Map(questions.map((q) => [q.id, q])),
     cardById: new Map(cards.map((c) => [c.id, c])),
     lessonById: new Map(lessons.map((l) => [l.id, l])),
+    termById: new Map(glossary.map((t) => [t.id, t])),
   };
 }
 
@@ -103,12 +109,33 @@ export function validateContent(raw: RawContent): ValidationResult {
   }
 
   for (const domain of domains) {
-    const inDomain = questions.filter((q) => q.item.domainId === domain.id).map((q) => q.item);
+    // Balance applies to single-answer questions; multiple-response keys are spread by construction.
+    const inDomain = questions.filter((q) => q.item.domainId === domain.id && typeof q.item.answer === 'string').map((q) => q.item);
     if (inDomain.length < 8) continue;
     for (const letter of ['a', 'b', 'c', 'd'] as const) {
       const n = inDomain.filter((q) => q.answer === letter).length;
       if (n / inDomain.length > 0.4) {
         errors.push(`${domain.id}: ${n} of ${inDomain.length} questions have answer "${letter}" (max 40%)`);
+      }
+    }
+  }
+
+  let glossary: GlossaryTerm[] = [];
+  if (raw.glossary !== undefined) {
+    const parsed = GlossaryFileSchema.safeParse(raw.glossary);
+    if (!parsed.success) errors.push(...zodErrors('glossary.json', parsed.error));
+    else {
+      glossary = parsed.data;
+      const owner = new Map<string, string>();
+      for (const t of glossary) {
+        if (seen.has(t.id)) errors.push(`glossary.json: duplicate id "${t.id}"`);
+        seen.add(t.id);
+        for (const name of [t.term, ...t.aliases]) {
+          const key = name.toLowerCase();
+          const prev = owner.get(key);
+          if (prev && prev !== t.id) errors.push(`glossary.json: "${name}" is claimed by both ${prev} and ${t.id}`);
+          owner.set(key, t.id);
+        }
       }
     }
   }
@@ -121,6 +148,7 @@ export function validateContent(raw: RawContent): ValidationResult {
       questions.map((q) => q.item),
       cards.map((c) => c.item),
       lessons.map((l) => l.item),
+      glossary,
     ),
   };
 }

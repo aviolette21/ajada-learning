@@ -4,7 +4,8 @@ import { useNow } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
 import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
-import type { ChoiceId } from '../../content/schema';
+import { chosenIds, isAnswered, isMultiple, selectCount } from '../../content/answers';
+import type { ChoiceId, Question } from '../../content/schema';
 import { remainingMs } from '../../study/mockExam';
 import type { MockSession } from '../../study/types';
 import { Button } from '../../ui/Button';
@@ -67,7 +68,21 @@ export function MockExamPage() {
 
   const qid = session.questionIds[session.currentIndex];
   const question = questionById.get(qid);
-  const answered = Object.keys(session.answers).length;
+  const answeredIds = session.questionIds.filter((id) => {
+    const q = questionById.get(id);
+    return q ? isAnswered(q, session.answers[id]) : false;
+  });
+  const answered = answeredIds.length;
+  const pick = (q: Question, id: ChoiceId) => {
+    if (!isMultiple(q)) {
+      update({ answers: { ...session.answers, [q.id]: id } });
+      return;
+    }
+    const picked = chosenIds(session.answers[q.id]);
+    if (!picked.includes(id) && picked.length >= selectCount(q)) return;
+    const next = picked.includes(id) ? picked.filter((x) => x !== id) : [...picked, id].sort();
+    update({ answers: { ...session.answers, [q.id]: next } });
+  };
   const total = session.questionIds.length;
   const flagged = session.flagged.includes(qid);
   const isLast = session.currentIndex === total - 1;
@@ -86,7 +101,7 @@ export function MockExamPage() {
       <ProgressBar value={answered / total} label="Questions answered" />
       {question && (
         <QuestionView question={question} chosen={session.answers[qid] ?? null} mode="exam" showReportFlag={false}
-          onChoose={(id: ChoiceId) => update({ answers: { ...session.answers, [qid]: id } })} />
+          onChoose={(id: ChoiceId) => pick(question, id)} />
       )}
       <div className="mock-tools">
         <button type="button" className={`chip ${flagged ? 'on' : ''}`} aria-pressed={flagged}
@@ -104,19 +119,19 @@ export function MockExamPage() {
       <Sheet open={navOpen} label="Question navigator">
         <div className="navgrid">
           {session.questionIds.map((id, i) => {
-            const isAnswered = Boolean(session.answers[id]);
+            const isDone = answeredIds.includes(id);
             const isFlagged = session.flagged.includes(id);
             return (
               <button key={id} type="button"
-                className={['navcell', isAnswered ? 'answered' : '', isFlagged ? 'flagged' : '', i === session.currentIndex ? 'current' : ''].join(' ')}
-                aria-label={`Question ${i + 1}${isAnswered ? ', answered' : ''}${isFlagged ? ', flagged' : ''}`}
+                className={['navcell', isDone ? 'answered' : '', isFlagged ? 'flagged' : '', i === session.currentIndex ? 'current' : ''].join(' ')}
+                aria-label={`Question ${i + 1}${isDone ? ', answered' : ''}${isFlagged ? ', flagged' : ''}`}
                 onClick={() => { update({ currentIndex: i }); setNavOpen(false); }}>
                 {i + 1}
               </button>
             );
           })}
         </div>
-        <p className="muted">{total - answered} unanswered · {session.flagged.length} flagged. Unanswered questions count as wrong.</p>
+        <p className="muted">{total - answered} unanswered · {session.flagged.length} flagged. Unanswered or incomplete questions count as wrong.</p>
         <Button block onClick={() => void submit()}>Submit exam</Button>
         <Button block variant="ghost" onClick={() => setNavOpen(false)}>Keep going</Button>
       </Sheet>

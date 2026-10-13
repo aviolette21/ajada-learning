@@ -1,5 +1,5 @@
 import type { Card as FsrsCard } from 'ts-fsrs';
-import type { ChoiceId } from '../content/schema';
+import type { Chosen } from '../content/schema';
 
 export type Direction = 'forward' | 'reverse';
 export type DirectionMode = Direction | 'mixed';
@@ -19,7 +19,7 @@ export type AttemptMode = 'quiz' | 'weak' | 'lesson' | 'mock' | 'today';
 export interface Attempt {
   id?: number;
   questionId: string;
-  chosen: ChoiceId;
+  chosen: Chosen;
   correct: boolean;
   mode: AttemptMode;
   at: number;
@@ -30,7 +30,7 @@ export interface MockSession {
   startedAt: number;
   durationMs: number;
   questionIds: string[];
-  answers: Record<string, ChoiceId>;
+  answers: Record<string, Chosen>;
   flagged: string[];
   currentIndex: number;
   submittedAt?: number;

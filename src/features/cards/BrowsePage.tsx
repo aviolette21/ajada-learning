@@ -21,7 +21,7 @@ export function BrowsePage() {
             <li key={c.id}>
               <div className="term-row">
                 <div className="grow">
-                  <div className="term">{c.term}</div>
+                  <div className="term-name">{c.term}</div>
                   <div className="def">{renderInline(c.definition)}</div>
                 </div>
                 <FlagButton itemId={c.id} kind="card" />

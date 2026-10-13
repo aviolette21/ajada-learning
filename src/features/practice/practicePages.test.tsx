@@ -7,17 +7,19 @@ import { QuizPage } from './QuizPage';
 import { WeakSpotsPage } from './WeakSpotsPage';
 
 describe('PracticePage', () => {
-  it('starts a quick quiz limited to the selected domains', async () => {
+  it('starts a quiz of the chosen length limited to the selected domains', async () => {
     await renderWithApp(<PracticePage />, { route: '/practice', path: '/practice' });
     await userEvent.click(await screen.findByRole('button', { name: 'Beta' }));
-    await userEvent.click(screen.getByRole('button', { name: /Quick quiz/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/quiz\?d=alpha$/);
+    await userEvent.click(screen.getByRole('radio', { name: '20 questions' }));
+    await userEvent.click(screen.getByRole('button', { name: /Practice quiz/ }));
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/quiz\?n=20&d=alpha$/);
   });
   it('links to weak spots, mock exam and history', async () => {
     await renderWithApp(<PracticePage />, { route: '/practice', path: '/practice' });
     expect(await screen.findByRole('link', { name: /Weak spots/ })).toHaveAttribute('href', '/practice/weak');
     expect(screen.getByRole('link', { name: /Mock exam/ })).toHaveAttribute('href', '/practice/mock');
     expect(screen.getByRole('link', { name: /History/ })).toHaveAttribute('href', '/practice/history');
+    expect(screen.getByRole('link', { name: /Glossary/ })).toHaveAttribute('href', '/glossary');
   });
 });
 

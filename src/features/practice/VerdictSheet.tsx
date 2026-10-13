@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
-import type { Card, ChoiceId, Question } from '../../content/schema';
+import { useTermLinks } from '../../app/Terms';
+import { correctIds, formatIds, isCorrect } from '../../content/answers';
+import type { Card, Chosen, Question } from '../../content/schema';
 import { Button } from '../../ui/Button';
 import { DiagramView } from '../../ui/Diagram';
 import { Disclosure } from '../../ui/Disclosure';
@@ -10,7 +12,7 @@ import { Sheet } from '../../ui/Sheet';
 
 export function VerdictSheet({ question, chosen, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
   question: Question;
-  chosen: ChoiceId | null;
+  chosen: Chosen | null;
   open: boolean;
   onContinue: () => void;
   continueLabel?: string;
@@ -18,18 +20,20 @@ export function VerdictSheet({ question, chosen, open, onContinue, continueLabel
   showLessonLink?: boolean;
 }) {
   const { cardById } = useContent();
-  const correct = chosen === question.answer;
+  const links = useTermLinks()();
+  const correct = isCorrect(question, chosen);
+  const answers = correctIds(question);
   const related = question.relatedCardIds.map((id) => cardById.get(id)).filter((c): c is Card => Boolean(c));
   return (
     <Sheet open={open} label="Answer explanation">
       <div className={`verdict ${correct ? 'ok' : 'bad'}`}>
         <p className="verdict-line">
-          {correct ? <><IconCheck /> Correct!</> : <><IconX /> Not quite. The answer is {question.answer.toUpperCase()}.</>}
+          {correct ? <><IconCheck /> Correct!</> : <><IconX /> Not quite. The answer{answers.length > 1 ? 's are' : ' is'} {formatIds(answers)}.</>}
         </p>
-        <div className="takeaway"><strong>💡 In one line:</strong> {renderInline(question.takeaway)}</div>
+        <div className="takeaway"><strong>💡 In one line:</strong> {renderInline(question.takeaway, links)}</div>
         {question.diagram && <DiagramView diagram={question.diagram} />}
         {question.mnemonic && (
-          <Disclosure title="🧠 Remember it"><p>{renderInline(question.mnemonic)}</p></Disclosure>
+          <Disclosure title="🧠 Remember it"><p>{renderInline(question.mnemonic, links)}</p></Disclosure>
         )}
         {related.length > 0 && (
           <Disclosure title={`🃏 ${related.length} related flashcard${related.length === 1 ? '' : 's'}`}>

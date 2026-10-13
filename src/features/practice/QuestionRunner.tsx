@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
-import type { ChoiceId, Question } from '../../content/schema';
+import { chosenIds, isCorrect, isMultiple, selectCount } from '../../content/answers';
+import type { ChoiceId, Chosen, Question } from '../../content/schema';
 import type { AttemptMode } from '../../study/types';
 import { Button } from '../../ui/Button';
 import { IconClose } from '../../ui/icons';
@@ -21,7 +22,8 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
 }) {
   const { recordAnswer } = useProgress();
   const [index, setIndex] = useState(0);
-  const [chosen, setChosen] = useState<ChoiceId | null>(null);
+  const [chosen, setChosen] = useState<Chosen | null>(null);
+  const [revealed, setRevealed] = useState(false);
   const [correct, setCorrect] = useState(0);
   const question = questions[index];
 
@@ -38,11 +40,24 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
   }
 
   const isLast = index + 1 >= questions.length;
+  const reveal = (answer: Chosen) => {
+    setChosen(answer);
+    setRevealed(true);
+    if (isCorrect(question, answer)) setCorrect((c) => c + 1);
+    recordAnswer(question, answer, mode).catch(ignore);
+  };
+  const multiple = isMultiple(question);
+  const need = selectCount(question);
+  const picked = chosenIds(chosen);
   const choose = (id: ChoiceId) => {
-    if (chosen) return;
-    setChosen(id);
-    if (id === question.answer) setCorrect((c) => c + 1);
-    recordAnswer(question, id, mode).catch(ignore);
+    if (revealed) return;
+    if (!multiple) {
+      reveal(id);
+      return;
+    }
+    // Toggle; once the required number is picked, further picks wait until one is unpicked.
+    if (picked.includes(id)) setChosen(picked.filter((x) => x !== id));
+    else if (picked.length < need) setChosen([...picked, id].sort());
   };
   const next = () => {
     if (isLast) {
@@ -51,23 +66,31 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
     }
     setIndex((i) => i + 1);
     setChosen(null);
+    setRevealed(false);
   };
 
   return (
-    <div className={`runner ${chosen ? 'has-sheet' : ''}`}>
+    <div className={`runner ${revealed ? 'has-sheet' : ''}`}>
       <header className="runner-head">
         <button type="button" className="icon-btn" aria-label="Close" onClick={onExit}><IconClose /></button>
         <span className="runner-count">{title} · {index + 1} / {questions.length}</span>
         <span className="icon-btn-spacer" />
       </header>
-      <ProgressBar value={(index + (chosen ? 1 : 0)) / questions.length} />
+      <ProgressBar value={(index + (revealed ? 1 : 0)) / questions.length} />
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={question.id} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}
           transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}>
-          <QuestionView question={question} chosen={chosen} onChoose={choose} mode="answer" />
+          <QuestionView question={question} chosen={chosen} onChoose={choose} mode="answer" revealed={revealed} />
         </motion.div>
       </AnimatePresence>
-      <VerdictSheet question={question} chosen={chosen} open={chosen !== null} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
+      {multiple && !revealed && (
+        <div className="check-bar">
+          <Button block disabled={picked.length !== need} onClick={() => reveal(picked)}>
+            {picked.length === need ? 'Check answer' : `Pick ${need - picked.length} more`}
+          </Button>
+        </div>
+      )}
+      <VerdictSheet question={question} chosen={chosen} open={revealed} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
     </div>
   );
 }

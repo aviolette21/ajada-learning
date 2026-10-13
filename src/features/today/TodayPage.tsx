@@ -45,8 +45,10 @@ export function TodayPage() {
       </section>
       <section className="panel">
         <h2>Today's session</h2>
-        <p className="muted">{due} card{due === 1 ? '' : 's'} due · {TODAY_QUESTION_COUNT} questions from your weakest areas · about 15 min</p>
+        <p className="muted">{TODAY_QUESTION_COUNT} practice questions, starting with ones you missed and your weakest areas · about 20 min</p>
         <Link className="btn btn-primary btn-block" to="/session">Start today's session</Link>
+        <Link className="btn btn-secondary btn-block" to="/practice/mock" style={{ marginTop: 8 }}>Take a mock exam</Link>
+        {due > 0 && <p className="muted" style={{ marginTop: 10 }}>Optional: <Link to="/cards/review">{due} flashcard{due === 1 ? '' : 's'} due</Link></p>}
       </section>
       <section className="panel">
         <div className="muted">By domain (exam weight)</div>

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { fixtureRaw } from './fixtures';
+import { fixtureRaw, multiQuestion } from './fixtures';
 import { validateContent, type ValidationResult } from './validate';
 
-type Loose = { domains: any; files: Record<string, any> };
+type Loose = { domains: any; glossary: any; files: Record<string, any> };
 
 function mutate(fn: (raw: Loose) => void): ValidationResult {
   const raw = structuredClone(fixtureRaw()) as Loose;
@@ -71,7 +71,7 @@ describe('validateContent', () => {
       cs[0].id = 'b';
       cs[1].id = 'a';
     });
-    expect(errorText(r)).toMatch(/ids a, b, c, d in order/);
+    expect(errorText(r)).toMatch(/ids a, b, c, … in order/);
   });
 
   it('rejects links to unknown cards, lessons and questions', () => {
@@ -145,5 +145,24 @@ describe('validateContent', () => {
       );
     });
     expect(errorText(r)).toMatch(/alpha: 9 of 9 questions have answer "a" \(max 40%\)/);
+  });
+
+  it('accepts a multiple-response question and checks its shape', () => {
+    expect(mutate((raw) => { raw.files['alpha/questions.json'].push(multiQuestion()); }).ok).toBe(true);
+    const unsorted = mutate((raw) => { raw.files['alpha/questions.json'].push({ ...multiQuestion(), answer: ['d', 'b'] }); });
+    expect(errorText(unsorted)).toMatch(/distinct and sorted/);
+    const tooFew = mutate((raw) => { raw.files['alpha/questions.json'].push({ ...multiQuestion(), choices: multiQuestion().choices.slice(0, 4) }); });
+    expect(errorText(tooFew)).toMatch(/5 or 6 choices/);
+    const missing = mutate((raw) => { raw.files['alpha/questions.json'].push({ ...multiQuestion(), answer: ['b', 'f'] }); });
+    expect(errorText(missing)).toMatch(/every answer must be a choice/);
+    const fiveSingle = mutate((raw) => { raw.files['alpha/questions.json'].push({ ...multiQuestion(), answer: 'b' }); });
+    expect(errorText(fiveSingle)).toMatch(/exactly 4 choices/);
+  });
+
+  it('loads the glossary and rejects a name two terms both claim', () => {
+    const r = validateContent(fixtureRaw());
+    expect(r.ok && r.content.termById.get('g-gizmo')?.aliases).toEqual(['GZM']);
+    const clash = mutate((raw) => { raw.glossary.push({ ...raw.glossary[0], id: 'g-other', term: 'Other', aliases: ['gzm'] }); });
+    expect(errorText(clash)).toMatch(/"gzm" is claimed by both g-gizmo and g-other/);
   });
 });
