@@ -28,6 +28,12 @@ export function CoursePage() {
         );
       })}
       {sections.length === 0 && <p className="empty">No course sections yet.</p>}
+      {sections.length > 1 && (
+        <>
+          <Link className="btn btn-primary btn-block" to="/course/review/quiz">Review all sections · 20 questions</Link>
+          <p className="muted center-text">A mix from every section so far, a fresh set each time.</p>
+        </>
+      )}
     </Screen>
   );
 }

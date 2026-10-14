@@ -2747,12 +2747,12 @@
     "term": "temperature",
     "aliases": [],
     "definition": "A parameter that controls the randomness of a model's predictions during text generation.",
-    "whyItMatters": "Higher temperature gives more creative, diverse outputs; lower gives more conservative, deterministic outputs that stick to the most probable phrasing.",
-    "example": "Fiction brainstorming: a higher temperature allows variation in phrasing and answers; a lower one keeps to the most probable answer.",
+    "whyItMatters": "Lower values suit analytical tasks, higher ones creative tasks. Deprecated: models released after Claude Opus 4.6 accept only 1.0 and reject other values with a 400 error.",
+    "example": "On an older model, use `temperature` near 0.0 for multiple choice and near 1.0 for brainstorming; on current models, leave it unset.",
     "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
-      "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-14"
     }
   },
   {

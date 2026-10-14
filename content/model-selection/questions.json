@@ -432,7 +432,7 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Temperature",
-    "stem": "A slogan generator keeps producing near-identical taglines, and the team wants more variety. A teammate suggests lowering the temperature. Based on how temperature works, what would that do?",
+    "stem": "A slogan generator keeps producing near-identical taglines, and the team wants more variety. Their older model still accepts temperature, and a teammate suggests lowering it. Based on how temperature works, what would that do?",
     "choices": [
       {
         "id": "a",
@@ -474,7 +474,7 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Non-determinism",
-    "stem": "A regression test sends the same prompt with temperature 0 and asserts the reply matches a saved string exactly. It fails now and then, though nothing in the prompt changed. What's the explanation?",
+    "stem": "On an older model that accepts temperature, a regression test sends the same prompt with temperature 0 and asserts the reply matches a saved string exactly. It fails now and then, though nothing in the prompt changed. What's the explanation?",
     "choices": [
       {
         "id": "a",
@@ -2422,7 +2422,7 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Temperature",
-    "stem": "A team runs two features on Claude: a fiction generator that should produce varied stories, and an extraction job whose outputs they compare across runs. Which statements match Anthropic's glossary?",
+    "stem": "A team runs two features on an older Claude model that still accepts temperature: a fiction generator that should produce varied stories, and an extraction job whose outputs they compare across runs. Which statements match Anthropic's glossary?",
     "choices": [
       {
         "id": "a",

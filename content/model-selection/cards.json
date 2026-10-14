@@ -122,11 +122,11 @@
     "subSkillId": "llm-fundamentals",
     "term": "Temperature",
     "definition": "A parameter that controls the randomness of a model's predictions during text generation.",
-    "whyItMatters": "Higher temperature gives more creative, diverse outputs; lower gives more conservative, deterministic outputs that stick to the most probable phrasing.",
+    "whyItMatters": "Lower = conservative, higher = diverse. Deprecated: models released after Claude Opus 4.6 accept only 1.0 and return a 400 for other values.",
     "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
-      "title": "Glossary",
-      "checkedOn": "2026-09-27"
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-14"
     },
     "isVocab": true
   },

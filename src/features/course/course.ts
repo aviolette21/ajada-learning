@@ -12,6 +12,12 @@ export function sectionPool(section: CourseSection, content: Pick<Content, 'ques
   return { primary, fallback };
 }
 
+/** The review quiz's pool: every section's pool combined, so earlier sections keep coming back. */
+export function reviewPool(content: Pick<Content, 'course' | 'questions' | 'lessonById'>) {
+  const pools = content.course.map((s) => sectionPool(s, content));
+  return { primary: pools.flatMap((p) => p.primary), fallback: pools.flatMap((p) => p.fallback) };
+}
+
 export function findSection(content: Pick<Content, 'course'>, sectionId: string): CourseSection | undefined {
   return content.course.find((s) => s.id === sectionId);
 }

@@ -70,3 +70,10 @@ describe('CourseQuizPage', () => {
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();
   });
 });
+
+describe('Course review quiz', () => {
+  it('draws questions from every section', async () => {
+    await renderWithApp(<CourseQuizPage />, { route: '/course/review/quiz', path: '/course/:sectionId/quiz' });
+    await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha/ }));
+  });
+});

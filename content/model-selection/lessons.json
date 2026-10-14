@@ -112,7 +112,7 @@
       },
       {
         "heading": "Temperature and non-determinism",
-        "body": "Temperature controls the randomness of a model's predictions. Higher temperatures give more creative and diverse outputs; lower temperatures give more conservative, deterministic outputs that stick to the most probable phrasing.\n\nEven with temperature set to 0, results are not fully deterministic: identical inputs may produce different outputs across API calls. This is true of Anthropic's own service and of third-party cloud providers."
+        "body": "Temperature controls the randomness of a model's predictions. Higher temperatures give more creative and diverse outputs; lower temperatures give more conservative, deterministic outputs that stick to the most probable phrasing.\n\nEven with temperature set to 0, results are not fully deterministic: identical inputs may produce different outputs across API calls. This is true of Anthropic's own service and of third-party cloud providers.\n\nThe `temperature` parameter is now deprecated: models released after Claude Opus 4.6 accept only the default 1.0 and reject any other value with a 400 error. Tuning it applies only to older models."
       },
       {
         "heading": "Steering with examples (few-shot)",
@@ -144,6 +144,11 @@
         "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
         "title": "Token counting",
         "checkedOn": "2026-09-27"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/messages/create",
+        "title": "Create a Message",
+        "checkedOn": "2026-10-14"
       }
     ]
   },
