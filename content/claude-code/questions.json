@@ -318,41 +318,41 @@
     "id": "q-cc-bare-mode-ci",
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
-    "topic": "Non-interactive mode",
-    "stem": "A CI job runs `claude -p` on shared runners. Results differ between machines because one runner's `~/.claude` hooks and the project's `.mcp.json` server get loaded. You want the same behavior on every machine. What should you add?",
+    "topic": "Settings",
+    "stem": "Your team wants everyone who clones the repo to get the same Claude Code permission rules and hooks. You also want to try a personal permission tweak in this project without changing it for teammates. Where does each go?",
     "choices": [
       {
         "id": "a",
-        "text": "`--output-format json`, so each run returns the same structured payload",
-        "reason": "Output format changes how the response is returned; the run still loads hooks and MCP servers from the machine and project."
+        "text": "Both in `~/.claude/settings.json`, which every teammate's machine reads",
+        "reason": "User settings are your personal settings for every project on your machine; teammates never see them."
       },
       {
         "id": "b",
-        "text": "`--bare`, passing needed context with flags and setting `ANTHROPIC_API_KEY`",
-        "reason": "Correct: bare mode skips auto-discovery of hooks, MCP servers, CLAUDE.md and more, and on the Anthropic API uses `ANTHROPIC_API_KEY`, as it never reads OAuth credentials."
+        "text": "Team rules in committed `.claude/settings.json`; your tweak in `.claude/settings.local.json`",
+        "reason": "Correct: commit `.claude/settings.json` so everyone gets the same permissions and hooks, and keep personal overrides in `.claude/settings.local.json`, which stays out of git."
       },
       {
         "id": "c",
-        "text": "Nothing extra, since `-p` runs never load hooks or MCP servers from disk",
-        "reason": "Without `--bare`, a `-p` session runs project hooks and connects `.mcp.json` servers, loading what an interactive session would."
+        "text": "Team rules in `.claude/settings.local.json`; your tweak in `.claude/settings.json`",
+        "reason": "That's reversed: the local file is personal and kept out of git, while the shared file is the one you commit."
       },
       {
         "id": "d",
-        "text": "`--continue`, so every runner picks up one shared conversation from before",
-        "reason": "`--continue` resumes a conversation; it doesn't change what the run loads from each machine's configuration."
+        "text": "Team rules as prose in CLAUDE.md; your tweak typed into each session",
+        "reason": "Permissions and hooks are settings. The shared `.claude/settings.json` is how a team gets the same permissions, hooks and plugins."
       }
     ],
     "answer": "b",
-    "takeaway": "For reproducible CI runs, use **`--bare`**: it skips auto-discovery, so you pass context with flags and authenticate with an API key.",
-    "explanation": "The varying results come from **auto-discovery**: a `-p` run still loads hooks and `.mcp.json` servers like an interactive session. `--bare` skips that discovery, so you pass needed context with flags and authenticate with `ANTHROPIC_API_KEY`, because bare mode never reads OAuth credentials (B). Option C is the trap, assuming `-p` loads nothing from disk. Option A changes only the output format, and D resumes a conversation without changing what each machine loads.",
-    "difficulty": "medium",
+    "takeaway": "Shared config in committed **`.claude/settings.json`**; personal overrides in **`.claude/settings.local.json`**.",
+    "explanation": "settings.json has scopes. The shared project file `.claude/settings.json` is committed so the whole team gets the same permissions and hooks, and `.claude/settings.local.json` holds your personal overrides for one project (B). User settings (A) never reach teammates, C swaps the two files, and prose in CLAUDE.md (D) isn't a settings file.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://code.claude.com/docs/en/headless",
-      "title": "Run Claude Code programmatically",
-      "checkedOn": "2026-10-13"
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-cc-print-mode"
+      "c-cc-settings-scopes"
     ],
     "lessonId": "l-cc-operation"
   },
@@ -563,6 +563,300 @@
     },
     "relatedCardIds": [
       "c-claude-md"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-rules-unconditional",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Rules files",
+    "stem": "Your root CLAUDE.md has grown long, mixing testing, security and style conventions that apply across the whole repo. The team wants them split into separate files that are easier to maintain but still load in every session. What fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Separate files in `.claude/rules/`, with no `paths` frontmatter",
+        "reason": "Correct: rules without `paths` frontmatter load at launch, with the same priority as `.claude/CLAUDE.md`, so they apply in every session."
+      },
+      {
+        "id": "b",
+        "text": "Separate files in `.claude/rules/`, each with `paths` scoped to one folder",
+        "reason": "Path-scoped rules load only when Claude works with matching files, but these conventions apply everywhere."
+      },
+      {
+        "id": "c",
+        "text": "One `CLAUDE.local.md` per topic, committed to the repo",
+        "reason": "`CLAUDE.local.md` is for personal project preferences and belongs in `.gitignore`, not shared team rules."
+      },
+      {
+        "id": "d",
+        "text": "Move them into auto memory so that Claude manages them",
+        "reason": "Auto memory holds notes Claude writes itself and is machine-local; team instructions belong in CLAUDE.md or rules."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`.claude/rules/` splits instructions into files; **no `paths`** means they always load.",
+    "explanation": "Rules files keep instructions modular. A rule with no `paths` field loads at launch like `.claude/CLAUDE.md`, which suits repo-wide conventions (A). Adding `paths` (B) would load them only near matching files. `CLAUDE.local.md` (C) is personal and kept out of git, and auto memory (D) is Claude's own machine-local notes.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-auto-memory-remember",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Agent memory",
+    "stem": "During a session you tell Claude Code: \"Remember that the API tests need a local Redis instance.\" A week later, a new session in the same repo on the same machine already knows this. Where did the note go?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Into the project's CLAUDE.md, committed for the whole team",
+        "reason": "Asking Claude to remember saves to auto memory. To add to CLAUDE.md, ask for that directly or edit it via `/memory`."
+      },
+      {
+        "id": "b",
+        "text": "Into auto memory, which Claude writes and loads at the start of each session",
+        "reason": "Correct: when you ask Claude to remember something, it saves it to auto memory, which is loaded at the start of every conversation."
+      },
+      {
+        "id": "c",
+        "text": "Into the old session, whose full transcript reloads in every new one",
+        "reason": "Each session starts with a fresh context window; auto memory and CLAUDE.md are what carry knowledge across."
+      },
+      {
+        "id": "d",
+        "text": "Onto Anthropic's servers, where it syncs to every teammate",
+        "reason": "Auto memory is machine-local: it isn't shared across machines or cloud environments."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "\"Remember this\" goes to **auto memory**: Claude's own notes, per repo and machine-local.",
+    "explanation": "Claude Code has two memory systems: CLAUDE.md, which you write, and auto memory, which Claude writes from your corrections and requests. \"Remember that...\" lands in auto memory, loaded each session (B). It doesn't edit CLAUDE.md unless asked (A), new sessions start with fresh context (C), and auto memory stays on your machine (D).",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-continue-session",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Sessions",
+    "stem": "You closed your terminal partway through a task yesterday. Today, in the same project directory, you want to pick up that most recent conversation with its full history. What should you run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`claude`, then `/clear` to load the last session",
+        "reason": "`/clear` starts fresh with an empty context; it doesn't load an old session."
+      },
+      {
+        "id": "b",
+        "text": "`claude`, then paste a summary of yesterday's work",
+        "reason": "A summary loses detail. Sessions are saved as you work, so you can resume the real conversation."
+      },
+      {
+        "id": "c",
+        "text": "`claude -p` with the same first prompt as yesterday",
+        "reason": "That starts a new non-interactive run; it doesn't reopen yesterday's conversation."
+      },
+      {
+        "id": "d",
+        "text": "`claude --continue`",
+        "reason": "Correct: `--continue` reopens the most recent session in the current directory, with its full conversation history."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`claude --continue` resumes the **latest session** here; `claude --resume` lets you pick one.",
+    "explanation": "Sessions are saved continuously, so you can come back to one. `claude --continue` reopens the most recent session in the current directory (D). `/clear` empties the context (A), a pasted summary (B) loses the real history, and `claude -p` (C) starts a fresh run.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-continue-resume"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-skill-manual-only",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Custom commands",
+    "stem": "Your team's `/deploy` skill pushes to production. People should run it only by typing `/deploy`, never because Claude decides on its own that the code looks ready. What should the skill's frontmatter include?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `description` that says \"Only deploy when asked\"",
+        "reason": "Claude uses the description to decide when to load a skill automatically; wording in it doesn't block automatic use."
+      },
+      {
+        "id": "b",
+        "text": "Nothing, since Claude never invokes skills on its own",
+        "reason": "Claude uses skills when relevant, unless you turn that off for the skill."
+      },
+      {
+        "id": "c",
+        "text": "`disable-model-invocation: true`",
+        "reason": "Correct: this stops Claude from loading the skill automatically, for workflows with side effects that you trigger yourself with `/name`."
+      },
+      {
+        "id": "d",
+        "text": "A `name` field that starts with an underscore",
+        "reason": "The name sets the command you type; it doesn't control whether Claude can invoke the skill."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For skills with side effects, set **`disable-model-invocation: true`** so only a person can run them.",
+    "explanation": "Skills (custom slash commands) can be run by you or loaded by Claude when relevant. For a side-effecting workflow like deploy, `disable-model-invocation: true` keeps it manual (C). A description (A) is what Claude reads to decide when to use a skill, Claude does invoke skills itself (B), and the name (D) only sets the command.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-auto-mode-fit",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Auto mode",
+    "stem": "During a long refactor, a developer is tired of approving routine edits and commands, but doesn't want to skip all safety checks. Which Claude Code permission mode fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`bypassPermissions`, which runs every action with no checks",
+        "reason": "Bypass mode skips all checks, which is exactly what this developer wants to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Auto mode, where a classifier reviews actions instead of you",
+        "reason": "Correct: in auto mode a separate classifier model reviews actions before they run and blocks risky ones, without routine prompts."
+      },
+      {
+        "id": "c",
+        "text": "Plan mode, which lets Claude edit and run commands freely",
+        "reason": "Plan mode is for exploring a codebase before changing it, not for hands-off editing."
+      },
+      {
+        "id": "d",
+        "text": "Manual mode (`default`), which stops asking after the first approval",
+        "reason": "Manual mode runs only reads without asking and keeps prompting for edits and commands."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Auto mode** removes routine prompts while a classifier still blocks risky actions.",
+    "explanation": "Auto mode replaces routine permission prompts with a classifier that reviews each action and blocks ones that escalate beyond the request (B). It reduces prompts but doesn't guarantee safety. Bypass mode (A) drops all checks, plan mode (C) is for analysis before changes, and Manual mode (D) keeps prompting.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-init-new-repo",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "CLAUDE.md",
+    "stem": "You're adding Claude Code to an existing repo that has no CLAUDE.md. You want a starting file with the build commands, test instructions and conventions Claude can discover. What's the quickest way?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run `/init`, then refine the file with what Claude can't discover",
+        "reason": "Correct: `/init` analyzes the codebase and creates a CLAUDE.md with the build commands, test instructions and conventions it finds."
+      },
+      {
+        "id": "b",
+        "text": "Turn on auto memory in `/memory` so it writes CLAUDE.md for you",
+        "reason": "Auto memory is Claude's own notes, kept separately; `/init` is what generates a CLAUDE.md."
+      },
+      {
+        "id": "c",
+        "text": "Create a `CLAUDE.local.md` by hand and commit it for the team",
+        "reason": "`CLAUDE.local.md` is for personal preferences and belongs in `.gitignore`, not in a commit."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to \"remember\" each convention, one at a time",
+        "reason": "Asking Claude to remember saves to auto memory, not CLAUDE.md."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Bootstrap a repo with **`/init`**, then add what Claude couldn't work out from the code.",
+    "explanation": "Repository initialization is what `/init` is for: it analyzes the codebase and writes a starting CLAUDE.md, which you then refine (A). Auto memory (B) and \"remember\" requests (D) go to Claude's own notes, not CLAUDE.md, and `CLAUDE.local.md` (C) is personal and kept out of git.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-stream-json-result",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A CI script runs `claude -p` with `--output-format stream-json` to show live progress. When the run ends, it also needs the final answer and its cost. Where should the script read them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "By rerunning the same prompt with `--output-format json`",
+        "reason": "That runs the whole task twice; the stream already ends with the result."
+      },
+      {
+        "id": "b",
+        "text": "From the first event, which reports the final cost up front",
+        "reason": "The first event is `system/init` with session metadata such as the model and tools; the result comes last."
+      },
+      {
+        "id": "c",
+        "text": "From the exit code, which encodes the cost",
+        "reason": "The exit code is 0 on success and non-zero on failure; it doesn't carry the answer or the cost."
+      },
+      {
+        "id": "d",
+        "text": "From the last line of the stream: a `result` message",
+        "reason": "Correct: the last line of a `stream-json` stream is a `result` message with the final response text, cost and session metadata."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In `stream-json` mode, events stream live and the **final `result` message** closes the run.",
+    "explanation": "Streaming mode emits newline-delimited JSON events as the run progresses, and the last line is a `result` message with the final text, cost and session metadata (D). Rerunning in `json` mode (A) doubles the work, the first event (B) is session setup, and the exit code (C) only signals success or failure.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
     ],
     "lessonId": "l-cc-operation"
   }

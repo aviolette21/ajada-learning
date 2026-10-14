@@ -125,7 +125,7 @@
       }
     ],
     "checkQuestionIds": [
-      "q-max-turns-result",
+      "q-agent-loop-termination",
       "q-agent-sdk-choice",
       "q-pretooluse-block-env"
     ],

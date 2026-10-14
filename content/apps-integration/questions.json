@@ -1827,272 +1827,45 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-files-docx",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Files API",
-    "stem": "Users ask questions about their contracts, which arrive as .pdf and .docx files. Uploading a .docx through the Files API and referencing it in a `document` block fails. What does the Files API guide recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Reference the .docx in an `image` block instead of a `document` block",
-        "reason": "Image blocks are for JPEG, PNG, GIF and WebP; a file type that doesn't match its block type returns a 400 error."
-      },
-      {
-        "id": "b",
-        "text": "Convert the .docx to plain text and include it in the message",
-        "reason": "Correct: for types the `document` block doesn't support, such as .docx, convert the file to plain text and include the content directly."
-      },
-      {
-        "id": "c",
-        "text": "Send it in a `container_upload` block so Claude reads it as a document",
-        "reason": "`container_upload` sends files to the code execution tool for analysis, not as a document for Claude to read."
-      },
-      {
-        "id": "d",
-        "text": "Download the uploaded file and resend it as a base64 `document`",
-        "reason": "Files you upload can't be downloaded; only files created by skills or the code execution tool can."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "`document` blocks take **PDF and plain text**; convert formats like .docx to text first.",
-    "explanation": "`document` blocks accept PDF and plain text, so a .docx is a type the block doesn't support, and the Files API guide recommends converting it to plain text and including the content directly in the message. Option C is the tempting workaround because `container_upload` also takes files, but it sends them to the code execution tool for analysis, not as a document for Claude to read. Image blocks (A) only take image formats, and D fails because files you upload can't be downloaded.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
-      "title": "Files API",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-files-api"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-routing",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Files API",
-    "stem": "A user uploads a revised version of a policy PDF that your app stored earlier with the Files API and references by `file_id` in every request. How should the app switch to the new version?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Upload it as a new file, use that `file_id`, and delete the old file",
-        "reason": "Correct: files can't be modified or renamed after upload; to change a file's content, upload a new file and delete the old one."
-      },
-      {
-        "id": "b",
-        "text": "Overwrite the content stored under the existing `file_id`",
-        "reason": "Files cannot be modified or renamed after upload, so there is no way to replace the content behind an ID."
-      },
-      {
-        "id": "c",
-        "text": "Download the stored file, edit it, and re-upload it under the same ID",
-        "reason": "Files you upload can't be downloaded; only files created by skills or the code execution tool can."
-      },
-      {
-        "id": "d",
-        "text": "Add an `expires_at` to the old file so the new upload takes over",
-        "reason": "Expiration is set once at upload and cannot be changed, so it can't be added to the old file; switch to the new `file_id` yourself."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Uploaded files are **immutable**: to change one, upload a new file and delete the old one.",
-    "explanation": "Files uploaded through the Files API are **immutable**: they can't be modified or renamed after upload, so changing the content means uploading the revised PDF as a new file, switching to its `file_id` and deleting the old one. Option B is the tempting assumption that you can overwrite content behind an ID, which isn't possible. Option C fails because uploaded files can't be downloaded, and D fails because expiration is set once at upload and can't be added later.",
-    "difficulty": "medium",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Files can't be modified: replace them instead.",
-      "steps": [
-        {
-          "label": "Upload revision"
-        },
-        {
-          "label": "New file_id"
-        },
-        {
-          "label": "Reference it"
-        },
-        {
-          "label": "Delete old file"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
-      "title": "Files API",
-      "checkedOn": "2026-09-27"
-    },
-    "relatedCardIds": [
-      "c-routing-workflow",
-      "c-files-api"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-parallel-guardrails",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Workflow patterns",
-    "stem": "Your chat product must both screen each user message for inappropriate requests and answer it. Today one prompt does both, and each job is done less well. What does Anthropic's \"Building effective agents\" post recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add more detailed screening rules to the single combined prompt",
-        "reason": "The post says one call handling both guardrails and the core response tends to perform worse than separate calls."
-      },
-      {
-        "id": "b",
-        "text": "Sectioning: one call screens each message while another answers it",
-        "reason": "Correct: the post's guardrail example has one model instance process queries while another screens them, which tends to perform better."
-      },
-      {
-        "id": "c",
-        "text": "Voting: run the answering prompt several times and keep the majority",
-        "reason": "Voting runs the same task repeatedly for diverse outputs; guardrails are the post's example of sectioning into different subtasks."
-      },
-      {
-        "id": "d",
-        "text": "Orchestrator-workers: a central LLM decides at run time which subtasks to create",
-        "reason": "That fits tasks whose subtasks can't be predicted; here the two subtasks are fixed and known."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Screening and answering are separate jobs: **section** them into parallel calls instead of one overloaded prompt.",
-    "explanation": "The Building effective agents post notes that one call handling both guardrails and the core response tends to perform worse than separate calls, so it recommends **sectioning**: split fixed, known subtasks into parallel calls, with one instance screening and another answering. Option C is tempting because voting is the other parallelization pattern, but it runs the **same** task repeatedly for diverse outputs. Option A keeps the overloaded single prompt, and D is for subtasks that can't be predicted, whereas these two are fixed.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/building-effective-agents",
-      "title": "Building effective agents",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-parallelization"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-req-zdr-batch-retention",
     "domainId": "apps-integration",
     "subSkillId": "requirements",
     "topic": "Zero data retention",
-    "stem": "Your organization has a zero data retention (ZDR) arrangement. A team plans to move a nightly summarization job to the Message Batches API to cut cost, assuming ZDR still covers it. What should you tell them?",
+    "stem": "Your organization has a zero data retention (ZDR) arrangement for its Claude API traffic. A team wants to move a nightly summarization job to the Message Batches API to cut cost. What should they check first?",
     "choices": [
       {
         "id": "a",
-        "text": "Fine: ZDR covers every endpoint in the organization, including `/v1/messages/batches`",
-        "reason": "ZDR covers the Messages and Token Counting APIs for eligible features; the eligibility table marks batch processing **No**."
+        "text": "Nothing: ZDR covers every endpoint and feature in the organization",
+        "reason": "ZDR applies to eligible features only; the feature eligibility table marks batch processing as not eligible."
       },
       {
         "id": "b",
-        "text": "It will fail: under ZDR the API rejects batch requests with a 400 error",
-        "reason": "Under ZDR the API does **not** block features marked No. Blocking them with a 400 is how HIPAA readiness behaves."
+        "text": "Batch eligibility: stateful features like batches keep their own retention",
+        "reason": "Correct: the Batch API stores your jobs, so it is not ZDR-eligible; its data is retained per its documented policy."
       },
       {
         "id": "c",
-        "text": "Batches aren't ZDR-eligible (29-day retention), so using them steps outside ZDR for that data",
-        "reason": "Correct: batch processing has 29-day retention because async storage is required; using a \"No\" feature steps outside your ZDR arrangement for that data."
+        "text": "Whether the API will reject the batch, as it does any non-ZDR feature",
+        "reason": "Under ZDR the API does not block ineligible features; using one steps outside ZDR for that data. Blocking with a 400 is HIPAA behavior."
       },
       {
         "id": "d",
-        "text": "Fine, as long as each batch request sets a `custom_id` so its results are purged once they are retrieved",
-        "reason": "`custom_id` doesn't change retention: the eligibility table gives batch processing 29-day retention because async storage is required."
+        "text": "Whether each request sets a `custom_id`, which purges results after download",
+        "reason": "Batch data is retained per the feature's documented policy; nothing in a request makes a stateful feature zero-retention."
       }
     ],
-    "answer": "c",
-    "takeaway": "ZDR is **per feature**: stateful features such as batches keep their own retention, and under ZDR the API won't stop you using them.",
-    "explanation": "ZDR coverage is **per feature**, not per organization: it covers the Messages and Token Counting APIs for eligible features, and batch processing is marked No with 29-day retention because asynchronous storage is required. Using it steps outside the ZDR arrangement for that data. Option B is the tempting trap because it assumes the API blocks ineligible features, but under ZDR it does not; returning a 400 is how HIPAA readiness behaves. Option A assumes blanket coverage, and `custom_id` (D) doesn't change retention.",
+    "answer": "b",
+    "takeaway": "ZDR is **per feature**: stateful features such as batches keep their own documented retention, and under ZDR the API won't block them.",
+    "explanation": "ZDR covers **eligible features**, not everything an organization calls. The Batch API stores jobs, so it is marked not eligible, and using it steps outside the ZDR arrangement for that data. Option C is the tempting trap: under ZDR the API does not block ineligible features (a 400 block is how HIPAA readiness behaves), so the team has to check eligibility itself. Blanket coverage (A) and a per-request setting (D) don't exist.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
       "title": "API and data retention",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-message-batches"
     ],
-    "lessonId": "l-requirements"
-  },
-  {
-    "id": "q-req-zdr-browser-cors",
-    "domainId": "apps-integration",
-    "subSkillId": "requirements",
-    "topic": "Zero data retention",
-    "stem": "Your organization has a ZDR arrangement. A developer builds a single-page web app that calls the Claude API straight from the user's browser, and the calls fail. What should change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Route the browser's requests through a backend proxy server that calls the API",
-        "reason": "Correct: CORS is not supported for organizations with ZDR arrangements, so browser apps must go through a backend proxy."
-      },
-      {
-        "id": "b",
-        "text": "Build the feature in the Console playground instead, since it already runs in a browser",
-        "reason": "Usage in the Claude Console, including the playground, is not covered by ZDR, so it fails the requirement."
-      },
-      {
-        "id": "c",
-        "text": "Create a separate API key in the same organization just for the browser app",
-        "reason": "ZDR is enabled per organization; a new key in the same ZDR organization still has no CORS support."
-      },
-      {
-        "id": "d",
-        "text": "Embed the API key in the page's JavaScript so the browser can authenticate itself",
-        "reason": "Authentication isn't what fails: CORS isn't supported under ZDR, so browser calls need a backend proxy whatever key they carry."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Under ZDR there is **no CORS**: browser apps reach Claude through your own backend proxy.",
-    "explanation": "The detail that matters is that the app calls the API **straight from the browser**. CORS is not supported for organizations with ZDR arrangements, so those calls fail, and browser apps must go through a backend proxy that calls the API. Option C is tempting because it looks like a configuration fix, but ZDR is enabled per organization, so a new key in the same organization still has no CORS. Option D treats it as an authentication failure, which it isn't, and the Console (B) isn't covered by ZDR.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
-      "title": "API and data retention",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-key-types"
-    ],
-    "lessonId": "l-requirements"
-  },
-  {
-    "id": "q-req-inference-geo-workspace",
-    "domainId": "apps-integration",
-    "subSkillId": "requirements",
-    "topic": "Data residency",
-    "stem": "Compliance requires that every request made with a workspace's API keys runs model inference only in the US, even if a developer forgets to set anything on a request. What enforces this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set `inference_geo: \"us\"` on each request and add it to the team's coding guidelines",
-        "reason": "A per-request setting can be left out. Workspace controls enforce geo policy across all keys in a workspace."
-      },
-      {
-        "id": "b",
-        "text": "Create a new workspace whose workspace geo is set to `us` when it is created",
-        "reason": "Workspace geo controls where data is stored at rest and endpoint processing, not where model inference runs."
-      },
-      {
-        "id": "c",
-        "text": "Call Claude through Amazon Bedrock and pass `inference_geo: \"us\"` in every request",
-        "reason": "On Bedrock the inference region comes from the endpoint URL or inference profile; `inference_geo` is not applicable."
-      },
-      {
-        "id": "d",
-        "text": "Set the workspace's `allowed_inference_geos` to `[\"us\"]` and its `default_inference_geo` to `us`",
-        "reason": "Correct: the allowed list makes other geos return an error, and the default applies when a request omits `inference_geo`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Per-request `inference_geo` is a choice; **workspace** allowed and default geos turn it into a policy.",
-    "explanation": "The requirement holds **even if a developer forgets**, so a per-request setting isn't enough; it has to be enforced at the workspace. Setting `allowed_inference_geos` to `[\"us\"]` makes other geos return an error, and `default_inference_geo` of `us` covers requests that omit the parameter. Option A is the trap because it relies on remembering, and a per-request setting can be left out. Option B confuses workspace geo, which governs data at rest and endpoint processing, with inference, and on Bedrock (C) `inference_geo` doesn't apply.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
-      "title": "Data residency",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
     "lessonId": "l-requirements"
   },
   {
@@ -2675,81 +2448,41 @@
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
     "topic": "Code review",
-    "stem": "Your team wants Code Review to skip generated files under `src/gen/`, cap nits at five per review and always check that new API routes have an integration test, without changing how everyday Claude Code sessions behave. Where do these rules go?",
+    "stem": "Your team runs `claude-code-action` to review pull requests and answer `@claude` requests. Reviewers want Claude to apply the team's code style and review criteria on every run. Where does the GitHub Actions guide say to define them?",
     "choices": [
       {
         "id": "a",
-        "text": "In the root `CLAUDE.md`, which Code Review treats as its main review instructions",
-        "reason": "CLAUDE.md is shared context for all tasks; Code Review flags violations as nits. Review-only guidance belongs in `REVIEW.md`."
+        "text": "Restated in full in each `@claude` comment whenever someone asks for a review",
+        "reason": "The guide says to define standards once in a repo-root `CLAUDE.md`; specific requests help, but they don't replace shared standards."
       },
       {
         "id": "b",
-        "text": "In each repo's Review Behavior setting in the Code Review admin table",
-        "reason": "Review Behavior only chooses when reviews run: once after PR creation, after every push, or manual."
+        "text": "In the repository secrets, next to `ANTHROPIC_API_KEY`, so the workflow loads them",
+        "reason": "Repository secrets hold credentials such as the API key or OAuth token, not review guidelines."
       },
       {
         "id": "c",
-        "text": "In a `skillOverrides` entry for `code-review` in `.claude/settings.json`",
-        "reason": "`skillOverrides` controls whether Claude and scheduled tasks can start the local `/code-review`; it carries no review rules."
+        "text": "In a `CLAUDE.md` file at the repository root",
+        "reason": "Correct: the guide says to define code style, review criteria and project rules in a repo-root `CLAUDE.md`, which Claude follows."
       },
       {
         "id": "d",
-        "text": "In a `REVIEW.md` file at the repository root",
-        "reason": "Correct: `REVIEW.md` holds review-only instructions (severity, nit caps, skip rules, repo-specific checks) for the review agents."
+        "text": "In `claude_args` as `--max-turns`, so each review stays within the standards",
+        "reason": "`--max-turns` limits the number of conversation turns to cap cost; it carries no style or review rules."
       }
     ],
-    "answer": "d",
-    "takeaway": "Review-only rules (severity, nit caps, skips, must-checks) go in **REVIEW.md**; CLAUDE.md is project context for every task.",
-    "explanation": "The stem asks for rules that apply to **review only** and leave everyday Claude Code sessions unchanged. `REVIEW.md` at the repository root holds exactly that kind of guidance (severity, nit caps, skip rules and repo-specific checks) for the review agents. Option A is the tempting trap because CLAUDE.md is the usual place for project rules, but it is shared context for all tasks, so it would affect every session. Review Behavior (B) only chooses when reviews run, and `skillOverrides` (C) carries no review rules.",
-    "difficulty": "medium",
+    "answer": "c",
+    "takeaway": "Put code style, review criteria and project rules in a repo-root **CLAUDE.md**; Claude reads it on every run, so keep it concise.",
+    "explanation": "The guide's best practice is to **define project standards in CLAUDE.md** at the repository root: code style, review criteria and project rules, which Claude follows when creating PRs and responding to requests. Option A is tempting because specific requests do help, but restating standards in every comment is error-prone. Secrets (B) hold credentials, and `--max-turns` (D) only caps iterations.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
+      "url": "https://code.claude.com/docs/en/github-actions",
+      "title": "Claude Code GitHub Actions",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-claude-md"
     ],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-review-always",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "A busy repo runs Code Review in Manual mode. For one high-priority PR, the lead wants a review now **and** a fresh review on every later push, without changing the repo setting. What should they do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Post `@claude review always` as a top-level comment on the PR",
-        "reason": "Correct: it starts a review and subscribes the PR to push-triggered reviews; comment commands work in any trigger mode."
-      },
-      {
-        "id": "b",
-        "text": "Post `@claude review`, which reviews now and subscribes the PR to later pushes",
-        "reason": "Since a July 2026 update, the bare command starts a single review **without** subscribing the PR to future pushes."
-      },
-      {
-        "id": "c",
-        "text": "Post `@claude review once`, which keeps reviewing on each push until merge",
-        "reason": "`@claude review once` behaves like the bare command: one review, no subscription to later pushes."
-      },
-      {
-        "id": "d",
-        "text": "Post `@claude review always` as an inline comment on one of the changed lines",
-        "reason": "Comment commands must be top-level PR comments, not inline comments on a diff line."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "`@claude review` is a one-off; `@claude review always` also subscribes the PR to reviews on later pushes. Post either as a top-level comment.",
-    "explanation": "Two needs drive the answer: a review **now** and fresh reviews on **every later push**, without touching the repo setting. Posting `@claude review always` as a top-level comment does both, since it starts a review and subscribes the PR to push-triggered reviews, and comment commands work in any trigger mode. Option B is the tempting trap: since a July 2026 update, the bare command runs a single review without subscribing. `once` (C) behaves like the bare command, and D fails because commands must be top-level comments, not inline ones.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
     "lessonId": "l-swe-foundations"
   },
   {
@@ -2885,37 +2618,37 @@
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
     "topic": "Git worktrees",
-    "stem": "In a brand-new repo with no commits yet, you run `claude --worktree feature-auth` to start an isolated parallel session. It fails with `Failed to resolve base branch \"HEAD\"`. What's wrong?",
+    "stem": "You want one Claude Code session to fix a bug in one terminal while another builds a feature in a second terminal, in the same repository, without their edits colliding. What does the Common workflows guide recommend?",
     "choices": [
       {
         "id": "a",
-        "text": "Worktrees need a remote, so push the repo to GitHub before creating one",
-        "reason": "The stated requirement is at least one commit to base the worktree on; a remote isn't mentioned."
+        "text": "Give each session its own git worktree: a separate checkout on its own branch",
+        "reason": "Correct: each git worktree is a separate checkout on its own branch, so parallel sessions' edits don't collide."
       },
       {
         "id": "b",
-        "text": "Only one worktree is allowed per repo, and the main checkout already counts",
-        "reason": "Running the same command with a different name in a second terminal starts another isolated session."
+        "text": "Run both sessions in the main checkout and have each one commit as it goes",
+        "reason": "Two sessions editing one checkout is exactly the collision worktrees avoid; each worktree is a separate checkout."
       },
       {
         "id": "c",
-        "text": "The name `feature-auth` must match a branch that you created beforehand",
-        "reason": "The failure in a repo with no commits comes from the missing base commit, as the error about `HEAD` shows."
+        "text": "Run `/clear` in each session so the two can't overwrite each other's edits",
+        "reason": "`/clear` resets a session's conversation context; it doesn't isolate files on disk."
       },
       {
         "id": "d",
-        "text": "A worktree is created from an existing commit, so make a first commit",
-        "reason": "Correct: each worktree is a separate checkout on its own branch, created from an existing commit, so the repo needs one first."
+        "text": "Turn on plan mode in one session so that only the other session writes files",
+        "reason": "Plan mode makes no edits until you approve its plan, so the two tasks would no longer run in parallel."
       }
     ],
-    "answer": "d",
-    "takeaway": "Claude Code worktrees branch from an existing commit, so a repo needs at least one commit before `claude --worktree` works.",
-    "explanation": "Each worktree is a separate checkout on its own branch, **created from an existing commit**. The key detail is a brand-new repo with no commits, and the error about resolving `HEAD` says there is nothing to base the worktree on, so make a first commit. Option C is tempting because the error mentions a branch, but the missing piece is the base commit, not a pre-made branch. A remote (A) isn't a stated requirement, and multiple worktrees (B) are fine.",
-    "difficulty": "medium",
+    "answer": "a",
+    "takeaway": "For parallel Claude Code sessions in one repo, use **git worktrees**: each is a separate checkout on its own branch.",
+    "explanation": "The guide's recipe for parallel sessions is **worktrees**: each git worktree is a separate checkout on its own branch, so one session's edits never land in the other's files. Option B is the tempting shortcut, but two sessions editing one checkout is the collision the stem wants to avoid. `/clear` (C) only resets context, and plan mode (D) blocks edits rather than isolating them.",
+    "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/common-workflows",
       "title": "Common workflows",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [],
     "lessonId": "l-swe-foundations"
@@ -3049,48 +2782,6 @@
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-409-conflict",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "HTTP errors",
-    "stem": "Two of your workers modify the same resource through the Claude API at the same moment, and one of them gets `409 conflict_error`. What does the errors page say to do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Rotate the API key, since 409 means two workers used the same key at once",
-        "reason": "Problems with the key itself are 401 `authentication_error`."
-      },
-      {
-        "id": "b",
-        "text": "Resolve the conflict with the current state, then retry the request",
-        "reason": "Correct: 409 means the request conflicts with the current state of a resource, such as a concurrent change; resolve it, then retry."
-      },
-      {
-        "id": "c",
-        "text": "Wait for capacity, since 409 means the API is temporarily overloaded",
-        "reason": "A temporarily overloaded API returns 529 `overloaded_error`."
-      },
-      {
-        "id": "d",
-        "text": "Shrink the request body, since 409 means it exceeds the maximum byte size",
-        "reason": "Oversized requests return 413 `request_too_large`."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "**409** is a state conflict (concurrent change, duplicate unique value): resolve it, then retry.",
-    "explanation": "Each status code points to a different cause, so match the scenario to the code. **409** means the request conflicts with the **current state of a resource**, such as a concurrent change; two workers modifying the same resource at once is exactly that, so resolve the conflict and retry. Option A is tempting because two workers are involved, but key problems are 401 `authentication_error`. Overload is 529 (C) and an oversized body is 413 (D).",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/errors",
-      "title": "Claude API errors",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-error-types"
-    ],
     "lessonId": "l-swe-foundations"
   },
   {
@@ -3473,46 +3164,6 @@
     "lessonId": "l-swe-foundations"
   },
   {
-    "id": "q-swe-codeowners-base-branch",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "On a feature branch you add a `CODEOWNERS` file assigning `/api/` to `@acme/api-team`, which has explicit write access. You open a non-draft PR into `main` that changes `/api/`, but the team isn't requested for review. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "CODEOWNERS only takes effect for pull requests opened from forks",
-        "reason": "Fork PRs are one case the docs cover; code owners are requested on any PR that modifies code they own."
-      },
-      {
-        "id": "b",
-        "text": "Review requests use the base branch's CODEOWNERS, and `main` lacks it",
-        "reason": "Correct: for code owners to receive review requests, the CODEOWNERS file must be on the base branch of the pull request."
-      },
-      {
-        "id": "c",
-        "text": "Code owners are only requested after the PR has one approving review",
-        "reason": "Code owners are requested automatically when someone opens a pull request that modifies code they own."
-      },
-      {
-        "id": "d",
-        "text": "The file only loads if it is named `.codeowners` in the repository root",
-        "reason": "The file is named `CODEOWNERS` and can live in `.github/`, the root, or `docs/`."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "CODEOWNERS is read from the PR's **base branch**: merge it there before it can request reviews.",
-    "explanation": "Code owners are requested automatically on a PR that changes code they own, but **only if CODEOWNERS is on the PR's base branch**. Here the file exists only on the feature branch, and the PR targets `main`, which lacks it, so no request goes out. Option A is tempting because fork PRs are a documented case, but code owners apply to any PR touching their code. Requests don't wait for an approval (C), and the file is named `CODEOWNERS`, not `.codeowners` (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
-      "title": "About code owners",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
     "id": "q-app-clear-between-tasks",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -3870,49 +3521,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-mid-conversation-system",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Mid-session instructions",
-    "stem": "Deep into a long, cached agentic session on Claude Opus 5.5, your app must add an operator rule, \"from now on, write all SQL as parameterized queries\", that holds even if the end user asks otherwise, without re-processing the cached history. What fits?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Edit the top-level `system` field to add the rule for the remaining turns",
-        "reason": "Adding it to the top-level `system` field would re-process the entire history instead of reusing the cached prefix."
-      },
-      {
-        "id": "b",
-        "text": "Add the rule to the next `user` message as plain instructions",
-        "reason": "Claude does follow user-turn instructions, but a `user` message is treated as the end user; `system` instructions take precedence in a conflict."
-      },
-      {
-        "id": "c",
-        "text": "Append a `system`-role message after the latest user turn",
-        "reason": "Correct: a mid-conversation system message carries operator authority and is added at the end, so the existing cache entry still matches."
-      },
-      {
-        "id": "d",
-        "text": "Insert a `system`-role message as the first entry in `messages`",
-        "reason": "A system message with content must immediately follow a user turn, so it can't come first; other positions return a 400 error."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "New operator rule mid-session? A **mid-conversation system message** adds operator authority without invalidating the cached prefix.",
-    "explanation": "You need **operator authority** without re-processing a cached history. A `system`-role message appended after the latest user turn carries operator authority and sits at the end, so the existing cache entry still matches. Option A is the trap: editing the top-level `system` field would re-process the whole history instead of reusing the cached prefix. A `user` message (B) is treated as the end user, and a system message can't come first in `messages` (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages",
-      "title": "Mid-conversation system messages and tool changes",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-system-parameter",
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-file-id-from-users",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -4135,48 +3743,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-plugin-disable-for-me",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Plugin management",
-    "stem": "Your repo's `.claude/settings.json` enables a plugin your teammates rely on, but you don't want it in your own sessions. You choose **Uninstall** on it in `/plugin`. Which option keeps it for everyone else?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "**Disable for me**, writing `false` in `.claude/settings.local.json`",
-        "reason": "Correct: Disable for me writes `false` for the plugin in your `.claude/settings.local.json` and leaves it installed for the project."
-      },
-      {
-        "id": "b",
-        "text": "**Uninstall for everyone**, then ask teammates to reinstall it locally",
-        "reason": "That removes the plugin from the shared `.claude/settings.json`, turning it off for the whole project."
-      },
-      {
-        "id": "c",
-        "text": "Remove its marketplace, which detaches only your copy of the plugin",
-        "reason": "Removing a marketplace uninstalls every plugin you installed from it and removes their `enabledPlugins` entries."
-      },
-      {
-        "id": "d",
-        "text": "Edit `.claude/settings.json` to set the plugin to `false` and commit it",
-        "reason": "That's the shared project file, so committing it would turn the plugin off for your teammates too."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "To opt out of a project-enabled plugin, **disable it for yourself** in local settings; don't touch the shared file.",
-    "explanation": "You want it off **for you** while the shared project keeps it. **Disable for me** writes `false` for the plugin in your own `.claude/settings.local.json`, leaving the project install untouched. Option D is tempting because it sets the same `false`, but in the shared `.claude/settings.json`, so committing it turns it off for teammates. Uninstall for everyone (B) removes it from the shared file, and removing the marketplace (C) uninstalls every plugin from it.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/discover-plugins",
-      "title": "Install and manage plugins",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-precedence"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-plugin-headless-install",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -4215,49 +3781,6 @@
     },
     "relatedCardIds": [
       "c-cc-print-mode"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-desktop-mcp-restart",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Claude Desktop",
-    "stem": "You add a filesystem server to `claude_desktop_config.json` under `mcpServers` and save the file, but the server doesn't appear in Claude Desktop's connectors. What should you do first?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Completely quit Claude Desktop and restart it",
-        "reason": "Correct: the application needs to restart to load the new configuration and start the MCP server."
-      },
-      {
-        "id": "b",
-        "text": "Start a new chat, which reloads `claude_desktop_config.json`",
-        "reason": "A new chat isn't enough: the app must be fully quit and restarted to load the new configuration."
-      },
-      {
-        "id": "c",
-        "text": "Change the directory paths in `args` to relative paths",
-        "reason": "Troubleshooting says the paths in the config must be valid and absolute, not relative."
-      },
-      {
-        "id": "d",
-        "text": "Move the server into Claude Desktop's account settings window",
-        "reason": "MCP servers go in the config file opened from Developer settings, which is separate from your Claude account settings."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Claude Desktop reads `claude_desktop_config.json` at startup: after editing it, **fully restart** the app.",
-    "explanation": "Claude Desktop reads `claude_desktop_config.json` **at startup**, so the application must restart to load the new configuration and start the MCP server: completely quit it and relaunch. Option B is the trap, since a new chat feels like a reload, but it isn't enough. Option C would introduce a real problem, because config paths must be valid and absolute, and D confuses the config file with your Claude account settings.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/connect-local-servers",
-      "title": "Connect to local MCP servers",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-server",
-      "c-mcp-transports"
     ],
     "lessonId": "l-app-design"
   },
@@ -4388,86 +3911,43 @@
     "lessonId": "l-api-basics"
   },
   {
-    "id": "q-api-files-expiry",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Files API",
-    "stem": "Your app uploads each user's PDF with `expires_in_seconds` set to 7 days and stores the `file_id`. A user returns after 10 days and asks a follow-up question about that PDF. What happens?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The file is renewed for another 7 days because it was referenced again",
-        "reason": "Expiration is set once at upload and cannot be changed; referencing the file doesn't extend it."
-      },
-      {
-        "id": "b",
-        "text": "The Messages request that references the file fails before inference",
-        "reason": "Correct: once a file reaches its `expires_at`, a Messages request that references it fails before inference."
-      },
-      {
-        "id": "c",
-        "text": "The request succeeds from a cached copy, but the file can't be downloaded",
-        "reason": "After expiry, content is no longer retrievable through the API, and a Messages request that references it fails before inference."
-      },
-      {
-        "id": "d",
-        "text": "The file is kept for 30 more days, so requests work until that window ends",
-        "reason": "Only metadata stays readable for up to 30 days after expiry; requests that reference the file fail before inference."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "`expires_in_seconds` (1 hour to 90 days) is fixed at upload; after `expires_at`, requests that reference the file **fail**.",
-    "explanation": "`expires_in_seconds` is **set once at upload and can't be changed**. After 10 days the 7-day file has passed its `expires_at`, so a Messages request that references it fails before inference. Option A is the trap: referencing a file doesn't renew it. Option D twists a real detail, since only metadata stays readable for up to 30 days, and content isn't retrievable after expiry, so there's no cached copy (C).",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
-      "title": "Files API",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-routing-workflow"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
     "id": "q-api-search-results-granularity",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "topic": "Search results",
-    "stem": "Your RAG app returns each help-center article as one `search_result` with a single long text block. Citations work, but every `cited_text` is the whole article, so users can't see which paragraph supports a claim. What should you change?",
+    "stem": "Your RAG app retrieves help-center articles and passes them to Claude as plain text. Users want every claim in an answer to show which article supports it, with that article's title and URL, without special prompting. What fits best?",
     "choices": [
       {
         "id": "a",
-        "text": "Split each article into several smaller text blocks in `content`",
-        "reason": "Correct: the text block is the minimal citable unit, so smaller, focused blocks give Claude finer citation boundaries."
+        "text": "Ask Claude in the prompt to add a source URL after every sentence it writes",
+        "reason": "Search result blocks give native citations that carry the source and title you provided, with no special prompting needed."
       },
       {
         "id": "b",
-        "text": "Ask Claude in the prompt to quote only the exact sentence it relied on",
-        "reason": "Claude cites whole blocks, not substrings within a block, so a prompt can't make `cited_text` smaller than a block."
+        "text": "Send each article as a `search_result` block with citations enabled",
+        "reason": "Correct: search result blocks let Claude cite your content like web search results, each citation carrying your source and title."
       },
       {
         "id": "c",
-        "text": "Set `start_block_index` and `end_block_index` on each search result",
-        "reason": "Those are fields of the citations Claude returns, identifying the cited slice; you don't set them on the search result."
+        "text": "Put all the articles in the system prompt so Claude treats them as trusted",
+        "reason": "Where the text sits doesn't create citations; Claude cites search results automatically when citations are enabled on them."
       },
       {
         "id": "d",
-        "text": "Lower `max_tokens` so Claude writes shorter claims tied to smaller passages",
-        "reason": "`cited_text` is always the full text of the cited block(s); output length doesn't change what a block contains."
+        "text": "Return the articles from a tool, since only tool results can carry citations",
+        "reason": "Search results can come from tool calls or be passed directly as top-level content in user messages."
       }
     ],
-    "answer": "a",
-    "takeaway": "Search-result citations cite **whole text blocks**; split `content` into focused blocks for finer `cited_text`.",
-    "explanation": "The **text block is the minimal citable unit**: Claude cites whole blocks, and `cited_text` is always the full text of the cited block. One long block per article means every citation is the whole article. Split `content` into smaller, focused blocks for finer boundaries. Option B is the trap: a prompt can't make `cited_text` smaller than a block. `start_block_index` and `end_block_index` (C) are fields in returned citations, and `max_tokens` (D) doesn't change blocks.",
+    "answer": "b",
+    "takeaway": "For RAG answers with source attribution, pass retrieved content as **`search_result` blocks** with citations enabled.",
+    "explanation": "**Search result blocks** exist for RAG source attribution: each citation carries the source and title you provided, and Claude cites them automatically when citations are enabled. Option A is tempting, but it relies on prompting instead of the native feature, which needs no special prompting. The system prompt (C) doesn't create citations, and D is wrong because search results can also be passed directly in user messages.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
       "title": "Search results",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-cited-text",
       "c-citations"
     ],
     "lessonId": "l-api-basics"
@@ -4519,42 +3999,42 @@
     "id": "q-api-thinking-budget-rules",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
-    "topic": "Extended thinking",
-    "stem": "On Claude Haiku 4.5, which supports only manual extended thinking, a request with no tools sets `max_tokens: 1500` and `thinking: {\"type\": \"enabled\", \"budget_tokens\": 2000}`. The API rejects it. What must change?",
+    "topic": "Adaptive thinking",
+    "stem": "Your app sends `thinking: {type: \"enabled\", budget_tokens: 10000}` with Claude Sonnet 4.6. After you switch the model to Claude Opus 5.5, every request fails with a 400 error. What change does the extended thinking guide describe?",
     "choices": [
       {
         "id": "a",
-        "text": "Switch to `type: \"adaptive\"`, which has no budget rules to satisfy",
-        "reason": "Haiku 4.5 is extended-thinking-only; `type: \"adaptive\"` returns a 400 error there."
+        "text": "Raise `max_tokens` well above `budget_tokens` so the budget has room to fit",
+        "reason": "Newer models reject `type: \"enabled\"` itself, whatever the budget and `max_tokens` values are."
       },
       {
         "id": "b",
-        "text": "Lower `budget_tokens` to 1,000 so it fits under `max_tokens`",
-        "reason": "1,000 is below the 1,024-token minimum, which the API also rejects."
+        "text": "Switch to `thinking: {type: \"adaptive\"}` and set depth with `effort`",
+        "reason": "Correct: remove `budget_tokens`, set `thinking: {type: \"adaptive\"}` and control reasoning depth with `output_config.effort`."
       },
       {
         "id": "c",
-        "text": "Move `budget_tokens` into `output_config` next to `effort`",
-        "reason": "`budget_tokens` belongs in the `thinking` object; the problem is that it isn't below `max_tokens`."
+        "text": "Move `budget_tokens` into `output_config`, where newer models read it",
+        "reason": "The migration removes `budget_tokens` entirely; `output_config` takes `effort`, not a token budget."
       },
       {
         "id": "d",
-        "text": "Raise `max_tokens` so it's greater than `budget_tokens`",
-        "reason": "Correct: `budget_tokens` must be at least 1,024 and less than `max_tokens`, because thinking counts toward the `max_tokens` limit for the turn."
+        "text": "Stay on Claude Sonnet 4.6, where `budget_tokens` is the long-term setting",
+        "reason": "`budget_tokens` is deprecated on the 4.6 models, so staying only postpones the same migration."
       }
     ],
-    "answer": "d",
-    "takeaway": "Manual thinking needs `budget_tokens` **≥ 1,024 and < `max_tokens`**, since thinking counts toward `max_tokens`.",
-    "explanation": "Manual thinking has two rules: `budget_tokens` must be **at least 1,024** and **less than `max_tokens`**, because thinking counts toward the turn's `max_tokens`. Here 2,000 isn't below 1,500, so raise `max_tokens`. Option B is the subtle trap: shrinking the budget to 1,000 fits under `max_tokens` but breaks the 1,024 minimum. Adaptive (A) returns a 400 on extended-thinking-only Haiku 4.5, and `budget_tokens` belongs in `thinking`, not `output_config` (C).",
-    "difficulty": "easy",
+    "answer": "b",
+    "takeaway": "Newer models reject manual `budget_tokens` thinking: switch to **adaptive thinking** and steer depth with `effort`.",
+    "explanation": "Manual extended thinking is deprecated on the 4.6 models and **rejected** by Claude 4.7 and later, including Claude Opus 5.5. The migration is to remove `budget_tokens`, set `thinking: {type: \"adaptive\"}` and control depth with `effort`. Option C is the tempting half-step, but `output_config` takes `effort`, not a budget. Raising `max_tokens` (A) can't fix a rejected mode, and staying on 4.6 (D) only delays it.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "title": "Extended thinking",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-thinking-budget",
-      "c-max-tokens"
+      "c-effort"
     ],
     "lessonId": "l-api-basics"
   },
@@ -4746,33 +4226,33 @@
     "choices": [
       {
         "id": "a",
-        "text": "`\"model\": \"sonnet\"` in each project's committed `.claude/settings.json`",
-        "reason": "That only sets a starting model; `/model`, `--model` and `ANTHROPIC_MODEL` can still select Opus."
+        "text": "An `availableModels` allowlist of Sonnet models in managed settings",
+        "reason": "Correct: a managed `availableModels` allowlist applies to `/model`, `--model`, `ANTHROPIC_MODEL` and the `model` setting, and users can't extend it."
       },
       {
         "id": "b",
+        "text": "`\"model\": \"sonnet\"` in each project's committed `.claude/settings.json`",
+        "reason": "The `model` setting is an initial selection, not enforcement; `/model`, `--model` and `ANTHROPIC_MODEL` can still select Opus."
+      },
+      {
+        "id": "c",
         "text": "A CLAUDE.md rule telling Claude never to switch away from Sonnet",
         "reason": "Instructions to Claude don't control which model a user selects; an allowlist in managed settings does."
       },
       {
-        "id": "c",
+        "id": "d",
         "text": "`ANTHROPIC_DEFAULT_SONNET_MODEL` set in every engineer's shell profile",
         "reason": "That only changes what the `sonnet` alias resolves to; it doesn't stop anyone selecting Opus."
-      },
-      {
-        "id": "d",
-        "text": "`availableModels` listing only Sonnet, plus `enforceAvailableModels`, in managed settings",
-        "reason": "Correct: a managed `availableModels` list applies to `/model`, `--model`, `ANTHROPIC_MODEL` and `model`; `enforceAvailableModels` extends it to the Default option."
       }
     ],
-    "answer": "d",
-    "takeaway": "To **restrict** models org-wide, set `availableModels` in managed settings, with `enforceAvailableModels` so the Default option obeys it too.",
-    "explanation": "This needs **enforcement**, not a default. A managed `availableModels` list applies to `/model`, `--model`, `ANTHROPIC_MODEL` and `model`, and `enforceAvailableModels` extends it to the Default option, so engineers can't select Opus anywhere. Option A is tempting, but `\"model\": \"sonnet\"` only sets a starting model that every listed override can change. A CLAUDE.md rule (B) instructs Claude, not model selection, and C only changes what the `sonnet` alias resolves to.",
+    "answer": "a",
+    "takeaway": "To **restrict** models org-wide, use an `availableModels` allowlist in managed settings; a `model` setting is only a starting choice.",
+    "explanation": "This needs **enforcement**, not a default. An `availableModels` allowlist in managed settings applies everywhere a user can pick a model, including `/model`, `--model` and `ANTHROPIC_MODEL`, and user, project or local settings can't extend it. Option B is tempting, but the `model` setting is only an initial selection that those overrides can change. A CLAUDE.md rule (C) instructs Claude, not model selection, and D only changes what `sonnet` resolves to.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/model-config",
       "title": "Model configuration",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-cc-settings-precedence"
@@ -6034,5 +5514,308 @@
       "c-input-json-delta",
       "c-stream-event-flow"
     ]
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-api-thinking-preserve-blocks",
+    "subSkillId": "api-mechanics",
+    "topic": "Thinking with tool use",
+    "stem": "Your agent runs with thinking on. Claude returns `thinking` and `tool_use` blocks, and to save tokens your code keeps only the `tool_use` block in the assistant turn before sending the `tool_result`. What does the thinking guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pass the thinking blocks back, complete and unmodified, with the `tool_use` block",
+        "reason": "Correct: within a tool-use turn you must pass thinking blocks back unchanged, because Claude continues the same response from them."
+      },
+      {
+        "id": "b",
+        "text": "Dropping them is fine, since thinking blocks are only for display and logging",
+        "reason": "The thinking blocks carry the reasoning that led to the tool request; passing them back is required within a tool-use turn."
+      },
+      {
+        "id": "c",
+        "text": "Send a short summary of the reasoning in place of the original thinking blocks",
+        "reason": "Thinking blocks must be passed back complete and unmodified; you can't edit, rearrange or partially drop them."
+      },
+      {
+        "id": "d",
+        "text": "Copy the thinking text into the `tool_result` content so Claude can still read it",
+        "reason": "Thinking blocks go back in the assistant turn alongside the `tool_use` block they accompanied, unmodified, not inside a tool result."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A tool-use loop is one assistant turn: pass its **thinking blocks back unchanged** with the `tool_use` block.",
+    "explanation": "When Claude calls a tool, it pauses one response and continues it once you return the result, so its earlier reasoning must still be there. Within a tool-use turn, **thinking blocks must go back complete and unmodified** alongside the `tool_use` block. Option C is the tempting token saver, but edited or summarized blocks aren't allowed. Dropping them (B) breaks reasoning continuity, and D puts them in the wrong place.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-api-cache-static-prefix",
+    "subSkillId": "api-mechanics",
+    "topic": "Prompt caching",
+    "stem": "Every request to your support bot sends the same long product guide and instructions, followed by a different customer question. You want later requests to reuse the already-processed guide. How should you structure the prompt?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put the question first so the shared guide sits at the end of every prompt",
+        "reason": "Caching resumes from a prefix, so static content belongs at the beginning of the prompt, not after the changing question."
+      },
+      {
+        "id": "b",
+        "text": "Vary the guide's wording slightly per request so each version is cached",
+        "reason": "Cache hits need 100% identical prompt segments up to the breakpoint; varying the guide guarantees misses."
+      },
+      {
+        "id": "c",
+        "text": "Put the guide and instructions first, then mark their end with `cache_control`",
+        "reason": "Correct: place static content at the beginning and mark the end of the reusable content with `cache_control`."
+      },
+      {
+        "id": "d",
+        "text": "Mark the customer question with `cache_control`, since it changes every time",
+        "reason": "The breakpoint marks the end of the reusable content; anything at or before it must stay identical for a hit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Caching reuses an **identical prefix**: put static content first and mark where it ends with `cache_control`.",
+    "explanation": "Prompt caching resumes from a **prefix**, and a hit needs every block up to the breakpoint to be identical. So the stable guide and instructions go first, with `cache_control` marking their end, and the changing question comes after. Option D is tempting because the question is the part that changes, but a breakpoint on changing content means the prefix never matches. Putting the guide last (A) or varying it (B) also prevents hits.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-config-agent-prompt-versions",
+    "subSkillId": "config-management",
+    "topic": "Prompt versioning",
+    "stem": "Your team runs a Claude Managed Agent and edits its system prompt every few weeks. After a bad edit, someone asks what the prompt said two changes ago. What does the Managed Agents setup guide offer for this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: each update overwrites the agent, so keep your own copy of each prompt",
+        "reason": "Updating an agent generates a new version when the configuration changes, and you can list the full version history."
+      },
+      {
+        "id": "b",
+        "text": "Archive the agent after each edit, which saves a read-only copy of that prompt",
+        "reason": "Archiving makes the agent read-only for good and stops new sessions using it; it isn't a way to keep versions."
+      },
+      {
+        "id": "c",
+        "text": "Each config change creates a new agent version, and you can list the history",
+        "reason": "Correct: agents are versioned; each update that changes the configuration creates a new version, and listing versions tracks changes."
+      },
+      {
+        "id": "d",
+        "text": "Read it from an old session's transcript, the only place a prompt is stored",
+        "reason": "The agent itself keeps a version history you can list, so transcripts aren't the only record."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A Managed Agent's config, system prompt included, is **versioned**: each change makes a new version you can list.",
+    "explanation": "A Managed Agent is a **reusable, versioned configuration** that bundles the model, system prompt and tools. Each update that changes the configuration creates a new version, and listing versions returns the full history, so the older prompt is still on record. Option B is tempting because archiving sounds like saving, but it makes the agent read-only and stops new sessions from using it. Updates don't silently overwrite history (A), and transcripts (D) aren't needed.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
+      "title": "Define your agent",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-config-agent-prompt-in-git",
+    "subSkillId": "config-management",
+    "topic": "Prompt versioning",
+    "stem": "A team keeps its Managed Agent's definition, including the system prompt, in a file in its git repo, so prompt changes are reviewed in pull requests. They want each merged change to update the live agent. What fits the Managed Agents setup guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have CI run `ant apply` on the checked-in file, with `claude-lock.json` committed",
+        "reason": "Correct: `ant apply` updates the agent recorded in the committed `claude-lock.json`; the guide names CI jobs that sync checked-in definitions."
+      },
+      {
+        "id": "b",
+        "text": "Have CI create a brand-new agent from the file on every merge and use its ID",
+        "reason": "Committing `claude-lock.json` lets `ant apply` update the same agent, which keeps one version history."
+      },
+      {
+        "id": "c",
+        "text": "Keep the file only as a reference copy and make each change by hand after merging",
+        "reason": "The guide's flow is to edit the agent's file and run `ant apply` again, which updates the agent from that file."
+      },
+      {
+        "id": "d",
+        "text": "Leave `claude-lock.json` out of git so every run starts from a clean slate",
+        "reason": "Without the committed `claude-lock.json`, the next `ant apply` creates a second agent instead of updating this one."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Version prompts like code: keep the agent definition in git and let CI run **`ant apply`**, which updates the same agent.",
+    "explanation": "Keeping the prompt in a checked-in file gives you **review and history in git**, and `ant apply` turns each merged change into an update of the same agent, which creates a new agent version. The committed `claude-lock.json` is what tells `ant apply` which agent to update. Option D is the trap: without it, the next apply creates a second agent. A new agent per merge (B) and manual edits (C) lose the single, synced definition.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
+      "title": "Define your agent",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-config-plugin-bundle-deps",
+    "subSkillId": "config-management",
+    "topic": "Plugin dependencies",
+    "stem": "A platform team wants engineers to install the team's standard set of four plugins with one command, and to be able to add plugins to that set later. What does the plugin dependencies guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy all four plugins' files into one large plugin and publish that copy",
+        "reason": "The guide keeps each plugin separate: the bundle's manifest just lists them as dependencies, each with its own versions."
+      },
+      {
+        "id": "b",
+        "text": "Publish a bundle plugin whose `plugin.json` lists the four as `dependencies`",
+        "reason": "Correct: a plugin with a `name` and a `dependencies` array is valid, and installing it installs every dependency."
+      },
+      {
+        "id": "c",
+        "text": "List the four in `allowCrossMarketplaceDependenciesOn` in each user's settings",
+        "reason": "That field is a marketplace allowlist in `marketplace.json` for cross-marketplace dependencies, not a way to install a set."
+      },
+      {
+        "id": "d",
+        "text": "Pin all four at `=1.0.0`, so plugins added later install automatically",
+        "reason": "An exact pin keeps a dependency at that version; to add plugins, publish a new bundle version with the extra dependency."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A plugin whose manifest lists **dependencies** works as a bundle: installing it installs them all, and a new version can add more.",
+    "explanation": "A plugin manifest needs only a `name`, so a **bundle plugin** whose `plugin.json` lists the standard set in `dependencies` is valid, and one install brings in every dependency. To grow the set, publish a new bundle version with the extra dependency. Option A is tempting because one package sounds simpler, but it merges plugins the guide keeps separate. C is a marketplace allowlist, and an exact pin (D) freezes versions rather than adding plugins.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/dependencies",
+      "title": "Plugin dependencies",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-app-xml-separate-content",
+    "subSkillId": "app-design",
+    "topic": "Content boundaries",
+    "stem": "Your app's prompt mixes your instructions, background context, examples and a customer's pasted email, and Claude sometimes treats lines from the email as instructions. Which prompting practice helps Claude keep these parts apart?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Wrap each part in its own XML tag, such as `<instructions>` and `<input>`",
+        "reason": "Correct: wrapping each type of content in its own tag helps Claude parse mixed prompts unambiguously and reduces misinterpretation."
+      },
+      {
+        "id": "b",
+        "text": "Use different, ad-hoc tag names in each prompt so Claude can't predict them",
+        "reason": "The guide recommends consistent, descriptive tag names across your prompts."
+      },
+      {
+        "id": "c",
+        "text": "Merge everything into one block of plain text to keep the prompt short",
+        "reason": "Mixed instructions, context, examples and inputs are exactly where separating them with tags helps most."
+      },
+      {
+        "id": "d",
+        "text": "Put your instructions inside the customer's email so they read as one message",
+        "reason": "That blends trusted instructions into the input; the guidance is to give each type of content its own tag."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Mark content boundaries with **XML tags**: give instructions, context, examples and inputs each their own consistently named tag.",
+    "explanation": "When a prompt mixes **instructions, context, examples and variable inputs**, wrapping each in its own XML tag helps Claude parse it unambiguously, so the email reads as input rather than instructions. Option B is tempting because unpredictable tags sound safer, but the guide recommends consistent, descriptive names. Merging everything (C) or embedding instructions in the email (D) removes the boundary the stem needs.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-xml-tags"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "domainId": "apps-integration",
+    "id": "q-app-multi-document-structure",
+    "subSkillId": "app-design",
+    "topic": "Content boundaries",
+    "stem": "Your app passes Claude a dozen long contracts plus a question, and answers sometimes mix up which contract a clause came from. Which two changes does Anthropic's long-context prompting guidance recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put the question first and the contracts after it, so Claude knows what to look for",
+        "reason": "The guidance is the reverse: long documents near the top and the query at the end, which can improve response quality."
+      },
+      {
+        "id": "b",
+        "text": "Wrap each contract in `<document>` tags with `<source>` and `<document_content>` subtags",
+        "reason": "Correct: with multiple documents, wrap each in `<document>` tags with content and metadata subtags for clarity."
+      },
+      {
+        "id": "c",
+        "text": "Strip each contract's title and metadata so that only the clauses remain",
+        "reason": "Metadata such as the source helps keep documents apart; the guidance is to structure it with subtags, not remove it."
+      },
+      {
+        "id": "d",
+        "text": "Place the contracts near the top of the prompt, above the question and instructions",
+        "reason": "Correct: put long documents and inputs near the top, above your query, instructions and examples."
+      },
+      {
+        "id": "e",
+        "text": "Concatenate all contracts into one block without separators to save tokens",
+        "reason": "Removing the boundaries makes it harder to tell documents apart; the guidance wraps each document in its own tags."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "For many long documents: put them **at the top**, query last, and wrap each in `<document>` tags with its source.",
+    "explanation": "Two long-context practices fix this: **wrap each document** in `<document>` tags with `<source>` and `<document_content>` subtags so their boundaries and origins are clear, and put the long documents **near the top**, with the question at the end. Option A is the tempting one, since asking first feels natural, but queries at the end improve quality. Stripping metadata (C) and removing separators (E) erase the boundaries.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-xml-tags"
+    ],
+    "lessonId": "l-app-design"
   }
 ]

@@ -107,8 +107,8 @@
     ],
     "checkQuestionIds": [
       "q-guard-harmlessness-screen",
-      "q-guard-verify-citations",
-      "q-guard-keep-character"
+      "q-guard-defense-in-depth",
+      "q-guard-chain-safeguards"
     ],
     "sources": [
       {

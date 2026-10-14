@@ -216,7 +216,7 @@
     "checkQuestionIds": [
       "q-skill-progressive-disclosure",
       "q-extension-choose-subagent",
-      "q-plugin-trust-sandbox"
+      "q-ext-skill-teaches-mcp"
     ],
     "sources": [
       {

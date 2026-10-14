@@ -247,90 +247,6 @@
     "lessonId": "l-guardrails"
   },
   {
-    "id": "q-guard-verify-citations",
-    "domainId": "security-safety",
-    "subSkillId": "guardrails",
-    "topic": "Reducing hallucinations",
-    "stem": "Claude drafts press releases from your product briefs. Legal requires every claim to be traceable to a brief, with unsupported claims removed before review. Which technique from Anthropic's hallucination guide fits best?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Best-of-N: run the prompt several times and compare the drafts for inconsistent claims",
-        "reason": "Inconsistencies across outputs could indicate hallucinations, but comparing drafts doesn't tie each claim to a source."
-      },
-      {
-        "id": "b",
-        "text": "Have Claude find a supporting quote for each drafted claim and retract any it can't support",
-        "reason": "Correct: verifying with citations makes the response auditable; if Claude can't find a supporting quote for a claim, it must retract it."
-      },
-      {
-        "id": "c",
-        "text": "Chain-of-thought verification: review Claude's summarized reasoning before accepting the final draft",
-        "reason": "Reviewing Claude's summarized reasoning can reveal faulty logic or assumptions, but it doesn't check each claim against the briefs."
-      },
-      {
-        "id": "d",
-        "text": "Give Claude explicit permission to say \"I don't know\" when the briefs lack information",
-        "reason": "That helps when information is missing, but it doesn't check each drafted claim against the briefs or remove unsupported ones."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "For auditable output, have Claude back **each claim with a quote** and retract what it can't support; still validate critical facts.",
-    "explanation": "The constraint to notice is that every claim must be **traceable to a brief**, with unsupported claims removed. Verifying with citations does exactly that: Claude finds a supporting quote for each claim and retracts any it can't support, making the output auditable (Option B). Best-of-N (A) is the tempting trap because it does help detect hallucinations, but comparing drafts never ties a claim to a source. C reviews reasoning rather than claims, and D only helps when information is missing.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
-      "title": "Reduce hallucinations",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-verify-with-citations"
-    ],
-    "lessonId": "l-guardrails"
-  },
-  {
-    "id": "q-guard-keep-character",
-    "domainId": "security-safety",
-    "subSkillId": "guardrails",
-    "topic": "Keeping in character",
-    "stem": "Your language-tutor app gives Claude a persona with a one-line role in the system prompt. It stays in character in normal chats but breaks character when learners ask unusual questions. What does Anthropic's consistency guide suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Prefill each assistant turn with the character's name and a short reminder of the persona",
-        "reason": "The guide's advice for staying in character is a detailed role and prepared scenarios; prefilling also isn't supported on Claude 4.6 and later models."
-      },
-      {
-        "id": "b",
-        "text": "Switch to structured outputs with a strict JSON schema describing the persona's fields",
-        "reason": "Structured outputs guarantee JSON schema conformance; they don't define a personality or prepare it for unusual situations."
-      },
-      {
-        "id": "c",
-        "text": "Break every reply into a chain of smaller prompts, each with its own copy of the one-line role",
-        "reason": "The guide suggests chaining for complex tasks; for role-based apps it points to the system prompt role and prepared scenarios."
-      },
-      {
-        "id": "d",
-        "text": "Detail the persona's background and traits, and list common scenarios with expected replies",
-        "reason": "Correct: detail helps Claude emulate and generalize the character's traits, and prepared scenarios help it handle diverse situations without breaking character."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Keep a persona steady with a **detailed role** in the system prompt plus **prepared scenarios** and expected responses.",
-    "explanation": "Anthropic's consistency guide says a persona stays steady when the system prompt gives a **detailed role** and **prepared scenarios** with expected replies. The clue here is the one-line role failing on unusual questions: more detail helps Claude generalize the character's traits, and prepared scenarios cover diverse situations, which is Option D. A is tempting but prefilling isn't supported on Claude 4.6 and later models. B only enforces JSON shape, and C points to chaining, which the guide suggests for complex tasks rather than for role-based apps.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
-      "title": "Increase output consistency",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-keep-in-character"
-    ],
-    "lessonId": "l-guardrails"
-  },
-  {
     "id": "q-hook-exit-1-not-blocking",
     "domainId": "security-safety",
     "subSkillId": "claude-hooks",
@@ -606,48 +522,6 @@
     "relatedCardIds": [
       "c-prompt-injection",
       "c-tool-output-screen"
-    ],
-    "lessonId": "l-app-security"
-  },
-  {
-    "id": "q-sec-computer-use-classifiers",
-    "domainId": "security-safety",
-    "subSkillId": "app-security",
-    "topic": "Indirect prompt injection",
-    "stem": "Your agent uses Anthropic's computer use tool to browse vendor websites. A teammate asks whether anything besides your own prompts checks the screenshots it returns for injected instructions. What's accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Nothing does: injection screening exists only for `tool_result` content your own code produces",
-        "reason": "For the computer use and browser use tools, Anthropic runs additional classifiers over what the tools return."
-      },
-      {
-        "id": "b",
-        "text": "Anthropic runs extra classifiers on returned content and has Claude check instructions came from you",
-        "reason": "Correct: the classifiers scan returned screenshots or page text for potential injections and steer Claude to check the instruction really came from you before acting."
-      },
-      {
-        "id": "c",
-        "text": "Screenshots can't carry injected instructions, because Claude reads only a page's text, never its images",
-        "reason": "The guide names screenshots among the tool output that Anthropic's classifiers scan for potential prompt injections."
-      },
-      {
-        "id": "d",
-        "text": "Anthropic ends the session automatically whenever a page contains any text addressed to the model",
-        "reason": "The guide says the classifiers flag potential injections and steer Claude to verify the source; it doesn't describe ending sessions."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "With the computer use or browser use tool, Anthropic runs **extra classifiers** over returned screenshots and page text to catch possible injections.",
-    "explanation": "With the computer use and browser use tools, your prompts aren't the only defense: Anthropic runs **additional classifiers** over returned screenshots and page text to catch potential injections, and steers Claude to check that an instruction really came from you, which is Option B. A is the tempting trap because it assumes screening exists only for your own `tool_result` content. C is wrong because the guide names screenshots among the scanned output, and D invents a session-ending behavior the guide doesn't describe.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
-      "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-prompt-injection"
     ],
     "lessonId": "l-app-security"
   },
@@ -1087,38 +961,38 @@
     "id": "q-guard-kernel-isolation",
     "domainId": "security-safety",
     "subSkillId": "guardrails",
-    "topic": "Sandboxing",
-    "stem": "You run agents for many customers on shared hosts, and they process untrusted content. Each runs under sandbox-runtime today. Security wants protection even if an agent exploits a kernel vulnerability. Which change fits Anthropic's guidance?",
+    "topic": "Identity and access management",
+    "stem": "Your agent runs in a cloud container and calls a few internal services. Its cloud service account has broad admin permissions \"to avoid access errors\". What does Anthropic's secure-deployment guide suggest?",
     "choices": [
       {
         "id": "a",
-        "text": "Keep sandbox-runtime and tighten its domain allowlist so fewer hosts are reachable",
-        "reason": "The allowlist governs network access. Sandboxed processes still share the host kernel, so a kernel vulnerability could enable escape."
+        "text": "Keep admin rights, and list the allowed services in the system prompt",
+        "reason": "A prompt isn't an access control; the guide says to assign minimal IAM permissions to the agent's service account."
       },
       {
         "id": "b",
-        "text": "Move to gVisor or separate VMs, since sandbox-runtime processes share the host kernel",
-        "reason": "Correct: for kernel-level isolation the guide points to gVisor or a separate VM; for multi-tenant or untrusted workloads the extra isolation is often worth the overhead."
+        "text": "Share one admin service account across all agents so access is simpler",
+        "reason": "Broad, shared access widens what a compromised agent can reach; the guide calls for minimal permissions on the agent's account."
       },
       {
         "id": "c",
-        "text": "Switch to standard Docker containers, which give each agent its own separate kernel",
-        "reason": "Standard containers share the host kernel too, so a kernel vulnerability could allow container escape."
+        "text": "Hand the agent long-lived cloud keys so it can call each service itself",
+        "reason": "The guide recommends injecting credentials through a proxy rather than exposing them to the agent directly."
       },
       {
         "id": "d",
-        "text": "Add `--pids-limit 100`, which stops a kernel exploit from spreading to other processes",
-        "reason": "`--pids-limit` caps the process count to prevent fork bombs; it doesn't isolate the kernel."
+        "text": "Give the account minimal IAM permissions, routing sensitive access via a proxy",
+        "reason": "Correct: the guide says to assign minimal IAM permissions to the agent's service account, routing sensitive access through the proxy where possible."
       }
     ],
-    "answer": "b",
-    "takeaway": "Sandbox runtime and containers **share the host kernel**; for kernel-level isolation in multi-tenant or untrusted workloads, use **gVisor or VMs**.",
-    "explanation": "The requirement is protection even against a **kernel vulnerability**. Sandbox-runtime processes, like standard containers, share the host kernel, so for kernel-level isolation the guide points to gVisor or a separate VM, often worth the overhead for multi-tenant or untrusted workloads, which is Option B. C is the tempting trap because containers feel isolated, but standard containers share the host kernel too. A only narrows network access, and D's `--pids-limit` caps process counts to prevent fork bombs.",
-    "difficulty": "hard",
+    "answer": "d",
+    "takeaway": "Give an agent's identity **minimal IAM permissions**, and route sensitive access through a proxy outside its reach.",
+    "explanation": "An agent can be steered by prompt injection or make mistakes, so its identity should hold only the access its task needs. The guide's cloud advice is minimal IAM permissions for the agent's service account, with sensitive access routed through a proxy (D). Option A is the tempting one, but a list in the prompt doesn't stop an over-privileged account from being used.",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
       "title": "Securely deploying AI agents",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-prompt-injection"
@@ -1298,48 +1172,42 @@
     "id": "q-guard-container-read-only",
     "domainId": "security-safety",
     "subSkillId": "guardrails",
-    "topic": "Sandboxing",
-    "stem": "Your code-review agent runs in Docker. It must analyze the mounted repository without modifying it, and must not persist changes to the container's own filesystem. Which two options from Anthropic's hardened configuration meet these requirements?",
+    "topic": "Least privilege",
+    "stem": "Your code-review agent only needs to read a repository and report problems. A teammate mounts the repo read-write, plus the home directory with `~/.ssh` and `~/.aws`, \"in case it needs them\". What does Anthropic's least-privilege guidance suggest?",
     "choices": [
       {
         "id": "a",
-        "text": "`--pids-limit 100`, which caps how many processes the container can run at once",
-        "reason": "This limits the process count to prevent fork bombs; it doesn't stop writes to the code or the filesystem."
+        "text": "Keep the mounts, and tell Claude in its system prompt not to touch those folders",
+        "reason": "A prompt doesn't restrict access; the guide restricts the agent to only the capabilities its task needs."
       },
       {
         "id": "b",
-        "text": "`-v /path/to/code:/workspace:ro`, which mounts the repository into the container read-only",
-        "reason": "Correct: mounting the code read-only lets the agent analyze it but not modify it."
+        "text": "Mount only the repo, read-only, and keep credential folders like `~/.ssh` out",
+        "reason": "Correct: the guide says mount only needed directories, prefer read-only, and avoid mounting sensitive host directories like `~/.ssh` or `~/.aws`."
       },
       {
         "id": "c",
-        "text": "`--cap-drop ALL`, which removes Linux capabilities such as `NET_ADMIN` and `SYS_ADMIN`",
-        "reason": "Dropping capabilities guards against privilege escalation; it doesn't make the code or the filesystem read-only."
+        "text": "Mount everything read-only, including `~/.ssh` and `~/.aws`, so nothing changes",
+        "reason": "Even read-only access can expose credentials; the guide says to avoid mounting sensitive host directories at all."
       },
       {
         "id": "d",
-        "text": "`--memory 2g`, which caps the memory the agent's processes are able to use",
-        "reason": "A memory limit prevents resource exhaustion; it doesn't control writes."
-      },
-      {
-        "id": "e",
-        "text": "`--read-only`, which makes the container's root filesystem immutable",
-        "reason": "Correct: `--read-only` makes the root filesystem immutable, preventing the agent from persisting changes."
+        "text": "Keep the read-write mounts, but log every file change for review afterwards",
+        "reason": "Logging after the fact doesn't limit what the agent can reach; the guide mounts only what's needed, read-only where possible."
       }
     ],
-    "answer": [
-      "b",
-      "e"
-    ],
-    "takeaway": "Read-only **mounts** protect the code; a read-only **root filesystem** stops the agent persisting changes; other flags guard other risks.",
-    "explanation": "The stem has two separate requirements, and each maps to one flag. Analyzing the repository without modifying it calls for a read-only mount, `-v /path/to/code:/workspace:ro` (B). Not persisting changes to the container's own filesystem calls for `--read-only`, which makes the root filesystem immutable (E). C is the most tempting wrong pick because dropping all capabilities sounds restrictive, but it guards against privilege escalation, not writes. A and D are resource limits for fork bombs and memory exhaustion.",
-    "difficulty": "medium",
+    "answer": "b",
+    "takeaway": "Least privilege for agents: mount only what the task needs, **read-only** where possible, and keep credential folders out.",
+    "explanation": "Least privilege means the agent gets only what its task requires. A review agent needs to read one repo, so mount just that repo read-only and leave credential folders out (B). Option C is the tempting one because read-only sounds safe, but the guide warns that read access alone can expose credentials in folders like `~/.ssh` and `~/.aws`.",
+    "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
       "title": "Securely deploying AI agents",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
-    "relatedCardIds": [],
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
     "lessonId": "l-guardrails"
   },
   {
@@ -1388,41 +1256,42 @@
     "id": "q-hook-managed-not-disabled",
     "domainId": "security-safety",
     "subSkillId": "claude-hooks",
-    "topic": "Managed hooks",
-    "stem": "An admin deploys an audit `PreToolUse` hook through managed policy settings. A developer sets `\"disableAllHooks\": true` in their `~/.claude/settings.json` to speed things up. What happens to the managed hook?",
+    "topic": "Protecting files",
+    "stem": "Your team wants Claude Code never to modify `.env` or anything in `.git/`, whatever instructions it picks up during a session. Which setup does the hooks guide show for this?",
     "choices": [
       {
         "id": "a",
-        "text": "It's disabled as well, because user settings take precedence over all hook definitions",
-        "reason": "`disableAllHooks` set in user, project or local settings can't disable managed hooks."
+        "text": "A line in CLAUDE.md asking Claude to leave those files alone",
+        "reason": "The guide says hooks give **deterministic** control, so actions don't rely on the model choosing to comply, as an instruction does."
       },
       {
         "id": "b",
-        "text": "It keeps running: only `disableAllHooks` set in managed settings can disable managed hooks",
-        "reason": "Correct: the setting respects the managed hierarchy, so only `disableAllHooks` at the managed level can disable managed hooks."
+        "text": "A `PreToolUse` hook on `Edit|Write` that exits 2 for protected paths",
+        "reason": "Correct: the guide's example runs before any `Edit` or `Write` call, checks the path against protected patterns and exits 2 to block it."
       },
       {
         "id": "c",
-        "text": "It's off for that session, then restored automatically the next time Claude Code starts",
-        "reason": "User-level `disableAllHooks` has no effect on managed hooks at any point."
+        "text": "A `PostToolUse` hook on `Edit|Write` that reports protected edits",
+        "reason": "By the time a post-tool hook runs, the edit has happened; the guide's example blocks the call before it runs."
       },
       {
         "id": "d",
-        "text": "It's replaced by the developer's own hooks, since lower-level hook entries override managed ones",
-        "reason": "Hook entries merge across levels: user, project and local settings add hooks without removing managed ones."
+        "text": "A `SessionStart` hook that checks those files once at startup",
+        "reason": "A one-time check at startup doesn't stop a later edit; the guide's hook runs before every `Edit` or `Write` call."
       }
     ],
     "answer": "b",
-    "takeaway": "Managed hooks are a reliable org guardrail: user, project and local settings **can't disable or remove** them.",
-    "explanation": "`disableAllHooks` respects the managed hierarchy: set in user, project or local settings, it **can't disable managed hooks**; only the same setting at the managed level can. So the admin's audit hook keeps running, which is Option B. A is the tempting trap because it assumes user settings win. C invents a temporary effect that doesn't happen, and D is wrong because hook entries merge across levels, so lower levels add hooks without removing managed ones.",
-    "difficulty": "medium",
+    "takeaway": "To protect files, block the edit **before** it happens: a `PreToolUse` hook on `Edit|Write` that exits 2.",
+    "explanation": "A guardrail that must hold every time needs a deterministic check that runs before the action. The guide's protected-files example is a `PreToolUse` hook on `Edit|Write` that exits 2 when the path matches, which blocks the edit and tells Claude why (B). Option C is the tempting one, but a hook that runs after the tool can only report an edit that already happened.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-claude-code-hooks"
+      "c-pretooluse-hook",
+      "c-hook-exit-code-2"
     ],
     "lessonId": "l-claude-hooks"
   },
@@ -1468,48 +1337,6 @@
       "c-hook-exit-code-2"
     ],
     "lessonId": "l-claude-hooks"
-  },
-  {
-    "id": "q-keys-app-attest",
-    "domainId": "security-safety",
-    "subSkillId": "secrets-keys",
-    "topic": "App Attest",
-    "stem": "Your iOS app calls the Claude API directly from users' phones, with no back end or proxy. A teammate plans to embed a service account API key in the app bundle. What does Anthropic's authentication guide offer instead?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "App Attest, which gives each genuine install a short-lived token scoped to your workspace",
-        "reason": "Correct: App Attest issues attested installations a token scoped to your workspace that expires after one hour and authorizes only Messages API calls."
-      },
-      {
-        "id": "b",
-        "text": "A personal API key with a 3-hour expiration, recreated and shipped with every app release",
-        "reason": "That still ships a static API key to devices; App Attest lets genuine installations call the API without shipping a key."
-      },
-      {
-        "id": "c",
-        "text": "Workload Identity Federation, exchanging each phone's identity token at `/v1/oauth/token`",
-        "reason": "Federation is for workloads on cloud platforms, CI/CD and Kubernetes; App Attest is the method for iOS and macOS apps."
-      },
-      {
-        "id": "d",
-        "text": "A legacy workspace key, because it keeps working regardless of staff changes or departures",
-        "reason": "Workspace keys are legacy and are still static secrets that would ship inside the app."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Never ship an API key in a client app: for iOS and macOS apps, use **App Attest** short-lived tokens.",
-    "explanation": "The constraint is an iOS app calling the API **directly from phones** with no back end. Shipping any static key in the bundle exposes it, so the guide offers App Attest: genuine installations get a short-lived token scoped to your workspace that authorizes only Messages API calls, which is Option A. C is the tempting trap because federation also issues short-lived tokens, but it is for cloud platforms, CI/CD and Kubernetes, not iOS and macOS apps. B and D still ship static keys to devices.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
-      "title": "Authentication",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-key-types"
-    ],
-    "lessonId": "l-secrets-keys"
   },
   {
     "id": "q-keys-wif-ci",
@@ -1592,48 +1419,6 @@
     },
     "relatedCardIds": [
       "c-prompt-injection"
-    ],
-    "lessonId": "l-secrets-keys"
-  },
-  {
-    "id": "q-cc-claudeignore",
-    "domainId": "security-safety",
-    "subSkillId": "secrets-keys",
-    "topic": "Sensitive files",
-    "stem": "Your repo has a `.claudeignore` file listing `.env` and `secrets/`, and the team assumes Claude Code can't read those files. What does Claude Code's permissions guide say?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`.claudeignore` works like `.gitignore` and blocks every read, including reads by scripts",
-        "reason": "`.claudeignore` has no effect in Claude Code."
-      },
-      {
-        "id": "b",
-        "text": "It works, but only for files that are also listed in the project's `.gitignore` file",
-        "reason": "`.claudeignore` has no effect at all; `Read` deny rules are what keep Claude's file tools away from a path."
-      },
-      {
-        "id": "c",
-        "text": "Add `Write(./.env)` deny rules instead, since `Write` path rules also cover reading files",
-        "reason": "Claude Code never consults `Write` path rules (use `Edit`), and reads are governed by `Read` rules."
-      },
-      {
-        "id": "d",
-        "text": "It has no effect; move its entries into `Read` deny rules such as `Read(./.env)`",
-        "reason": "Correct: the guide says a `.claudeignore` file has no effect, so move its entries into `Read` deny rules like `Read(./.env)` or `Read(./secrets/**)`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Claude Code ignores `.claudeignore`; keep secrets from its file tools with **`Read` deny rules**.",
-    "explanation": "Claude Code's permissions guide says a `.claudeignore` file **has no effect**, so the team's assumption is wrong. To keep Claude's file tools away from secrets, move those entries into `Read` deny rules such as `Read(./.env)` or `Read(./secrets/**)`, which is Option D. A is the tempting trap because the file looks like `.gitignore` and seems like it should work the same way. B invents a partial effect, and C relies on `Write` path rules, which Claude Code never consults, for what is a read problem.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/permissions",
-      "title": "Configure permissions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-read-deny-rule"
     ],
     "lessonId": "l-secrets-keys"
   },
@@ -1863,5 +1648,257 @@
       "c-prompt-injection"
     ],
     "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-guard-privacy-least-data",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Privacy by design",
+    "stem": "A support assistant only ever answers questions about the signed-in customer's own orders, yet its retrieval tool can query every customer's records. Which change does OWASP's guidance on sensitive information disclosure recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep full access, and tell the model to discuss only the current customer",
+        "reason": "OWASP's control here is access limitation: limit access to sensitive data by least privilege, not by instruction."
+      },
+      {
+        "id": "b",
+        "text": "Keep full access, but mask customer names in the assistant's replies",
+        "reason": "Masking replies still leaves the tool able to read everyone's records; OWASP limits access to what each user or process needs."
+      },
+      {
+        "id": "c",
+        "text": "Limit the tool's data access to what each user needs, by least privilege",
+        "reason": "Correct: OWASP says to limit access to sensitive data by the principle of least privilege, granting only what each user or process needs."
+      },
+      {
+        "id": "d",
+        "text": "Train users not to ask the assistant about other customers' orders",
+        "reason": "OWASP's user education is about not entering sensitive information; it doesn't stop the tool from reading other customers' records."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Privacy by design: give an LLM's tools access only to the data **each user needs** (least privilege), not to everything.",
+    "explanation": "The risk comes from the tool's access, not from what users ask, so the fix belongs at the data layer. OWASP's guidance is to limit access to sensitive data by least privilege, so the tool can reach only the signed-in customer's records (C). Option A is the tempting one, but an instruction to the model leaves every record within reach of a bad query or an injection.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02:2025 Sensitive Information Disclosure",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-privacy-retention-optout",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Privacy by design",
+    "stem": "Your product stores users' conversations with its assistant, and the team plans to use them to train future models. Which practice does OWASP's guidance on sensitive information disclosure recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Collect every conversation by default and explain this only if a user asks",
+        "reason": "OWASP calls for clear policies on data retention, usage and deletion, not disclosure on request."
+      },
+      {
+        "id": "b",
+        "text": "Keep conversations indefinitely in case they become useful for training later",
+        "reason": "OWASP advises clear retention and deletion policies rather than keeping data with no limit."
+      },
+      {
+        "id": "c",
+        "text": "Use every conversation for training, since stored data is already in your systems",
+        "reason": "OWASP says to let users opt out of having their data included in training processes."
+      },
+      {
+        "id": "d",
+        "text": "Let users opt out of training use, with clear retention and deletion policies",
+        "reason": "Correct: OWASP recommends allowing users to opt out of training and having clear policies on retention, usage and deletion."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Using user data for training? Offer an **opt-out** and publish clear retention, usage and deletion policies.",
+    "explanation": "Privacy by design means users know how their data is used and can say no. OWASP recommends letting users opt out of training use and setting clear retention, usage and deletion policies (D). Option A is the tempting one because it mentions explaining the practice, but disclosure only on request leaves most users unaware and gives them no opt-out.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02:2025 Sensitive Information Disclosure",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-guard-org-permission-policy",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Identity and access management",
+    "stem": "Your security team wants Claude Code to block any command that uses `sudo` for every developer in the company, not only for developers who remember to configure it. What does the secure-deployment guide point to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask each developer to add a no-sudo note to their own project files",
+        "reason": "That depends on each developer; the guide notes organizations can set permission policies that apply across all users."
+      },
+      {
+        "id": "b",
+        "text": "Rely on command parsing, which works out whether each command is dangerous",
+        "reason": "The guide says command parsing is a permission gate, not a sandbox; apart from built-in checks, it doesn't infer danger from a command's effects."
+      },
+      {
+        "id": "c",
+        "text": "A permission rule blocking `sudo`, set as an organization policy for all users",
+        "reason": "Correct: permission rules can allow, block or prompt for any command, such as blocking `sudo`, and organizations can set policies across all users."
+      },
+      {
+        "id": "d",
+        "text": "Web search summarization, which strips risky commands out of Claude's context",
+        "reason": "Search summarization reduces injection risk from web content; it doesn't block any command from running."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Company-wide limits belong in **organization permission policies**, which apply to every user, not in each developer's setup.",
+    "explanation": "The requirement is a rule that applies to everyone without relying on individuals. Claude Code's permissions system can block commands such as those using `sudo`, and organizations can set those policies across all users (C). Option B is the tempting one, but command parsing only matches commands against rules; apart from a few built-in checks, it doesn't decide on its own that a command is dangerous.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-keys-single-workspace-scope",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Access scope",
+    "stem": "A new automated integration should call Claude only in your organization's support-bot workspace. Following Anthropic's authentication guide, which key should you create for it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The building engineer's personal key, valid in every workspace their role allows",
+        "reason": "A personal key acts as that person and breaks when they leave; shared or automated workloads should use a service account."
+      },
+      {
+        "id": "b",
+        "text": "A service account key scoped to just the support-bot workspace",
+        "reason": "Correct: automated workloads get a service account, and the guide says to create the key for the integration's workspace unless more are needed."
+      },
+      {
+        "id": "c",
+        "text": "A legacy workspace key, since it keeps working when staff leave",
+        "reason": "Workspace keys are legacy; the guide prefers identity-backed keys or Workload Identity Federation for new integrations."
+      },
+      {
+        "id": "d",
+        "text": "A service account key for every workspace, in case it needs more access later",
+        "reason": "The guide says to create the key specifically for the integration's workspace unless multiple workspaces are needed."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Give an automated workload its own **service account key**, scoped to only the workspace it needs.",
+    "explanation": "Two things decide this: the workload is automated, and it needs one workspace. That points to a service account key scoped to that single workspace (B). Option D is the tempting one because it also uses a service account, but granting every workspace \"just in case\" gives the key far more access than its job requires.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-identity-backed-attribution",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Access monitoring",
+    "stem": "Five services share one legacy workspace API key, so your security team can't tell which service made which requests, or cut off just one of them. What does Anthropic's authentication guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the shared key, and rotate it more often than before",
+        "reason": "Rotation still leaves five services behind one key; the guide recommends replacing workspace keys with identity-backed ones."
+      },
+      {
+        "id": "b",
+        "text": "Move all five services to one team lead's personal API key",
+        "reason": "A shared personal key acts as one person, so requests still can't be told apart, and it breaks when that person leaves."
+      },
+      {
+        "id": "c",
+        "text": "Set a short expiration on the shared key so a leak expires sooner",
+        "reason": "Expiration limits a leaked key's lifetime, but the guide says it's no substitute for secret hygiene, and all five still share one key."
+      },
+      {
+        "id": "d",
+        "text": "Give each service its own service account key, so requests act as that identity",
+        "reason": "Correct: identity-backed keys make every request act as that identity, and replacing workspace keys gives better security and observability."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "One identity per workload: **service account keys** let you see who made each request and revoke one without breaking the rest.",
+    "explanation": "Monitoring and revoking access both need each workload to have its own identity. Identity-backed service account keys make every request act as that service, which the guide says gives better security and observability than workspace keys (D). Option A is the tempting one, but a rotated shared key still can't tell the five services apart.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-keys-proxy-audit-log",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Access monitoring",
+    "stem": "Your agents call several external APIs. Security wants a record of every outbound request the agents make, kept outside the agents' control, and wants the agents never to see the API credentials. Which pattern does Anthropic's secure-deployment guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Store the credentials in environment variables and have each agent log its own calls",
+        "reason": "The agents would see the credentials, and their own logs sit inside their control; the guide's proxy keeps both outside."
+      },
+      {
+        "id": "b",
+        "text": "A proxy outside the agent's boundary that injects credentials and logs all requests",
+        "reason": "Correct: the guide's proxy pattern injects credentials so the agent never sees them, and the proxy can log all requests for auditing."
+      },
+      {
+        "id": "c",
+        "text": "Give each agent its own long-lived keys and review the provider's bills each month",
+        "reason": "That exposes credentials to the agents directly; the guide recommends injecting them through a proxy instead."
+      },
+      {
+        "id": "d",
+        "text": "Hard-code the credentials in each agent's tool code and log only failed requests",
+        "reason": "The agent's environment would hold the credentials, and failures alone aren't a full record; the proxy logs all requests."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Put a **proxy** outside the agent's boundary: it injects credentials the agent never sees and logs every request for audit.",
+    "explanation": "Both requirements point outside the agent: credentials it can't read, and a log it can't alter. The guide's proxy pattern does both, injecting credentials into outgoing requests and logging all of them for auditing (B). Option A is the tempting one, but environment variables expose the secrets to the agent, and self-kept logs are inside its control.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-secrets-keys"
   }
 ]

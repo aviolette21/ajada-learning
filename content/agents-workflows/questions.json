@@ -2,7 +2,7 @@
   {
     "id": "q-workflow-vs-agent",
     "domainId": "agents-workflows",
-    "subSkillId": "agent-patterns",
+    "subSkillId": "agent-architecture",
     "topic": "Workflows vs agents",
     "stem": "A team's task always follows the same fixed steps: translate a document, check the translation against a glossary, then format it. They want predictable, consistent results. What should they build?",
     "choices": [
@@ -40,7 +40,7 @@
     "relatedCardIds": [
       "c-workflow-vs-agent"
     ],
-    "lessonId": "l-agent-patterns"
+    "lessonId": "l-agent-architecture"
   },
   {
     "id": "q-agent-loop-termination",
@@ -275,52 +275,9 @@
     "lessonId": "l-agent-architecture"
   },
   {
-    "id": "q-premature-victory",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-architecture",
-    "topic": "Long-running agents",
-    "stem": "Midway through a long project, a fresh session of your coding agent sees that many features exist and declares the whole app finished, though much is missing. Which fix matches Anthropic's long-running agent harness?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A Markdown checklist of features that agents may freely reword and reorganize as they work",
-        "reason": "The harness uses JSON because the model is less likely to inappropriately change or overwrite JSON files than Markdown files."
-      },
-      {
-        "id": "b",
-        "text": "A JSON feature list, all initially failing, editable only via each `passes` field",
-        "reason": "Correct: every feature starts as failing and agents may only change its passes status, giving a clear outline of what full functionality looks like."
-      },
-      {
-        "id": "c",
-        "text": "Let agents remove or edit tests that keep a feature from being marked passing",
-        "reason": "The harness forbids this with strongly worded instructions: removing or editing tests could lead to missing or buggy functionality."
-      },
-      {
-        "id": "d",
-        "text": "Mark a feature done as soon as its unit tests and curl checks pass",
-        "reason": "Unit tests or curl commands alone missed features that didn't work end-to-end; the harness marks features passing only after careful testing."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Guard against early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
-    "explanation": "The problem is a fresh session judging \"done\" from what exists. The harness counters this with a **JSON feature list** where every feature starts as failing and agents may only flip its `passes` field, so the full scope stays visible (Option B). Option A is the closest trap, but the harness picks JSON because the model is less likely to inappropriately rewrite it than Markdown. Option C invites missing or buggy functionality, and D fails because unit tests or curl checks alone missed features that didn't work end-to-end.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
-      "title": "Effective harnesses for long-running agents",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-feature-list-file",
-      "c-initializer-agent"
-    ],
-    "lessonId": "l-agent-architecture"
-  },
-  {
     "id": "q-context-strategy-choice",
     "domainId": "agents-workflows",
-    "subSkillId": "agent-architecture",
+    "subSkillId": "agent-patterns",
     "topic": "Long-horizon context",
     "stem": "Your coding agent works for several hours, far beyond one context window, building the product up step by step and checking off each defined stage before starting the next. Which long-horizon technique does Anthropic's context engineering post say excels for this kind of task?",
     "choices": [
@@ -357,7 +314,7 @@
     "relatedCardIds": [
       "c-agentic-memory"
     ],
-    "lessonId": "l-agent-architecture"
+    "lessonId": "l-agent-patterns"
   },
   {
     "id": "q-when-not-to-use-agents",
@@ -442,49 +399,6 @@
     "relatedCardIds": [
       "c-claude-agent-sdk",
       "c-managed-agents"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-max-turns-result",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "Stopping conditions",
-    "stem": "Your SDK agent runs with `max_turns=30`. On a large refactor, the final `ResultMessage` has subtype `error_max_turns`, and your code reads its `result` field and gets nothing. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Read `result` anyway; on a max-turns stop it holds the partial answer so far",
-        "reason": "The `result` field is only present on the `success` variant, so always check the subtype before reading it."
-      },
-      {
-        "id": "b",
-        "text": "Raise `max_tokens` so each turn can do more work before the cap",
-        "reason": "`max_tokens` is the output token limit; this loop ended because it hit the cap on tool-use turns, a different limit."
-      },
-      {
-        "id": "c",
-        "text": "Check the subtype first, then resume the session with a higher turn limit",
-        "reason": "Correct: `result` exists only on `success`, while every result carries `session_id`, so you can resume with a higher limit."
-      },
-      {
-        "id": "d",
-        "text": "Remove the turn limit entirely, since unlimited loops suit production best",
-        "reason": "The caps default to no limit, but open-ended prompts can run long; setting a budget is a good default for production agents."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Check `ResultMessage.subtype` before reading `result`; after `error_max_turns`, **resume** the session rather than start over.",
-    "explanation": "In the SDK, `result` exists **only on the `success` variant**, so you must check `subtype` before reading it; every result still carries a `session_id`. After `error_max_turns`, the right move is to resume that session with a higher turn limit (Option C). Option A is the trap: it assumes `result` holds a partial answer, which it does not. Option B confuses `max_tokens` (output length) with the cap on tool-use turns, and D drops a budget that is a good default for production agents.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
-      "title": "How the agent loop works",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-max-turns-budget",
-      "c-stopping-condition"
     ],
     "lessonId": "l-agent-construction"
   },
@@ -1002,48 +916,6 @@
     "lessonId": "l-agent-construction"
   },
   {
-    "id": "q-sdk-minimal-default-prompt",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK system prompts",
-    "stem": "You move a coding script from `claude -p` to the Python Agent SDK and don't set `system_prompt`. The agent now lacks Claude Code's usual tool guidance and safety behavior. What explains this, and what restores the CLI's behavior?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The SDK's default prompt is minimal; set the `claude_code` preset",
-        "reason": "Correct: unset, the SDK uses a minimal prompt without the preset's security and safety instructions, unlike `claude -p`; the preset restores them."
-      },
-      {
-        "id": "b",
-        "text": "CLAUDE.md stopped loading; add `setting_sources=[\"project\"]` to the options",
-        "reason": "Default `query()` options already load CLAUDE.md, and CLAUDE.md is injected into the conversation; it never replaces the system prompt."
-      },
-      {
-        "id": "c",
-        "text": "The SDK always uses the CLI prompt, so a model change must be the cause",
-        "reason": "It doesn't: unset, the SDK uses a minimal default that differs from the Claude Code system prompt `claude -p` uses."
-      },
-      {
-        "id": "d",
-        "text": "Put the CLI's prompt text into `append`, leaving out the preset type",
-        "reason": "`append` adds your text after the `claude_code` preset; it's set on the preset object, not a way to rebuild the CLI prompt."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "With no `system_prompt`, the SDK uses a **minimal** prompt; set the `claude_code` preset to match `claude -p`.",
-    "explanation": "With `system_prompt` unset, the SDK uses a **minimal** default prompt, not the Claude Code prompt that `claude -p` uses, so the preset's security and safety instructions are missing. Setting the `claude_code` preset restores the CLI's behavior (Option A). Option B is the tempting trap, but default `query()` options already load CLAUDE.md, and it is injected into the conversation rather than replacing the system prompt. Option C wrongly assumes the SDK always uses the CLI prompt, and D misuses `append`, which only adds text after the preset.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
-      "title": "Modifying system prompts",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
     "id": "q-sdk-preset-append",
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
@@ -1269,91 +1141,6 @@
     },
     "relatedCardIds": [
       "c-managed-agents"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-other-language-cli",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "Agent SDK",
-    "stem": "Your build tooling is written in Go. It must drive Claude Code's own agent loop, with its built-in tools, against a repo on a machine you operate. The Agent SDK packages are Python and TypeScript only. What does the documentation suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Run the CLI as a subprocess with `-p` and `--output-format json`",
-        "reason": "Correct: to drive the same agent loop from another language, run the CLI as a subprocess with `-p` and `--output-format json`."
-      },
-      {
-        "id": "b",
-        "text": "Use the Go Client SDK, which comes with Claude Code's tools built in",
-        "reason": "The Client SDK gives direct Claude API access; you write the tool loop yourself or use its beta tool runner, without Claude Code's tools."
-      },
-      {
-        "id": "c",
-        "text": "Start the Claude Code CLI in an interactive terminal from the Go program",
-        "reason": "The interactive CLI is the terminal interface built for daily interactive use, not for scripted control from another program."
-      },
-      {
-        "id": "d",
-        "text": "Use Claude Managed Agents, which runs Claude Code inside your own process",
-        "reason": "Managed Agents is a hosted harness Anthropic runs, configured through the Claude API, not Claude Code in a process you operate."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Outside Python and TypeScript, run the CLI as a subprocess: **`claude -p`** with `--output-format json`.",
-    "explanation": "The constraints are a Go codebase, Claude Code's **own agent loop and built-in tools**, and a machine you operate, while the SDK packages are Python and TypeScript only. The documented route is running the CLI as a subprocess with `-p` and `--output-format json` (Option A). Option B is the tempting trap, but the Client SDK gives raw API access without Claude Code's tools. Option C is the interactive CLI built for daily use, not scripted control, and D is a hosted harness Anthropic runs, not your process.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
-      "title": "Agent SDK overview",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk",
-      "c-cc-print-mode"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-auth-api-key",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "Agent SDK",
-    "stem": "A startup is shipping a customer-facing coding agent built on the Claude Agent SDK. A product manager wants customers to sign in with their claude.ai accounts so the agent runs on their subscriptions. What does Anthropic's guidance say?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "It's fine, since the SDK runs the Claude Code binary, which supports that login",
-        "reason": "Anthropic doesn't allow third-party developers to offer claude.ai login for their products, including Agent SDK agents, unless previously approved."
-      },
-      {
-        "id": "b",
-        "text": "It's fine if the product is branded \"Claude Code Agent\" for customers",
-        "reason": "\"Claude Code\" and \"Claude Code Agent\" are not permitted product names; your product should keep its own branding."
-      },
-      {
-        "id": "c",
-        "text": "It's fine if each customer's claude.ai rate limits are applied to their use",
-        "reason": "Offering claude.ai rate limits in third-party products, including Agent SDK agents, is also not allowed unless previously approved."
-      },
-      {
-        "id": "d",
-        "text": "Use API key authentication; claude.ai login needs Anthropic's prior approval",
-        "reason": "Correct: unless previously approved, third-party products can't offer claude.ai login or rate limits; use the API key methods instead."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Products built on the Agent SDK authenticate with **API keys**; claude.ai login needs prior approval from Anthropic.",
-    "explanation": "The rule: unless **previously approved** by Anthropic, third-party products, including Agent SDK agents, may not offer claude.ai login or claude.ai rate limits, so use API key authentication (Option D). Option A is the tempting rationale, since the SDK runs the Claude Code binary, but that does not grant third parties the login. Option C is the same restriction applied to rate limits, and B adds a branding problem: \"Claude Code\" and \"Claude Code Agent\" are not permitted product names.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
-      "title": "Agent SDK overview",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
     ],
     "lessonId": "l-agent-construction"
   },
@@ -1749,17 +1536,17 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-architecture",
     "topic": "Multi-agent systems",
-    "stem": "A colleague says your multi-agent research system beats a single agent mainly because its subagents are smarter specialists. Per Anthropic's BrowseComp analysis, what mainly explains why multi-agent systems work?",
+    "stem": "A colleague says your multi-agent research system beats a single agent mainly because its subagents are smarter specialists. Per Anthropic's post on its multi-agent research system, what mainly explains why multi-agent systems work?",
     "choices": [
       {
         "id": "a",
         "text": "Specialist subagents run stronger models than the lead agent, so each answer is better",
-        "reason": "Model choice was one factor, but token usage by itself explained 80% of the performance variance."
+        "reason": "Model choice was one factor, but token usage by itself explained most of the performance variance."
       },
       {
         "id": "b",
         "text": "They spend enough tokens on the problem across separate context windows",
-        "reason": "Correct: token usage alone explained 80% of the variance; separate context windows add capacity for parallel reasoning."
+        "reason": "Correct: token usage explained most of the variance; separate context windows add capacity for parallel reasoning."
       },
       {
         "id": "c",
@@ -1773,8 +1560,8 @@
       }
     ],
     "answer": "b",
-    "takeaway": "Multi-agent systems work mainly by **spending more tokens** in parallel, separate context windows; token usage explained 80% of variance.",
-    "explanation": "Anthropic's BrowseComp analysis found **token usage alone explained 80% of the performance variance**: multi-agent systems work mainly because they spend enough tokens on the problem, spread across separate context windows that add capacity for parallel reasoning (Option B). Option A is the colleague's tempting theory, and model choice was a factor, but token usage explained far more. Option C credits fewer tool calls, which the analysis doesn't, and D is wrong because each subagent works in its own context window.",
+    "takeaway": "Multi-agent systems work mainly by **spending enough tokens** on a problem across separate context windows.",
+    "explanation": "Anthropic's analysis found that **token usage explained most of the performance variance**: multi-agent systems work mainly because they spend enough tokens on the problem, spread across separate context windows that add capacity for parallel reasoning (B). A is the colleague's tempting theory, and model choice was a factor, but token usage explained far more. C credits fewer tool calls, which the analysis doesn't, and D is wrong because each subagent works in its own context window.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -1869,48 +1656,6 @@
     "takeaway": "Agents are **stateful and errors compound**: resume from the failure point, and pair model adaptability with retries and checkpoints.",
     "explanation": "Agents are **stateful and errors compound**, so restarting a long run from the beginning is expensive and frustrating. Anthropic resumes from where the error occurred, backed by retry logic and regular checkpoints (Option C). Option A is the tempting brute-force fix, but it is exactly the restart-from-scratch problem in the stem. Option B is backwards, since letting the agent know a tool is failing so it can adapt works surprisingly well, and D cuts short research agents that genuinely need many turns.",
     "difficulty": "medium",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
-      "title": "How we built our multi-agent research system",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-lead-agent-subagents"
-    ],
-    "lessonId": "l-agent-architecture"
-  },
-  {
-    "id": "q-arch-rainbow-deploy",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-architecture",
-    "topic": "Agent reliability",
-    "stem": "You ship updates to your agent's prompts and tools several times a week. Agents in flight are often mid-task, and a hard cutover breaks them. Which deployment approach does Anthropic's multi-agent post describe?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Rainbow deployments that shift traffic gradually while both versions run",
-        "reason": "Correct: agents might be anywhere in their process, so traffic shifts gradually from old to new versions while both keep running."
-      },
-      {
-        "id": "b",
-        "text": "Push the new version to every running agent at once, then restart failed ones",
-        "reason": "The post says you can't update every agent to the new version at the same time without risking breaking them."
-      },
-      {
-        "id": "c",
-        "text": "Pause all agents, deploy, then restart each task from its first step",
-        "reason": "Restarting from the beginning is expensive and frustrating; the post avoids disrupting running agents instead."
-      },
-      {
-        "id": "d",
-        "text": "Deploy only when no agents are running, during a nightly quiet window",
-        "reason": "Agent systems run almost continuously, so the post relies on rainbow deployments rather than waiting for an idle moment."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Running agents can be mid-task at any moment, so use **rainbow deployments** that keep old and new versions running side by side.",
-    "explanation": "The key detail is that in-flight agents are **mid-task**, and they might be anywhere in their process, so you can't switch every agent to the new version at once without risking breaking them. Rainbow deployments shift traffic gradually while old and new versions keep running side by side (Option A). Option D is the tempting workaround, but agent systems run almost continuously, so there is no reliable idle window. Option B is the hard cutover that breaks agents, and C restarts tasks from scratch, which is costly.",
-    "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "title": "How we built our multi-agent research system",
@@ -2419,48 +2164,6 @@
     "lessonId": "l-agent-patterns"
   },
   {
-    "id": "q-langgraph-default-reducer",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-patterns",
-    "topic": "LangGraph",
-    "stem": "Your LangGraph state has `notes: list[str]` with no reducer. Node A returns `{\"notes\": [\"draft\"]}`, then node B returns `{\"notes\": [\"review\"]}`. You expected both entries, but the state ends as `[\"review\"]`. Why, and what is the fix?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "No reducer means overwrite; give the key a reducer such as `operator.add`",
-        "reason": "Correct: with no reducer, updates override the key. A reducer like operator.add, set with Annotated, combines the lists instead."
-      },
-      {
-        "id": "b",
-        "text": "Node B must return the whole state, including A's entry, not just the key it changed",
-        "reason": "Nodes return partial updates; the docs show a node doesn't need to return the whole State schema."
-      },
-      {
-        "id": "c",
-        "text": "The graph wasn't compiled with a checkpointer, so A's update was never saved",
-        "reason": "Compiling with a checkpointer adds persistence; how updates combine is set by each key's reducer, which here overrides."
-      },
-      {
-        "id": "d",
-        "text": "Lists need a Pydantic state model; TypedDict state keeps only the last value",
-        "reason": "TypedDict is the main documented way to define state; the reducer, not the schema type, decides how updates are applied."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Each LangGraph state key has a **reducer**; with none, the latest update **overwrites**. Use one like `operator.add` to accumulate.",
-    "explanation": "Each LangGraph state key has a **reducer** that decides how updates combine, and with no reducer the latest update **overwrites** the key. So B's `[\"review\"]` replaced A's entry; annotating the key with a reducer like `operator.add` accumulates the lists (Option A). Option B is the tempting workaround, but nodes return partial updates and needn't return the whole state. Option C confuses persistence with merging, and D blames the schema type, when the reducer, not TypedDict versus Pydantic, decides how updates apply.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
-      "title": "Graph API overview",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-frameworks-advice"
-    ],
-    "lessonId": "l-agent-patterns"
-  },
-  {
     "id": "q-pydantic-output-type",
     "domainId": "agents-workflows",
     "subSkillId": "agent-patterns",
@@ -2537,48 +2240,6 @@
     "source": {
       "url": "https://pydantic.dev/docs/ai/core-concepts/dependencies/",
       "title": "Dependencies",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-frameworks-advice"
-    ],
-    "lessonId": "l-agent-patterns"
-  },
-  {
-    "id": "q-pydantic-output-validator",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-patterns",
-    "topic": "PydanticAI",
-    "stem": "Your PydanticAI agent outputs a SQL query string. You must check it against the live database (async I/O) and have the model fix invalid queries in the same run. Pydantic field validators are a poor fit for async I/O. What fits?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A stricter `output_type` schema with a regex pattern that rejects invalid SQL",
-        "reason": "Schema validation alone cannot run the async database check; output validators exist for validation that needs I/O."
-      },
-      {
-        "id": "b",
-        "text": "A function tool the model can call to test its queries if it chooses",
-        "reason": "A tool only runs if the model calls it; an output validator checks the output itself and can send it back."
-      },
-      {
-        "id": "c",
-        "text": "Catch the database error in your app and rerun the whole agent",
-        "reason": "No full rerun is needed: raising ModelRetry in an output validator asks the model to try again."
-      },
-      {
-        "id": "d",
-        "text": "An `@agent.output_validator` that raises `ModelRetry` on bad queries",
-        "reason": "Correct: output validators handle validation needing async I/O; each ModelRetry uses one unit of the output retry budget (default 1)."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "For checks that need I/O, use **@agent.output_validator** and raise **ModelRetry**; the output retry budget defaults to 1.",
-    "explanation": "Output validators exist for validation that needs **async I/O**, and raising `ModelRetry` inside one asks the model to fix its output in the same run; each retry uses one unit of the output retry budget, which defaults to 1 (Option D). Option B is the tempting trap, but a tool only runs if the model chooses to call it, whereas a validator always checks the output. Option A's regex schema can't run the live database check, and C reruns the whole agent when a retry is enough.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://pydantic.dev/docs/ai/core-concepts/output/",
-      "title": "Output",
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
@@ -2677,48 +2338,6 @@
       "c-memory-tool",
       "c-initializer-agent",
       "c-compaction"
-    ],
-    "lessonId": "l-agent-patterns"
-  },
-  {
-    "id": "q-harness-decouple-session",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-patterns",
-    "topic": "Agent harnesses",
-    "stem": "Your agent's harness, session history and sandbox all run in one container. When the container dies the session is lost, and engineers must nurse stuck containers back to health. What did Anthropic do when building Managed Agents?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move to a larger container with more memory so failures happen less often",
-        "reason": "That keeps the container a 'pet' you can't afford to lose; Anthropic made each component replaceable instead."
-      },
-      {
-        "id": "b",
-        "text": "Decouple harness, sandbox and session log so each can fail independently",
-        "reason": "Correct: the harness calls the sandbox as a tool and the session log lives outside it, so a new harness can resume from the last event."
-      },
-      {
-        "id": "c",
-        "text": "Run the harness inside the sandbox so tool calls are direct syscalls",
-        "reason": "That was the original coupled design; its benefits came with lost sessions and hard debugging when a container failed."
-      },
-      {
-        "id": "d",
-        "text": "Keep the full session only in Claude's context window instead of storing it",
-        "reason": "The post says the session is not Claude's context window; it is a durable log stored outside it."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Decouple the **brain** (harness) from the **hands** (sandbox) and keep a durable **session log**, so any piece can fail and be replaced.",
-    "explanation": "The problem is a coupled **pet** container: lose it and you lose the session. Anthropic decoupled the harness, sandbox and session log so each can fail independently; the harness calls the sandbox as a tool and the log lives outside it, so a new harness can resume from the last event (Option B). Option A is the tempting quick fix, but a bigger container is still a pet you can't afford to lose. Option C is the original coupled design, and D is wrong because the session is a durable log, not Claude's context window.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/managed-agents",
-      "title": "Scaling Managed Agents: Decoupling the brain from the hands",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
     ],
     "lessonId": "l-agent-patterns"
   },
@@ -3326,41 +2945,41 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
     "topic": "Human-in-the-loop",
-    "stem": "Your read-only SDK agent sets `tools: [\"Read\", \"Glob\", \"Grep\"]`. Its `canUseTool` callback has a branch for `AskUserQuestion`, so users can answer Claude's clarifying questions. Claude never asks any and just guesses. What's the fix?",
+    "stem": "Your agent works through a long list of vendor contracts, drafting amendments with tools. Some contracts are missing data the agent can't resolve, and legal wants to review drafts at set points before anything is sent. Per Anthropic's Building effective agents post, how should the agent handle these moments?",
     "choices": [
       {
         "id": "a",
-        "text": "Add `AskUserQuestion` to the `tools` array alongside the read-only tools",
-        "reason": "Correct: when you specify a `tools` array, include `AskUserQuestion`; otherwise Claude can't ask clarifying questions."
+        "text": "Pause for human feedback at those checkpoints or when it hits a blocker",
+        "reason": "Correct: agents can pause for human feedback at checkpoints or when encountering blockers."
       },
       {
         "id": "b",
-        "text": "Switch the agent to `bypassPermissions` mode so its questions are let through",
-        "reason": "The tool isn't in the agent's tool set at all, so no permission mode can make Claude call it."
+        "text": "Keep working without people, since an agent that stops to ask isn't autonomous",
+        "reason": "The post describes pausing for human feedback at checkpoints or on blockers as part of how agents operate."
       },
       {
         "id": "c",
-        "text": "Return deny for each `Read` call, so Claude has to ask the user instead",
-        "reason": "A denial sends Claude a rejection message and it may try another approach, but it still has no tool for asking questions."
+        "text": "Remove its stopping conditions so it can get through every contract unaided",
+        "reason": "The post says it's common to include stopping conditions, such as a maximum number of iterations, to maintain control."
       },
       {
         "id": "d",
-        "text": "Write the questions yourself into the `AskUserQuestion` input before it runs",
-        "reason": "You can't add your own questions to this flow; Claude generates the questions and options, and you return the user's answers."
+        "text": "Fill in the missing data with its best guess so the run never has to stop",
+        "reason": "Agents need \"ground truth\" from the environment at each step to assess progress; a guess gives it none."
       }
     ],
     "answer": "a",
-    "takeaway": "Restricting `tools` also removes `AskUserQuestion`; list it again if Claude should ask the user.",
-    "explanation": "`AskUserQuestion` is available by default, but a `tools` array restricts Claude to the tools it lists, so it can't call one that isn't there. Adding it back lets Claude's questions reach the `canUseTool` branch you built. Choice B is tempting because it sounds like loosening permissions, but the problem is availability, not approval.",
-    "difficulty": "medium",
+    "takeaway": "Design agents to **pause for human feedback** at checkpoints and on blockers, and keep stopping conditions for control.",
+    "explanation": "Autonomy doesn't mean no people: the post describes agents that work independently but pause for human feedback at checkpoints or when they hit a blocker. Here the missing data is a blocker and legal review is a checkpoint, so both are natural pauses. B is the tempting choice because it sounds like \"more autonomous\", but it removes the oversight the scenario requires.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
-      "title": "Handle approvals and user input",
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-claude-agent-sdk",
-      "c-allowed-vs-disallowed-tools"
+      "c-stopping-condition",
+      "c-workflow-vs-agent"
     ],
     "lessonId": "l-course-agent-construction"
   },
@@ -3546,33 +3165,33 @@
     "id": "q-course-memory-view-first-expected",
     "domainId": "agents-workflows",
     "subSkillId": "agent-architecture",
-    "topic": "Agent memory",
-    "stem": "Your agent has the memory tool enabled. Logs show that nearly every task starts with Claude calling `view` on `/memories` before it looks at the user's request. A teammate calls this a wasted round trip and wants to strip it out. What's the right reading?",
+    "topic": "Summarized memory",
+    "stem": "Your long-running agent uses compaction to keep its context small. After older turns are summarized, it loses track of key decisions it made hours earlier. What does the memory tool documentation suggest?",
     "choices": [
       {
         "id": "a",
-        "text": "It's expected: with the tool on, Claude checks its memory directory first",
-        "reason": "Correct: when the memory tool is enabled, Claude automatically checks its memory directory before starting a task, to pick up earlier progress."
+        "text": "Turn compaction off and keep every turn of the conversation in context",
+        "reason": "Compaction exists because long conversations approach the context window limit; turning it off doesn't solve that."
       },
       {
         "id": "b",
-        "text": "Your system prompt must ask for it; delete that line and the check stops",
-        "reason": "You don't send that instruction. The API adds the memory protocol to the system prompt itself when the tool is in `tools`."
+        "text": "Pair compaction with the memory tool, so must-keep facts live outside context",
+        "reason": "Correct: for long-running agents, compaction keeps the active context small and memory preserves what must survive summarization."
       },
       {
         "id": "c",
-        "text": "It signals an error on an empty store; pre-create files so Claude skips it",
-        "reason": "The first `view` of `/memories` on an empty store is not an error. Claude checks the directory whether or not it holds files."
+        "text": "Have Anthropic keep the agent's memory files on its servers between sessions",
+        "reason": "The memory tool is client-side: Claude requests file operations and your application stores the data."
       },
       {
         "id": "d",
-        "text": "It's a path-traversal probe; reject every `view` of the `/memories` root",
-        "reason": "Your handler must reject paths **outside** `/memories`. Viewing the root itself is the normal first step."
+        "text": "Swap compaction for context editing, which summarizes the conversation on the server",
+        "reason": "Context editing clears specific tool results on the client; compaction is the server-side summary."
       }
     ],
-    "answer": "a",
-    "takeaway": "With the memory tool on, Claude **views `/memories` first** to restore earlier progress; that's by design.",
-    "explanation": "External memory only helps if the agent reads it, so the protocol starts every task with a `view` of the memory directory. The API adds that instruction itself when the tool is present, and an empty store is fine. Choice D is tempting because path validation is a real duty, but the rule is to reject paths outside `/memories`, not the root.",
+    "answer": "b",
+    "takeaway": "Use **compaction and memory together**: compaction keeps context small, memory keeps what summaries might lose.",
+    "explanation": "Compaction replaces older turns with a summary, so details can drop out. The memory tool stores information in files outside the context window, which a summary can't erase, and the docs suggest using both for long-running agents. D is tempting because context editing also manages context, but it clears specific tool results on the client rather than summarizing.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
@@ -3580,7 +3199,6 @@
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-memory-tool",
       "c-agentic-memory"
     ],
     "lessonId": "l-course-agent-memory"

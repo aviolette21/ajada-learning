@@ -204,8 +204,8 @@
       }
     ],
     "checkQuestionIds": [
-      "q-tech-required-headers",
-      "q-tech-sse-event-order",
+      "q-tech-sdk-vs-raw-http",
+      "q-tech-websocket-two-way",
       "q-tech-sdk-retries"
     ],
     "sources": [
@@ -399,7 +399,7 @@
       }
     ],
     "checkQuestionIds": [
-      "q-course-window-exceeded-handling",
+      "q-course-count-before-sending",
       "q-course-unbounded-history-overflow",
       "q-course-eval-not-exact-match"
     ],
@@ -537,7 +537,7 @@
   {
     "id": "l-course-extended-thinking",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "title": "Extended thinking",
     "summary": "With thinking, Claude works through a problem in `thinking` blocks before it writes the answer, which helps most on math, coding, analysis and long agentic tasks. Thinking is billed as output and counts toward `max_tokens`. The rule to remember: during tool use, pass every thinking block back to the API complete and unmodified.",
     "keyPoints": [

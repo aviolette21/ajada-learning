@@ -196,37 +196,37 @@
     "domainId": "eval-testing",
     "subSkillId": "debugging-errors",
     "topic": "Agent telemetry",
-    "stem": "Your Agent SDK service exports OpenTelemetry traces. While debugging a bad run, you see spans with durations, model names and tool names, but nothing about what the tools returned. What explains this, and what should you change?",
+    "stem": "An Agent SDK agent sometimes takes minutes on simple tasks, and you're exporting its OpenTelemetry traces. How should you use the traces to find where the time goes?",
     "choices": [
       {
         "id": "a",
-        "text": "Tool output needs `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1`; set it to add results to spans",
-        "reason": "That variable is what enables traces, which you already have; it doesn't add tool content to them."
+        "text": "Compare the model-request and tool spans under each interaction to spot the slow step",
+        "reason": "Correct: each turn is an interaction span, with child spans for every model request (with latency) and every tool call, so the slow step stands out."
       },
       {
         "id": "b",
-        "text": "Content isn't recorded by default; set `OTEL_LOG_TOOL_CONTENT=1` if approved to store it",
-        "reason": "Correct: telemetry is structural by default. `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event with tool results, and requires tracing."
+        "text": "Use metrics alone, since traces record only the agent's final answer",
+        "reason": "Traces hold a span for each interaction, model request, tool call and hook; they are the most detailed view of a run."
       },
       {
         "id": "c",
-        "text": "Set the exporter to `console` so the full tool output is printed alongside the spans",
-        "reason": "Don't use `console` through the SDK: it writes telemetry to standard output, which the SDK uses as its message channel."
+        "text": "Compare total token counts, which show which step took longest",
+        "reason": "Token counts measure spend, not where the time went; per-step latency is on the request and tool spans."
       },
       {
         "id": "d",
-        "text": "Lower the export intervals so tool output isn't dropped before each batch is sent",
-        "reason": "Shorter intervals reduce the chance of losing batched telemetry when a process exits; they don't add content to spans."
+        "text": "Set the trace exporter to `console` and read it in the SDK's message stream",
+        "reason": "The console exporter writes to standard output, which the SDK uses as its message channel; don't use it with the SDK."
       }
     ],
-    "answer": "b",
-    "takeaway": "Agent SDK telemetry records **structure**, not content, by default; turn content on only for pipelines approved to store it.",
-    "explanation": "Agent SDK telemetry is **structural** by default: spans carry durations, model names and tool names, but no content. That matches what you see. `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event with tool results, which you should enable only if storing that content is approved (B). Option A is the trap, since that variable is what enables traces, which you already have. Option C breaks the SDK, which uses standard output as its message channel, and D only affects batching.",
+    "answer": "a",
+    "takeaway": "To find a slow step, read the **trace**: model-request and tool spans nest under each interaction.",
+    "explanation": "Trace analysis locates a failure or slowdown step by step: every model request and tool call is its own span under the turn's interaction span, so the slow one is visible (A). Traces record far more than the final answer (B), token totals don't show time (C), and the console exporter would corrupt the SDK's message channel (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",
       "title": "Observability with OpenTelemetry",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-agent-sdk-otel"
@@ -451,6 +451,48 @@
       "c-api-error-types",
       "c-exponential-backoff",
       "c-overloaded-error"
+    ],
+    "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-debug-trace-permission-wait",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Agent telemetry",
+    "stem": "In an agent's trace, one `claude_code.tool` span lasts 90 seconds. Its permission-wait child span accounts for almost all of that time, and its execution child span is short. Where is the delay?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Inside the tool's own code, which needs to be optimized",
+        "reason": "The execution child span, which wraps the tool actually running, is the short one."
+      },
+      {
+        "id": "b",
+        "text": "In the model request that decided to call the tool",
+        "reason": "Model requests have their own `claude_code.llm_request` spans; they aren't inside the tool span."
+      },
+      {
+        "id": "c",
+        "text": "Waiting for the tool call to be approved, not running the tool",
+        "reason": "Correct: a tool span has separate child spans for the permission wait and for the execution, and here the wait dominates."
+      },
+      {
+        "id": "d",
+        "text": "In a hook that runs inside every tool span",
+        "reason": "Hooks get their own `claude_code.hook` spans, separate from a tool's permission-wait and execution children."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Read a tool span's children: **permission wait** versus **execution** tells you whether to fix approvals or code.",
+    "explanation": "Each tool span splits into a permission-wait child and an execution child. Here almost all the time is the wait, so the delay is approval, not the tool (C). The execution span is short (A), model requests and hooks have their own spans outside this breakdown (B, D), so they can't explain this tool span's time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
     ],
     "lessonId": "l-debugging-errors"
   }

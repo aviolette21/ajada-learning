@@ -429,7 +429,7 @@
       {
         "id": "a",
         "text": "Every Skill's full SKILL.md body, so Claude can choose between them well",
-        "reason": "The SKILL.md body (Level 2, under 5k tokens) loads only when a request matches the Skill's description."
+        "reason": "The SKILL.md body loads only when a request matches the Skill's description."
       },
       {
         "id": "b",
@@ -443,13 +443,13 @@
       },
       {
         "id": "d",
-        "text": "Only each Skill's `name` and `description`, about 100 tokens per Skill",
+        "text": "Only each Skill's `name` and `description` metadata",
         "reason": "Correct: with progressive disclosure, only Level 1 metadata occupies context until a Skill is triggered."
       }
     ],
     "answer": "d",
     "takeaway": "Skills load in stages: **metadata always**, the SKILL.md body when triggered, files and script output only as needed.",
-    "explanation": "Skills use **progressive disclosure**, loading in stages. At startup only Level 1 metadata, each Skill's `name` and `description` at about 100 tokens per Skill, sits in context; the SKILL.md body loads when a request matches, and files and script output load only as needed (Option D). A is the tempting trap because choosing between Skills seems to require their full bodies, but the description is what Claude matches. B overstates what loads, and C is wrong because metadata is always loaded so Claude can use Skills automatically.",
+    "explanation": "Skills use **progressive disclosure**, loading in stages. At startup only each Skill's `name` and `description` sits in context; the SKILL.md body loads when a request matches, and files and script output load only as needed (D). A is the tempting trap because choosing between Skills seems to require their full bodies, but the description is what Claude matches. B overstates what loads, and C is wrong because metadata is always loaded so Claude can use Skills automatically.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -457,7 +457,7 @@
       "steps": [
         {
           "label": "Metadata",
-          "sublabel": "always · ~100 tokens"
+          "sublabel": "always loaded"
         },
         {
           "label": "SKILL.md body",
@@ -561,132 +561,6 @@
     },
     "relatedCardIds": [
       "c-skill-vs-subagent"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-skill-side-effects",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Skill invocation",
-    "stem": "Your Claude Code `/deploy` skill pushes to production. Sometimes Claude loads it on its own when you merely mention deployments. You want it to run only when you type `/deploy`. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move the deploy steps out of the skill and into CLAUDE.md instead",
-        "reason": "CLAUDE.md loads every session and can't trigger a workflow with `/<name>`."
-      },
-      {
-        "id": "b",
-        "text": "Make the skill's description vaguer so it matches less often",
-        "reason": "Vague or overlapping descriptions make Claude load the wrong skill or miss one; they don't give you control."
-      },
-      {
-        "id": "c",
-        "text": "Set `disable-model-invocation: true` in the skill's frontmatter",
-        "reason": "Correct: the skill is invisible to Claude until you invoke it. The docs recommend this for skills with side effects; it also saves context."
-      },
-      {
-        "id": "d",
-        "text": "Package it in a plugin so the skill gets its own namespace",
-        "reason": "Plugin namespacing (like `/my-plugin:review`) lets multiple plugins coexist; it doesn't stop Claude from loading the skill."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Skills with side effects should be **user-only**: set `disable-model-invocation: true`.",
-    "explanation": "The `/deploy` skill has **side effects**, so it should run only when you invoke it. Setting `disable-model-invocation: true` in the frontmatter makes the skill invisible to Claude until you type `/deploy`, and the docs recommend this for skills with side effects; it also saves context (Option C). B is the tempting trap because a vaguer description seems to match less often, but vague descriptions make Claude load the wrong skill or miss one rather than giving you control. A loses the `/deploy` trigger, and D only namespaces the skill.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/features-overview",
-      "title": "Extend Claude Code",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-disable-model-invocation"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-mcp-tool-search-context",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "MCP tool search",
-    "stem": "You plan to connect eight MCP servers, each with dozens of tools, to Claude Code on the Anthropic API with default settings. A teammate warns that every tool schema will be sent with every request. What actually happens?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The teammate is right, so connect only a few servers",
-        "reason": "That's the behavior with `ENABLE_TOOL_SEARCH=false`. By default, MCP tool definitions are deferred."
-      },
-      {
-        "id": "b",
-        "text": "Claude Code caps each server at a fixed number of tools",
-        "reason": "Claude Code doesn't impose a fixed per-server tool cap; the practical limit is your context window budget."
-      },
-      {
-        "id": "c",
-        "text": "You must set `alwaysLoad: true` on each server before Claude can use any of its tools",
-        "reason": "`alwaysLoad: true` does the opposite: it loads every tool from that server into context at session start."
-      },
-      {
-        "id": "d",
-        "text": "Tool search defers schemas: only tool names and server instructions load at start",
-        "reason": "Correct: tool search is on by default, so adding more MCP servers has minimal impact on your context window."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "With tool search (the default), idle MCP tools cost little context; keep `alwaysLoad` for the few tools needed every turn.",
-    "explanation": "The teammate's worry describes Claude Code with tool search turned off. By default, **tool search** is on and defers MCP tool schemas, so only tool names and server instructions load at start, and adding more servers has minimal context impact (Option D). A is the tempting trap because it matches the behavior with `ENABLE_TOOL_SEARCH=false`, not the defaults. B invents a fixed per-server cap, and C reverses `alwaysLoad: true`, which loads every tool from a server at session start.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/mcp",
-      "title": "Connect Claude Code to tools via MCP",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-tool-search"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-plugin-trust-sandbox",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Plugin security",
-    "stem": "A coworker's marketplace offers a plugin with hooks and a stdio MCP server. A teammate says: \"Our permission rules and sandbox will contain anything it does, so we don't need to review it.\" What's accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "True: the plugin's hooks and its server processes all run inside Claude Code's sandbox",
-        "reason": "Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions."
-      },
-      {
-        "id": "b",
-        "text": "False: those controls cover Claude's tool calls, not the plugin's hooks or server processes",
-        "reason": "Correct: permission rules apply to tool calls; hooks and MCP servers run outside the sandbox. Read `hooks/hooks.json`, `.mcp.json` and `bin/`."
-      },
-      {
-        "id": "c",
-        "text": "True, because a marketplace run by a coworker counts as a trusted tier",
-        "reason": "A marketplace a coworker or your organization publishes is third-party, and its name says who publishes the catalog, not what a plugin does."
-      },
-      {
-        "id": "d",
-        "text": "False, but only its skills need review, since skills hold the plugin's code",
-        "reason": "Skills enter context as instructions; the code a plugin brings lives in its hooks, MCP servers and `bin/`, so review those too."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A plugin runs code **as you**: permission rules cover Claude's tool calls, not its hooks or MCP server processes.",
-    "explanation": "Permission rules and the sandbox cover **Claude's tool calls**, not a plugin's own code. Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions, so you still need to review `hooks/hooks.json`, `.mcp.json` and `bin/` (Option B). C is the tempting trap because a coworker's marketplace feels trusted, but it is still third-party and its name says who publishes the catalog, not what a plugin does. A is factually wrong, and D reviews only skills.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/plugins/security",
-      "title": "Plugin security and trust",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-plugin-trust"
     ],
     "lessonId": "l-agentic-customisation"
   },
@@ -825,57 +699,6 @@
     "relatedCardIds": [
       "c-client-vs-server-tools",
       "c-is-error"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
-    "id": "q-web-fetch-exfiltration-controls",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Web fetch",
-    "stem": "Your agent uses web fetch while reading untrusted customer emails next to internal account data. Security asks you to reduce the data exfiltration risk without disabling the tool. Which settings does the web fetch documentation suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set `max_uses` to limit how many fetches each request can make",
-        "reason": "Correct: using the `max_uses` parameter to limit the number of requests is one of the documented ways to minimize exfiltration risk."
-      },
-      {
-        "id": "b",
-        "text": "Turn on `citations` so every fetched passage can be traced back to its source",
-        "reason": "Citations let Claude cite passages from fetched documents; they don't limit where requests go or how many are made."
-      },
-      {
-        "id": "c",
-        "text": "Lower `max_content_tokens` so less of each fetched page enters the context",
-        "reason": "`max_content_tokens` limits how much fetched content is included, to control token usage; it doesn't restrict outbound requests."
-      },
-      {
-        "id": "d",
-        "text": "Set `allowed_domains` to restrict fetches to known safe domains",
-        "reason": "Correct: restricting the tool to known safe domains with `allowed_domains` is one of the documented mitigations."
-      },
-      {
-        "id": "e",
-        "text": "Set `use_cache: false` so each fetch always goes straight to the live site",
-        "reason": "`use_cache: false` bypasses cached content to get fresh pages and adds latency; it doesn't reduce what the tool can reach."
-      }
-    ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "Web fetch near sensitive data: cap it with `max_uses`, fence it with `allowed_domains`, or disable it.",
-    "explanation": "Reducing exfiltration means limiting **where** requests go and **how many** are made. The web fetch docs list `max_uses` to cap the number of fetches per request (A) and `allowed_domains` to restrict fetches to known safe domains (D). C is the most tempting wrong pick because less content in context sounds safer, but `max_content_tokens` controls token usage and doesn't restrict outbound requests. B adds citations, and E only bypasses the cache.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
-      "title": "Web fetch tool",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-client-vs-server-tools",
-      "c-prompt-injection"
     ],
     "lessonId": "l-tool-implementation"
   },
@@ -1518,91 +1341,6 @@
     "relatedCardIds": [
       "c-agent-skill",
       "c-plugin-trust"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-ext-dynamic-workflow-audit",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Choosing extensions",
-    "stem": "You want Claude Code to audit an entire large codebase for security issues, with a second set of agents verifying each finding before you see it. Which feature fits best?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A single subagent that reads the whole codebase and returns one summary",
-        "reason": "Subagents suit quick, focused workers; a job that outgrows a handful of subagents, or needs findings cross-checked, suits a dynamic workflow."
-      },
-      {
-        "id": "b",
-        "text": "A skill holding the audit checklist, run inside your main conversation",
-        "reason": "A skill's content adds to your main context window; a codebase-wide audit with verified findings is the docs' example of a workflow."
-      },
-      {
-        "id": "c",
-        "text": "A `PostToolUse` hook that checks each file for issues as Claude edits it",
-        "reason": "Hooks fire at lifecycle events for automation that must run every time; they don't plan an audit or cross-check its findings."
-      },
-      {
-        "id": "d",
-        "text": "A dynamic workflow: a script Claude writes that runs many subagents",
-        "reason": "Correct: a dynamic workflow runs many subagents in the background and returns one result; the docs' example is an audit with agents verifying each finding."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "A few focused tasks → **subagents**. Big jobs or cross-checked findings → a **dynamic workflow**.",
-    "explanation": "The scale and the **cross-checking** are the clues. A dynamic workflow is a script Claude writes that runs many subagents in the background and returns one result, and the docs' own example is an audit with agents verifying each finding (Option D). A is the tempting trap because a subagent isolates heavy reading, but subagents suit quick, focused workers, and a single one can't cross-check its findings. B's skill content adds to your main context, and C's hook fires on edits rather than planning an audit.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/features-overview",
-      "title": "Extend Claude Code",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-skill-vs-subagent",
-      "c-subagent-context"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-ext-code-intelligence",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Choosing extensions",
-    "stem": "In a large TypeScript monorepo, Claude Code reads many files just to find where a symbol is defined or used, which is slow and burns context. What does the Claude Code guide suggest adding?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A code intelligence plugin for TypeScript, which connects a language server",
-        "reason": "Correct: code intelligence gives symbol-level navigation and type errors; symbol lookups often replace broad file reads, so context use can go down."
-      },
-      {
-        "id": "b",
-        "text": "A subagent that greps the whole repository and reports where each symbol lives",
-        "reason": "A subagent isolates the reads from your context, but still reads the files; the guide's trigger here is a code intelligence plugin."
-      },
-      {
-        "id": "c",
-        "text": "A CLAUDE.md section that lists where each of the main symbols is defined",
-        "reason": "CLAUDE.md loads in full every session; for symbol hunting the guide points to a code intelligence plugin instead."
-      },
-      {
-        "id": "d",
-        "text": "A hook that indexes every file after each edit and prints the whole index",
-        "reason": "Hook output lands in context, so printing a full index adds context rather than saving it."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Claude hunting for definitions? Install a **code intelligence plugin**: language-server lookups replace broad file reads.",
-    "explanation": "The problem is broad file reads used just to **find symbols**. A code intelligence plugin connects a language server, giving symbol-level navigation and type errors, and symbol lookups often replace broad file reads, so context use can go down (Option A). B is the tempting trap because a subagent keeps the reads out of your context, but it still reads the files. C's CLAUDE.md section loads in full every session, and D's printed index lands in context, adding to it rather than saving it.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/features-overview",
-      "title": "Extend Claude Code",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-plugin-manifest"
     ],
     "lessonId": "l-agentic-customisation"
   },
@@ -3258,41 +2996,41 @@
     "id": "q-mcp-overlap-not-owner",
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
-    "topic": "MCP tool descriptions",
-    "stem": "Through the MCP connector, your sprint assistant uses a Jira server and an Asana server, each with a vaguely described `search` tool. You own neither server. The assistant uses Asana's other tools but never needs its `search`, yet Claude keeps choosing it. Which fix does the connector's configuration support?",
+    "topic": "MCP server primitives",
+    "stem": "Your team's MCP server already exposes tools for your ticketing system. Support leads now want a reusable \"Weekly escalation report\" workflow that users pick from their client's slash-command menu and fill in with a team name and date range. What should the server add?",
     "choices": [
       {
         "id": "a",
-        "text": "Rewrite the description of `search` on the Asana server",
-        "reason": "You own neither server, so you can't change their tool descriptions."
+        "text": "A prompt: a reusable template with arguments that the user invokes",
+        "reason": "Correct: prompts are pre-built, parameterized templates that are user-controlled, often exposed as slash commands."
       },
       {
         "id": "b",
-        "text": "Disable Asana's `search` with `\"enabled\": false` in that toolset's `configs`",
-        "reason": "Correct: a denylist entry turns off the unwanted tool, so Claude can't pick it, while Asana's other tools stay enabled."
+        "text": "A tool named `weekly_report`, since tools are what users invoke from menus",
+        "reason": "Tools are model-controlled: the model decides when to call them based on user requests."
       },
       {
         "id": "c",
-        "text": "Remove the Jira server so only one `search` tool is left",
-        "reason": "The assistant needs Jira's `search`; dropping the server removes the tool you actually want."
+        "text": "A resource holding the report text, which the application loads as context",
+        "reason": "Resources are passive, read-only data sources that the application decides how to use; they aren't invoked workflows."
       },
       {
         "id": "d",
-        "text": "Set `tool_choice` to `any` so Claude has to call some tool",
-        "reason": "Forcing a tool call doesn't change which `search` tool Claude picks."
+        "text": "A longer tool description that tells the model to produce the report weekly",
+        "reason": "Tool descriptions inform the model's choice of tools; an explicit, user-invoked template is what prompts provide."
       }
     ],
-    "answer": "b",
-    "takeaway": "When a server you don't own exposes a tool you don't need, disable it in the toolset's `configs` so Claude can't pick it.",
-    "explanation": "Claude chooses among MCP tools by their names and descriptions, and you can't edit another vendor's server. What you do control is your own toolset configuration: per-tool `configs` can disable Asana's `search` while its other tools stay enabled (B). A needs access you don't have, C drops a server you need, and D forces a call without changing which tool gets picked.",
-    "difficulty": "medium",
+    "answer": "a",
+    "takeaway": "A workflow the **user** picks and fills in is an MCP **prompt**; tools are model-controlled, resources application-controlled.",
+    "explanation": "MCP gives each building block a different controller: the model calls tools, the application chooses resources, and the user explicitly invokes prompts. A menu item users choose and fill with arguments is exactly a parameterized prompt. B is tempting because the server already has tools, but the model, not the user, decides when a tool runs.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
-      "title": "MCP connector",
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-mcp-connector"
+      "c-mcp-server"
     ],
     "lessonId": "l-course-mcp-vs-manual"
   },
@@ -3389,5 +3127,90 @@
       "c-tool-description",
       "c-minimal-tool-set"
     ]
+  },
+  {
+    "id": "q-mcp-approval-safe-vs-risky-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool approval",
+    "stem": "Your app connects to an MCP server with read-only search tools and a `delete_record` tool. Users complain that they must approve every search, but deletions must still need a person's sign-off. Which approach matches MCP's guidance on user control over tools?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Drop approvals entirely, because tools are model-controlled and the model knows best",
+        "reason": "Tools are model-controlled, but MCP emphasizes human oversight, such as approval dialogs for tool executions."
+      },
+      {
+        "id": "b",
+        "text": "Convert `delete_record` into a resource, so the application decides when it runs",
+        "reason": "Resources are passive, read-only data sources; deleting a record is an action, which is what tools are for."
+      },
+      {
+        "id": "c",
+        "text": "Pre-approve the safe read-only searches and keep an approval step for each deletion",
+        "reason": "Correct: applications can pre-approve certain safe operations in permission settings and use approval dialogs for individual executions."
+      },
+      {
+        "id": "d",
+        "text": "Convert the search tools into prompts, so users start each search themselves",
+        "reason": "Prompts are user-invoked templates; making searches prompts stops the model from searching when it needs to."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Match oversight to risk: **pre-approve safe operations**, keep **per-call approval** for actions with side effects.",
+    "explanation": "MCP tools are model-controlled, so the application supplies human oversight: approval dialogs for individual executions, and permission settings that pre-approve safe operations. Searches are read-only, while deletions change data, so only deletions keep the approval step. A is tempting because it removes the friction, but it also removes the sign-off that deletions require.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-web-search-server-vs-custom",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Built-in vs custom tools",
+    "stem": "Your API app must answer questions using current information from the public web. The team doesn't want to build, host or run any search infrastructure. Which approach fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A user-defined `search_web` tool whose handler calls a search provider",
+        "reason": "With a user-defined tool, your application executes every call and runs the loop: the infrastructure the team wants to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Anthropic's `bash` tool, so Claude can fetch search pages with shell commands",
+        "reason": "`bash` is client-executed: Anthropic publishes the schema, but your application runs each command."
+      },
+      {
+        "id": "c",
+        "text": "No tool at all, since Claude can answer from what it learned in training",
+        "reason": "Fresh or external data, such as current information, is outside the training data and needs a tool to fetch it."
+      },
+      {
+        "id": "d",
+        "text": "Anthropic's `web_search` server tool, which Anthropic runs for you",
+        "reason": "Correct: server-executed tools such as web search run on Anthropic's side; you enable the tool and read the results."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "When a **server tool** already does the job, enable it: Anthropic runs it, and you don't host anything.",
+    "explanation": "Tools differ mainly in where the code runs. User-defined and Anthropic-schema tools such as `bash` run in your application, while server tools such as `web_search` run on Anthropic's infrastructure. The constraint \"no search infrastructure\" points to the server tool. A is tempting because a custom tool gives full control, but your code would have to execute every search.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-agentic-customisation"
   }
 ]

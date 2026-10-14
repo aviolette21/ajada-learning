@@ -112,28 +112,28 @@
     "choices": [
       {
         "id": "a",
-        "text": "Thinking block clearing (`clear_thinking_20251015`)",
+        "text": "Thinking block clearing",
         "reason": "This strategy manages `thinking` blocks when extended thinking is on; it doesn't touch tool results."
       },
       {
         "id": "b",
-        "text": "Client-side SDK compaction with `compaction_control`",
-        "reason": "SDK compaction summarizes and replaces the **whole** history rather than clearing specific results, and `compaction_control` is deprecated in the TypeScript and Ruby SDKs."
+        "text": "Client-side SDK compaction of the history",
+        "reason": "SDK compaction summarizes and replaces the **whole** history rather than clearing specific tool results."
       },
       {
         "id": "c",
-        "text": "Add the file-reading tool to `exclude_tools`",
-        "reason": "The opposite: `exclude_tools` lists tools whose uses and results should **never** be cleared."
+        "text": "Exclude the file-reading tool from clearing",
+        "reason": "The opposite: excluded tools' uses and results are **never** cleared."
       },
       {
         "id": "d",
-        "text": "Tool result clearing (`clear_tool_uses_20250919`)",
+        "text": "Tool result clearing",
         "reason": "Correct: past a threshold, the API clears the oldest tool results first, replaces them with placeholder text and keeps the most recent tool uses."
       }
     ],
     "answer": "d",
     "takeaway": "Old tool results you no longer need? **Tool result clearing** drops the oldest first and keeps the latest few.",
-    "explanation": "The stem asks for old **tool results** to be dropped by rule, oldest first, while recent ones stay. That is tool result clearing (D): past a threshold, the API clears the oldest results, swaps in placeholder text and keeps the most recent uses. Option A is the tempting near-miss, but thinking block clearing manages `thinking` blocks, not tool results. Option B summarizes the **whole** history instead of clearing specific results, and C does the opposite: `exclude_tools` protects tools from clearing.",
+    "explanation": "The stem asks for old **tool results** to be dropped by rule, oldest first, while recent ones stay. That is tool result clearing (D): past a threshold, the API clears the oldest results, swaps in placeholder text and keeps the most recent uses. Option A is the tempting near-miss, but thinking block clearing manages `thinking` blocks, not tool results. Option B summarizes the **whole** history instead of clearing specific results, and C does the opposite: excluding a tool protects its results from clearing.",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
@@ -731,109 +731,6 @@
     "lessonId": "l-output-handling"
   },
   {
-    "id": "q-context-editing-client-history",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context editing",
-    "stem": "You enable tool result clearing. A teammate plans to write code that deletes the same old tool results from your app's stored history after each response, to stay in sync with what Claude saw. What do the docs say?",
-    "takeaway": "Context editing is **server-side**: keep your full history locally and let the API clear before Claude sees it.",
-    "explanation": "Context editing is applied **server-side**, before the prompt reaches Claude, so your client keeps sending its full, unmodified history and needs no syncing (C). Option D is the tempting middle path, but the API already swaps in placeholder text for cleared results; `applied_edits` only reports which edits ran and how many tokens they cleared. Option A invents a rejection that doesn't exist, and B adds bookkeeping the docs say you don't need.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
-      "title": "Context editing",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-result-clearing"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Do it: the API rejects any request whose history holds results it cleared before",
-        "reason": "There is no such rejection: the docs say your client maintains the full, unmodified history and continues managing it as normal."
-      },
-      {
-        "id": "b",
-        "text": "Do it, then resend the cleared results later on if Claude turns out to need them again",
-        "reason": "This adds bookkeeping the docs say you don't need: edits happen server-side, and you keep managing the full history locally."
-      },
-      {
-        "id": "c",
-        "text": "Skip it: edits are applied server-side, so keep sending your full, unmodified history",
-        "reason": "Correct: context editing is applied before the prompt reaches Claude, and you don't need to sync your client state with the edited version."
-      },
-      {
-        "id": "d",
-        "text": "Skip it, but read `applied_edits` and swap in placeholder text for the cleared results yourself",
-        "reason": "The API already replaces each cleared result with placeholder text; `applied_edits` only reports which edits ran and how many tokens they cleared."
-      }
-    ],
-    "answer": "c"
-  },
-  {
-    "id": "q-context-compaction-block-resend",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Compaction",
-    "stem": "You enable threshold compaction (`compact_20260112`). A response now starts with a `compaction` block. Your code keeps one growing `messages` list. What should it send on the next request?",
-    "takeaway": "With threshold compaction, **append the response with its `compaction` block**; the API ignores everything before it.",
-    "explanation": "With threshold compaction, the `compaction` block itself must go back on later requests, and the API drops every content block before it. So a single growing `messages` list can simply append the whole response, compaction block included (D). Option B is tempting because it seems to apply the summary yourself, but the docs want the block passed back, not rewritten. Option A throws the block away, and C misreads token counting, which only counts and never compacts or rewrites.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
-      "title": "Compaction at a token threshold",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-compaction"
-    ],
-    "lessonId": "l-context-engineering",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Threshold compaction inside an ordinary request",
-      "steps": [
-        {
-          "label": "Input reaches trigger"
-        },
-        {
-          "label": "Summary written",
-          "sublabel": "compaction block"
-        },
-        {
-          "label": "Append response"
-        },
-        {
-          "label": "Earlier blocks ignored"
-        }
-      ]
-    },
-    "choices": [
-      {
-        "id": "a",
-        "text": "Remove the `compaction` block and resend the original messages so Claude sees every detail",
-        "reason": "The docs say you must pass the `compaction` block back on later requests to continue the conversation with the shortened prompt."
-      },
-      {
-        "id": "b",
-        "text": "Copy the summary into a new user message of your own and delete every message before it",
-        "reason": "The docs say to pass the `compaction` block itself back; the simplest approach is appending the entire response content to your messages."
-      },
-      {
-        "id": "c",
-        "text": "Call the token counting endpoint first, which applies the summary and returns a trimmed list",
-        "reason": "Token counting applies existing `compaction` blocks only to count tokens; it doesn't trigger new compactions or rewrite your messages."
-      },
-      {
-        "id": "d",
-        "text": "Append the whole response, `compaction` block included; the API ignores what's before it",
-        "reason": "Correct: the API drops all content blocks prior to the `compaction` block, so you can keep the original messages and let it handle the removal."
-      }
-    ],
-    "answer": "d"
-  },
-  {
     "id": "q-context-hybrid-retrieval",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
@@ -850,7 +747,7 @@
     "relatedCardIds": [
       "c-just-in-time-context"
     ],
-    "lessonId": "l-context-engineering",
+    "lessonId": "l-course-rag-breakpoints",
     "choices": [
       {
         "id": "a",
@@ -1205,48 +1102,6 @@
         "id": "d",
         "text": "Turn every edge case into its own example so the model has already seen each one",
         "reason": "That rebuilds the laundry list as examples; the post asks for a curated set of diverse, canonical examples instead."
-      }
-    ],
-    "answer": "b"
-  },
-  {
-    "id": "q-prompt-preamble-without-prefill",
-    "domainId": "prompt-context",
-    "subSkillId": "prompt-engineering",
-    "topic": "Prefill migration",
-    "stem": "On an older model, your summarizer prefilled `Here is the summary:` so replies skipped any preamble. On Claude Opus 5.5 that request returns a 400 error. Which replacement does Anthropic's prompting guide suggest?",
-    "takeaway": "No prefill on Claude 4.6+: ask for **no preamble in the system prompt** and strip stragglers in post-processing.",
-    "explanation": "The old trick, a prefilled assistant turn, now returns a 400 on these models, so the goal of skipping preamble needs another route. The guide suggests a direct system-prompt instruction to answer without preamble, plus stripping any that slips through in post-processing (B). Option A is tempting because the guide does mention moving text into the user message, but that is its fix for continuing interrupted responses. Options C and D keep sending a request shape that fails whatever its length.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
-      "title": "Prompting best practices",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-prefill"
-    ],
-    "lessonId": "l-prompt-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move the prefill text to the end of your user message so Claude continues straight from it",
-        "reason": "Moving text into the user message is the guide's fix for continuing interrupted responses; for preambles it suggests direct instructions."
-      },
-      {
-        "id": "b",
-        "text": "Tell Claude in the system prompt to answer without preamble; strip any that slips through",
-        "reason": "Correct: the guide suggests a direct system-prompt instruction (or XML tags, structured outputs or tools) and stripping the occasional preamble in post-processing."
-      },
-      {
-        "id": "c",
-        "text": "Keep the prefill but shorten it to a single word, which these models still accept as valid",
-        "reason": "Requests with a prefilled assistant message on the last turn return a 400 on these models, whatever its length."
-      },
-      {
-        "id": "d",
-        "text": "Retry the 400 responses with exponential backoff until one of the requests is accepted",
-        "reason": "The 400 comes from the request shape: prefill on the last assistant turn isn't supported, so the same request keeps failing."
       }
     ],
     "answer": "b"
@@ -1629,49 +1484,6 @@
       }
     ],
     "answer": "c"
-  },
-  {
-    "id": "q-context-subagent-descriptions",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Subagent context",
-    "stem": "Your Claude Code project defines 30 custom subagents, each with a long `description` that holds its full procedure. Claude Code warns at startup that the agent descriptions are too large. What does the subagents guide recommend?",
-    "takeaway": "Subagent **descriptions** cost context in every session: keep them short and put the detail in the **system prompt**.",
-    "explanation": "Claude uses subagent **descriptions** to decide when to delegate, so they occupy context in every session, while a subagent's system prompt loads only when that subagent runs. Long procedures in 30 descriptions trigger the warning, so trim them and move the procedures into each system prompt (B). Option C is the trap, since it assumes descriptions load lazily, which is true only of system prompts. Option D shortens the wrong part, and A still keeps one long description in context.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/sub-agents",
-      "title": "Create custom subagents",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-subagent-file",
-      "c-subagent-context"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Merge all 30 procedures into one long description so that they are loaded only once",
-        "reason": "One long description still takes up context; the guide says keep descriptions short and move detail into each system prompt."
-      },
-      {
-        "id": "b",
-        "text": "Trim the descriptions and move each procedure into that subagent's system prompt",
-        "reason": "Correct: descriptions take up context, so keep them short; a subagent's system prompt only loads when that subagent runs."
-      },
-      {
-        "id": "c",
-        "text": "Keep the descriptions, since each one loads only when Claude delegates to that subagent",
-        "reason": "Claude uses the descriptions to decide when to delegate, so they take up context; only the system prompt waits until the subagent runs."
-      },
-      {
-        "id": "d",
-        "text": "Shorten the system prompts instead, since those are what load when the session starts",
-        "reason": "A subagent's system prompt only loads when that subagent runs; the descriptions are what count toward the warning."
-      }
-    ],
-    "answer": "b"
   },
   {
     "id": "q-context-tell-claude-about-compaction",
@@ -3654,7 +3466,7 @@
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
     "topic": "RAG retrieval",
-    "stem": "After you add a reranker that scores 150 retrieved chunks per query, RAG answers improve, but per-query latency and cost rise past budget. What does Anthropic's Contextual Retrieval post say about this trade-off?",
+    "stem": "After you add a reranker that scores a large set of retrieved chunks per query, RAG answers improve, but per-query latency and cost rise past budget. What does Anthropic's Contextual Retrieval post say about this trade-off?",
     "choices": [
       {
         "id": "a",
@@ -3673,7 +3485,7 @@
       },
       {
         "id": "d",
-        "text": "Rerank more chunks, such as 300, since a larger candidate set lowers latency and cost",
+        "text": "Rerank even more chunks, since a larger candidate set lowers latency and cost",
         "reason": "Reranking more chunks is the performance side of the trade-off; reranking fewer is what lowers latency and cost."
       }
     ],
@@ -3788,34 +3600,34 @@
     "id": "q-rag-chunk-count-experiment",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
-    "topic": "RAG assembly",
-    "stem": "To keep Claude from being distracted, a teammate wants to cut the number of retrieved chunks passed to Claude from 20 to 5. What does Anthropic's Contextual Retrieval testing suggest?",
+    "topic": "Long context vs RAG",
+    "stem": "Your support bot answers questions over a short product handbook that fits easily in the context window. A teammate plans to build a chunking and embedding pipeline for it. What does Anthropic's Contextual Retrieval post suggest instead?",
     "choices": [
       {
         "id": "a",
-        "text": "Keep 20 unless your evals say otherwise; in Anthropic’s tests 20 beat 10 and 5",
-        "reason": "The post found 20 the most performant of 5, 10 and 20 chunks, while advising you to experiment on your own use case."
+        "text": "Build the RAG pipeline anyway, since retrieval always beats putting documents in the prompt",
+        "reason": "The post presents RAG as the typical solution for knowledge bases that **don't fit** in the context window, not as a default."
       },
       {
         "id": "b",
-        "text": "Cut to 5, because fewer chunks always produce better answers and every extra one is noise",
-        "reason": "More chunks raise the chance that the relevant one is included; the post found the top 20 more effective than the top 10 or top 5."
+        "text": "Split the handbook across several conversations so that each one holds part of it",
+        "reason": "For a knowledge base that fits, the post suggests including the **entire** knowledge base; splitting it leaves each conversation missing most of it."
       },
       {
         "id": "c",
-        "text": "Raise it to as many chunks as the context window holds, since extra chunks never distract",
-        "reason": "The post warns that more information can distract the model, so there is a limit to adding chunks."
+        "text": "Summarize the handbook into a few lines and put that summary in the system prompt",
+        "reason": "The post's option is to include the entire knowledge base when it fits, not a short summary that drops details."
       },
       {
         "id": "d",
-        "text": "Cut to 5, because the chunk count stops mattering once BM25 is part of retrieval",
-        "reason": "The post compared chunk counts as a separate factor in its tests, and passing 20 beat passing 10 or 5."
+        "text": "Put the whole handbook in the prompt, and use prompt caching to cut cost and latency",
+        "reason": "Correct: a knowledge base under about 200,000 tokens can go entirely in the prompt with no need for RAG, and caching cuts latency and cost."
       }
     ],
-    "answer": "a",
-    "takeaway": "More chunks raise the chance of including the answer but can distract; 20 beat 10 and 5 in Anthropic’s tests, so measure before cutting.",
-    "explanation": "Chunk count is an assembly trade-off between recall and distraction, and Anthropic measured it: of 5, 10 and 20, passing 20 performed best. The teammate's worry is real, which is why choice c is wrong too, but the data argues against cutting to 5 without evidence. Choice b is the tempting intuition, yet in Anthropic's tests passing 5 or 10 chunks did worse than passing 20.",
-    "difficulty": "medium",
+    "answer": "d",
+    "takeaway": "If the knowledge base fits in the context window, put all of it in the prompt (with caching) before reaching for RAG.",
+    "explanation": "RAG exists for knowledge bases that don't fit in the context window. The stem's handbook fits easily, so the post's advice is to include all of it in the prompt and use prompt caching to keep repeated requests faster and cheaper (D). Option A is the tempting one, but the post presents RAG as the solution for larger knowledge bases, not a default. Options B and C each leave Claude without most of the handbook.",
+    "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/contextual-retrieval",
       "title": "Introducing Contextual Retrieval",
@@ -3830,34 +3642,34 @@
     "id": "q-rag-label-context-vs-chunk",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
-    "topic": "RAG assembly",
-    "stem": "Your Contextual Retrieval pipeline passes each retrieved chunk to Claude with its generated context merged into one paragraph. Answers sometimes cite the added context as if the source document said it. What does Anthropic's post suggest for generation?",
+    "topic": "Long context vs RAG",
+    "stem": "Your support bot's knowledge base has grown from one handbook to thousands of documents, far more than the context window can hold, so pasting all of it into the prompt no longer works. What does Anthropic's Contextual Retrieval post call the typical solution?",
     "choices": [
       {
         "id": "a",
-        "text": "Strip the generated context before generation, since it only matters when you embed",
-        "reason": "The post says generation may improve when you pass the contextualized chunk, so stripping the context throws that away."
+        "text": "RAG: retrieve the most relevant chunks and add only those to the prompt",
+        "reason": "Correct: the post says that for larger knowledge bases that don't fit within the context window, RAG is the typical solution."
       },
       {
         "id": "b",
-        "text": "Pass the contextualized chunk, but make clear which part is added context and which is the chunk",
-        "reason": "The post says response generation may be improved by passing the contextualized chunk and distinguishing between what is context and what is the chunk."
+        "text": "Keep pasting every document and let the oldest ones fall off the end",
+        "reason": "A knowledge base that doesn't fit can't all be in the prompt; the post turns to RAG for exactly this case."
       },
       {
         "id": "c",
-        "text": "Return to raw chunks for both retrieval and generation, dropping contextual retrieval",
-        "reason": "Adding context to chunks improved retrieval accuracy a lot in Anthropic's tests; the issue here is at generation, not retrieval."
+        "text": "Turn on prompt caching, which lets the whole knowledge base fit in context",
+        "reason": "Caching cuts latency and cost for repeated prompts; the post still calls RAG the solution once a knowledge base doesn't fit."
       },
       {
         "id": "d",
-        "text": "Make each chunk’s generated context longer, such as 500 tokens, so it reads as one passage",
-        "reason": "The post's contexts are short, usually 50–100 tokens, and a longer context still doesn't tell Claude which part is added."
+        "text": "Move every document into the system prompt, which has its own separate limit",
+        "reason": "The post's dividing line is whether the knowledge base fits in the context window; it names RAG for the ones that don't."
       }
     ],
-    "answer": "b",
-    "takeaway": "When you pass contextualized chunks to Claude, keep the added context visibly separate from the original chunk text.",
-    "explanation": "The added context is a retrieval aid written by Claude, not part of the source, so generation goes wrong when the two are indistinguishable. Anthropic suggests passing the contextualized chunk while marking what is context and what is the chunk. Choice a looks clean, but it discards information the post says can improve generation; choice c gives up the retrieval gains entirely.",
-    "difficulty": "medium",
+    "answer": "a",
+    "takeaway": "Once a knowledge base outgrows the context window, **retrieve** the relevant chunks (RAG) instead of pasting everything.",
+    "explanation": "The deciding detail is that the knowledge base no longer fits in the context window. For that case the post names RAG as the typical solution: retrieve the relevant chunks and put only those in the prompt (A). Option C is the tempting one, but caching makes repeated prompt tokens cheaper and faster; it doesn't make a too-large knowledge base fit.",
+    "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/contextual-retrieval",
       "title": "Introducing Contextual Retrieval",
@@ -3865,49 +3677,7 @@
     },
     "relatedCardIds": [
       "c-long-context-vs-rag",
-      "c-xml-tags"
-    ],
-    "lessonId": "l-course-rag-breakpoints"
-  },
-  {
-    "id": "q-rag-glossary-contextualizer",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "RAG chunking",
-    "stem": "Your engineering wiki uses acronyms that are defined only on a separate glossary page. Even after contextualization, chunks like \"Restart the FRB after a DLQ spike\" are retrieved poorly for plain-language questions. Which change does Anthropic's Contextual Retrieval post suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Prepend the same summary of the whole wiki page to every chunk on that page",
-        "reason": "Generic document summaries gave very limited gains in Anthropic’s experiments, and a page summary still wouldn’t define terms from another page."
-      },
-      {
-        "id": "b",
-        "text": "Raise the chunk size so each chunk carries more of the page it came from",
-        "reason": "Chunk size can affect retrieval, but the acronyms are defined on a different page, so bigger chunks from the same page still lack them."
-      },
-      {
-        "id": "c",
-        "text": "Tailor the contextualizer prompt, for example by including a glossary of key terms defined elsewhere",
-        "reason": "The post says a domain-specific contextualizer prompt can do better, for example one that includes a glossary of key terms defined only in other documents."
-      },
-      {
-        "id": "d",
-        "text": "Answer with a larger generation model so it can infer what the acronyms mean",
-        "reason": "A chunk that is retrieved poorly never reaches the generation model; the post's fixes for missing context act before embedding and indexing."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "If chunks need knowledge from elsewhere in the corpus, put it into the contextualizer prompt, such as a glossary of key terms.",
-    "explanation": "The chunk's missing context lives outside its own document, so the generic contextualizer prompt, which sees only the chunk and its document, can't supply it. Anthropic suggests tailoring that prompt to the domain, and its own example is adding a glossary of key terms. Choice a looks like more context, but Anthropic found generic summaries gave very limited gains, and choice d acts after retrieval has already failed.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/contextual-retrieval",
-      "title": "Introducing Contextual Retrieval",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-long-context-vs-rag"
+      "c-context-window"
     ],
     "lessonId": "l-course-rag-breakpoints"
   },
@@ -4085,7 +3855,7 @@
       },
       {
         "id": "e",
-        "text": "Raise Claude Code's 25,000-token tool response limit so nothing gets cut off",
+        "text": "Raise Claude Code's default tool response limit so nothing gets cut off",
         "reason": "The post cites that default as an example of restricting tool responses; raising it lets more tokens in, not fewer."
       }
     ],
@@ -4262,48 +4032,6 @@
     "lessonId": "l-course-context-budget"
   },
   {
-    "id": "q-budget-cache-miss-after-break",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context budget",
-    "stem": "Using Claude Code, a developer leaves a large session idle for a while. Their first message back uses far more input than messages just before the break, though the context is unchanged. What explains it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The session auto-compacted during the break, and that summary is billed on return",
-        "reason": "Auto-compaction runs as context approaches its limit, not after idle time, and the context here is unchanged."
-      },
-      {
-        "id": "b",
-        "text": "Claude Code re-reads every project file after an idle period and adds it to context",
-        "reason": "The context is unchanged, so nothing new was added; the difference is whether the history was served from the cache."
-      },
-      {
-        "id": "c",
-        "text": "Background summarization for `--resume` rewrote the history while it sat idle",
-        "reason": "Those background jobs use a small amount of tokens, typically under $0.04 per session, and they don’t change what your next message sends."
-      },
-      {
-        "id": "d",
-        "text": "The prompt cache expired during the break, so the whole context was processed again",
-        "reason": "Correct: after a break longer than the cache lifetime, the first message misses the cache and reprocesses your full context."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "After a break longer than the cache lifetime, the next message reprocesses the full context.",
-    "explanation": "Caching makes a long history cheap to resend only while the cache is warm. After a break longer than the cache lifetime (five minutes by default on an API key), the first message back misses the cache and processes everything again (D). Auto-compaction (A) runs as context nears its limit, not after idle time, and background summarization (C) doesn't change what your next message sends.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/costs",
-      "title": "Manage costs effectively",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-course-context-budget"
-  },
-  {
     "id": "q-course-sdk-parse-helper",
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
@@ -4344,5 +4072,301 @@
     "relatedCardIds": [
       "c-structured-invalid-outputs"
     ]
+  },
+  {
+    "id": "q-guard-verify-citations",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Reducing hallucinations",
+    "stem": "Claude drafts press releases from your product briefs. Legal requires every claim to be traceable to a brief, with unsupported claims removed before review. Which technique from Anthropic's hallucination guide fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Best-of-N: run the prompt several times and compare the drafts for inconsistent claims",
+        "reason": "Inconsistencies across outputs could indicate hallucinations, but comparing drafts doesn't tie each claim to a source."
+      },
+      {
+        "id": "b",
+        "text": "Have Claude find a supporting quote for each drafted claim and retract any it can't support",
+        "reason": "Correct: verifying with citations makes the response auditable; if Claude can't find a supporting quote for a claim, it must retract it."
+      },
+      {
+        "id": "c",
+        "text": "Chain-of-thought verification: review Claude's summarized reasoning before accepting the final draft",
+        "reason": "Reviewing Claude's summarized reasoning can reveal faulty logic or assumptions, but it doesn't check each claim against the briefs."
+      },
+      {
+        "id": "d",
+        "text": "Give Claude explicit permission to say \"I don't know\" when the briefs lack information",
+        "reason": "That helps when information is missing, but it doesn't check each drafted claim against the briefs or remove unsupported ones."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For auditable output, have Claude back **each claim with a quote** and retract what it can't support; still validate critical facts.",
+    "explanation": "The constraint to notice is that every claim must be **traceable to a brief**, with unsupported claims removed. Verifying with citations does exactly that: Claude finds a supporting quote for each claim and retracts any it can't support, making the output auditable (Option B). Best-of-N (A) is the tempting trap because it does help detect hallucinations, but comparing drafts never ties a claim to a source. C reviews reasoning rather than claims, and D only helps when information is missing.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-verify-with-citations"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-guard-keep-character",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Keeping in character",
+    "stem": "Your language-tutor app gives Claude a persona with a one-line role in the system prompt. It stays in character in normal chats but breaks character when learners ask unusual questions. What does Anthropic's consistency guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prefill each assistant turn with the character's name and a short reminder of the persona",
+        "reason": "The guide's advice for staying in character is a detailed role and prepared scenarios; prefilling also isn't supported on Claude 4.6 and later models."
+      },
+      {
+        "id": "b",
+        "text": "Switch to structured outputs with a strict JSON schema describing the persona's fields",
+        "reason": "Structured outputs guarantee JSON schema conformance; they don't define a personality or prepare it for unusual situations."
+      },
+      {
+        "id": "c",
+        "text": "Break every reply into a chain of smaller prompts, each with its own copy of the one-line role",
+        "reason": "The guide suggests chaining for complex tasks; for role-based apps it points to the system prompt role and prepared scenarios."
+      },
+      {
+        "id": "d",
+        "text": "Detail the persona's background and traits, and list common scenarios with expected replies",
+        "reason": "Correct: detail helps Claude emulate and generalize the character's traits, and prepared scenarios help it handle diverse situations without breaking character."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Keep a persona steady with a **detailed role** in the system prompt plus **prepared scenarios** and expected responses.",
+    "explanation": "Anthropic's consistency guide says a persona stays steady when the system prompt gives a **detailed role** and **prepared scenarios** with expected replies. The clue here is the one-line role failing on unusual questions: more detail helps Claude generalize the character's traits, and prepared scenarios cover diverse situations, which is Option D. A is tempting but prefilling isn't supported on Claude 4.6 and later models. B only enforces JSON shape, and C points to chaining, which the guide suggests for complex tasks rather than for role-based apps.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
+      "title": "Increase output consistency",
+      "checkedOn": "2026-10-13"
+    },
+    "relatedCardIds": [
+      "c-keep-in-character"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-context-structured-notes",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Structured note-taking",
+    "stem": "An agent works on a task that runs for hours. Each time its context is reset, it loses track of what it has already finished and repeats work. Which technique from Anthropic's context engineering post addresses this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Load the full transcript of every earlier session into the system prompt",
+        "reason": "The post treats context as finite and warns of context pollution; it aims for the smallest set of high-signal tokens, not every past transcript."
+      },
+      {
+        "id": "b",
+        "text": "Have it write progress notes to a file outside the context and read them back later",
+        "reason": "Correct: in structured note-taking the agent persists notes outside the context window, such as a NOTES.md file, and pulls them back in later."
+      },
+      {
+        "id": "c",
+        "text": "Restart the task from the beginning after every reset so nothing is skipped",
+        "reason": "The post's example agent reads its own notes after context resets and **continues** its multi-hour work rather than starting over."
+      },
+      {
+        "id": "d",
+        "text": "Shorten each of the agent's replies so that more turns fit before the reset",
+        "reason": "Shorter replies still leave nothing that survives a reset; the post's technique keeps notes outside the context window."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Long tasks outlive one context window: have the agent keep **notes outside the context** and read them back after a reset.",
+    "explanation": "The problem is lost state across context resets, so the fix has to live outside the context window. Structured note-taking does that: the agent writes progress notes (like a NOTES.md file) and reads them back to continue (B). Option A is the tempting one, but piling every old transcript into the prompt bloats the context the post says to keep small and high-signal.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-agentic-memory"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-budget-claude-md-survives-compaction",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Compaction",
+    "stem": "Early in a long Claude Code session you told Claude, in chat, never to edit the generated API client. After `/compact`, Claude starts editing it again. What does Claude Code's memory guide suggest so the rule persists?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the rule to the project-root CLAUDE.md, which is re-read after compaction",
+        "reason": "Correct: project-root CLAUDE.md survives compaction, because Claude re-reads it from disk and re-injects it; chat-only instructions can be lost."
+      },
+      {
+        "id": "b",
+        "text": "Repeat the rule in chat after each compaction so the next summary keeps it",
+        "reason": "The guide's fix for conversation-only instructions is to add them to CLAUDE.md so they persist, not to keep retyping them."
+      },
+      {
+        "id": "c",
+        "text": "Keep the rule in chat, since every instruction survives compaction unchanged",
+        "reason": "The guide says an instruction that disappears after compaction was often given only in conversation."
+      },
+      {
+        "id": "d",
+        "text": "Move the rule into a CLAUDE.md in a subdirectory that Claude rarely opens",
+        "reason": "The guide lists a nested CLAUDE.md that hasn't reloaded yet as one reason an instruction can vanish after compaction."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Rules given only in chat can be lost to compaction; put lasting rules in the project's **CLAUDE.md**, which is re-read afterwards.",
+    "explanation": "Compaction summarizes the conversation, so an instruction that lived only in chat can drop out. The project-root CLAUDE.md is re-read from disk and re-injected after `/compact`, which keeps the rule in place (A). Option D is the tempting one because it also uses CLAUDE.md, but a nested file loads again only on demand, so it may not be back yet.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-compaction"
+    ],
+    "lessonId": "l-course-context-budget"
+  },
+  {
+    "id": "q-context-chain-for-inspection",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Prompt chaining",
+    "stem": "One API call asks Claude to draft a policy summary, critique the draft against a checklist and then revise it. When the result is poor, the team can't tell which stage went wrong. What does Anthropic's prompting guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Spell out every stage in more detail inside the same single prompt",
+        "reason": "The guide says explicit chaining is useful when you need to **inspect intermediate outputs**, which one combined call doesn't expose."
+      },
+      {
+        "id": "b",
+        "text": "Ask Claude to score its own final answer at the end of the same reply",
+        "reason": "A final score still hides the draft and the review; the guide's pattern makes each step a separate call."
+      },
+      {
+        "id": "c",
+        "text": "Run the three stages in parallel calls and keep whichever output is best",
+        "reason": "The stages depend on each other: the guide's self-correction chain feeds the draft into the review, then the review into the refinement."
+      },
+      {
+        "id": "d",
+        "text": "Chain it: draft, review and refine as separate calls you can log and check",
+        "reason": "Correct: in the guide's self-correction chain each step is a separate API call, so you can log, evaluate or branch at any point."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Need to see where a multistep task fails? **Chain** the steps as separate API calls you can log and evaluate.",
+    "explanation": "The deciding detail is that the team can't see the intermediate outputs. Prompt chaining splits the work into separate calls (draft, review, refine), so each stage's output can be logged, evaluated or branched on (D). Option A is the tempting one, but a more detailed single prompt still returns only the final result.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-prompt-chaining"
+    ],
+    "lessonId": "l-context-engineering"
+  },
+  {
+    "id": "q-prompt-input-validation-screen",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Input sanitization",
+    "stem": "Your public app inserts each user's free-text request into a prompt template. Some users paste well-known jailbreak phrasing to override your instructions. Which input-handling step does Anthropic's guide suggest before the text reaches Claude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Insert the request unchanged and rely on Claude's resilience alone",
+        "reason": "The guide says Claude is inherently resilient, yet still recommends added steps such as input validation to strengthen guardrails."
+      },
+      {
+        "id": "b",
+        "text": "Filter input for known injection patterns, such as with an LLM screen",
+        "reason": "Correct: the guide suggests filtering user input for known injection patterns, and an LLM given known jailbreak language as examples can screen it."
+      },
+      {
+        "id": "c",
+        "text": "Ask users in the app's help text not to paste instructions into requests",
+        "reason": "A request to users doesn't check anything; the guide's step filters the input itself before it reaches Claude."
+      },
+      {
+        "id": "d",
+        "text": "Move the user's text into the system prompt so it carries your authority",
+        "reason": "The guide keeps untrusted content out of system prompts; putting user text there gives it more weight, not less."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Sanitize before Claude sees it: **filter user input** for known injection patterns, for example with an LLM validation screen.",
+    "explanation": "Input sanitization means checking untrusted text before it enters your prompt. The guide's step is input validation: filter for known injection patterns, optionally with an LLM screen primed with known jailbreak language (B). Option A is the tempting one, since Claude is resilient to such attacks, but the guide adds validation on top of that resilience rather than relying on it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-direct-prompt-injection"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-prompt-validate-tool-results-too",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Input sanitization",
+    "stem": "Your agent runs every user message through an injection filter, but passes the web pages its fetch tool returns straight to Claude. What does Anthropic's guide suggest for that tool content?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Validate or screen tool results too, before they reach Claude",
+        "reason": "Correct: the guide says to apply the input-validation patterns to tool results as well, and to screen tool outputs before Claude acts on them."
+      },
+      {
+        "id": "b",
+        "text": "Leave them unscreened, since only users attempt prompt injection",
+        "reason": "The guide describes **indirect** injection, where third-party content such as a fetched page carries the instructions."
+      },
+      {
+        "id": "c",
+        "text": "Copy the page text into the system prompt so it's weighed like your rules",
+        "reason": "The guide says to deliver third-party content only in tool results, never in system prompts."
+      },
+      {
+        "id": "d",
+        "text": "Add your own note inside each tool result telling Claude to ignore injections",
+        "reason": "The guide says not to put your instructions in tool results: Claude may ignore them or flag them as a possible injection."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Sanitize every input channel: run **tool results** through the same validation or screening as user input.",
+    "explanation": "Untrusted text can arrive through tools as well as from users, so input checks belong on both. The guide says the same validation patterns can be applied to tool results, with a lightweight screen before Claude acts on them (A). Option D is the tempting one, but instructions placed inside a tool result may be ignored or flagged as an injection.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-output-screen",
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-prompt-engineering"
   }
 ]

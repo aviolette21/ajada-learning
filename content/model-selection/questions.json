@@ -446,48 +446,6 @@
     "lessonId": "l-llm-fundamentals"
   },
   {
-    "id": "q-tech-required-headers",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "REST headers",
-    "stem": "A teammate calls `POST /v1/messages` over raw HTTP, sending an `x-api-key` header and `content-type: application/json`. The calls fail. Which required header is missing?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`anthropic-beta`",
-        "reason": "Beta headers are only for accessing beta features; a plain Messages request doesn't need one."
-      },
-      {
-        "id": "b",
-        "text": "`anthropic-workspace-id`",
-        "reason": "It is required only with a multi-workspace API key and is optional for other keys."
-      },
-      {
-        "id": "c",
-        "text": "`accept-language`",
-        "reason": "The API overview lists auth, `anthropic-version` and `content-type` as the required headers; a language header isn't one of them."
-      },
-      {
-        "id": "d",
-        "text": "`anthropic-version`",
-        "reason": "Correct: every request needs the API version header, for example `anthropic-version: 2023-06-01`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Raw HTTP requests need **auth**, `anthropic-version` and `content-type`; the SDKs send all three for you.",
-    "explanation": "A raw HTTP call to the Messages API needs **auth**, `content-type` and `anthropic-version`. The teammate sends the first two, so the version header (D) is missing. `anthropic-workspace-id` (B) is only needed with a multi-workspace key, `anthropic-beta` (A) is only for beta features, and a language header (C) isn't required.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/overview",
-      "title": "API overview",
-      "checkedOn": "2026-09-27"
-    },
-    "relatedCardIds": [
-      "c-anthropic-version"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
     "id": "q-tech-sdk-languages",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
@@ -570,70 +528,6 @@
     "relatedCardIds": [
       "c-sdk-retries",
       "c-client-sdks"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
-    "id": "q-tech-sse-event-order",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Streaming events",
-    "stem": "You are writing a raw server-sent events parser for streamed Messages responses. In what order do the events of a stream arrive (ignoring `ping` events)?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`content_block_start` → `content_block_delta`s → `content_block_stop` → `message_start` → `message_delta`s → `message_stop`",
-        "reason": "`message_start` comes first, carrying a `Message` with empty `content`, before any content block."
-      },
-      {
-        "id": "b",
-        "text": "`message_start` → blocks (`content_block_start`, deltas, `content_block_stop`) → `message_delta`s → `message_stop`",
-        "reason": "Correct: this is the documented flow, and the last event is always `message_stop`."
-      },
-      {
-        "id": "c",
-        "text": "`message_start` → `message_delta`s → blocks (`content_block_start`, deltas, `content_block_stop`) → `message_stop`",
-        "reason": "The `message_delta` events, with top-level changes such as usage, come **after** the content blocks."
-      },
-      {
-        "id": "d",
-        "text": "`message_start` → `content_block_delta`s only, with no block start or stop → `message_delta`s → `message_stop`",
-        "reason": "Each content block also has a `content_block_start` before its deltas and a `content_block_stop` after them."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A stream is `message_start` → content blocks (start, deltas, stop) → `message_delta` → `message_stop`.",
-    "explanation": "A stream is wrapped by message events: `message_start` comes first with an empty `content`, then each content block arrives as `content_block_start`, its deltas and `content_block_stop`, then `message_delta` events, and finally `message_stop` (B). Option C is the tempting near-miss: it puts `message_delta` before the blocks, but those deltas carry top-level changes such as usage, which come **after** the content. Option A starts with blocks before `message_start`, and D forgets each block's start and stop events.",
-    "difficulty": "easy",
-    "diagram": {
-      "kind": "flow",
-      "caption": "ping events may appear anywhere in the stream.",
-      "steps": [
-        {
-          "label": "message_start",
-          "sublabel": "empty content"
-        },
-        {
-          "label": "content blocks",
-          "sublabel": "start · deltas · stop"
-        },
-        {
-          "label": "message_delta",
-          "sublabel": "usage is cumulative"
-        },
-        {
-          "label": "message_stop"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
-      "title": "Streaming messages",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-stream-event-flow",
-      "c-message-delta-usage"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -1105,138 +999,45 @@
     "lessonId": "l-technical-fundamentals"
   },
   {
-    "id": "q-tech-sse-connection-limit",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Server-sent events",
-    "stem": "Each tab of your app opens an `EventSource` stream from `app.example.com` to show Claude's replies. The site is served over HTTP/1.1, and users with many tabs open find that new tabs just hang. What explains it, and what's the fix?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Over HTTP/1.1, browsers cap open SSE connections per domain across all tabs; serve the streams over HTTP/2",
-        "reason": "Correct: when not used over HTTP/2, SSE has a low per-browser, per-domain connection limit shared by all tabs. Over HTTP/2 the limit is negotiated and much higher."
-      },
-      {
-        "id": "b",
-        "text": "The server ran out of memory, so it stops accepting new connections after a few tabs",
-        "reason": "Nothing points to the server: the limit described in the guide is enforced by the browser, per domain, when SSE runs over HTTP/1.1."
-      },
-      {
-        "id": "c",
-        "text": "Add a short `retry:` field to the stream so that hanging tabs reconnect sooner",
-        "reason": "`retry` only sets how long the browser waits before reconnecting after a lost connection; it doesn't raise the connection limit."
-      },
-      {
-        "id": "d",
-        "text": "`EventSource` allows only one open stream per browser, so close the other tabs first",
-        "reason": "The limit isn't one stream; over HTTP/1.1 it is a small number of connections per browser and domain, and HTTP/2 raises it."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Over HTTP/1.1, SSE shares a small **per-browser, per-domain** connection cap; serve streams over **HTTP/2**.",
-    "explanation": "Over HTTP/1.1, browsers allow only a small number of open SSE connections **per browser and domain**, shared across all tabs, so once enough tabs hold a stream, new ones hang. Serving the streams over HTTP/2, where the limit is negotiated and much higher, fixes it (A). The cap is in the browser, not the server (B); `retry:` (C) only changes reconnect delay; and the limit isn't one stream (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
-      "title": "Using server-sent events",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-streaming"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
-    "id": "q-tech-sse-parser-rules",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Server-sent events",
-    "stem": "Your runtime has no `EventSource`, so you're writing your own parser for a `text/event-stream` response. Which two rules of the event stream format must it follow?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Treat every line as its own message, since each line of the stream is one complete event",
-        "reason": "Messages are separated by a **pair** of newlines, and one message can span several lines of fields."
-      },
-      {
-        "id": "b",
-        "text": "End a message at a blank line: messages are separated by a pair of newlines",
-        "reason": "Correct: each message is a block of text terminated by a pair of newline characters."
-      },
-      {
-        "id": "c",
-        "text": "Read a line that starts with a colon as the name of the event's type",
-        "reason": "A line that starts with a colon is in essence a comment, and is ignored; the type comes from the `event` field."
-      },
-      {
-        "id": "d",
-        "text": "Join consecutive `data:` lines of one message, with a newline between each",
-        "reason": "Correct: when consecutive lines begin with `data:`, they're concatenated, with a newline character inserted between each one."
-      },
-      {
-        "id": "e",
-        "text": "Treat `retry` as the number of reconnect attempts to make before giving up",
-        "reason": "`retry` is the reconnection time in milliseconds; a non-integer value is ignored."
-      }
-    ],
-    "answer": [
-      "b",
-      "d"
-    ],
-    "takeaway": "SSE messages end at a **blank line**; consecutive `data:` lines join with newlines, and lines starting with `:` are comments.",
-    "explanation": "Two framing rules matter. A message ends at a **blank line**, a pair of newlines (B), and consecutive `data:` lines in one message are joined with a newline between them (D), so one event can span several lines. Option A is the most tempting wrong pick, treating each line as an event, which breaks multi-line messages. A line starting with a colon (C) is a comment, not the event type, which comes from the `event` field, and `retry` (E) is a reconnection time in milliseconds, not an attempt count.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
-      "title": "Using server-sent events",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-streaming",
-      "c-stream-event-flow"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
     "id": "q-tech-sse-named-events",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
-    "topic": "Server-sent events",
-    "stem": "Your browser code sets `evtSource.onmessage`, and the network panel shows events arriving, but the handler never runs. Every event in the stream has an `event:` field, such as `event: content_block_delta`. What's wrong?",
+    "topic": "SDK errors",
+    "stem": "Your Python service must back off when the Claude API rate-limits it, but alert at once when the network can't reach the API. Today it searches each exception's message text for \"429\". What's the SDK-native approach?",
     "choices": [
       {
         "id": "a",
-        "text": "The `EventSource` needs `withCredentials: true` before it can deliver any events to the page",
-        "reason": "`withCredentials` only says whether cross-origin (CORS) credentials are sent; the events are already arriving."
+        "text": "Catch `anthropic.RateLimitError` and `anthropic.APIConnectionError` separately",
+        "reason": "Correct: the SDK raises a typed subclass of `APIError` for each case: `RateLimitError` for a 429 and `APIConnectionError` when the API can't be reached."
       },
       {
         "id": "b",
-        "text": "Add a `message` listener with `addEventListener`, which receives events of every type",
-        "reason": "A `message` listener catches events with no `event` field (or `event: message`); it won't trigger on other event types."
+        "text": "Catch Python's base `Exception` and keep matching on the message text",
+        "reason": "The SDK raises typed exceptions so you can branch on the class, not on fragile message strings."
       },
       {
         "id": "c",
-        "text": "The connection's `readyState` is `CLOSED`; call `close()`, then open a new `EventSource`",
-        "reason": "Events are reaching the page, so the connection is open; `close()` would end it and set `readyState` to `CLOSED`."
+        "text": "Check each reply's `stop_reason` for a rate-limit value",
+        "reason": "A rate limit raises an error (a 429 becomes `RateLimitError`); there is no reply with a stop reason to check."
       },
       {
         "id": "d",
-        "text": "Named events fire under their own names; use `addEventListener(\"content_block_delta\")`",
-        "reason": "Correct: if a message has an `event` field, the event fired has that name and needs its own listener; `onmessage` handles messages without one."
+        "text": "Set `max_retries=0` so errors come back as plain HTTP responses",
+        "reason": "`max_retries` only configures automatic retries; failures are still raised as SDK exceptions."
       }
     ],
-    "answer": "d",
-    "takeaway": "`onmessage` only sees **unnamed** events; listen for named SSE events with `addEventListener(name, ...)`.",
-    "explanation": "`onmessage` only sees events **without** an `event` field. Every event in this stream is named, such as `event: content_block_delta`, so each fires under its own name and needs `addEventListener(\"content_block_delta\")` (D). Option B is the tempting fix, but a `message` listener catches only unnamed events or `event: message`. The events are clearly arriving, which rules out a closed connection (C), and `withCredentials` (A) only governs CORS credentials.",
+    "answer": "a",
+    "takeaway": "Branch on the SDK's **typed exceptions**, such as `RateLimitError` and `APIConnectionError`, not on message text.",
+    "explanation": "An SDK wrapping a REST API maps failures to typed exceptions: a 429 raises `RateLimitError` and an unreachable API raises `APIConnectionError`, so catch each separately (A). String matching on a base exception (B) is fragile, a rate-limited call returns no reply to inspect (C), and turning off retries (D) doesn't change how errors are raised.",
     "difficulty": "medium",
     "source": {
-      "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
-      "title": "EventSource",
-      "checkedOn": "2026-10-13"
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-streaming",
-      "c-stream-event-flow"
+      "c-sdk-retries",
+      "c-client-sdks"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -1244,83 +1045,41 @@
     "id": "q-tech-sse-reconnect",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
-    "topic": "Server-sent events",
-    "stem": "Your page uses `EventSource` to show a generated report. After the last event the server closes the connection, then the browser connects again and the server generates the whole report a second time. What should the page do?",
+    "topic": "Client SDKs",
+    "stem": "Your Python web service is built on `asyncio` and handles many user requests at once, each of which calls Claude. Which way of calling the API fits this code best?",
     "choices": [
       {
         "id": "a",
-        "text": "Call `evtSource.close()` at the final event: a closed connection is restarted by default",
-        "reason": "Correct: by default, if the connection between the client and server closes, it's restarted. The `.close()` method terminates it."
+        "text": "The sync `Anthropic` client with `stream=True`, which makes its calls non-blocking",
+        "reason": "Streaming delivers a response as events; for async code the SDK provides `AsyncAnthropic`, which streams through the same interface."
       },
       {
         "id": "b",
-        "text": "Have the server send `retry: 0` at the end of the stream, so the browser knows not to reconnect",
-        "reason": "`retry` sets the reconnection wait in milliseconds after a lost connection; it changes when the browser reconnects, not whether."
+        "text": "A hand-written HTTP client, since the official SDK supports only synchronous calls",
+        "reason": "The SDK supports both synchronous and asynchronous operation, so there's no need to hand-write one."
       },
       {
         "id": "c",
-        "text": "Have the server end the stream with a comment line, which tells the browser the stream is complete",
-        "reason": "A line starting with a colon is a comment and is ignored; servers send comments as keep-alives, not as end markers."
+        "text": "The Message Batches API, which is how the SDK runs requests concurrently",
+        "reason": "Batch results are read only after the batch has been processed, which doesn't suit users waiting on a reply."
       },
       {
         "id": "d",
-        "text": "Remove the `id` field from events, because the last event ID is what makes the browser reconnect",
-        "reason": "`id` sets the `EventSource` object's last event ID value; restarting a closed connection is the default either way."
+        "text": "`AsyncAnthropic`, awaiting each call; it has the same interface as the sync client",
+        "reason": "Correct: the SDK supports asynchronous use through `AsyncAnthropic`, whose calls you `await`, with the same interface as the synchronous client."
       }
     ],
-    "answer": "a",
-    "takeaway": "`EventSource` **restarts closed connections by default**; call `close()` when the stream is truly finished.",
-    "explanation": "`EventSource` **restarts a closed connection by default**, so when the server closes after the last event, the browser reconnects and the report is generated again. The page itself must end it by calling `evtSource.close()` at the final event (A). Option B is the tempting fix, but `retry` only sets how long the browser waits before reconnecting, not whether it does. A comment line (C) is ignored by the client, and dropping the `id` field (D) doesn't change the default restart.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
-      "title": "Using server-sent events",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-streaming"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
-    "id": "q-tech-sse-keepalive",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Server-sent events",
-    "stem": "Your server relays Claude's output to the browser over server-sent events. While a slow tool runs, no events are sent for a minute, and a proxy in between drops the idle connection. What's the standard fix within the event stream format?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Have the browser send heartbeat messages to the server over the `EventSource` connection",
-        "reason": "Server-sent events are a one-way connection, so the client can't send events to the server on it."
-      },
-      {
-        "id": "b",
-        "text": "Send a `retry:` field so that the proxy waits longer before it closes an idle connection",
-        "reason": "`retry` is the browser's reconnection time after a lost connection; it doesn't stop an idle connection being dropped."
-      },
-      {
-        "id": "c",
-        "text": "Have the server send a comment line (one starting with `:`) periodically as a keep-alive",
-        "reason": "Correct: a line starting with a colon is a comment the client ignores, and a server can send one periodically to keep the connection alive."
-      },
-      {
-        "id": "d",
-        "text": "Change the response's MIME type to `application/json` so proxies treat it as a normal reply",
-        "reason": "The server must respond to an event stream using the MIME type `text/event-stream`."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Keep idle SSE streams alive with periodic **comment lines** (starting with `:`), which clients ignore.",
-    "explanation": "The problem is an **idle** connection: nothing flows for a minute, so a proxy drops it. Within the event stream format, a line starting with `:` is a comment that clients ignore, and sending one periodically keeps the connection alive (C). Option B is the tempting distractor, but `retry` is the browser's reconnection wait after a loss; it doesn't stop the drop. Browser heartbeats (A) are impossible on a one-way SSE connection, and the stream must stay `text/event-stream`, not JSON (D).",
+    "answer": "d",
+    "takeaway": "For `async` code, use the SDK's **async client** (`AsyncAnthropic`) and `await` each call.",
+    "explanation": "The SDK wraps the REST API for both sync and async code; an `asyncio` service should use `AsyncAnthropic` and await its calls (D). Streaming (A) changes how a response arrives, not whether the client is async. The SDK already supports async (B), and batches (C) return results only after processing ends, so they don't fit live user requests.",
     "difficulty": "easy",
     "source": {
-      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
-      "title": "Using server-sent events",
-      "checkedOn": "2026-10-13"
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-streaming"
+      "c-client-sdks"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -1371,41 +1130,40 @@
     "id": "q-tech-workspace-header",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
-    "topic": "REST headers",
-    "stem": "Your service switches from a single-workspace API key to a key with access to several workspaces. Requests go through an official client SDK. What must your code now add to each request?",
+    "topic": "Client SDKs",
+    "stem": "A Python service creates its Claude client with the API key pasted into the code as a string, and the file is committed to the repository. What does the Python SDK documentation suggest instead?",
     "choices": [
       {
         "id": "a",
-        "text": "Nothing: the SDK reads the workspace from the key and sends the header for you",
-        "reason": "The SDK sends the auth, version and content-type headers; you pass `anthropic-workspace-id` yourself when your key needs it."
+        "text": "Move the key into the system prompt so the model can authenticate calls",
+        "reason": "The key authenticates your client's API requests; it has no place in the prompt, and the client reads it from the environment."
       },
       {
         "id": "b",
-        "text": "An `anthropic-workspace-id` header naming the workspace the request runs in",
-        "reason": "Correct: `anthropic-workspace-id` is required with a multi-workspace API key, and the SDK leaves that header to you."
+        "text": "Put the key in `default_headers` in the code so it is sent on every call",
+        "reason": "That still stores the key in source; the client already reads it from `ANTHROPIC_API_KEY` by default."
       },
       {
         "id": "c",
-        "text": "An `x-api-key` header, which picks a workspace when sent with `Authorization`",
-        "reason": "`x-api-key` is a legacy fallback for `Authorization` that carries your API key; it doesn't select a workspace."
+        "text": "Base64-encode the key in the code so that it can't be read in the repo",
+        "reason": "Encoding isn't secrecy: the key is still in source control, which the `.env` approach avoids."
       },
       {
         "id": "d",
-        "text": "An `anthropic-beta` header, since multi-workspace keys are still a beta feature",
-        "reason": "Beta headers are for beta features. A request picks its workspace with `anthropic-workspace-id`, required with multi-workspace keys."
+        "text": "Let the client read `ANTHROPIC_API_KEY`, set from a `.env` file kept out of git",
+        "reason": "Correct: the client reads `ANTHROPIC_API_KEY` by default, and the docs suggest a `.env` file (for example with python-dotenv) so the key isn't in source control."
       }
     ],
-    "answer": "b",
-    "takeaway": "Multi-workspace keys need **`anthropic-workspace-id`** on each request; the SDK doesn't add it for you.",
-    "explanation": "A **multi-workspace key** makes `anthropic-workspace-id` required on each request, and the SDK only sends the auth, version and content-type headers, so your code must add the workspace header itself (B). Option A is the tempting assumption that the SDK figures out the workspace from the key; it doesn't. `x-api-key` (C) is just a legacy way to carry the key and doesn't pick a workspace, and `anthropic-beta` (D) is for beta features, not workspace selection.",
-    "difficulty": "medium",
+    "answer": "d",
+    "takeaway": "Keep API keys **out of code**: the SDK reads `ANTHROPIC_API_KEY` from the environment.",
+    "explanation": "The SDK picks up `ANTHROPIC_API_KEY` from the environment by default, and the docs suggest a `.env` file so the key stays out of source control (D). A prompt is the wrong place for a credential (A), and both a header literal (B) and an encoded string (C) still commit the key to the repo.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/api/overview",
-      "title": "API overview",
-      "checkedOn": "2026-10-13"
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-api-key-types",
       "c-client-sdks"
     ],
     "lessonId": "l-technical-fundamentals"
@@ -1450,90 +1208,6 @@
     "relatedCardIds": [
       "c-client-sdks",
       "c-message-batches"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
-    "id": "q-tech-beta-invalid-name",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Beta headers",
-    "stem": "After a teammate edits the beta list in a raw HTTP client, every request fails with a 400 `invalid_request_error` whose message begins \"Unexpected value(s)\" and names the `anthropic-beta` header. What's the most likely cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The API is overloaded, so the request should be retried with exponential backoff",
-        "reason": "The error names the `anthropic-beta` header: the API rejected a value in your request, which a retry would send again."
-      },
-      {
-        "id": "b",
-        "text": "The `anthropic-version` header was dropped from the request during the edit",
-        "reason": "The message names the `anthropic-beta` header, which is what the API returns a 400 about for an invalid beta name."
-      },
-      {
-        "id": "c",
-        "text": "A beta name is misspelled, or your organization lacks access to that beta",
-        "reason": "Correct: an invalid beta name, or a beta your organization doesn't have access to, returns a 400 that names the `anthropic-beta` header."
-      },
-      {
-        "id": "d",
-        "text": "Betas can't be combined, so adding a second name made the whole header invalid",
-        "reason": "Multiple betas are allowed: list them comma-separated in one header, or send the header more than once."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "A 400 naming `anthropic-beta` means a **wrong or inaccessible beta name**; use the exact documented name.",
-    "explanation": "A 400 `invalid_request_error` that **names the `anthropic-beta` header** points at a bad value in that header: a misspelled beta name, or a beta your organization doesn't have access to (C). The fact that it started right after editing the beta list fits. Option D is the tempting misread, but combining betas is allowed, comma-separated or with repeated headers. Retrying (A) just resends the same invalid value, and a missing `anthropic-version` (B) wouldn't produce an error about `anthropic-beta`.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/beta-headers",
-      "title": "Beta headers",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-error-types"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
-    "id": "q-tech-beta-endpoint-header",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Beta headers",
-    "stem": "Your raw HTTP client calls `POST /v1/sessions` with auth, `anthropic-version` and `content-type` headers, and the calls fail. The same request made with the SDK's `client.beta.sessions` works. What is the raw client missing?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A `betas` field in the JSON body that lists the beta name",
-        "reason": "`betas` is the SDK's parameter; over raw HTTP the Claude API takes beta names in the `anthropic-beta` header."
-      },
-      {
-        "id": "b",
-        "text": "The Managed Agents beta name in an `anthropic-beta` header, on every request",
-        "reason": "Correct: `/v1/agents`, `/v1/sessions` and `/v1/environments` need the Managed Agents beta header on every request; `client.beta` adds it for you."
-      },
-      {
-        "id": "c",
-        "text": "A newer date in the `anthropic-version` header, which unlocks beta endpoints",
-        "reason": "Beta features are enabled with the `anthropic-beta` header, not by changing the API version."
-      },
-      {
-        "id": "d",
-        "text": "Nothing in its headers: the Sessions API can only be called through an SDK",
-        "reason": "The SDK adds endpoint-specific beta headers automatically; you add them yourself only when making raw HTTP requests."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Beta endpoints such as Sessions need their **endpoint-specific beta header** on every raw request; `client.beta` adds it for you.",
-    "explanation": "Some endpoints are betas themselves: `/v1/sessions` (with `/v1/agents` and `/v1/environments`) needs the Managed Agents beta name in an `anthropic-beta` header on **every** request (B). The SDK's `client.beta` adds that header automatically, which is why the SDK call works. Raw HTTP takes beta names in the header, not a body field (A); betas aren't unlocked through `anthropic-version` (C); and raw calls are possible (D).",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/beta-headers",
-      "title": "Beta headers",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -1632,49 +1306,6 @@
     "lessonId": "l-technical-fundamentals"
   },
   {
-    "id": "q-tech-stream-stop-reason",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Streaming events",
-    "stem": "Your streaming handler saves `stop_reason` from the `message_start` event. Your dashboard now shows `stop_reason` as `null` for every streamed response, though the replies look complete. What's wrong?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "It's `null` in `message_start`; read `stop_reason` from the `message_delta` event",
-        "reason": "Correct: when streaming, `stop_reason` is `null` in the initial `message_start` event, provided in `message_delta`, and absent from other events."
-      },
-      {
-        "id": "b",
-        "text": "A `null` stop reason means Claude refused, so route these requests to a fallback model",
-        "reason": "A refusal is reported as `stop_reason: \"refusal\"`; `null` is just the initial value in `message_start`."
-      },
-      {
-        "id": "c",
-        "text": "The streams are being cut off early; retry each request until a `stop_reason` is set",
-        "reason": "The replies are complete. `stop_reason` is always `null` in `message_start`, so a retry would show the same."
-      },
-      {
-        "id": "d",
-        "text": "Read `stop_reason` from the final `message_stop` event, which is where it's reported",
-        "reason": "`stop_reason` is provided in the `message_delta` event, and not in any other event, `message_stop` included."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "When streaming, take `stop_reason` from **`message_delta`**; it's `null` in `message_start`.",
-    "explanation": "When streaming, `stop_reason` is `null` in the initial `message_start` event and only **provided in `message_delta`**, which arrives after the content blocks. Saving it from `message_start` captures that initial `null` every time, so read it from `message_delta` (A). Option D is the tempting near-miss, since `message_stop` is the final event, but `stop_reason` isn't in it. A `null` isn't a refusal (B), which has its own value, and the replies are complete, so retrying (C) changes nothing.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
-      "title": "Stop reasons and fallback",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-stop-reason",
-      "c-stream-event-flow"
-    ],
-    "lessonId": "l-technical-fundamentals"
-  },
-  {
     "id": "q-tech-env-sdk-logging",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
@@ -1721,40 +1352,40 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Fast mode",
-    "stem": "A voice assistant on Claude Opus 5.5 feels slow because users wait a long time before the first word arrives; once text starts, it streams quickly enough. A teammate proposes fast mode. What should the team expect?",
+    "stem": "A coding assistant on Claude Opus 5.5 writes long files, and users watch the code stream in slowly. The team will pay more per token for faster output, but won't accept any drop in quality. Which option fits?",
     "choices": [
       {
         "id": "a",
-        "text": "A big cut in that initial wait, since fast mode makes time to first token up to 2.5x faster",
-        "reason": "The up to 2.5x gain is in output tokens per second. The docs say fast mode's benefits are focused on OTPS, not time to first token."
+        "text": "Turn on fast mode: the same model with faster output, at premium pricing",
+        "reason": "Correct: fast mode runs the same model with a faster inference configuration, so output tokens per second rise with no change to intelligence, at premium pricing."
       },
       {
         "id": "b",
-        "text": "Not much help there: fast mode's gains are in output tokens per second, not time to first token",
-        "reason": "Correct: fast mode's speed benefits are focused on output tokens per second (OTPS), not time to first token (TTFT), so the initial wait isn't what it improves."
+        "text": "Switch to a smaller, faster model and accept some loss in quality",
+        "reason": "The team won't accept a quality drop. Fast mode gets the speed from the same model weights and behavior instead."
       },
       {
         "id": "c",
-        "text": "A faster first word, because fast mode swaps in a smaller model that can start generating sooner",
-        "reason": "Fast mode runs the same model with a faster inference configuration: same weights and behavior, not a different model."
+        "text": "Send the requests through the Batch API, which adds fast mode by default",
+        "reason": "Fast mode is not available with the Batch API, so this option doesn't exist."
       },
       {
         "id": "d",
-        "text": "No effect at all, because fast mode only applies to requests sent through the Message Batches API",
-        "reason": "It's the other way round: fast mode is not available with the Batch API. It works on regular requests, and its gain is most visible when streaming."
+        "text": "Turn off streaming so that each finished file arrives all at once",
+        "reason": "Streaming isn't what slows output. Fast mode is compatible with streaming, which is where its gain is most visible."
       }
     ],
-    "answer": "b",
-    "takeaway": "Fast mode raises **output tokens per second** (up to 2.5x); it isn't a fix for time to first token.",
-    "explanation": "Match the symptom to the lever. Users wait for the **first word**, but once text starts it streams fine, so the problem is time to first token. Fast mode's benefits are focused on output tokens per second, up to 2.5x, not TTFT, so it won't fix the initial wait (B). Option A is the trap: it takes the real 2.5x figure and applies it to the wrong metric. Fast mode runs the same model, not a smaller one (C), and it isn't available with the Batch API at all (D).",
-    "difficulty": "medium",
+    "answer": "a",
+    "takeaway": "Fast mode = **same model, faster output, premium price**: use it when speed is worth paying for.",
+    "explanation": "The team wants faster output with **no quality loss** and will pay more. Fast mode runs the same model on a faster inference setup at premium pricing, so it fits (A). A smaller model (B) trades away the quality they want to keep. Fast mode isn't available with the Batch API (C), and turning off streaming (D) doesn't make generation any faster.",
+    "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
       "title": "Fast mode (research preview)",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-ttft"
+      "c-current-models"
     ],
     "lessonId": "l-llm-fundamentals"
   },
@@ -2198,132 +1829,6 @@
     "lessonId": "l-llm-fundamentals"
   },
   {
-    "id": "q-llm-summarized-not-raw",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Thinking output",
-    "stem": "For an audit trail, a developer wants Claude's raw chain of thought on Claude Opus 5 and sets `thinking.display` to `\"summarized\"`. What will they actually get?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A summary written by a separate model; no `display` value ever returns the raw chain",
-        "reason": "Correct: summarization is done by a different model from the one you target, and no `display` setting returns the raw chain of thought."
-      },
-      {
-        "id": "b",
-        "text": "The raw chain of thought, since `summarized` only trims whitespace and formatting",
-        "reason": "The thinking text you receive is a summary of Claude's full thinking process, not the raw chain of thought."
-      },
-      {
-        "id": "c",
-        "text": "The raw chain, as long as the prompt also asks Claude to restate it in the response",
-        "reason": "On Claude Opus 5, a request that tries to elicit the model's internal reasoning in the response text may be refused with `reasoning_extraction`."
-      },
-      {
-        "id": "d",
-        "text": "A summary that is billed only for its own tokens, so it costs less than full thinking",
-        "reason": "You're charged for the full thinking tokens, not the summary tokens, so the billed output count won't match what you see."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Thinking text is a **summary** (or omitted), never the raw chain, and you pay for the full thinking either way.",
-    "explanation": "No `display` value returns the **raw chain of thought**: `summarized` gives a summary written by a different model from the one you target (A). For an audit trail, that's the limit you have to plan around. Option C is the tempting workaround, asking Claude to restate its reasoning in the response, but on Opus 5 that may be refused with `reasoning_extraction`. `summarized` isn't a whitespace trim (B), and you're billed for the full thinking tokens, not just the summary (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
-    ],
-    "lessonId": "l-llm-fundamentals"
-  },
-  {
-    "id": "q-llm-display-omitted-latency",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Thinking output",
-    "stem": "A chat app on Claude Sonnet 4.6 uses adaptive thinking but never shows thinking to users. The team wants reply text to start streaming sooner while keeping thinking's quality benefit. What should they set?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`display: \"summarized\"`, so the thinking text is shorter and streams faster",
-        "reason": "`summarized` is already the default on Claude Sonnet 4.6; it's the setting that streams thinking text ahead of the reply."
-      },
-      {
-        "id": "b",
-        "text": "`thinking: {\"type\": \"disabled\"}`, so that no thinking delays the reply",
-        "reason": "That gives up thinking altogether, which the team wants to keep; `display` changes what's returned, not whether Claude thinks."
-      },
-      {
-        "id": "c",
-        "text": "A much lower `max_tokens`, so thinking is cut short and text starts earlier",
-        "reason": "Thinking tokens count toward `max_tokens`, so set it high enough to leave room for both the thinking and the response text."
-      },
-      {
-        "id": "d",
-        "text": "`display: \"omitted\"`, so the server skips streaming the thinking tokens",
-        "reason": "Correct: with `omitted`, the server streams only each thinking block's signature, so the text begins sooner. You're still charged for the full thinking."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "`display: \"omitted\"` cuts **time to first text token**, not cost: Claude still thinks, and the thinking is still billed.",
-    "explanation": "The goal is **earlier reply text** while keeping thinking. `display: \"omitted\"` has the server stream only each thinking block's signature, so text begins sooner, while Claude still thinks and is still charged for it (D). Option A is the trap: `summarized` is already the default here, and it's the setting that streams thinking text ahead of the reply. Disabling thinking (B) gives up the quality benefit, and lowering `max_tokens` (C) cuts into the room thinking and the answer both need.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-ttft"
-    ],
-    "lessonId": "l-llm-fundamentals"
-  },
-  {
-    "id": "q-llm-haiku-low-effort-agent",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Effort",
-    "stem": "A Claude Haiku 5.5 agent with a long agent prompt runs at `low` effort to save cost. It often skips a search, stops early or skips a check. What does the effort guidance for Claude Haiku 5.5 suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Stay at `low` and turn thinking off with `\"disabled\"` so the agent acts more decisively",
-        "reason": "Turning thinking off gives **less** thinking, not more thoroughness; the guidance points to a higher effort level for this."
-      },
-      {
-        "id": "b",
-        "text": "Raise effort back to the `medium` default, or to `high` for longer agent tasks",
-        "reason": "Correct: at `low`, the model is more likely to skip a search, stop early or skip a check in long agent prompts. Use `medium` for most work and `high` for longer agent tasks."
-      },
-      {
-        "id": "c",
-        "text": "Set `max` effort with thinking disabled to force the most thorough checking",
-        "reason": "On Claude Haiku 5.5, `thinking: {\"type\": \"disabled\"}` at `xhigh` or `max` effort returns a 400 error."
-      },
-      {
-        "id": "d",
-        "text": "Lower effort further to `minimal`, which makes agents follow instructions literally",
-        "reason": "There is no `minimal` level: the effort levels are `low`, `medium`, `high`, `xhigh` and `max`."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "On Haiku 5.5, `low` suits chat and simple, high-volume requests; long agent tasks need `medium` or `high`.",
-    "explanation": "The symptoms, skipped searches, stopping early and skipped checks in a **long agent prompt**, are what the guidance says `low` effort tends to cause on Haiku 5.5. The fix is to go back to the `medium` default, or `high` for longer agent tasks (B). Option C is tempting because `max` sounds thorough, but on Haiku 5.5 disabling thinking at `xhigh` or `max` returns a 400. Turning thinking off at `low` (A) gives less thinking, not more care, and there is no `minimal` level (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
-      "title": "Effort",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-effort"
-    ],
-    "lessonId": "l-llm-fundamentals"
-  },
-  {
     "id": "q-cost-thinking-billed-omitted",
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
@@ -2439,12 +1944,12 @@
       },
       {
         "id": "b",
-        "text": "The Usage API, called with each app's existing workspace API key",
-        "reason": "These are Admin API endpoints: they need an Admin API key or another admin credential, and workspace API keys don't work."
+        "text": "The Usage API's token counts by workspace, priced by hand at list rates",
+        "reason": "The Usage API tracks token consumption; USD cost breakdowns that reconcile with Anthropic billing come from the Cost API."
       },
       {
         "id": "c",
-        "text": "The Cost API (`/v1/organizations/cost_report`), grouped by workspace",
+        "text": "The Cost API, with USD costs grouped by workspace",
         "reason": "Correct: the Cost API returns USD cost breakdowns that can be grouped by workspace, for reconciling with Anthropic billing. It needs Admin API credentials."
       },
       {
@@ -2455,57 +1960,15 @@
     ],
     "answer": "c",
     "takeaway": "For billing-grade cost by workspace, use the **Cost API** with **Admin** credentials, not per-response token sums.",
-    "explanation": "Finance needs **USD by workspace that reconciles with billing**, which is what the Cost API (`/v1/organizations/cost_report`) returns when grouped by workspace, using Admin API credentials (C). The Usage API (B) needs Admin credentials, not workspace keys. Summing response `usage` (A) is what the Usage and Cost API exists to replace, and an average-price estimate (D) can't reconcile with billing.",
+    "explanation": "Finance needs **USD by workspace that reconciles with billing**, which is what the Cost API returns when grouped by workspace (C); it needs Admin API credentials. Pricing Usage API token counts by hand (B) is still an estimate, summing response `usage` (A) is what the Usage and Cost API exists to replace, and an average-price estimate (D) can't reconcile with billing.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
       "title": "Usage and Cost API",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
       "c-price-per-mtok"
-    ],
-    "lessonId": "l-prompt-caching"
-  },
-  {
-    "id": "q-cost-count-tokens-estimate",
-    "domainId": "model-selection",
-    "subSkillId": "cost-tokens",
-    "topic": "Token counting",
-    "stem": "Before sending requests, an app calls the token counting endpoint to check budgets. The count is sometimes a few tokens off from the `usage` the Messages API later reports. What explains it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The count is an estimate; actual input tokens can differ from it by a small amount",
-        "reason": "Correct: the docs call the token count an estimate; the actual input tokens used when creating a message might differ by a small amount."
-      },
-      {
-        "id": "b",
-        "text": "The endpoint applies prompt caching, so cached blocks are counted differently",
-        "reason": "Token counting doesn't use caching logic; caching only happens during actual message creation, even if you send `cache_control`."
-      },
-      {
-        "id": "c",
-        "text": "You're billed for tokens Anthropic adds for system optimizations, which the count skips",
-        "reason": "Counts may include tokens Anthropic adds for system optimizations, but you're not billed for them; billing reflects only your content."
-      },
-      {
-        "id": "d",
-        "text": "The endpoint counts with one fixed tokenizer rather than your model's tokenizer",
-        "reason": "The endpoint counts under the tokenizer of the `model` you pass."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "`count_tokens` is free and **model-specific**, but it's an estimate: expect small differences from actual usage.",
-    "explanation": "The docs call the token count an **estimate**: actual input tokens used when creating a message might differ by a small amount, which matches a count that's a few tokens off (A). Option C is tempting because tokens added for system optimizations are real, but you're not billed for them, so they don't explain a billing gap. Token counting doesn't apply caching (B), and it counts with the tokenizer of the `model` you pass rather than a fixed one (D).",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
-      "title": "Token counting",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-token-counting"
     ],
     "lessonId": "l-prompt-caching"
   },
@@ -2549,66 +2012,6 @@
     "relatedCardIds": [
       "c-token-counting",
       "c-token"
-    ],
-    "lessonId": "l-course-how-llms-behave"
-  },
-  {
-    "id": "q-course-window-exceeded-handling",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Context windows",
-    "stem": "Your summarizer sends 960k input tokens to Claude Opus 5.5 (1M-token window) with `max_tokens` set to 128,000. The reply comes back with HTTP 200 and `stop_reason: \"model_context_window_exceeded\"`. How should your code treat it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "As a failed request, and retry the identical call with exponential backoff",
-        "reason": "Stop reasons are part of successful responses; failures come back as 4xx or 5xx status codes. This reply arrived with 200 and valid content."
-      },
-      {
-        "id": "b",
-        "text": "As a complete answer, since only 4xx and 5xx responses signal a problem",
-        "reason": "The stop reasons guide says to treat this stop reason as truncated: generation stopped because the output reached the context window limit."
-      },
-      {
-        "id": "c",
-        "text": "As valid but truncated output, flagged to the reader as incomplete",
-        "reason": "Correct: the response is still valid but was limited by the context window. Treat it as truncated and append a notice so the reader knows the output is incomplete."
-      },
-      {
-        "id": "d",
-        "text": "As a rejected prompt that came back with no content at all",
-        "reason": "A stop reason comes with a successful response that contains valid content; it tells you why generation stopped, not that the request was refused."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "`model_context_window_exceeded` is a **successful but truncated** response: keep the content and mark it incomplete.",
-    "explanation": "A stop reason is part of a successful response, so the content is valid, but this one says generation ran into the context window before finishing. The stem's 960k input plus a 128k `max_tokens` on a 1M window is the setup for exactly that, so the output is truncated and should be flagged (C). Option B is the tempting one, since HTTP 200 looks like success, but the guide says to treat this stop reason as truncated. A and D treat a successful response as an error.",
-    "difficulty": "medium",
-    "diagram": {
-      "kind": "segmented-bar",
-      "caption": "Input filled most of the window, so output hit the 1M ceiling before max_tokens.",
-      "segments": [
-        {
-          "label": "Input · 960k",
-          "weight": 24,
-          "tone": "neutral"
-        },
-        {
-          "label": "Output",
-          "sublabel": "stopped at ceiling",
-          "weight": 2,
-          "tone": "error"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
-      "title": "Stop reasons and fallback",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-context-window-exceeded",
-      "c-stop-reason"
     ],
     "lessonId": "l-course-how-llms-behave"
   },
@@ -2703,42 +2106,42 @@
     "id": "q-course-judge-thinking",
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
-    "topic": "Evals",
-    "stem": "Your LLM grader for legal-summary quality uses a detailed rubric and outputs only \"correct\" or \"incorrect\". On hard cases it often disagrees with expert spot checks. What does Anthropic's eval guide suggest next?",
+    "topic": "Next-token prediction",
+    "stem": "A developer notices that rewording a request, or adding earlier messages to the conversation, changes Claude's answer. Which explanation fits how the underlying model generates text?",
     "choices": [
       {
         "id": "a",
-        "text": "Replace it with expert human grading for every case in the set",
-        "reason": "Human grading is slow and expensive, and the guide says to avoid it if possible; LLM-based grading is suitable for complex judgment."
+        "text": "It looks up a stored answer, and each wording picks a different entry",
+        "reason": "The model generates text by predicting the next word from the context; it doesn't retrieve a stored answer for each question."
       },
       {
         "id": "b",
-        "text": "Run the grader with thinking on, so it reasons before it scores",
-        "reason": "Correct: the guide's tip is to encourage reasoning by using a grader with thinking on, which increases evaluation performance, particularly for complex judgment."
+        "text": "Earlier messages are ignored, and only the latest message shapes the reply",
+        "reason": "The context window is the text the model can look back on while generating, which includes the earlier messages."
       },
       {
         "id": "c",
-        "text": "Drop the rubric so the grader can apply its own sense of quality",
-        "reason": "The first tip for LLM-based grading is to have detailed, clear rubrics; removing it makes the grades less consistent, not more."
+        "text": "Its training data is updated after every conversation, so answers drift",
+        "reason": "The context window is a working memory, separate from the large corpus the model was trained on; conversations don't retrain it."
       },
       {
         "id": "d",
-        "text": "Grade with the same model that wrote the summaries being judged",
-        "reason": "The guide's example notes it is generally best practice to use a different model to evaluate than the one that generated the output."
+        "text": "It predicts each next word from the context so far, so new context gives new text",
+        "reason": "Correct: the underlying autoregressive model is trained to predict the next word given the previous context, so changing that context changes what it generates."
       }
     ],
-    "answer": "b",
-    "takeaway": "For complex judgments, give your LLM grader a clear rubric, a specific output and **thinking on**.",
-    "explanation": "The grader already has a detailed rubric and a specific output, two of the guide's tips. Another tip is to encourage reasoning: a grader with thinking on reasons before scoring, which helps most on complex judgments like these hard cases (B). Human grading for everything (A) is slow and expensive, dropping the rubric (C) makes grades less consistent, and the guide suggests a different model from the one that wrote the output (D).",
-    "difficulty": "medium",
+    "answer": "d",
+    "takeaway": "Claude generates by **predicting the next token from the context**: change the context and you change the output.",
+    "explanation": "An LLM generates text one step at a time, predicting the next word from the previous context (D). That is why wording and earlier messages matter. It doesn't look up stored answers (A), earlier messages are part of the context it reads (B), and the context window is working memory, not training data, so conversations don't retrain the model (C).",
+    "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
-      "title": "Define success criteria and build evaluations",
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-eval-grading-methods",
-      "c-eval-set"
+      "c-pretraining",
+      "c-context-window"
     ],
     "lessonId": "l-course-how-llms-behave"
   },
@@ -2985,7 +2388,7 @@
   {
     "id": "q-course-thinking-task-fit",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Extended thinking",
     "stem": "Your app sends Claude two kinds of request: one-line FAQ lookups (\"What are your opening hours?\") and root-cause analysis of incident logs, which takes several dependent steps. Where is thinking most likely to improve answer quality?",
     "choices": [
@@ -3027,69 +2430,50 @@
   {
     "id": "q-course-redacted-thinking-carry-back",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Preserving thinking blocks",
-    "stem": "Mid tool-use loop, Claude returns `[thinking, redacted_thinking, tool_use]`. Since `redacted_thinking` has no readable text, your code drops it before sending the assistant turn back with the `tool_result`. What should it do instead?",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Adaptive thinking",
+    "stem": "To save tokens, your code on Claude Opus 5 sent `thinking: {\"type\": \"disabled\"}` on simple requests. After moving to Claude Opus 5.5, those requests fail with a 400 error. What should you do instead?",
     "choices": [
       {
         "id": "a",
-        "text": "Drop it; only `thinking` blocks with readable text must be returned",
-        "reason": "The rule includes `redacted_thinking` blocks: within the latest assistant message you can't partially drop the sequence."
+        "text": "Remove the `thinking` field and use a lower effort level for those requests",
+        "reason": "Correct: adaptive thinking is always on in Claude Opus 5.5, and where you disabled thinking to save tokens, the guide says to use a lower effort level."
       },
       {
         "id": "b",
-        "text": "Convert it into a `thinking` block with an empty `thinking` field",
-        "reason": "That edits the block. Thinking blocks must go back exactly as generated, and its encrypted `data` would be lost."
+        "text": "Send `thinking: {\"type\": \"enabled\"}` with a small `budget_tokens` value",
+        "reason": "Manual thinking budgets are rejected on Claude Opus 5.5 as well; effort is the request parameter that controls thinking depth."
       },
       {
         "id": "c",
-        "text": "Move it after the `tool_use` block so the reasoning stays first",
-        "reason": "Rearranging is also forbidden: the sequence of thinking blocks must match what the model generated in the original request."
+        "text": "Tell Claude in the system prompt not to think, which switches thinking off",
+        "reason": "Thinking can't be disabled on Claude Opus 5.5; effort, not a prompt line, is the request setting for thinking depth."
       },
       {
         "id": "d",
-        "text": "Send the whole assistant turn back exactly as received",
-        "reason": "Correct: pass `redacted_thinking` back unchanged with the rest of the turn, alongside the `tool_use` it accompanied."
+        "text": "Keep sending `disabled`, since the 400 error is transient and clears on retry",
+        "reason": "The API rejects that setting on Claude Opus 5.5, so every retry gets the same 400 error."
       }
     ],
-    "answer": "d",
-    "takeaway": "The carry-back rule covers **every** thinking block, `redacted_thinking` included: same blocks, same order, unmodified.",
-    "explanation": "When you return a tool result, Claude continues the same response, so the thinking blocks from that assistant message must come back complete and unmodified. The decisive detail is that the block is `redacted_thinking`: it looks empty to you, but its encrypted `data` carries reasoning, and the rule names it explicitly. Option A is the tempting shortcut, while B and C are edits and reorderings that the same rule forbids.",
+    "answer": "a",
+    "takeaway": "On Claude Opus 5.5, thinking is **always on**: spend less on it by lowering **effort**.",
+    "explanation": "Claude Opus 5.5 rejects both `disabled` and manual budgets, because adaptive thinking is always on. To spend less where you used to switch thinking off, lower effort (A). A small budget (B) is rejected too, a prompt line (C) can't turn thinking off, and the 400 isn't transient (D).",
     "difficulty": "medium",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Return the assistant turn untouched, then the tool result.",
-      "steps": [
-        {
-          "label": "thinking"
-        },
-        {
-          "label": "redacted_thinking",
-          "sublabel": "keep it"
-        },
-        {
-          "label": "tool_use"
-        },
-        {
-          "label": "tool_result",
-          "sublabel": "your next user turn"
-        }
-      ]
-    },
     "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+      "title": "Claude Opus 5.5 migration guide",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
+      "c-effort",
+      "c-thinking-budget"
     ],
     "lessonId": "l-course-extended-thinking"
   },
   {
     "id": "q-course-effort-before-prompt",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Steering thinking",
     "stem": "A chat app on Claude Sonnet 5.5 thinks at length on routine questions, and replies feel slow. The app sets no effort level. A teammate wants to add \"Don't think, just answer\" to the system prompt. What does Anthropic's guidance recommend trying first?",
     "choices": [
@@ -3131,7 +2515,7 @@
   {
     "id": "q-course-carry-back-rules",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Preserving thinking blocks",
     "stem": "You're writing your team's rules for handling thinking blocks in an agent that uses tools. Which rule matches Anthropic's documentation?",
     "choices": [
@@ -3556,41 +2940,41 @@
     "id": "q-course-eval-volume-over-quality",
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
-    "topic": "Evals",
-    "stem": "With the same budget, your team can either hand-grade 60 test cases in depth or auto-grade 1,500 cases with slightly noisier checks. Which does Anthropic's eval guide favor?",
+    "topic": "Zero-shot prompting",
+    "stem": "A zero-shot prompt (instructions only, no examples) says \"Summarize this support ticket.\" The summaries vary widely in length and layout. The team wants to stay zero-shot for now. What change best fits Anthropic's prompting guidance?",
     "choices": [
       {
         "id": "a",
-        "text": "The 60 hand-graded cases, since high-quality human verdicts beat volume",
-        "reason": "The guide says to prioritize volume over quality: more automated questions beat fewer hand-graded ones."
+        "text": "Spell out the output format and constraints, such as length and sections",
+        "reason": "Correct: Claude responds well to clear, explicit instructions, and being specific about the desired output format and constraints helps."
       },
       {
         "id": "b",
-        "text": "The 60 cases, but only typical inputs, leaving edge cases for later",
-        "reason": "The guide says evals should mirror your real task distribution and not forget edge cases."
+        "text": "Keep the instruction short so Claude can infer the format it prefers",
+        "reason": "The guide says to ask explicitly rather than rely on Claude inferring what you want from a vague prompt."
       },
       {
         "id": "c",
-        "text": "Human-grade all 1,500, since human grading is the most scalable method",
-        "reason": "Human grading is slow and expensive; code-based grading is the one the guide calls extremely scalable."
+        "text": "Ask Claude to match the format of the team's past summaries",
+        "reason": "Claude is like a brilliant new employee who lacks context on your norms; it hasn't seen past summaries you don't provide."
       },
       {
         "id": "d",
-        "text": "The 1,500 auto-graded cases: more questions beat fewer hand-graded ones",
-        "reason": "Correct: the guide says more questions with slightly lower-signal automated grading beat fewer high-quality human-graded evals."
+        "text": "Leave the prompt alone, since varied output is unavoidable without examples",
+        "reason": "Clear, specific instructions improve results on their own; examples are one tool, not the only one."
       }
     ],
-    "answer": "d",
-    "takeaway": "Prioritize **volume**: many auto-graded cases beat a few hand-graded ones.",
-    "explanation": "One of the guide's eval design principles is to prioritize volume over quality: more questions with slightly lower-signal automated grading are better than fewer high-quality, hand-graded evals. That makes D right. A is the intuitive pick, since in-depth human grading feels more trustworthy, but it's exactly what the guide trades away. C gets scalability backwards, because human grading is the slow, expensive method.",
-    "difficulty": "medium",
+    "answer": "a",
+    "takeaway": "In a zero-shot prompt, the **instructions carry everything**: be specific about format and constraints.",
+    "explanation": "With no examples, consistency has to come from the instructions, and the guide says to be clear and direct about the desired format and constraints (A). A shorter, vaguer prompt (B) leaves more to guesswork. Claude has no access to past summaries it isn't shown (C), and inconsistent output isn't unavoidable just because the prompt is zero-shot (D).",
+    "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
-      "title": "Define success criteria and build evaluations",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-eval-set"
+      "c-few-shot-prompting"
     ],
     "lessonId": "l-course-how-llms-behave"
   },
@@ -3640,49 +3024,41 @@
     "id": "q-course-eval-edge-case-set",
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
-    "topic": "Evals",
-    "stem": "You're building a task-specific eval set for a customer-support summarizer. Beyond typical tickets, which two kinds of test case does Anthropic's guide list as edge cases to include?",
+    "topic": "Few-shot prompting",
+    "stem": "A one-shot prompt includes a single example product description that opens with \"Introducing...\" and mentions free shipping. Now every description Claude writes opens that way and mentions free shipping, even for products without it. What should the team change?",
     "choices": [
       {
         "id": "a",
-        "text": "Only tickets the current prompt already handles well, for a stable baseline",
-        "reason": "The guide says evals should mirror your real-world task distribution, edge cases included, not just cases that already pass."
+        "text": "Remove the example, since examples can't steer format or tone",
+        "reason": "Examples are one of the most reliable ways to steer Claude's output format, tone and structure."
       },
       {
         "id": "b",
-        "text": "Tickets with irrelevant or nonexistent input data",
-        "reason": "Correct: \"Irrelevant or nonexistent input data\" is one of the guide's example edge cases."
+        "text": "Repeat the same example several times so its pattern is clearer",
+        "reason": "Repeating one example reinforces the unintended pattern; the guide asks for diverse examples instead."
       },
       {
         "id": "c",
-        "text": "Only short, well-formed tickets, since long inputs are out of scope",
-        "reason": "The guide lists overly long input data or user input as an edge case to include."
+        "text": "Paste the example into the instructions without tags so it reads as a rule",
+        "reason": "Wrap examples in `<example>` tags so Claude can tell them apart from instructions."
       },
       {
         "id": "d",
-        "text": "Only tickets with a clear-cut answer, skipping ambiguous ones",
-        "reason": "The guide lists ambiguous cases, where even humans would struggle to agree, as edge cases."
-      },
-      {
-        "id": "e",
-        "text": "Overly long tickets or user input",
-        "reason": "Correct: overly long input data or user input is one of the guide's example edge cases."
+        "text": "Use several relevant, varied examples so Claude doesn't copy one pattern",
+        "reason": "Correct: examples should be relevant and diverse, varying enough that Claude doesn't pick up unintended patterns from them."
       }
     ],
-    "answer": [
-      "b",
-      "e"
-    ],
-    "takeaway": "A good eval set mirrors **real traffic**, including irrelevant, overly long and ambiguous inputs.",
-    "explanation": "The guide's first principle is to be task-specific: mirror your real-world task distribution and don't forget edge cases. Its examples include irrelevant or nonexistent input data (B) and overly long input (E). A is the tempting option for a team that wants stable numbers, but a set of already-passing cases tells you nothing about failures. C and D exclude two of the guide's own edge-case examples.",
+    "answer": "d",
+    "takeaway": "One example teaches its quirks too: use **several diverse examples** in `<example>` tags.",
+    "explanation": "A single example gets copied, quirks and all. The guide says examples should be relevant and **diverse** so Claude doesn't pick up unintended patterns (D). Dropping examples (A) throws away one of the most reliable steering tools, repeating the same one (B) strengthens the problem, and untagged examples (C) blur into the instructions.",
     "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
-      "title": "Define success criteria and build evaluations",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-eval-set"
+      "c-few-shot-prompting"
     ],
     "lessonId": "l-course-how-llms-behave"
   },
@@ -3909,41 +3285,42 @@
     "id": "q-course-latency-relative",
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
-    "topic": "Choosing a model",
-    "stem": "The models overview rates Claude Haiku 5.5's latency as \"Fastest\", yet your Haiku 5.5 requests with very long prompts, long outputs and high effort feel slow. How does the overview qualify its latency ratings?",
+    "topic": "Model migration",
+    "stem": "A team moves a classifier from an older Claude model to Claude Opus 5.5 by changing only the model ID. Every request now fails with a 400 error. The requests still send `temperature: 0.2`. What's the right fix?",
     "choices": [
       {
         "id": "a",
-        "text": "\"Fastest\" means Haiku 5.5 answers every request in under a second",
-        "reason": "The overview gives no absolute time; the ratings are comparative within the current lineup."
+        "text": "Remove `temperature` and guide the model's behavior through prompting",
+        "reason": "Correct: on Claude Opus 5.5, any non-default `temperature`, `top_p` or `top_k` is rejected with a 400 error, and prompting is the recommended way to guide behavior."
       },
       {
         "id": "b",
-        "text": "They're relative; real latency depends on prompt, output and effort",
-        "reason": "Correct: latency is relative to the lineup, and actual latency depends on prompt length, output length and thinking effort."
+        "text": "Set `temperature` to 0 instead, which Opus 5.5 accepts for determinism",
+        "reason": "Any non-default value is rejected, and the guide notes that `temperature = 0` never guaranteed identical outputs anyway."
       },
       {
         "id": "c",
-        "text": "The ratings hold only for prompts shorter than 200k tokens",
-        "reason": "The overview sets no prompt-size cutoff; it says actual latency depends on prompt length, output length and effort."
+        "text": "Retry the failed requests with exponential backoff until they succeed",
+        "reason": "A 400 here means the API rejects a setting in the request; sending it again unchanged fails the same way."
       },
       {
         "id": "d",
-        "text": "Haiku 5.5 is fastest only when thinking is off on every request",
-        "reason": "The overview ties actual latency to prompt length, output length and thinking effort, not to thinking being off."
+        "text": "Keep `temperature` and add a beta header that turns sampling back on",
+        "reason": "The guide's fix is to omit sampling parameters or leave them at defaults; it offers no header to re-enable them."
       }
     ],
-    "answer": "b",
-    "takeaway": "Latency ratings are **relative**; prompt length, output length and effort drive what you actually see.",
-    "explanation": "The overview's note on comparative latency says the ratings are relative to the current lineup, and that actual latency depends on prompt length, output length and thinking effort (B). Long prompts, long outputs and high effort all push latency up, even on the fastest model. A reads \"Fastest\" as an absolute promise, which is the tempting mistake. D picks one factor the overview doesn't single out.",
-    "difficulty": "easy",
+    "answer": "a",
+    "takeaway": "A new model can **reject settings** the old one accepted: check its migration guide, not just the model ID.",
+    "explanation": "New model releases can bring breaking changes. On Claude Opus 5.5, non-default sampling parameters such as `temperature` are rejected with a 400, so remove them and steer with the prompt (A). Zero is still a non-default value (B), retrying an invalid request changes nothing (C), and there's no header that brings sampling back (D).",
+    "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/models/overview",
-      "title": "Models overview",
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+      "title": "Claude Opus 5.5 migration guide",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-current-models"
+      "c-current-models",
+      "c-temperature"
     ],
     "lessonId": "l-course-models-reasoning"
   },
@@ -3992,7 +3369,7 @@
   {
     "id": "q-course-budget-is-target",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Extended thinking",
     "stem": "A report job on Claude Sonnet 4.5 sets `budget_tokens: 10000`. Usage shows many requests spending only about 2,000 thinking tokens, and a teammate files a bug saying the budget is being ignored. What is the accurate reply?",
     "choices": [
@@ -4034,7 +3411,7 @@
   {
     "id": "q-course-sonnet46-turn-on-thinking",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Adaptive thinking",
     "stem": "Your app mixes one-line lookups with multistep financial reconciliations. You want Claude to reason only when a request needs it and to decide how much, instead of thinking at a fixed depth on every request. Your model supports both thinking modes. Which configuration fits?",
     "choices": [
@@ -4077,7 +3454,7 @@
   {
     "id": "q-course-thinking-spend-controls",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "topic": "Steering thinking",
     "stem": "Finance wants a thinking-heavy workload on Claude Opus 5.5 kept in check: a firm ceiling on each request, plus lower average cost and latency. Which two moves match the thinking docs?",
     "choices": [
@@ -4128,42 +3505,43 @@
   {
     "id": "q-course-toggle-thinking-mid-turn",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Preserving thinking blocks",
-    "stem": "To save cost, your agent wants to turn thinking off partway through a tool-use loop, then back on for the next user message. What does the Thinking guide advise?",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Model migration",
+    "stem": "A report generator on Claude Opus 4.6 uses `thinking: {\"type\": \"enabled\", \"budget_tokens\": 10000}`. After moving it to Claude Opus 5.5, every request returns a 400 error. Which change does the migration guide prescribe?",
     "choices": [
       {
         "id": "a",
-        "text": "Toggle it freely; each request in the loop is independent, so nothing else changes",
-        "reason": "Mid-turn toggling isn't clean: the API silently disables thinking for that request and may strip thinking blocks."
+        "text": "Lower `budget_tokens` to a smaller value that Opus 5.5 will accept",
+        "reason": "Manual thinking budgets are rejected outright on Claude Opus 5.5, whatever the value."
       },
       {
         "id": "b",
-        "text": "Turn it off and delete the earlier thinking blocks, so the turn looks consistent",
-        "reason": "Within a tool-use turn, thinking blocks must be passed back unchanged; deleting them breaks the turn."
+        "text": "Move `budget_tokens` into `output_config` next to `effort`",
+        "reason": "Effort replaces the thinking budget as the way to control how much the model reasons; there's no budget field to move."
       },
       {
         "id": "c",
-        "text": "Turn it off only on the request that carries the `tool_result`, which is always safe",
-        "reason": "That request is still mid-turn; toggling there is exactly what silently disables thinking and may strip blocks."
+        "text": "Use adaptive thinking (or omit `thinking`) and tune depth with `effort`",
+        "reason": "Correct: manual budgets return a 400 error on Claude Opus 4.7 and later; switch to adaptive thinking and use the effort parameter to control depth."
       },
       {
         "id": "d",
-        "text": "Keep one thinking setting for the whole tool-use turn; change it between turns",
-        "reason": "Correct: a tool-use loop is one assistant turn, so plan thinking changes for the start of the next turn."
+        "text": "Convert the old budget into one exactly matching effort level",
+        "reason": "The guide says to run an effort sweep on your own evals rather than translating a `budget_tokens` value."
       }
     ],
-    "answer": "d",
-    "takeaway": "A tool-use loop is one assistant turn: change thinking settings **between turns**, not mid-turn.",
-    "explanation": "From the model's point of view, a tool-use loop is one assistant turn, and the whole turn runs in a single thinking mode, so change the setting between turns (D). Toggling mid-turn (A, C) doesn't error, but the API silently disables thinking for that request and may strip blocks. Deleting thinking blocks (B) breaks the rule that they go back unchanged.",
+    "answer": "c",
+    "takeaway": "Moving to a newer model can mean **replacing `budget_tokens` with adaptive thinking plus `effort`**, tuned on your evals.",
+    "explanation": "Manual extended thinking was removed in Claude Opus 4.7 and later, so the fix is adaptive thinking with effort as the depth control (C). No budget value is accepted (A), effort replaces the budget rather than sitting beside it (B), and the guide says to sweep effort on your evals instead of mapping the old number (D).",
     "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+      "title": "Claude Opus 5.5 migration guide",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
+      "c-thinking-budget",
+      "c-effort"
     ],
     "lessonId": "l-course-extended-thinking"
   },
@@ -4257,32 +3635,32 @@
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
     "topic": "Message Batches",
-    "stem": "Your live chat calls the Messages API all day and runs close to its rate limits. Another team wants to start a large nightly Message Batch in the same organization, and support worries it will cause 429 errors for the chat. What does the batch guide say?",
+    "stem": "A nightly Message Batch sends 20,000 requests that all start with the same long block of instructions, followed by a different document each. The team already gets the batch discount. How can they cut cost further?",
     "choices": [
       {
         "id": "a",
-        "text": "Batch requests count against the Messages API limits, so run the batch off-peak",
-        "reason": "The guide says usage of the Batches API does not affect rate limits in the Messages API."
+        "text": "Add prompt caching on the shared block, since the two discounts can stack",
+        "reason": "Correct: the Batches API supports prompt caching, and the two discounts can stack. Cache hits are best-effort in batches."
       },
       {
         "id": "b",
-        "text": "The Batches API has no rate limits at all, so batch size is the only constraint",
-        "reason": "The Batches API has its own limits, on HTTP requests and on the number of requests waiting to be processed."
+        "text": "Nothing more, because prompt caching isn't supported inside Message Batches",
+        "reason": "The Message Batches API does support prompt caching, and its discounts stack with the batch discount."
       },
       {
         "id": "c",
-        "text": "Turn the batch into synchronous calls throttled to stay under the chat’s limits",
-        "reason": "That moves the work onto the Messages API limits the chat depends on and gives up the 50% batch discount."
+        "text": "Send the shared block only in the first request so later ones reuse it",
+        "reason": "Each request in a batch is handled independently, so each one needs its full prompt."
       },
       {
         "id": "d",
-        "text": "It has its own limits, and its usage doesn’t affect the Messages API limits",
-        "reason": "The guide says the Batches API has HTTP request limits plus limits on requests awaiting processing, and that its usage does not affect Messages API rate limits."
+        "text": "Split the job into many small batches, which are billed at a lower rate",
+        "reason": "The batch discount is 50% of standard prices; splitting adds no discount, while caching the shared prefix does."
       }
     ],
-    "answer": "d",
-    "takeaway": "Batch traffic is rate-limited separately (HTTP requests and queued requests) and doesn’t eat into Messages API limits.",
-    "explanation": "The two APIs are rate-limited separately: the Batches API limits its own HTTP requests and its queue of requests awaiting processing, and its usage doesn't touch Messages API limits. The chat is safe from the batch. Choice b is the overcorrection, because separate doesn't mean unlimited, and choice c would create exactly the contention support fears.",
+    "answer": "a",
+    "takeaway": "Batching and **prompt caching stack**: cache the shared prefix of a big batch.",
+    "explanation": "The batch discount and prompt caching are separate levers that can stack, so caching the shared instructions saves more (A). Cache hits in batches are best-effort, and the guide suggests considering the 1-hour cache duration. Caching does work in batches (B), every request is processed independently and needs its own full prompt (C), and smaller batches add no discount (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -4290,7 +3668,8 @@
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-message-batches"
+      "c-message-batches",
+      "c-prompt-caching"
     ],
     "lessonId": "l-course-batch-multimodal"
   },
@@ -4529,7 +3908,7 @@
   {
     "id": "q-course-thinking-billed-hidden",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "lessonId": "l-course-extended-thinking",
     "topic": "Thinking cost",
     "stem": "Your support app runs with thinking on but never shows the thinking text, so it returns empty thinking blocks. Finance sees output-token bills far larger than the length of the visible replies and suspects a billing bug. What explains the gap?",
@@ -4572,7 +3951,7 @@
   {
     "id": "q-course-thinking-max-tokens-room",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "lessonId": "l-course-extended-thinking",
     "topic": "Thinking and max_tokens",
     "stem": "A report generator sets `max_tokens` just above the length of a typical finished report. After you turn thinking on for better analysis, many replies come back cut off with `stop_reason: \"max_tokens\"`. What's the fix?",
@@ -4614,7 +3993,7 @@
   {
     "id": "q-course-show-reasoning-display",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "lessonId": "l-course-extended-thinking",
     "topic": "Thinking display",
     "stem": "Product wants a \"How I worked this out\" panel showing users Claude's reasoning. Your model returns thinking blocks with an empty `thinking` field and an encrypted `signature`. What should you change?",
@@ -4656,7 +4035,7 @@
   {
     "id": "q-course-adaptive-skips-easy",
     "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
+    "subSkillId": "llm-fundamentals",
     "lessonId": "l-course-extended-thinking",
     "topic": "Adaptive thinking",
     "stem": "After migrating from a fixed `budget_tokens` to adaptive thinking at `low` effort, your logs show that easy requests now often return no thinking block, though hard ones still do. A teammate calls the migration broken. What does the Extended thinking guide say?",
@@ -4695,5 +4074,91 @@
       "c-effort",
       "c-thinking-budget"
     ]
+  },
+  {
+    "id": "q-cache-conversation-checkpoint",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cache breakpoints",
+    "stem": "A long-running chat resends the whole conversation on every turn. The team caches only the system prompt, so every earlier turn is billed at the full input price on each request. What should they change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the cache point to the latest message each turn, or use automatic caching",
+        "reason": "Correct: with automatic caching the cache point moves forward as the conversation grows, so earlier turns are read from cache."
+      },
+      {
+        "id": "b",
+        "text": "Nothing: conversation turns can't be cached, only the system prompt",
+        "reason": "Messages can be cached: with automatic caching, each request caches everything up to the last cacheable block."
+      },
+      {
+        "id": "c",
+        "text": "Shorten the earlier turns on each request so the cache stays small",
+        "reason": "Cache hits need the prefix to be 100% identical; editing earlier turns invalidates the cache from that point on."
+      },
+      {
+        "id": "d",
+        "text": "Put the newest message first in `messages` so that it gets cached",
+        "reason": "The cache follows the prefix in order (tools, then system, then messages); reordering breaks the prefix match."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In a growing conversation, let the **cache point move forward** each turn so past turns are cache reads.",
+    "explanation": "This is cache check-pointing for a conversation: as turns accumulate, move the breakpoint to the end each turn, or let automatic caching do it, so everything before is read from cache (A). Messages can be cached (B). Editing earlier turns (C) or reordering them (D) changes the prefix, so the cache no longer matches.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-tradeoff-adaptive-support",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Adaptive thinking",
+    "stem": "A team on Claude Sonnet 4.5 wants Claude to decide on each request whether to think and how much. Sending `thinking: {\"type\": \"adaptive\"}` returns a 400 error. What's the right move?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry with backoff, because the 400 means the model is overloaded",
+        "reason": "A 400 here means the model rejects that thinking configuration; retrying the same request won't change it."
+      },
+      {
+        "id": "b",
+        "text": "Keep Claude Sonnet 4.5 and set the effort level to `adaptive`",
+        "reason": "Effort has levels such as `low`, `medium` and `high`; adaptive is a thinking mode the model must support."
+      },
+      {
+        "id": "c",
+        "text": "Keep Claude Sonnet 4.5 and omit `thinking`, which turns on adaptive thinking",
+        "reason": "On Claude Sonnet 4.5, sending no `thinking` field means thinking is off; adaptive thinking isn't available there."
+      },
+      {
+        "id": "d",
+        "text": "Move to a model that supports adaptive thinking, such as Claude Sonnet 5.5",
+        "reason": "Correct: Claude Sonnet 4.5 supports only extended thinking with `budget_tokens`, while current models such as Claude Sonnet 5.5 use adaptive thinking."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Not every model supports **adaptive thinking**: pick a model that does when per-request thinking matters.",
+    "explanation": "Adaptive thinking support varies by model. Claude Sonnet 4.5 accepts only manual extended thinking, so per-request thinking means choosing a model that supports adaptive thinking, such as Claude Sonnet 5.5 (D). The 400 isn't an overload (A), `adaptive` isn't an effort level (B), and omitting `thinking` on Sonnet 4.5 leaves thinking off (C).",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-model-tradeoffs"
   }
 ]
