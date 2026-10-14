@@ -15,7 +15,3 @@ export function needsBackupReminder(args: { lastBackupAt?: number; firstActivity
   return args.now.getTime() - reference >= BACKUP_REMINDER_DAYS * 86_400_000;
 }
 
-export function isStandalone(win: Window = window): boolean {
-  const nav = win.navigator as Navigator & { standalone?: boolean };
-  return nav.standalone === true || win.matchMedia?.('(display-mode: standalone)').matches === true;
-}

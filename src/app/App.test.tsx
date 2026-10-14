@@ -10,8 +10,8 @@ describe('App shell', () => {
     window.location.hash = '#/';
     render(<App db={await openTestDb()} content={fixtureContent()} />);
     expect(await screen.findByRole('heading', { name: 'Today' })).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('link', { name: 'Cards' }));
-    expect(await screen.findByRole('heading', { name: 'Flashcards' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('link', { name: 'Vocabulary' }));
+    expect(await screen.findByRole('heading', { name: 'Vocabulary' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('link', { name: 'Learn' }));
     expect(await screen.findByRole('heading', { name: 'Learn' })).toBeInTheDocument();
   });

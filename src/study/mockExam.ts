@@ -5,6 +5,7 @@ import { PASS_SCORE, toScaledScore } from './readiness';
 import type { Attempt, MockSession } from './types';
 
 export const MOCK_QUESTION_COUNT = 53;
+/** Stored on each session for backup compatibility; mock exams are no longer timed. */
 export const MOCK_DURATION_MS = 120 * 60_000;
 
 /** Largest-remainder allocation proportional to weight, then at least one per domain when total allows. */
@@ -84,9 +85,6 @@ export function buildMockExam(args: {
   };
 }
 
-export function remainingMs(session: MockSession, now: number): number {
-  return Math.max(0, session.startedAt + session.durationMs - now);
-}
 
 export interface MockResult {
   correct: number;

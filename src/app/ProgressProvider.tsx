@@ -4,7 +4,6 @@ import type { Chosen, Question } from '../content/schema';
 import { parseBackup, serializeBackup } from '../storage/backup';
 import type { AppDb } from '../storage/db';
 import { mockAttempts } from '../study/mockExam';
-import { newState, resurface, stateKey } from '../study/scheduler';
 import {
   DEFAULT_SETTINGS,
   type Attempt, type AttemptMode, type Flag, type MockSession, type Settings, type StoredCardState,
@@ -26,7 +25,6 @@ export interface Progress {
 export interface ProgressApi extends Progress {
   /** guessed: the learner marked this answer as a guess. */
   recordAnswer(question: Question, chosen: Chosen, mode: AttemptMode, guessed?: boolean): Promise<void>;
-  saveCardState(state: StoredCardState): Promise<void>;
   markLessonDone(lessonId: string): Promise<void>;
   toggleFlag(itemId: string, kind: Flag['kind']): Promise<void>;
   updateSettings(patch: Partial<Settings>): Promise<void>;
@@ -50,12 +48,6 @@ export function useProgress(): ProgressApi {
   return p;
 }
 
-function withStates(map: Map<string, StoredCardState>, states: StoredCardState[]) {
-  if (states.length === 0) return map;
-  const next = new Map(map);
-  for (const s of states) next.set(s.key, s);
-  return next;
-}
 
 const upsert = (list: MockSession[], s: MockSession) => [...list.filter((x) => x.id !== s.id), s];
 
@@ -107,24 +99,11 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
       recordAnswer: reported(async (question: Question, chosen: Chosen, mode: AttemptMode, guessed = false) => {
         const at = now();
         const correct = isCorrect(question, chosen);
-        const resurfaced = correct && !guessed
-          ? []
-          : question.relatedCardIds.flatMap((cardId) =>
-              (['forward', 'reverse'] as const).flatMap((d) => {
-                const s = current().cardStates.get(stateKey(cardId, d));
-                // A never-studied direction starts as a new state, which is already due now.
-                return [s ? resurface(s, at) : newState(cardId, d, at)];
-              }),
-            );
         const attempt = await db.recordAttempt(
           { questionId: question.id, chosen, correct, ...(guessed ? { confident: false } : {}), mode, at: at.getTime() },
-          resurfaced,
+          [],
         );
-        setState((p) => p && { ...p, attempts: [...p.attempts, attempt], cardStates: withStates(p.cardStates, resurfaced) });
-      }),
-      saveCardState: reported(async (s: StoredCardState) => {
-        await db.putCardStates([s]);
-        setState((p) => p && { ...p, cardStates: withStates(p.cardStates, [s]) });
+        setState((p) => p && { ...p, attempts: [...p.attempts, attempt] });
       }),
       markLessonDone: reported(async (lessonId: string) => {
         await db.markLessonDone(lessonId, now().getTime());

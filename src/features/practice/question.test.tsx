@@ -60,7 +60,7 @@ describe('VerdictSheet', () => {
     expect(screen.getByText('Step one')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Remember it/ }));
     expect(screen.getByText('Remember alpha')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Read the lesson/ })).toHaveAttribute('href', '/learn/lesson/l-alpha');
+    expect(screen.getByRole('button', { name: /Read the lesson/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Source: Example doc/ })).toHaveAttribute('href', 'https://example.com/docs');
     await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
     expect(onContinue).toHaveBeenCalled();
@@ -102,15 +102,20 @@ describe('QuestionRunner', () => {
     );
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
     expect(await screen.findByText(/Not quite/)).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /Read the lesson/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Read the lesson/ })).toBeNull();
   });
 
-  it('keeps the lesson link outside lesson checks', async () => {
+  it('opens the lesson over the quiz and returns to the same question', async () => {
     await renderWithApp(
-      <QuestionRunner questions={[q1]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />,
+      <QuestionRunner questions={[q1, content.questionById.get('q-beta-1')!]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />,
     );
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
-    expect(await screen.findByRole('link', { name: /Read the lesson/ })).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole('button', { name: /Read the lesson/ }));
+    expect(await screen.findByRole('dialog', { name: 'Lesson: Alpha lesson' })).toBeInTheDocument();
+    await userEvent.click(screen.getAllByRole('button', { name: /Back to quiz/ })[0]);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /Lesson:/ })).toBeNull());
+    expect(screen.getByText('Quiz · 1 / 2')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
   });
 });
 

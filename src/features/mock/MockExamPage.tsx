@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useNow } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
@@ -6,7 +6,6 @@ import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
 import { chosenIds, isAnswered, isMultiple, selectCount } from '../../content/answers';
 import type { ChoiceId, Question } from '../../content/schema';
-import { remainingMs } from '../../study/mockExam';
 import type { MockSession } from '../../study/types';
 import { Button } from '../../ui/Button';
 import { IconClock, IconClose } from '../../ui/icons';
@@ -34,11 +33,10 @@ export function MockExamPage() {
   const [navOpen, setNavOpen] = useState(false);
   const submitting = useRef(false);
   const time = useNow(1000);
-  const remaining = session ? remainingMs(session, time.getTime()) : 0;
+  const elapsed = session ? Math.max(0, time.getTime() - session.startedAt) : 0;
 
   const update = (patch: Partial<MockSession>) => {
-    // Once time is up the answers are final, even while a failed auto-submit waits for a retry.
-    if (!session || submitting.current || remaining <= 0) return;
+    if (!session || submitting.current) return;
     const next = { ...session, ...patch };
     setSession(next);
     saveMockSession(next).catch(ignore);
@@ -50,16 +48,12 @@ export function MockExamPage() {
     try {
       await submitMock(session);
     } catch {
-      // Already reported. Submit stays available for a retry (the timer effect only re-runs when the session changes).
+      // Already reported. Submit stays available for a retry.
       submitting.current = false;
       return;
     }
     navigate(`/practice/mock/${session.id}/results`, { replace: true });
   }, [session, submitMock, navigate]);
-
-  useEffect(() => {
-    if (session && !session.submittedAt && remaining <= 0) void submit();
-  }, [remaining, session, submit]);
 
   if (!session) {
     return <Screen title="Mock exam" back="/practice/mock"><p className="empty">This exam session wasn't found.</p></Screen>;
@@ -95,8 +89,8 @@ export function MockExamPage() {
           <IconClose />
         </button>
         <span className="runner-count">Question {session.currentIndex + 1} of {total}</span>
-        <span className={`timer ${remaining < 5 * 60_000 ? 'low' : ''}`} aria-label="Time remaining">
-          <IconClock />{formatClock(remaining)}
+        <span className="timer" aria-label="Time elapsed">
+          <IconClock />{formatClock(elapsed)}
         </span>
       </header>
       <ProgressBar value={answered / total} label="Questions answered" />

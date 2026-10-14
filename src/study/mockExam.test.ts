@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import domainsJson from '../../content/domains.json';
 import { fixtureContent, manyQuestionsContent, multiQuestion } from '../content/fixtures';
 import { QuestionSchema } from '../content/schema';
-import { allocate, buildMockExam, MOCK_DURATION_MS, mockAttempts, remainingMs, scoreMock } from './mockExam';
+import { allocate, buildMockExam, MOCK_DURATION_MS, mockAttempts, scoreMock } from './mockExam';
 import { mulberry32 } from './random';
 import type { Attempt, MockSession } from './types';
 
@@ -45,7 +45,7 @@ describe('buildMockExam', () => {
   });
 });
 
-describe('timing and scoring', () => {
+describe('scoring', () => {
   const c = fixtureContent();
   const session: MockSession = {
     id: 'm3', startedAt: 0, durationMs: MOCK_DURATION_MS,
@@ -53,11 +53,6 @@ describe('timing and scoring', () => {
     answers: { 'q-alpha-1': 'a', 'q-alpha-2': 'a', 'q-beta-1': 'a', 'q-alpha-3': 'c' },
     flagged: [], currentIndex: 3,
   };
-
-  it('counts down and never goes negative', () => {
-    expect(remainingMs(session, 60_000)).toBe(MOCK_DURATION_MS - 60_000);
-    expect(remainingMs(session, MOCK_DURATION_MS * 2)).toBe(0);
-  });
 
   it('scores overall and per domain; unanswered counts as wrong', () => {
     expect(scoreMock(session, c.questionById, c.domains)).toEqual({

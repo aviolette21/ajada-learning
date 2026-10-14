@@ -1,10 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
 import { accuracyBy } from '../../study/accuracy';
 import { PASS_SCORE, readiness } from '../../study/readiness';
-import { buildQueue } from '../../study/scheduler';
 import { TODAY_QUESTION_COUNT } from '../../study/weakSpots';
 import { IconGear } from '../../ui/icons';
 import { Meter } from '../../ui/Meter';
@@ -13,14 +11,9 @@ import { Screen } from '../../ui/Screen';
 import { HomeBanners } from './HomeBanners';
 
 export function TodayPage() {
-  const { domains, cards, questionById } = useContent();
+  const { domains, questionById } = useContent();
   const p = useProgress();
-  const { now } = useClock();
   const r = readiness(domains, p.attempts, questionById);
-  const due = buildQueue({
-    cardIds: cards.map((c) => c.id), states: p.cardStates, mode: p.settings.cardDirection, now: now(),
-    newPerDay: p.settings.newCardsPerDay, rng: () => 0,
-  }).length;
   const byDomain = accuracyBy(p.attempts, questionById, 'domainId');
   const ordered = [...domains].sort((a, b) => b.weight - a.weight);
   const remaining = r.available ? 0 : r.needed - r.answered;
@@ -48,7 +41,6 @@ export function TodayPage() {
         <p className="muted">{TODAY_QUESTION_COUNT} practice questions, starting with ones you missed and your weakest areas · about 20 min</p>
         <Link className="btn btn-primary btn-block" to="/session">Start today's session</Link>
         <Link className="btn btn-secondary btn-block" to="/practice/mock" style={{ marginTop: 8 }}>Take a mock exam</Link>
-        {due > 0 && <p className="muted" style={{ marginTop: 10 }}>Optional: <Link to="/cards/review">{due} flashcard{due === 1 ? '' : 's'} due</Link></p>}
       </section>
       <section className="panel">
         <div className="muted">By domain (exam weight) · <Link to="/practice/progress">all 25 topics</Link></div>

@@ -12,8 +12,7 @@ export default defineConfig({
     timeout: 60_000,
   },
   projects: [
-    { name: 'iphone', use: { ...devices['iPhone 14'] }, testIgnore: /offline/, grepInvert: /@chromium/ },
-    { name: 'cards-chromium', use: { ...devices['Pixel 7'] }, testIgnore: /offline/, grep: /@chromium/ },
+    { name: 'iphone', use: { ...devices['iPhone 14'] }, testIgnore: /offline/ },
     { name: 'offline-chromium', use: { ...devices['Pixel 7'] }, testMatch: /offline/ },
   ],
 });

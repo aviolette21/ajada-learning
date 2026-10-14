@@ -43,7 +43,7 @@ export function multiQuestion(id = 'q-alpha-multi') {
 export function fixtureRaw(): RawContent {
   return {
     glossary: [
-      { id: 'g-gizmo', term: 'gizmo', aliases: ['GZM'], definition: 'A gizmo is a test term.', source },
+      { id: 'g-gizmo', term: 'gizmo', aliases: ['GZM'], definition: 'A gizmo is a test term.', whyItMatters: 'Gizmos decide test outcomes.', example: 'Set the gizmo to on.', source },
     ],
     domains: [
       { id: 'alpha', name: 'Alpha Domain', shortName: 'Alpha', weight: 60, order: 0, subSkills: [{ id: 'a1', name: 'Alpha One', weight: 60, official: true }] },

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { buildTermMatcher, type TermMatcher } from '../content/terms';
+import { buildTermMatcher, termsIn, type TermMatcher } from '../content/terms';
 import { Button } from '../ui/Button';
 import { renderInline, type TermLinks } from '../ui/inline';
 import { sheetSpring } from '../ui/motion';
@@ -24,8 +24,17 @@ export function useTermLinks(): () => TermLinks | null {
 
 /** Makes glossary terms tappable everywhere: one capture-phase listener opens the definition for any [data-term]. */
 export function TermsProvider({ children }: { children: ReactNode }) {
-  const { glossary, termById } = useContent();
+  const { glossary, termById, questions } = useContent();
   const matcher = useMemo(() => (glossary.length > 0 ? buildTermMatcher(glossary) : null), [glossary]);
+  // Which questions mention each term, for "Practice questions using this term".
+  const questionsByTerm = useMemo(() => {
+    const map = new Map<string, string[]>();
+    if (!matcher) return map;
+    for (const q of questions) {
+      for (const id of termsIn([q.stem, ...q.choices.map((c) => c.text)], matcher)) map.set(id, [...(map.get(id) ?? []), q.id]);
+    }
+    return map;
+  }, [matcher, questions]);
   const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,6 +64,7 @@ export function TermsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const term = openId ? termById.get(openId) : undefined;
+  const practiceIds = term ? (questionsByTerm.get(term.id) ?? []) : [];
   return (
     <TermsContext.Provider value={matcher}>
       {children}
@@ -70,6 +80,15 @@ export function TermsProvider({ children }: { children: ReactNode }) {
             <h3 className="term-title">{term.term}</h3>
             {term.aliases.length > 0 && <div className="muted term-aka">Also: {term.aliases.join(', ')}</div>}
             <p className="term-def">{renderInline(term.definition)}</p>
+            {term.whyItMatters && <p className="term-extra"><strong>Why it matters:</strong> {renderInline(term.whyItMatters)}</p>}
+            {term.example && <p className="term-extra"><strong>Example:</strong> {renderInline(term.example)}</p>}
+            {practiceIds.length > 0 && (
+              // The sheet sits outside the router, so this is a plain hash link; HashRouter picks it up.
+              <a className="btn btn-secondary btn-block" href={`#/practice/quiz?n=${Math.min(10, practiceIds.length)}&ids=${practiceIds.join(',')}`}
+                onClick={() => setOpenId(null)}>
+                Practice {Math.min(10, practiceIds.length)} question{practiceIds.length === 1 ? '' : 's'} using this term
+              </a>
+            )}
             <a className="source" href={term.source.url} target="_blank" rel="noreferrer">📎 Source: {term.source.title}</a>
             <Button block variant="secondary" onClick={() => setOpenId(null)}>Got it</Button>
           </motion.section>

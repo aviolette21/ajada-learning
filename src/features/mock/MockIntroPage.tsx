@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useClock } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
 import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
-import { buildMockExam, MOCK_QUESTION_COUNT, remainingMs } from '../../study/mockExam';
+import { buildMockExam, MOCK_QUESTION_COUNT } from '../../study/mockExam';
 import { PASS_SCORE } from '../../study/readiness';
 import { Button } from '../../ui/Button';
 import { Screen } from '../../ui/Screen';
@@ -13,20 +12,10 @@ import './mock.css';
 export function MockIntroPage() {
   const navigate = useNavigate();
   const { questions, domains } = useContent();
-  const { attempts, mockSessions, saveMockSession, submitMock, discardMockSession } = useProgress();
+  const { attempts, mockSessions, saveMockSession, discardMockSession } = useProgress();
   const { now } = useClock();
-  const active = mockSessions.find((s) => !s.submittedAt && remainingMs(s, now().getTime()) > 0);
+  const active = mockSessions.find((s) => !s.submittedAt);
   const count = Math.min(MOCK_QUESTION_COUNT, questions.length);
-  const [timedOutId, setTimedOutId] = useState<string | null>(null);
-
-  // An exam whose clock ran out while the app was closed is submitted here, so it lands in History.
-  useEffect(() => {
-    const t = now().getTime();
-    const expired = mockSessions.filter((s) => !s.submittedAt && remainingMs(s, t) <= 0);
-    if (expired.length === 0) return;
-    const latest = expired.reduce((a, b) => (b.startedAt > a.startedAt ? b : a));
-    Promise.all(expired.map((s) => submitMock(s))).then(() => setTimedOutId(latest.id), ignore);
-  }, [mockSessions, submitMock, now]);
 
   const start = async () => {
     if (active) {
@@ -45,7 +34,7 @@ export function MockIntroPage() {
         <h2>Exam conditions</h2>
         <ul className="rules">
           <li>{MOCK_QUESTION_COUNT} questions, weighted by domain like the real exam</li>
-          <li>120-minute timer; it keeps running if you leave</li>
+          <li>No time limit: a clock shows how long you've taken (the real exam gives 120 minutes, about 2¼ min per question)</li>
           <li>Some questions say "Select TWO" (or THREE); you score only if every pick is right</li>
           <li>No explanations until you submit, then every question is explained</li>
           <li>Underlined terms still show their definition when tapped</li>
@@ -55,9 +44,6 @@ export function MockIntroPage() {
       </section>
       {count < MOCK_QUESTION_COUNT && (
         <p className="banner">The question bank has {questions.length} questions so far, so this mock uses {count}. Full 53-question mocks arrive with the content update.</p>
-      )}
-      {timedOutId && (
-        <p className="banner"><Link to={`/practice/mock/${timedOutId}/results`}>Your last exam timed out and was submitted — see results</Link></p>
       )}
       {active && <Button block onClick={() => navigate(`/practice/mock/${active.id}`)}>Resume exam in progress</Button>}
       <Button block variant={active ? 'secondary' : 'primary'} onClick={() => start().catch(ignore)}>Start a new mock exam</Button>

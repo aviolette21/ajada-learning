@@ -4,6 +4,8 @@
     "term": "acceptEdits",
     "aliases": [],
     "definition": "Permission mode that runs reads, file edits and common filesystem commands (`mkdir`, `mv`, `cp`...) without asking. Suited to iterating on code you're reviewing.",
+    "whyItMatters": "Pick it when you'd rather review changes afterwards in your editor or `git diff` than approve each edit inline. It also auto-approves `rm` and `rmdir`, so it isn't for code you don't trust Claude to touch.",
+    "example": "`claude --permission-mode acceptEdits`, or press `Shift+Tab` once from Manual mode; the status bar shows `accept edits on`.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -17,6 +19,8 @@
       "type: \"adaptive\""
     ],
     "definition": "The thinking mode set with `thinking: {type: \"adaptive\"}`: Claude determines when and how deeply to think based on the request. Newer models use it by default.",
+    "whyItMatters": "On models where thinking is off by default, this is the setting that turns it on. To steer how often and how deeply Claude thinks, adjust `effort`; for a hard ceiling on spend, use `max_tokens`.",
+    "example": "`thinking={\"type\": \"adaptive\", \"display\": \"summarized\"}` turns thinking on and returns a readable summary of Claude's reasoning.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
@@ -30,6 +34,8 @@
       "Admin API key"
     ],
     "definition": "Manages your organization's members, workspaces, invites and API keys programmatically. It needs an Admin API key (`sk-ant-admin...`), an `org:admin` OAuth token, or an unscoped personal/service account key.",
+    "whyItMatters": "Use it to automate member, invite, workspace and key management instead of working by hand in the Console. It's unavailable for individual accounts; only admins can provision an Admin API key.",
+    "example": "`GET https://api.anthropic.com/v1/organizations/users?limit=10` with the Admin API key in the `x-api-key` header lists members.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/admin-api",
       "title": "Admin API",
@@ -43,6 +49,8 @@
       "agentic loop"
     ],
     "definition": "The cycle behind Claude Code and the Agent SDK: Claude evaluates the prompt, calls tools, receives the results, and repeats until the task is complete.",
+    "whyItMatters": "Without limits, the loop runs until Claude finishes, which can run long on open-ended prompts. Set `max_turns` or `max_budget_usd` and check the `ResultMessage` `subtype`, e.g. `error_max_turns`.",
+    "example": "\"Fix the failing tests in auth.ts\": Claude runs `npm test`, reads files, edits `auth.ts`, re-runs the tests, then a text-only reply ends the loop.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "title": "How the agent loop works",
@@ -57,6 +65,8 @@
       "SKILL.md"
     ],
     "definition": "A filesystem-based directory with a `SKILL.md` file (YAML frontmatter and instructions), plus optional scripts and resources Claude uses when relevant.",
+    "whyItMatters": "Claude matches requests against the `description`, so it must say what the Skill does **and** when to use it. Use Skills only from trusted sources.",
+    "example": "A `pdf-processing` Skill holding SKILL.md, FORMS.md, REFERENCE.md and `scripts/fill_form.py`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
       "title": "Agent Skills",
@@ -72,6 +82,8 @@
       "disallowed_tools"
     ],
     "definition": "`allowedTools` auto-approves the listed tools; `disallowedTools` blocks them, even in bypassPermissions mode. Unlisted tools stay available.",
+    "whyItMatters": "Allowing is not restricting: `allowed_tools` does not constrain `bypassPermissions`. To block a tool there, use `disallowed_tools`.",
+    "example": "`disallowed_tools=[\"Bash\"]` removes Bash from the request, so Claude cannot attempt it.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
       "title": "Configure permissions",
@@ -85,6 +97,8 @@
       "alternating user and assistant turns"
     ],
     "definition": "Claude is trained on alternating `user` and `assistant` turns. Consecutive turns with the same role in a request are combined into a single turn.",
+    "whyItMatters": "Two `user` messages in a row are merged into one turn rather than answered separately, so model the history as alternating turns.",
+    "example": "A three-turn history: `user` → `assistant` → `user`. Claude then generates the next `assistant` turn.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
@@ -98,6 +112,8 @@
       "Bedrock"
     ],
     "definition": "AWS's service for accessing Claude with AWS-native authentication, billing and security boundaries, using the same Messages API shape as Anthropic's first-party API.",
+    "whyItMatters": "It runs on AWS-managed infrastructure with zero operator access, so you can build sensitive apps entirely inside the AWS security boundary. The `ant` CLI doesn't support it: use cURL or an SDK.",
+    "example": "`client = AnthropicBedrockMantle(aws_region=\"us-east-1\")`, then call `client.messages.create(...)` with an `anthropic.`-prefixed model ID.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
       "title": "Claude in Amazon Bedrock",
@@ -109,6 +125,8 @@
     "term": "ANTHROPIC_API_KEY",
     "aliases": [],
     "definition": "The environment variable the Claude client SDKs read your API key from automatically, so code can create a client without passing a key.",
+    "whyItMatters": "Set it and `Anthropic()` needs no key argument. Store keys in a secrets manager, rotate them periodically, and disable any key you suspect has leaked.",
+    "example": "`export ANTHROPIC_API_KEY=sk-ant-api03-...` then `client = Anthropic()`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
       "title": "Authentication",
@@ -122,6 +140,8 @@
       "anthropic-beta header"
     ],
     "definition": "The request header that opts in to experimental (beta) features, e.g. `anthropic-beta: BETA_FEATURE_NAME`. The SDKs take beta names through a `betas` parameter and send the header for you.",
+    "whyItMatters": "Beta features may change with notice, be deprecated or removed, or have different rate limits or pricing. An invalid beta name, or one you lack access to, returns a `400` error.",
+    "example": "`anthropic-beta: context-management-2025-06-27`, or `betas=[\"context-management-2025-06-27\"]` in the Python SDK; list several names separated by commas.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/beta-headers",
       "title": "Beta headers",
@@ -135,6 +155,8 @@
       "ANTHROPIC_LOG=debug"
     ],
     "definition": "Environment variable that turns on logging in the Python SDK; set it to `debug` or `info`.",
+    "whyItMatters": "A quick way to see what the Python SDK is doing while you debug, without changing code. It logs through the standard library `logging` module.",
+    "example": "`export ANTHROPIC_LOG=debug`, then run your script.",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
       "title": "Python SDK",
@@ -148,6 +170,8 @@
       "anthropic-ratelimit-*"
     ],
     "definition": "Response headers showing the limit enforced, what remains and when it fully replenishes, for requests, tokens, input tokens and output tokens.",
+    "whyItMatters": "Read the `-remaining` and `-reset` values to pace your client before it runs into 429 errors.",
+    "example": "`anthropic-ratelimit-requests-remaining`; the `-reset` headers give times in RFC 3339 format.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -161,6 +185,8 @@
       "anthropic-version header"
     ],
     "definition": "A required request header naming the API version, such as `2023-06-01`.",
+    "whyItMatters": "Raw HTTP calls also need `content-type: application/json` and an API key (`Authorization: Bearer` or legacy `x-api-key`); the SDKs send these for you.",
+    "example": "A raw `POST /v1/messages` sends `anthropic-version: 2023-06-01` alongside an API key header and `content-type: application/json`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
@@ -172,6 +198,8 @@
     "term": "anthropic-workspace-id",
     "aliases": [],
     "definition": "Request header naming the workspace a request runs in. Required with a multi-workspace API key; optional for other keys. A single-workspace key runs in its own workspace when you omit it.",
+    "whyItMatters": "It's required with a multi-workspace API key, and the SDKs don't add it for you: they send the auth, version and content-type headers, but you pass `anthropic-workspace-id` yourself.",
+    "example": "`anthropic-workspace-id: wrkspc_01JwQvzr7rXLA5AGx3HKfFUJ` on a request made with a multi-workspace key.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
@@ -188,6 +216,8 @@
       "not_found_error"
     ],
     "definition": "Each HTTP error has a type: 400 invalid_request_error, 401 authentication_error, 403 permission_error, 404 not_found_error, 429 rate_limit_error.",
+    "whyItMatters": "401: an API key issue. 403: the key lacks permission. 500 `api_error`, 529 `overloaded_error`: Anthropic's side.",
+    "example": "413 `request_too_large`: too many bytes. 402 `billing_error`: billing or payment.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -203,6 +233,8 @@
       "workspace key"
     ],
     "definition": "**Personal** keys act as you, **service account** keys act as a service account, and legacy **workspace** keys belong to a workspace.",
+    "whyItMatters": "Identity-backed keys stop working when their identity is removed. Shared or automated workloads (CI, production) should use a service account.",
+    "example": "An organization admin creates a service account for the CI pipeline, then a key linked to it.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
       "title": "Authentication",
@@ -216,6 +248,8 @@
       "versioning policy"
     ],
     "definition": "Within an API version, Anthropic preserves existing input and output parameters, but may add optional inputs and new output values.",
+    "whyItMatters": "New enum variants, such as streaming event types, can appear without a version change, so don't write clients that break on additions.",
+    "example": "Latest listed version: `2023-06-01`. Earlier versions are deprecated and may be unavailable for new users.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/versioning",
       "title": "Versions",
@@ -227,6 +261,8 @@
     "term": "AsyncAnthropic",
     "aliases": [],
     "definition": "The Python SDK's asynchronous client. It has the same interface as the sync `Anthropic` client, with calls you `await`.",
+    "whyItMatters": "Use it in asyncio code. For better concurrency, the SDK can also use an `aiohttp` HTTP backend via `DefaultAioHttpClient`.",
+    "example": "`message = await client.messages.create(...)` inside an `async def` function.",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
       "title": "Python SDK",
@@ -241,6 +277,8 @@
       "maxRetries"
     ],
     "definition": "The official SDKs retry transient failures (connection errors, rate limits, 5xx errors) with exponential backoff, twice by default.",
+    "whyItMatters": "They honor the `retry-after` header when present. Configure or disable retries with `max_retries` (TypeScript, Java, PHP: `maxRetries`).",
+    "example": "Python: pass `max_retries` to the client to change how many times a connection error or 5xx is retried, or to disable retries.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -252,6 +290,8 @@
     "term": "auto memory",
     "aliases": [],
     "definition": "Notes Claude Code writes for itself from your corrections and preferences, so it accumulates knowledge across sessions without you writing anything.",
+    "whyItMatters": "Use CLAUDE.md to guide Claude's behavior; auto memory learns from corrections. It's machine-local and not shared across machines, so team instructions belong in CLAUDE.md.",
+    "example": "You say \"always use pnpm, not npm\" and Claude saves it to auto memory. Run `/memory` to browse, edit or delete the saved notes.",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
       "title": "How Claude remembers your project",
@@ -263,6 +303,8 @@
     "term": "auto mode",
     "aliases": [],
     "definition": "Permission mode where a second model, a classifier, reviews Claude's actions instead of you, so long tasks run with background safety checks and fewer prompts.",
+    "whyItMatters": "The classifier blocks actions that escalate beyond your request, target unrecognized infrastructure or seem driven by hostile content. Explicit ask rules still prompt, and admins can turn it off with `disableAutoMode`.",
+    "example": "`claude --permission-mode auto` starts a hands-off session; a sandbox or container still adds defense in depth.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -274,6 +316,8 @@
     "term": "--bare",
     "aliases": [],
     "definition": "A `claude -p` flag that skips auto-discovery of hooks, skills, plugins, MCP servers, auto memory and CLAUDE.md, reducing startup time. Without it, `-p` loads what an interactive session would.",
+    "whyItMatters": "Use it in CI and scripts that need the same result on every machine: a teammate's `~/.claude` hook or a project's `.mcp.json` server won't run. It doesn't use your subscription login.",
+    "example": "`claude --bare -p \"Summarize README.md\" --allowedTools \"Read\"` with `ANTHROPIC_API_KEY` set.",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
       "title": "Run Claude Code programmatically",
@@ -285,6 +329,8 @@
     "term": "batch result types",
     "aliases": [],
     "definition": "Once a batch ends, each request has one result type: succeeded, errored, canceled or expired. Only succeeded results include the message.",
+    "whyItMatters": "You aren't billed for errored, canceled or expired requests. Check `request_counts` for totals and add your own retry logic for failed requests.",
+    "example": "`expired`: the batch reached its 24-hour expiration before the request was sent to the model.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -298,6 +344,8 @@
       "thinking budget"
     ],
     "definition": "The thinking budget in manual extended thinking: at least 1,024 tokens and less than `max_tokens`. It is a target, not a strict cap.",
+    "whyItMatters": "Larger budgets can improve quality at the cost of latency, with diminishing returns; above 32k use batch processing. Claude 4.7 and later reject it.",
+    "example": "`\"thinking\": {\"type\": \"enabled\", \"budget_tokens\": 16000}` for a complex task.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "title": "Extended thinking",
@@ -309,6 +357,8 @@
     "term": "bypassPermissions",
     "aliases": [],
     "definition": "Permission mode that runs everything without asking. Use it only in isolated containers and VMs. Deny rules still block in this mode.",
+    "whyItMatters": "It disables safety checks too, including writes to protected paths, so run it only inside a container or VM. Organizations can block it with `permissions.disableBypassPermissionsMode: \"disable\"` in managed settings.",
+    "example": "Inside a container, as a non-root user: `claude -p \"<prompt>\" --dangerously-skip-permissions`.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -322,6 +372,8 @@
       "cache breakpoint"
     ],
     "definition": "A content-block field marking a cache breakpoint: the prompt (tools, system, then messages) up to and including that block becomes the cacheable prefix.",
+    "whyItMatters": "Exam scenarios test **where** to put the breakpoint: after the large, stable content and before anything that changes per request.",
+    "example": "Put `cache_control` on the last block of a long system prompt; add `\"ttl\": \"1h\"` for the 1-hour lifetime.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "title": "Prompt caching",
@@ -335,6 +387,8 @@
       "cache_creation_input_tokens"
     ],
     "definition": "Usage fields for prompt caching: `cache_creation_input_tokens` were written to the cache; `cache_read_input_tokens` were read from it. If both are 0, nothing was cached.",
+    "whyItMatters": "A prompt below the minimum cacheable length is processed without caching and no error is returned, so these fields are how you confirm caching works. `input_tokens` counts only tokens after the last breakpoint.",
+    "example": "`cache_read_input_tokens: 100000`, `cache_creation_input_tokens: 0`, `input_tokens: 50` means 100,050 input tokens processed in total.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "title": "Prompt caching",
@@ -349,6 +403,8 @@
       "canary release"
     ],
     "definition": "A partial, time-limited deployment of a change to part of a service (the canary), compared with the rest (the control) to decide whether to continue the rollout.",
+    "whyItMatters": "It limits the impact of a bad release to a small slice of traffic and error budget. Comparing canary and control metrics, such as HTTP errors and latency, tells you whether to proceed or roll back.",
+    "example": "A release failing 20% of requests, canaried to 5% of traffic, gives about a 1% overall error rate, and the canary's gap from the control flags it as bad.",
     "source": {
       "url": "https://sre.google/workbook/canarying-releases/",
       "title": "Canarying Releases",
@@ -362,6 +418,8 @@
       "can_use_tool"
     ],
     "definition": "An Agent SDK callback that decides at runtime on tool calls that permission modes and rules don't settle, such as calls matching an `ask` rule.",
+    "whyItMatters": "Calls approved earlier, by `acceptEdits`, `bypassPermissions` or an allow rule, never reach it, so checks you put there are silently bypassed. In `dontAsk` mode it's never called.",
+    "example": "In `plan` mode a file edit isn't auto-approved even with an allow rule; it reaches `canUseTool`, where your app asks the user to approve or deny.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
       "title": "Configure permissions (Agent SDK)",
@@ -376,6 +434,8 @@
       "CoT"
     ],
     "definition": "When thinking is off, asking Claude to think through a problem step by step, with tags like `<thinking>` and `<answer>` to separate reasoning from output.",
+    "whyItMatters": "The guide's fallback when thinking is off. With thinking on, general instructions like \"think thoroughly\" often beat a hand-written step-by-step plan.",
+    "example": "With thinking off: \"Think through the problem step by step before answering, then put your final answer in `<answer>` tags\", so your code can extract it.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -389,6 +449,8 @@
       "/rewind"
     ],
     "definition": "Claude Code captures your code's state before each prompt, so you can undo Claude's edits. `/rewind` rolls code and conversation back to a checkpoint.",
+    "whyItMatters": "Only edits made with Claude's file editing tools are tracked: changes from Bash commands such as `rm` or `mv`, and most subagent edits, can't be rewound. It doesn't replace Git.",
+    "example": "Press `Esc` twice with an empty prompt, pick an earlier prompt, and choose **Restore code** to undo the edits while keeping the conversation.",
     "source": {
       "url": "https://code.claude.com/docs/en/checkpointing",
       "title": "Checkpointing",
@@ -402,6 +464,8 @@
       "citation"
     ],
     "definition": "An API feature that returns the exact document passages supporting each claim. Turn it on with `citations.enabled=true` on each document.",
+    "whyItMatters": "Unlike prompt-based quoting, citations are guaranteed to contain valid pointers to the provided documents. Enable them on all or none of a request's documents.",
+    "example": "Plain text and PDFs are chunked into sentences; custom content documents let you control citation granularity.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "title": "Citations",
@@ -413,6 +477,8 @@
     "term": "cited_text",
     "aliases": [],
     "definition": "The citation field holding the exact passage Claude cites, returned with its location in the source document.",
+    "whyItMatters": "It is provided for convenience and doesn't count toward output tokens, or toward input tokens when passed back in later turns.",
+    "example": "Location types: `char_location` for plain text, `page_location` for PDFs, `content_block_location` for custom content.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
       "title": "Citations",
@@ -426,6 +492,8 @@
       "Agent SDK"
     ],
     "definition": "A Python and TypeScript library giving you the same tools, agent loop and context management that power Claude Code, in a process you operate.",
+    "whyItMatters": "Choose it over the Client SDK when you want built-in tools, permissions, sessions and hooks instead of writing the tool loop yourself.",
+    "example": "Embed an agent that finds and fixes bugs in existing code inside your own app.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/overview",
       "title": "Agent SDK overview",
@@ -441,6 +509,8 @@
       "claude-code-action"
     ],
     "definition": "A GitHub Action (`claude-code-action`) that runs Claude Code in your repo's workflows: mention `@claude` in a PR or issue, or run a prompt on any GitHub event.",
+    "whyItMatters": "It runs Claude in your own CI workflows. With no `prompt` input it waits for `@claude`; with one, it runs automatically. On issue and PR events, only users with write access can trigger runs.",
+    "example": "Run `/install-github-app` in Claude Code, merge the workflow PR it prepares, then mention `@claude` in an issue or PR comment.",
     "source": {
       "url": "https://code.claude.com/docs/en/github-actions",
       "title": "Claude Code GitHub Actions",
@@ -454,6 +524,8 @@
       "Console"
     ],
     "definition": "The web Console through which the Claude API is made available: try the API in the playground and generate API keys in Account Settings.",
+    "whyItMatters": "It's where API work starts: try prompts in the playground, create API keys (choosing each key's type and expiration), and use workspaces to separate environments and control spend by use case.",
+    "example": "Prototype a prompt in the playground, then generate an API key in **Account Settings** for your app to use.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
@@ -467,6 +539,8 @@
       "Managed Agents"
     ],
     "definition": "A pre-built, configurable agent harness that runs in managed infrastructure, built around four concepts: agent, environment, session and events.",
+    "whyItMatters": "Best for long-running tasks and asynchronous work. The Messages API is best for custom agent loops and fine-grained control.",
+    "example": "Create an agent once, then start sessions that reference it by ID.",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
       "title": "Claude Managed Agents overview",
@@ -480,6 +554,8 @@
       "./CLAUDE.md"
     ],
     "definition": "A markdown file of persistent instructions that Claude Code reads at the start of every session. Project `./CLAUDE.md` is shared via source control.",
+    "whyItMatters": "It's context, not enforced configuration: to block an action regardless, use a PreToolUse hook. Keep it under 200 lines; `/init` drafts one.",
+    "example": "Also: managed policy (organization), `~/.claude/CLAUDE.md` (user), `./CLAUDE.local.md` (personal, gitignored).",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
       "title": "How Claude remembers your project",
@@ -494,6 +570,8 @@
       "Agent Platform"
     ],
     "definition": "Claude through Google Cloud's Agent Platform. Requests are nearly the Messages API, except `model` goes in the endpoint URL and `anthropic_version` goes in the request body.",
+    "whyItMatters": "Porting Messages API code fails if you keep `model` in the body or send `anthropic_version` as a header. The endpoint type (global, multi-region, regional) also affects data residency and price.",
+    "example": "Python: `AnthropicVertex(project_id=project_id, region=\"global\")`; raw requests send `\"anthropic_version\": \"vertex-2023-10-16\"` in the body.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
       "title": "Claude on Google Cloud",
@@ -510,6 +588,8 @@
       "headless mode"
     ],
     "definition": "The `-p` (or `--print`) flag runs Claude Code non-interactively for scripts and CI. It exits 0 on success and non-zero when the run fails.",
+    "whyItMatters": "`--output-format json` returns the result, session ID and metadata as JSON; `--allowedTools` lets listed tools run without a permission prompt.",
+    "example": "`claude -p \"Summarize this project\" --output-format json | jq -r '.result'`",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
       "title": "Run Claude Code programmatically",
@@ -521,6 +601,8 @@
     "term": "/clear",
     "aliases": [],
     "definition": "Claude Code command that starts a new conversation with empty context. To free context but continue the same conversation, use `/compact` instead.",
+    "whyItMatters": "Use it when you switch to an unrelated task: it keeps project memory but drops the old conversation from context. The previous conversation isn't lost; `/resume` brings it back.",
+    "example": "`/clear auth-refactor` labels the previous conversation in the `/resume` picker and starts the next task with empty context.",
     "source": {
       "url": "https://code.claude.com/docs/en/commands",
       "title": "Commands",
@@ -534,6 +616,8 @@
       "official SDK"
     ],
     "definition": "Anthropic's official, general-purpose Messages API clients for Python, TypeScript, C#, Go, Java, PHP and Ruby.",
+    "whyItMatters": "Each has type safety and built-in streaming, retries and error handling. The Claude Agent SDK is different: it provides the agent loop and tool execution.",
+    "example": "A Go service that sends its own Messages API requests uses the Go SDK. To have the agent loop and tool execution provided for you, use the Claude Agent SDK instead.",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
       "title": "CLI, SDKs, and libraries",
@@ -550,6 +634,8 @@
       "model-based grading"
     ],
     "definition": "Code-based (fastest, most reliable, but lacks nuance), human (most flexible, but slow and expensive) and LLM-based (fast, flexible, suits complex judgment).",
+    "whyItMatters": "Use the fastest, most reliable, most scalable method. Avoid human grading if possible; test LLM graders' reliability first.",
+    "example": "Exact match: `output == golden_answer`. String match: `key_phrase in output`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "title": "Define success criteria and build evaluations",
@@ -564,6 +650,8 @@
       "code_execution"
     ],
     "definition": "A server tool that lets Claude run Bash commands and manipulate files, including writing code, in a secure, sandboxed container: useful for data analysis, calculations and generating files.",
+    "whyItMatters": "The container has no internet access, so Claude can use only pre-installed libraries. Each request gets a new container unless you pass back an earlier response's container ID.",
+    "example": "`tools=[{\"type\": \"code_execution_20250825\", \"name\": \"code_execution\"}]`, with a CSV attached via a `container_upload` block for Claude to analyze.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/code-execution-tool",
       "title": "Code execution tool",
@@ -578,6 +666,8 @@
       "REVIEW.md"
     ],
     "definition": "A research-preview service that analyzes GitHub PRs and posts findings as inline comments, without approving or blocking. Tune it with `CLAUDE.md` or `REVIEW.md`.",
+    "whyItMatters": "Its check run always completes neutral, so it never blocks merging. To gate merges on findings, read the severity breakdown from the check run output in your own CI.",
+    "example": "Comment `@claude review` on a PR for a one-off review; `@claude review always` also subscribes the PR to reviews on later pushes.",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
       "title": "Code Review",
@@ -589,6 +679,8 @@
     "term": "/compact",
     "aliases": [],
     "definition": "Claude Code command that frees up context by summarizing the conversation so far. You can pass focus instructions for the summary.",
+    "whyItMatters": "When a long conversation fills the window but you're still on the same task, compact instead of clearing. Run `/context` first to see what's filling the window.",
+    "example": "`/compact focus on the failing tests and the API changes` summarizes the conversation so far, keeping those topics in the summary.",
     "source": {
       "url": "https://code.claude.com/docs/en/commands",
       "title": "Commands",
@@ -602,6 +694,8 @@
       "server-side compaction"
     ],
     "definition": "Replaces the older turns of a conversation with a summary Claude writes on the server, so you need no summarization code of your own.",
+    "whyItMatters": "Keeps a long conversation or agent task inside the context window. **On demand**, you decide when to compact; **at a token threshold**, the API does.",
+    "example": "On-demand compaction uses the top-level `compaction` parameter and the `compact-2026-09-04` beta header.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
       "title": "Compaction overview",
@@ -613,6 +707,8 @@
     "term": "content block",
     "aliases": [],
     "definition": "An input message's `content` is a string or an array of typed blocks. A string is shorthand for one block of type `text`.",
+    "whyItMatters": "Anything beyond plain text, such as an `image` block, uses the array form. Responses also return `content` as an array of blocks.",
+    "example": "`{\"role\": \"user\", \"content\": [{\"type\": \"text\", \"text\": \"Hello, Claude\"}]}`",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
@@ -624,6 +720,8 @@
     "term": "context editing",
     "aliases": [],
     "definition": "Selectively clearing specific content, such as old tool results, from conversation history as it grows, to save cost, stay within limits and keep Claude focused on what matters.",
+    "whyItMatters": "Server-side compaction is the primary strategy for most long conversations. Reach for context editing when you need finer control, such as dropping old tool results in tool-heavy agent loops.",
+    "example": "`context_management={\"edits\": [{\"type\": \"clear_tool_uses_20250919\"}]}` with the beta header `context-management-2025-06-27`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "title": "Context editing",
@@ -635,6 +733,8 @@
     "term": "context engineering",
     "aliases": [],
     "definition": "Strategies for curating and maintaining the optimal set of tokens in a model's context during inference, including everything that lands there besides the prompt.",
+    "whyItMatters": "As context grows, recall degrades (context rot), so aim for the smallest set of high-signal tokens rather than waiting for bigger windows. It drives choices like compaction, note-taking and just-in-time retrieval.",
+    "example": "Instead of loading a whole dataset up front, the agent keeps file paths and stored queries and loads data at runtime with tools, e.g. `head` and `tail` on large files.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "title": "Effective context engineering for AI agents",
@@ -646,6 +746,8 @@
     "term": "context rot",
     "aliases": [],
     "definition": "The degradation of accuracy and recall as the number of tokens in context grows. More context isn't automatically better.",
+    "whyItMatters": "Curating **what** is in context matters as much as how much space is available: a big window is not a reason to fill it.",
+    "example": "In a long agent run, clear old tool results with context editing rather than letting them pile up in the window.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
@@ -657,6 +759,8 @@
     "term": "context window",
     "aliases": [],
     "definition": "All the text a model can reference when generating a response, including the response itself: its \"working memory\", not its training data.",
+    "whyItMatters": "The system prompt, messages, tool definitions and the output (thinking included) all count; each response reports what it used in `usage`.",
+    "example": "Claude Opus 5.5 and Claude Sonnet 5.5 have a 1M-token window; Claude Sonnet 4.5 (deprecated) has 200k.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
@@ -670,6 +774,8 @@
       "--resume"
     ],
     "definition": "`claude --continue` reopens the most recent conversation in the current directory; `claude --resume` resumes a session by ID or name, or opens a picker.",
+    "whyItMatters": "Sessions created with `claude -p` or the Agent SDK are left out of `--continue` and the picker; resume one by passing its session ID to `--resume`.",
+    "example": "`claude --resume auth-refactor` resumes the session named auth-refactor directly.",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
       "title": "Manage sessions",
@@ -680,11 +786,13 @@
     "id": "g-current-models",
     "term": "current Claude models",
     "aliases": [],
-    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5: speed + intelligence. Haiku 4.5: fastest.",
+    "definition": "Fable 5.1: demanding reasoning, long-horizon agents. Opus 5.5: long-running agentic coding, knowledge work. Sonnet 5.5: speed + intelligence. Haiku 5.5: fastest",
+    "whyItMatters": "Model choice sets capability, latency and price. If unsure, the docs say start with Claude Opus 5.5 for most workloads, and use Fable 5.1 when evals on Opus 5.5 at higher effort still fall short.",
+    "example": "`model: \"claude-opus-5-5\"` for long-running agentic coding; `model: \"claude-fable-5-1\"` for demanding reasoning and long-horizon agentic work.",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
       "title": "Models overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     }
   },
   {
@@ -695,6 +803,8 @@
       ".claude/commands"
     ],
     "definition": "A skill's `SKILL.md` creates a /name command. Custom commands have been merged into skills, and existing `.claude/commands/` files keep working.",
+    "whyItMatters": "Where it lives sets who gets it: `.claude/skills/<name>/` committed in the repo reaches the team; `~/.claude/skills/<name>/` is yours in every project.",
+    "example": "A body of `Fix GitHub issue $ARGUMENTS`: running `/fix-issue 123` passes 123.",
     "source": {
       "url": "https://code.claude.com/docs/en/skills",
       "title": "Extend Claude with skills",
@@ -706,6 +816,8 @@
     "term": "custom_id",
     "aliases": [],
     "definition": "A unique ID you give each request in a Message Batch (1 to 64 letters, digits, hyphens or underscores) to match it with its result.",
+    "whyItMatters": "Batch results can be returned in any order, so match each result to its request by `custom_id`, never by position.",
+    "example": "`\"custom_id\": \"review-10432\"` lets you write each summary back to the right row.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -719,6 +831,8 @@
       "subagent file"
     ],
     "definition": "A Markdown file with YAML frontmatter (only `name` and `description` are required) whose body becomes the subagent's system prompt.",
+    "whyItMatters": "Commit it in `.claude/agents/` to share it with the team. `tools` is an allowlist; omit it and the subagent inherits every tool available to subagents.",
+    "example": "`tools: Read, Glob, Grep` with `model: haiku` makes a read-only helper on a cheaper model.",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
       "title": "Create custom subagents",
@@ -732,6 +846,8 @@
       "createSdkMcpServer"
     ],
     "definition": "Your own function Claude can call: a name, description, input schema and handler, wrapped in an in-process MCP server with `createSdkMcpServer`.",
+    "whyItMatters": "Tools are named `mcp__{server_name}__{tool_name}`. Returning `isError: true` lets you compose the error message Claude reads.",
+    "example": "A `get_temperature` tool registered on a `weather` server.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
       "title": "Give Claude custom tools",
@@ -746,6 +862,8 @@
       "inference geo"
     ],
     "definition": "Controls where your data is processed and stored. **Inference geo** sets where model inference runs, per request through the `inference_geo` parameter or as a workspace default.",
+    "whyItMatters": "On Claude 4.6 and later models, US-only inference costs 1.1x the standard rate; older models reject `inference_geo` with a 400. Workspace geo is set when the workspace is created and can't be changed.",
+    "example": "Add `\"inference_geo\": \"us\"` to a `POST /v1/messages` call; the response's `usage.inference_geo` shows where inference ran.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
       "title": "Data residency",
@@ -757,6 +875,8 @@
     "term": "disable an API key",
     "aliases": [],
     "definition": "**Disable** is reversible (status `inactive`; Re-enable restores it). **Delete** is permanent: the key is archived.",
+    "whyItMatters": "Disable or delete any key you suspect has leaked. Expiration is set at creation, can't be changed, and isn't a substitute for secret hygiene.",
+    "example": "Disable a suspect key now; Re-enable returns it to `\"active\"`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
       "title": "Authentication",
@@ -770,6 +890,8 @@
       "disable-model-invocation: true"
     ],
     "definition": "Skill frontmatter that hides a skill from Claude until you invoke it with `/<name>`; for these user-only skills, nothing loads until then.",
+    "whyItMatters": "The docs recommend it for skills with side effects: it saves context and ensures only you trigger them.",
+    "example": "A `/deploy` skill with `disable-model-invocation: true` runs only when you invoke it.",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
       "title": "Extend Claude Code",
@@ -781,6 +903,8 @@
     "term": "dontAsk",
     "aliases": [],
     "definition": "Permission mode that allows only file reads in your working directories and pre-approved tools; anything that would prompt is denied. Suited to locked-down CI and scripts.",
+    "whyItMatters": "In an unattended run nobody can answer a prompt, so anything not pre-approved is denied instead. Even explicit `ask` rules become denials, so list every tool the job needs in your allow rules.",
+    "example": "`claude -p \"run the test suite\" --permission-mode dontAsk --allowedTools \"Bash(npm test)\" \"Read\"`",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -793,11 +917,13 @@
     "aliases": [
       "capability-first"
     ],
-    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 4.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
+    "definition": "Two ways to pick a starting model: fast and cheap (Claude Haiku 5.5), upgrading only if needed, or strongest (Claude Opus 5.5), optimizing down.",
+    "whyItMatters": "Efficiency-first suits prototyping, tight latency, cost-sensitive and high-volume simple tasks. Capability-first suits complex reasoning and agentic work, then optimizes down via effort or model.",
+    "example": "Build a high-volume classifier on the faster, lower-cost model, test it thoroughly, and upgrade only for specific capability gaps the tests reveal.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
       "title": "Choosing the right model",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     }
   },
   {
@@ -808,6 +934,8 @@
       "effort parameter"
     ],
     "definition": "Controls how many tokens Claude spends responding, from low through medium, high and xhigh to max. It affects text, tool calls and thinking.",
+    "whyItMatters": "Lower it for speed-sensitive or simple tasks to cut latency and cost. Most models default to `high`; Claude Opus 5.5 and Claude Haiku 5.5 default to `medium`.",
+    "example": "`\"output_config\": {\"effort\": \"low\"}` for a simple, high-volume subtask.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
       "title": "Effort",
@@ -821,6 +949,8 @@
       "text embeddings"
     ],
     "definition": "Numerical representations of text that let you measure semantic similarity, used for search, recommendations and anomaly detection.",
+    "whyItMatters": "Anthropic doesn't offer its own embedding model, so semantic search or retrieval needs a separate provider, such as Voyage AI. Assess several vendors for your use case.",
+    "example": "`vo.embed(documents, model=\"voyage-4\", input_type=\"document\")`, then embed the query and run a nearest neighbor search for the closest document.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings",
       "title": "Embeddings",
@@ -834,6 +964,8 @@
       "eval"
     ],
     "definition": "A set of test cases designed to measure an LLM application's performance against clearly defined success criteria.",
+    "whyItMatters": "Be task-specific (mirror the real task distribution, include edge cases), automate grading when possible, and prioritize volume over hand-graded quality.",
+    "example": "Grade sentiment labels by exact match; use LLM-based grading on a Likert scale for tone.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "title": "Define success criteria and build evaluations",
@@ -845,6 +977,8 @@
     "term": "evaluation thresholds",
     "aliases": [],
     "definition": "Clear targets that eval results are judged against, such as 95% accuracy, set so you can tell what counts as a good result.",
+    "whyItMatters": "Raw accuracy and cost numbers alone don't decide anything; thresholds let you tell at scale, with impartial empiricism, which method is best and what to change.",
+    "example": "Accuracy: 95% (out of 100 tests); cost per classification: 50% lower on average than the current method.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
       "title": "Ticket routing",
@@ -856,6 +990,8 @@
     "term": "evaluator-optimizer",
     "aliases": [],
     "definition": "A workflow where one LLM call generates a response while another provides evaluation and feedback, in a loop.",
+    "whyItMatters": "It fits when there are clear evaluation criteria and iterative refinement provides measurable value.",
+    "example": "Literary translation, where an evaluator LLM critiques nuances the translator LLM missed.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -867,6 +1003,8 @@
     "term": "EventSource",
     "aliases": [],
     "definition": "The browser interface for server-sent events: it opens a persistent HTTP connection and receives events in `text/event-stream` format until `close()` is called.",
+    "whyItMatters": "Server-sent events are one-way, server to client, so they suit feeds of updates; use WebSockets when the client must send messages too. Named events need their own listener.",
+    "example": "`const sse = new EventSource(\"/api/v1/sse\"); sse.addEventListener(\"update\", (e) => console.log(e.data));`",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
       "title": "EventSource",
@@ -878,6 +1016,8 @@
     "term": "excessive agency",
     "aliases": [],
     "definition": "An LLM risk: damaging actions performed in response to unexpected, ambiguous or manipulated model output. Root causes: excessive functionality, permissions or autonomy.",
+    "whyItMatters": "Points to the fix when an agent can do more than its task needs: minimize extensions, their functions and their permissions, and require user approval for high-impact actions.",
+    "example": "A mail-summarizing assistant's plugin can also send messages; an injected email tricks it into forwarding sensitive data to an attacker.",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
       "title": "LLM06: Excessive Agency",
@@ -891,6 +1031,8 @@
       "exit 2"
     ],
     "definition": "The blocking exit code for command hooks: on events that can block, it stops the action, and `PreToolUse` blocks the tool call.",
+    "whyItMatters": "Without valid JSON on stdout, exit 1 is a non-blocking error for most events and the action proceeds. To enforce a policy, use `exit 2`.",
+    "example": "Echo \"Blocked: rm commands are not allowed\" to stderr, then `exit 2`; Claude sees the message.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
@@ -902,6 +1044,8 @@
     "term": "exponential backoff",
     "aliases": [],
     "definition": "Scheduling retries with exponentially growing waits. Google SRE says to always randomize the delays, so a brief blip doesn't make clients retry in sync, and to limit retries per request.",
+    "whyItMatters": "Retries can amplify an overload into a cascading failure. Don't retry indefinitely, and avoid retrying at several layers, since attempts multiply from layer to layer.",
+    "example": "A server-wide retry budget: allow only 60 retries per minute in a process; once it's spent, fail the request instead of retrying.",
     "source": {
       "url": "https://sre.google/sre-book/addressing-cascading-failures/",
       "title": "Addressing Cascading Failures",
@@ -917,6 +1061,8 @@
       "type: \"enabled\""
     ],
     "definition": "Claude works through a problem before answering, returned in `thinking` blocks billed as output tokens. Strictly, **extended thinking** is the manual mode (`type: \"enabled\"` + `budget_tokens`); newer models use adaptive thinking.",
+    "whyItMatters": "Thinking tokens are billed as output and count toward `max_tokens`, even when the text isn't returned. Check the per-model table: some models reject `type: \"enabled\"` with a 400 error.",
+    "example": "The response holds a `thinking` block before the `text` block. Its `signature` field must be passed back unchanged in multi-turn conversations.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
@@ -930,6 +1076,8 @@
       "speed: \"fast\""
     ],
     "definition": "A research-preview option giving up to 2.5x higher output tokens per second on supported Opus models at premium pricing. Opt in with `speed: \"fast\"` plus its beta header.",
+    "whyItMatters": "It speeds output tokens per second, not time to first token, with the same model and intelligence. Switching between fast and standard speed invalidates the prompt cache.",
+    "example": "`client.beta.messages.create(model=\"claude-opus-5-5\", speed=\"fast\", betas=[\"fast-mode-2026-02-01\"], ...)`, then check `response.usage.speed`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
       "title": "Fast mode (research preview)",
@@ -943,6 +1091,8 @@
       "feature list"
     ],
     "definition": "A JSON file of end-to-end feature requirements, all initially marked failing, that coding agents update only by changing each feature's `passes` field.",
+    "whyItMatters": "It helps prevent agents declaring the project done too early. JSON is used because the model is less likely to inappropriately change it than Markdown.",
+    "example": "An entry such as \"a user can open a new chat, type in a query, press enter, and see an AI response\" stays `\"passes\": false` until tested end-to-end.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
       "title": "Effective harnesses for long-running agents",
@@ -958,6 +1108,8 @@
       "multishot prompting"
     ],
     "definition": "Putting a few well-crafted examples in the prompt: one of the most reliable ways to steer Claude's output format, tone and structure.",
+    "whyItMatters": "Make examples **relevant**, **diverse** (cover edge cases) and **structured** in `<example>` tags; 3–5 examples give the best results.",
+    "example": "Wrap the set in `<examples>` and each one in its own `<example>` tag.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -971,6 +1123,8 @@
       "expires_at"
     ],
     "definition": "Uploaded files can't be modified or renamed. They persist until you delete them or they reach an optional `expires_at`, set once at upload.",
+    "whyItMatters": "To change content, upload a new file and delete the old one. Deleted files can't be recovered, and requests that reference an expired file fail.",
+    "example": "`expires_in_seconds` at upload: from 3,600 (1 hour) to 7,776,000 (90 days).",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
       "title": "Files API",
@@ -984,6 +1138,8 @@
       "file_id"
     ],
     "definition": "Upload a file once, get a `file_id`, and reference that ID in Messages requests instead of re-uploading the content each time.",
+    "whyItMatters": "PDFs and plain text go in `document` blocks, images in `image` blocks. Convert unsupported types such as .docx or .xlsx to plain text first.",
+    "example": "Files you upload can't be downloaded; only files created by skills or code execution can.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
       "title": "Files API",
@@ -999,6 +1155,8 @@
       "--fork-session"
     ],
     "definition": "Creates a new session that starts with a copy of the original's history, with its own session ID. The original stays unchanged. It branches history, not files on disk.",
+    "whyItMatters": "Fork rather than resume to try an alternative without losing the original thread. A forked agent's file edits are real for every session in that directory; use file checkpointing to revert them.",
+    "example": "`ClaudeAgentOptions(resume=session_id, fork_session=True)` explores OAuth2 in a new session while the original `session_id` keeps the JWT thread.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "title": "Work with sessions",
@@ -1014,6 +1172,8 @@
       ".finalMessage()"
     ],
     "definition": "SDK helpers that stream internally and return the complete Message object: `.get_final_message()` in Python, `.finalMessage()` in TypeScript.",
+    "whyItMatters": "Use them for requests with large `max_tokens` values, where the SDKs require streaming to avoid HTTP timeouts, even if you don't need text as it arrives.",
+    "example": "`with client.messages.stream(...) as stream:` then `message = stream.get_final_message()` and loop over `message.content` for the `text` blocks.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -1025,6 +1185,8 @@
     "term": "hallucination",
     "aliases": [],
     "definition": "When a language model generates text that is factually incorrect or inconsistent with the given context. Mitigations include allowing uncertainty, grounding answers in direct quotes and verifying with citations.",
+    "whyItMatters": "These techniques reduce hallucinations but don't eliminate them, so validate critical information, especially for high-stakes decisions.",
+    "example": "Add to the prompt: if the report lacks necessary information, say \"I don't have enough information to confidently assess this.\"",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "title": "Reduce hallucinations",
@@ -1035,11 +1197,13 @@
     "id": "g-harmlessness-screen",
     "term": "harmlessness screen",
     "aliases": [],
-    "definition": "A lightweight model, such as Claude Haiku 4.5, that pre-screens user input before it reaches your main conversation.",
+    "definition": "A lightweight model, such as Claude Haiku 5.5, that pre-screens user input before it reaches your main conversation.",
+    "whyItMatters": "It catches jailbreak attempts before they reach your main conversation. Constrain its answer with structured outputs, and treat a `stop_reason: \"refusal\"` from the screen as a harmful verdict.",
+    "example": "Ask the screen to classify the user's content, with a JSON schema output of `{\"is_harmful\": boolean}`, before passing it to the main conversation.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     }
   },
   {
@@ -1051,6 +1215,8 @@
       "BAA"
     ],
     "definition": "Lets organizations process protected health information (**PHI**) through eligible Claude API features, with a signed BAA. Processing PHI in the Claude Console isn't covered.",
+    "whyItMatters": "The API blocks non-eligible features with a 400 error, and enablement is permanent for the organization. If you also need general-purpose access, use a separate organization. Don't put PHI in JSON schemas.",
+    "example": "A HIPAA-enabled org sends a request with code execution and gets a `400` naming `code_execution` as not available. Remove the feature and retry.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
       "title": "API and data retention",
@@ -1064,6 +1230,8 @@
       "Claude Code hook"
     ],
     "definition": "User-defined shell commands that Claude Code runs automatically at specific points in its lifecycle, such as after a tool call (`PostToolUse`).",
+    "whyItMatters": "They give deterministic control: certain actions always happen rather than relying on the LLM to choose to run them.",
+    "example": "A `PostToolUse` hook with matcher `Edit|Write` runs Prettier on every file Claude edits.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks-guide",
       "title": "Automate actions with hooks",
@@ -1077,6 +1245,8 @@
       "idempotency"
     ],
     "definition": "An HTTP method is idempotent if one request has the same intended effect on the server as several identical ones. Safe methods, PUT and DELETE are; POST and PATCH aren't guaranteed to be.",
+    "whyItMatters": "It tells you which requests a client can safely retry when unsure they reached the server. Repeating an idempotent request does no harm; repeating a POST may duplicate its effect.",
+    "example": "Repeating `DELETE /idX/delete` is idempotent (200, then 404); repeating `POST /add_row` adds another row each time.",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent",
       "title": "Idempotent",
@@ -1090,6 +1260,8 @@
       "base64"
     ],
     "definition": "An `image` content block's source can be base64 data, a URL to a hosted image, or a `file_id` from the Files API.",
+    "whyItMatters": "For an image you use repeatedly, upload it once and reference the `file_id` instead of resending base64. Claude works best with images before text.",
+    "example": "Supported formats: JPEG, PNG, GIF and WebP. On Bedrock and Google Cloud, only base64 is currently available.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
       "title": "Vision",
@@ -1101,6 +1273,8 @@
     "term": "indirect prompt injection",
     "aliases": [],
     "definition": "An attack where the user is trusted but Claude processes third-party content (web pages, emails, documents, tool results) with adversarial instructions.",
+    "whyItMatters": "The attacker isn't your user (unlike a jailbreak). Put untrusted content only in `tool_result` blocks, label its source, JSON-encode it, use least privilege.",
+    "example": "An email saying \"Ignore previous instructions…\" is JSON-encoded in a `tool_result`: data, not a directive.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
@@ -1114,6 +1288,8 @@
       "initializer session"
     ],
     "definition": "The first session of a long-running harness: it sets up an `init.sh` script, a `claude-progress.txt` log and an initial git commit.",
+    "whyItMatters": "Each later session starts with a fresh context window, so it reads the progress file and git history to quickly understand the state of work.",
+    "example": "Session 1 writes the feature list and init.sh; later sessions each work on one feature, then commit.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
       "title": "Effective harnesses for long-running agents",
@@ -1125,6 +1301,8 @@
     "term": "input_json_delta",
     "aliases": [],
     "definition": "The delta type for a streamed `tool_use` block: partial JSON strings that build up the tool's `input`.",
+    "whyItMatters": "Don't parse each delta: accumulate the strings and parse at `content_block_stop`, or use the SDK helpers. The final `input` is an object.",
+    "example": "Deltas like `{\"type\": \"input_json_delta\", \"partial_json\": \"{\\\"location\\\":\"}` then `\" \\\"San\"`... join into `{\"location\": \"San Francisco, CA\"}`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -1138,6 +1316,8 @@
       "is_error: true"
     ],
     "definition": "An optional `tool_result` field: set it to `true` when the tool execution resulted in an error, with the error message in the content.",
+    "whyItMatters": "Write instructive errors: what went wrong and what Claude should try next, not just \"failed\". You don't need to handle `is_error` results for server tools.",
+    "example": "`\"content\": \"Rate limit exceeded. Retry after 60 seconds.\", \"is_error\": true`",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "title": "Handle tool calls",
@@ -1151,6 +1331,8 @@
       "isError: true"
     ],
     "definition": "MCP flag on a tool result reporting a **tool execution error** (API failure, bad input, business logic) so the model can self-correct and retry, unlike a protocol error.",
+    "whyItMatters": "Report fixable failures as a tool result with `isError: true` and an actionable message, not as a JSON-RPC error. Clients should pass these to the model so it can self-correct.",
+    "example": "A result with `\"isError\": true` and text \"Invalid departure date: must be in the future.\" lets the model fix the date and call the tool again.",
     "source": {
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
       "title": "Tools",
@@ -1166,6 +1348,8 @@
       "cache-aware ITPM"
     ],
     "definition": "For most Claude models, only uncached input tokens count toward input-tokens-per-minute (ITPM) limits; tokens read from cache don't.",
+    "whyItMatters": "Caching raises effective throughput: with a 2M ITPM limit and an 80% cache hit rate, you could process about 10M total input tokens a minute.",
+    "example": "Counted: `input_tokens`, `cache_creation_input_tokens`. Not counted (most models): `cache_read_input_tokens`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -1179,6 +1363,8 @@
       "direct prompt injection"
     ],
     "definition": "An attack where the user of your application is the adversary, crafting inputs meant to bypass your guardrails.",
+    "whyItMatters": "Its defenses sit on the user-input side: harmlessness screens, input validation, system prompts that say how to refuse, and action on repeat offenders.",
+    "example": "A user who keeps triggering the same refusal is told they violate usage policies and may be throttled.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
@@ -1192,6 +1378,8 @@
       "output_config.format"
     ],
     "definition": "The structured outputs mode that constrains Claude's response to a JSON schema you supply, using constrained decoding.",
+    "whyItMatters": "It addresses malformed JSON and missing fields. Citations can't be combined with it (400), and a refusal or `max_tokens` cutoff may still not match the schema.",
+    "example": "`\"output_config\": {\"format\": {\"type\": \"json_schema\", \"schema\": {...}}}`",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "title": "Structured outputs",
@@ -1203,6 +1391,8 @@
     "term": "JSON-RPC",
     "aliases": [],
     "definition": "The message format of MCP's data layer: clients and servers exchange JSON-RPC requests, responses and notifications for discovery and for primitives such as tools, resources and prompts.",
+    "whyItMatters": "The same JSON-RPC 2.0 messages run over both stdio and Streamable HTTP. Requests carry an `id` to match their response; notifications have no `id` and get no response.",
+    "example": "`{\"jsonrpc\": \"2.0\", \"id\": 2, \"method\": \"tools/list\"}` asks a server which tools it offers; `tools/call` then runs one.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
       "title": "Architecture overview",
@@ -1216,6 +1406,8 @@
       "just-in-time"
     ],
     "definition": "An agent keeps lightweight identifiers (file paths, stored queries, web links) and uses tools to load the data into context at runtime.",
+    "whyItMatters": "Keeps context focused and enables progressive disclosure. The trade-off: runtime exploration is slower than retrieving pre-computed data.",
+    "example": "Claude Code drops CLAUDE.md in up front, then uses glob and grep to retrieve files just in time.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "title": "Effective context engineering for AI agents",
@@ -1227,6 +1419,8 @@
     "term": "LangGraph",
     "aliases": [],
     "definition": "A low-level orchestration framework and runtime for long-running, stateful agents, mixing deterministic steps and LLM-driven steps in one graph, with durable execution and human-in-the-loop.",
+    "whyItMatters": "Choose it when you need fine-grained control: predictable, auditable steps where you need reliability and model-driven steps where you need flexibility. For a higher-level start, use LangChain's prebuilt agents.",
+    "example": "`graph = StateGraph(MessagesState)`, `add_node`, edges from `START` to `END`, then `graph.compile()` and `graph.invoke({...})`.",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/overview",
       "title": "LangGraph overview",
@@ -1240,6 +1434,8 @@
       "minimum privileges"
     ],
     "definition": "Giving each tool, extension or agent only the permissions it needs, and acting on downstream systems as the specific user, to limit the scope of harmful actions.",
+    "whyItMatters": "It limits the damage when the model is manipulated. Enforce it in the downstream system, such as the database permissions of the identity the extension connects with.",
+    "example": "A purchase-recommendation agent's database identity gets read access to the `products` table only, with no insert, update or delete.",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
       "title": "LLM06: Excessive Agency",
@@ -1254,6 +1450,8 @@
       "managed policy"
     ],
     "definition": "Settings your organization deploys to every developer's machine. Claude Code applies them above every other level, so user, project, local or `--settings` values can't override them (bar a few security exceptions).",
+    "whyItMatters": "Use them when a policy must hold for every developer, such as denying reads of secrets. A managed `model` is only a default, though: restrict choices with `availableModels`.",
+    "example": "`/etc/claude-code/managed-settings.json` with `permissions.deny: [\"Read(./.env)\"]` and `disableBypassPermissionsMode: \"disable\"`.",
     "source": {
       "url": "https://code.claude.com/docs/en/managed-settings",
       "title": "Managed settings",
@@ -1265,6 +1463,8 @@
     "term": "many-image requests",
     "aliases": [],
     "definition": "If one API request contains more than 20 images, a stricter per-image dimension limit applies to every image in that request.",
+    "whyItMatters": "Resent images from earlier turns count too. Stay under it by resizing each image to at most 2000 px per side, or sending 20 or fewer.",
+    "example": "API maximums: 100 images per request on 200k-context models, 600 on others; 8000x8000 px per image.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
       "title": "Vision",
@@ -1279,6 +1479,8 @@
       "marketplace.json"
     ],
     "definition": "A catalog of plugins: a directory or repository with a `.claude-plugin/marketplace.json` file listing each plugin and where to fetch it. Users register it, then install plugins from it.",
+    "whyItMatters": "Create one when a group you choose, such as your team, should install your plugins and keep receiving updates from a catalog you control. An administrator can require it on every machine.",
+    "example": "`/plugin marketplace add ./my-marketplace`, then `/plugin install my-first-plugin@my-marketplace`.",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/create-marketplace",
       "title": "Create a plugin marketplace",
@@ -1290,6 +1492,8 @@
     "term": "max_tokens",
     "aliases": [],
     "definition": "The maximum number of tokens to generate before stopping. The model may stop **before** reaching it; it is only an absolute ceiling on output.",
+    "whyItMatters": "If a reply ends with `stop_reason: \"max_tokens\"` it was truncated: raise the limit or continue the response.",
+    "example": "`\"max_tokens\": 1024` caps the reply at 1,024 output tokens.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
@@ -1306,6 +1510,8 @@
       "error_max_turns"
     ],
     "definition": "Agent SDK caps on tool-use turns and on spend. Hitting one ends the loop with an `error_max_turns` or `error_max_budget_usd` result.",
+    "whyItMatters": "Both default to no limit, so open-ended prompts can run long. Setting a budget is a good default for production agents.",
+    "example": "`max_turns=30` to prevent runaway sessions; if hit, resume the session with a higher limit.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
       "title": "How the agent loop works",
@@ -1317,6 +1523,8 @@
     "term": "MCP client",
     "aliases": [],
     "definition": "A component inside the MCP host that maintains a dedicated connection to one MCP server and obtains context from it for the host to use.",
+    "whyItMatters": "Each client holds one dedicated connection to one server, so a host talking to three servers runs three clients. The client uses `*/list` methods to discover the server's tools, resources and prompts.",
+    "example": "VS Code connects to the Sentry MCP server and the local filesystem server, creating one MCP client object for each connection.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
       "title": "Architecture overview",
@@ -1331,6 +1539,8 @@
       "mcp_toolset"
     ],
     "definition": "A beta Messages API feature that connects to remote MCP servers without a separate MCP client: servers in `mcp_servers`, each used by one `mcp_toolset`.",
+    "whyItMatters": "Only tool calls are currently supported, and the server must be publicly exposed over HTTP (Streamable HTTP or SSE); local stdio servers can't connect directly.",
+    "example": "Allowlist: set `enabled: false` in `default_config`, then enable specific tools in `configs`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
       "title": "MCP connector",
@@ -1342,6 +1552,8 @@
     "term": "MCP host",
     "aliases": [],
     "definition": "The AI application, such as Claude Code or an IDE, that coordinates MCP clients. It creates one MCP client for each MCP server it connects to.",
+    "whyItMatters": "Keep the roles apart: the host is the AI application, clients are its per-server connections, and servers provide the context. The host decides what each discovered server can be used for.",
+    "example": "Claude Desktop as host launches the local filesystem server over stdio and also connects to the remote Sentry server, with one MCP client for each.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
       "title": "Architecture overview",
@@ -1353,6 +1565,8 @@
     "term": ".mcp.json",
     "aliases": [],
     "definition": "The file at the project root that holds project-scoped MCP servers. Check it into version control so everyone on the team gets the same MCP tools.",
+    "whyItMatters": "It expands `${VAR}` and `${VAR:-default}`, but in a remote server's `url` and `headers` credential names like `ANTHROPIC_API_KEY` read as empty.",
+    "example": "`\"Authorization\": \"Bearer ${API_KEY}\"` in a server's `headers`.",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
       "title": "Connect Claude Code to tools via MCP",
@@ -1364,6 +1578,8 @@
     "term": "MCP server",
     "aliases": [],
     "definition": "A program that exposes capabilities to AI apps through the Model Context Protocol, using three building blocks: **tools**, **resources** and **prompts**.",
+    "whyItMatters": "Questions test who controls each block: tools are model-controlled, resources are application-controlled, prompts are user-controlled.",
+    "example": "A travel server exposes a `searchFlights` tool, a `calendar://events/2024` resource and a \"Plan a vacation\" prompt.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
       "title": "Understanding MCP servers",
@@ -1377,6 +1593,8 @@
       "MCP scope"
     ],
     "definition": "**Local** (the default; this project, private), **project** (`.mcp.json`, shared via version control) and **user** (all your projects, private).",
+    "whyItMatters": "Local and user servers are stored in `~/.claude.json`, not the repo. A name defined in several scopes uses local, then project, then user; fields aren't merged.",
+    "example": "`claude mcp add --transport http shared-server --scope project https://example.com/mcp`",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
       "title": "Connect Claude Code to tools via MCP",
@@ -1388,6 +1606,8 @@
     "term": "MCP tool search",
     "aliases": [],
     "definition": "On by default: only MCP tool names and server instructions load at session start, and full tool schemas are deferred until Claude needs a tool.",
+    "whyItMatters": "Adding servers has minimal context impact, and there's no fixed per-server tool cap. Set `alwaysLoad: true` for a server whose tools Claude needs every turn.",
+    "example": "`ENABLE_TOOL_SEARCH=false` loads all MCP tools upfront, with no deferral.",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
       "title": "Connect Claude Code to tools via MCP",
@@ -1402,6 +1622,8 @@
       "Streamable HTTP"
     ],
     "definition": "**stdio**: standard input/output between local processes on the same machine. **Streamable HTTP**: HTTP POST plus optional SSE, enabling remote servers.",
+    "whyItMatters": "Local stdio servers typically serve a single client; remote Streamable HTTP servers typically serve many and support standard HTTP auth (MCP recommends OAuth).",
+    "example": "Claude Desktop runs the filesystem server locally over stdio; the Sentry MCP server is remote, over Streamable HTTP.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
       "title": "Architecture overview",
@@ -1415,6 +1637,8 @@
       "/memories"
     ],
     "definition": "An Anthropic-provided, client-side tool: Claude requests file operations under `/memories`, and your application executes them on storage you control.",
+    "whyItMatters": "Memory lives entirely in your application, so it persists only if your handler serves the same store. The handler must reject paths outside `/memories`.",
+    "example": "Tools entry: `{\"type\": \"memory_20250818\", \"name\": \"memory\"}`, with no input schema of your own.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
       "title": "Memory tool",
@@ -1430,6 +1654,8 @@
       "message batch"
     ],
     "definition": "Asynchronous processing of large volumes of Messages requests at 50% lower cost. Most finish in under 1 hour; unfinished batches expire at 24 hours.",
+    "whyItMatters": "Choose it for work that doesn't need an immediate response (bulk evaluations, content moderation, data analysis), never for live chat.",
+    "example": "Submit thousands of product descriptions as one batch, then poll for results. Results stay available for 29 days.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -1443,6 +1669,8 @@
       "message_delta usage"
     ],
     "definition": "The token counts in the `usage` field of a streaming `message_delta` event. They are **cumulative**.",
+    "whyItMatters": "When you log usage from a stream, adding up the counts from several `message_delta` events double-counts tokens.",
+    "example": "A `message_delta` with `\"usage\": {\"output_tokens\": 89}` already reports the running total, so record that value instead of summing it with earlier counts.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -1456,6 +1684,8 @@
       "Message response"
     ],
     "definition": "A Messages API response: role assistant, `content` as an array of typed blocks, and fields such as `stop_reason`, usage, id and model.",
+    "whyItMatters": "Don't assume the first block is text: each block has a `type` (text, tool_use, thinking and others) that determines its shape.",
+    "example": "Simplest reply: `\"content\": [{\"type\": \"text\", \"text\": \"Hi, I'm Claude.\"}]`",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
@@ -1469,6 +1699,8 @@
       "Foundry"
     ],
     "definition": "Microsoft's platform for accessing Claude models with Azure-native endpoints and authentication; usage is billed through the Azure Marketplace.",
+    "whyItMatters": "The `model` value is your deployment name, not necessarily the model ID. Some features aren't supported on Foundry, and Azure-hosted deployments return a `400` for others, so check feature support first.",
+    "example": "`AnthropicFoundry(api_key=..., resource=\"example-resource\")` sends requests to `https://example-resource.services.ai.azure.com/anthropic/v1/messages`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
       "title": "Claude in Microsoft Foundry",
@@ -1480,6 +1712,8 @@
     "term": "mid-stream error",
     "aliases": [],
     "definition": "When receiving a streaming (SSE) response, an error can occur after the API has already returned a 200 response.",
+    "whyItMatters": "A 200 status doesn't mean the stream will finish: handle errors that arrive in the stream, such as `overloaded_error` (HTTP 529 when not streaming).",
+    "example": "A streamed request returns HTTP 200, then an error event arrives partway through; status-code error handling never sees it.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -1491,6 +1725,8 @@
     "term": "model alias",
     "aliases": [],
     "definition": "On the Claude API, a short name for a pre-4.6 model, such as `claude-sonnet-4-5`, that points to the most recent dated snapshot for that minor version.",
+    "whyItMatters": "The pinning guarantee covers model IDs, not these convenience aliases. A 4.6+ ID like `claude-sonnet-4-6` is not an alias; it is the snapshot.",
+    "example": "Alias `claude-sonnet-4-5` vs dated IDs like `claude-sonnet-4-5-20250929`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
       "title": "Model IDs and versioning",
@@ -1504,6 +1740,8 @@
       "MCP"
     ],
     "definition": "**MCP**: an open-source standard for connecting AI applications to external systems such as data sources, tools and workflows.",
+    "whyItMatters": "One standard means you build an integration once and use it across any AI application that supports MCP, cutting development time and complexity.",
+    "example": "Claude Code can generate an entire web app from a Figma design by connecting to it through MCP.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro",
       "title": "What is the Model Context Protocol (MCP)?",
@@ -1515,6 +1753,8 @@
     "term": "model_context_window_exceeded",
     "aliases": [],
     "definition": "A stop reason on Claude 4.5 models and newer: generation stopped because it reached the context window limit.",
+    "whyItMatters": "On these models input plus `max_tokens` may exceed the window; input **alone** over the window still gets a 400 \"prompt is too long\".",
+    "example": "On earlier models, add the `model-context-window-exceeded-2025-08-26` beta header to get this stop reason instead of a validation error.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
       "title": "Context windows",
@@ -1528,6 +1768,8 @@
       "model lifecycle states"
     ],
     "definition": "**Active** (fully supported), **Legacy** (no more updates), **Deprecated** (still works; has a replacement and retirement date), **Retired** (requests fail).",
+    "whyItMatters": "Deprecated models are likely less reliable. Publicly released models get at least 60 days' notice; migrate all usage before the retirement date.",
+    "example": "Find stragglers: Console Usage page → Export → CSV of usage by API key and model.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
       "title": "Model deprecations",
@@ -1540,11 +1782,13 @@
     "aliases": [
       "price per MTok"
     ],
-    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5: $2 input, $10 output.",
+    "definition": "Claude base prices are per million tokens (MTok), set separately for input and output, e.g. Claude Sonnet 5.5: $2 input, $10 output.",
+    "whyItMatters": "Input and output are priced separately, and output costs more, so estimate both. Batch API requests are 50% off and prompt cache reads cost a fraction of the base input price.",
+    "example": "Claude Opus 5.5 at $4 / input MTok and $20 / output MTok: a job using 2M input and 0.5M output tokens costs $8 + $10 = $18.",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
       "title": "Models overview",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-13"
     }
   },
   {
@@ -1555,6 +1799,8 @@
       "multi-agent"
     ],
     "definition": "A multi-agent design: a lead agent plans the work, spawns subagents that explore in parallel with their own context windows, then synthesizes their findings.",
+    "whyItMatters": "Anthropic's Research system uses this orchestrator-worker design. It excels at breadth-first queries that pursue several independent directions at once.",
+    "example": "Finding all board members of S&P 500 IT companies by decomposing it into subagent tasks.",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "title": "How we built our multi-agent research system",
@@ -1568,6 +1814,8 @@
       "non-deterministic"
     ],
     "definition": "Identical inputs may produce different outputs across API calls. Even with temperature set to 0, results are not fully deterministic.",
+    "whyItMatters": "Don't expect a repeated request to reproduce a reply exactly, on Anthropic's own service or through third-party cloud providers.",
+    "example": "Sending the same prompt twice with temperature set to 0 can still return two differently worded replies.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
@@ -1581,6 +1829,8 @@
       "OAuth 2.1"
     ],
     "definition": "A standard authorization flow a client uses to establish that a user is authorized to access a remote server. MCP follows OAuth 2.1 conventions for remotely hosted, HTTP-based servers.",
+    "whyItMatters": "Authorization is optional but recommended when a remote server touches user data or must audit who did what; STDIO servers can use environment credentials. Use tested libraries and short-lived tokens.",
+    "example": "An unauthorized request gets `401 Unauthorized` with `WWW-Authenticate: Bearer` and a `resource_metadata` URL the client uses to find the authorization server.",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
       "title": "Understanding authorization in MCP",
@@ -1595,6 +1845,8 @@
       "OTLP"
     ],
     "definition": "The Agent SDK can export metrics, log events and traces (beta) over OTLP. It's off until you set `CLAUDE_CODE_ENABLE_TELEMETRY=1` and choose an exporter.",
+    "whyItMatters": "Telemetry is structural by default: prompt and tool content are opt-in. Export errors fail silently unless you set `CLAUDE_CODE_OTEL_DIAG_STDERR=1`.",
+    "example": "Trace spans: `claude_code.llm_request` and `claude_code.tool` nest under `claude_code.interaction`.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",
       "title": "Observability with OpenTelemetry",
@@ -1608,6 +1860,8 @@
       "orchestrator-worker"
     ],
     "definition": "A workflow where a central LLM dynamically breaks down a task, delegates subtasks to worker LLMs and synthesizes their results.",
+    "whyItMatters": "Unlike parallelization, subtasks aren't predefined. It suits complex tasks where you can't predict the subtasks needed, such as multi-file code changes.",
+    "example": "A coding product that makes complex changes to multiple files each time.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -1621,6 +1875,8 @@
       "output tokens per minute"
     ],
     "definition": "Output-tokens-per-minute rate limit. It counts only the tokens actually generated, in real time; `max_tokens` doesn't factor in.",
+    "whyItMatters": "Because only generated tokens count, there's no rate-limit downside to setting a higher `max_tokens`. Exceeding OTPM returns a 429 with a `retry-after` header.",
+    "example": "A request with a generous `max_tokens` that ends early counts only the tokens it actually produced toward OTPM.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -1636,6 +1892,8 @@
       "stream-json"
     ],
     "definition": "A `claude -p` flag controlling output: `text` (default), `json` (result, session ID and metadata) or `stream-json` (newline-delimited JSON for real-time streaming).",
+    "whyItMatters": "Scripts should parse `json` rather than scrape text: it carries the result, session ID and cost estimate. Add `--json-schema` to get output that conforms to a schema.",
+    "example": "`claude -p \"Summarize this project\" --output-format json | jq -r '.result'`",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
       "title": "Run Claude Code programmatically",
@@ -1647,6 +1905,8 @@
     "term": "output style",
     "aliases": [],
     "definition": "A set of instructions that sets Claude's role, tone and response format for every response in a Claude Code session. Four built-in styles exist besides the default; you can write your own.",
+    "whyItMatters": "It's instructions, not a guarantee. Put project knowledge in CLAUDE.md, and use a hook for anything that must happen every time, such as formatting after each edit.",
+    "example": "Pick **Explanatory** from `/output-style` to get short `Insight` blocks explaining the choices behind the code Claude writes.",
     "source": {
       "url": "https://code.claude.com/docs/en/output-styles",
       "title": "Output styles",
@@ -1660,6 +1920,8 @@
       "529"
     ],
     "definition": "The API is temporarily overloaded. 529 errors can occur when the API experiences high traffic across all users.",
+    "whyItMatters": "It isn't your organization's rate limit (that's 429). In rare cases, a sharp jump in your own usage brings 429 acceleration limits instead, so ramp up gradually.",
+    "example": "The official SDKs automatically retry 5xx server errors like this, twice by default.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -1673,6 +1935,8 @@
       "OWASP Top 10 for LLM Applications"
     ],
     "definition": "The OWASP GenAI Security Project publishes the Top 10 for LLM Applications: the main risks, vulnerabilities and mitigations for developing and securing generative AI and LLM apps.",
+    "whyItMatters": "It gives a shared name and ID for each LLM risk, so a security review can map a scenario to a listed risk and look up its mitigations.",
+    "example": "Reviewing a RAG chatbot against the 2025 list: **LLM01** Prompt Injection, **LLM02** Sensitive Information Disclosure, **LLM08** Vector and Embedding Weaknesses.",
     "source": {
       "url": "https://genai.owasp.org/llm-top-10/",
       "title": "OWASP Top 10 for LLM Applications",
@@ -1687,6 +1951,8 @@
       "voting"
     ],
     "definition": "LLMs work on a task simultaneously and outputs are aggregated programmatically. **Sectioning** splits independent subtasks; **voting** repeats the same task.",
+    "whyItMatters": "Sectioning: speed, or focused attention per aspect. Voting: multiple perspectives or attempts for higher confidence.",
+    "example": "Voting: several prompts review the same code for vulnerabilities and flag problems.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -1701,6 +1967,8 @@
       "parallel tool calls"
     ],
     "definition": "By default, Claude may return several `tool_use` blocks in one response. You choose how to run them: concurrently, sequentially or in any combination.",
+    "whyItMatters": "Return every `tool_result` together in one user message, before any text. A separate user message per result \"teaches\" Claude to avoid parallel calls.",
+    "example": "Set `disable_parallel_tool_use: true` inside `tool_choice` for at most one tool call per response (with `auto`).",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
       "title": "Parallel tool use",
@@ -1716,6 +1984,8 @@
       "defaultMode"
     ],
     "definition": "Sets which actions Claude can take in a session without asking first: `default` (Manual), `acceptEdits`, `plan`, `auto`, `dontAsk` or `bypassPermissions`. Deny rules apply in every mode.",
+    "whyItMatters": "The mode sets the baseline for how much Claude does without asking; permission rules layer on top. Match it to the risk: Manual for sensitive or unfamiliar code, `plan` to explore before changing anything.",
+    "example": "Press `Shift+Tab` to cycle modes, or set `\"permissions\": {\"defaultMode\": \"plan\"}` in a project's `.claude/settings.json`.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -1733,6 +2003,8 @@
       "permissions.allow"
     ],
     "definition": "Allow, ask or deny rules for tools, such as `Bash(aws s3 ls)`. Evaluated deny, then ask, then allow; the first match wins, so a deny always beats a narrower allow.",
+    "whyItMatters": "An allow rule can't carve an exception out of a deny rule, and Bash patterns that try to constrain arguments are fragile. Use deny rules for what must never run, such as reading `.env`.",
+    "example": "`\"allow\": [\"Bash(npm run *)\"], \"deny\": [\"Bash(git push *)\"]`",
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
       "title": "Configure permissions",
@@ -1747,6 +2019,8 @@
       "personally identifiable information"
     ],
     "definition": "**Personal identifiable information**: data that identifies a person. OWASP lists it among the sensitive data an LLM app can disclose, alongside financial, health and credential data.",
+    "whyItMatters": "Without data sanitization, PII can surface in model responses. Scrub or mask it before training, let users opt out, and detect and redact it with pattern matching before processing.",
+    "example": "A user receives a response containing another user's personal data because of inadequate data sanitization.",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
       "title": "LLM02: Sensitive Information Disclosure",
@@ -1761,6 +2035,8 @@
       "dateless model ID"
     ],
     "definition": "Each Claude model ID is a pinned version: the model stays constant for that ID's lifetime. From the 4.6 generation on, IDs are dateless, e.g. `claude-sonnet-5`.",
+    "whyItMatters": "A dateless ID is **not** an evergreen pointer. Anthropic doesn't update an existing ID's weights; an updated version ships under a new ID.",
+    "example": "`claude-opus-4-7` (dateless, 4.6+) vs `claude-sonnet-4-5-20250929` (dated, before 4.6).",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
       "title": "Model IDs and versioning",
@@ -1772,6 +2048,8 @@
     "term": "plan mode",
     "aliases": [],
     "definition": "A permission mode in which Claude researches and proposes changes without making them: it reads files, explores and writes a plan, but doesn't edit your source.",
+    "whyItMatters": "Use it to explore a codebase before changing it. Edits stay blocked until you approve the plan, except in interactive terminal sessions with bypass available.",
+    "example": "Press `Shift+Tab`, prefix one prompt with `/plan`, or start with `claude --permission-mode plan`.",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
       "title": "Choose a permission mode",
@@ -1783,6 +2061,8 @@
     "term": "plugin",
     "aliases": [],
     "definition": "A directory of skills, agents, hooks, MCP servers or other components that Claude Code installs and loads as one unit, usually with a `.claude-plugin/plugin.json` manifest.",
+    "whyItMatters": "A single skill or hook needs no plugin; use one to package several for teammates or many projects. An enabled plugin runs as you and adds context to every session, even when unused.",
+    "example": "`my-plugin/` holding `.claude-plugin/plugin.json`, `skills/review/SKILL.md`, `agents/reviewer.md`, `hooks/hooks.json` and `.mcp.json`.",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/overview",
       "title": "Plugins",
@@ -1796,6 +2076,8 @@
       "plugin manifest"
     ],
     "definition": "An optional file at `.claude-plugin/plugin.json` carrying a plugin's metadata; `name` is the only required key.",
+    "whyItMatters": "Only the manifest goes in `.claude-plugin/`. Every other file sits at the plugin root, where the defaults are `skills/`, `hooks/hooks.json` and `.mcp.json`.",
+    "example": "A plugin's MCP servers go in `.mcp.json` at the plugin root, or in the manifest's `mcpServers` key.",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins-reference",
       "title": "Plugin manifest reference",
@@ -1807,6 +2089,8 @@
     "term": "postmortem",
     "aliases": [],
     "definition": "A written record of an incident: its impact, the actions taken, the root causes and follow-up actions to prevent recurrence. Google SRE practice is to keep postmortems blameless.",
+    "whyItMatters": "Define trigger criteria before an incident so everyone knows when one is needed. Blameless writing targets systems and processes, so people escalate issues instead of hiding them.",
+    "example": "On-call rolls back a release, which meets a trigger. The team writes up impact, mitigation, root causes and action items, then senior engineers review the draft.",
     "source": {
       "url": "https://sre.google/sre-book/postmortem-culture/",
       "title": "Postmortem Culture: Learning from Failure",
@@ -1820,6 +2104,8 @@
       "PostToolUse hook"
     ],
     "definition": "The Claude Code hook event that fires after a tool call succeeds.",
+    "whyItMatters": "Use it to react after a tool has run, e.g. give Claude feedback or replace what it sees with `updatedToolOutput`. It can't undo the call: to prevent or change one, use `PreToolUse`.",
+    "example": "A `PostToolUse` hook with matcher `Edit|Write` runs `/path/to/lint-check.sh` each time Claude writes or edits a file.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
@@ -1835,6 +2121,8 @@
       "prefilled"
     ],
     "definition": "A partial assistant message on the last turn for Claude to continue from. Not supported starting with Claude 4.6 models: those requests return a 400.",
+    "whyItMatters": "Migrate: structured outputs for formats, tools with an `enum` or structured outputs for classification, system prompt instructions to skip preambles.",
+    "example": "Earlier models still accept prefills, and assistant messages elsewhere in the conversation are unaffected.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -1848,6 +2136,8 @@
       "PreToolUse hook"
     ],
     "definition": "An Agent SDK hook callback that fires before a tool executes and can allow, deny or modify the call, for example by returning a deny decision.",
+    "whyItMatters": "Use it to block dangerous operations before they execute, such as writes to `.env` files. If any hook returns deny, the operation is blocked.",
+    "example": "A `\"Write|Edit\"` matcher makes the callback fire only for file-writing tools.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
       "title": "Intercept and control agent behavior with hooks",
@@ -1859,6 +2149,7 @@
     "term": "pretraining",
     "aliases": [],
     "definition": "Initial training on a large unlabeled text corpus. Autoregressive models like Claude's underlying model learn to predict the next word from prior context.",
+    "whyItMatters": "Pretrained models aren't inherently good at following instructions; fine-tuning and RLHF refine them, which is why Claude acts as an assistant.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
@@ -1870,6 +2161,8 @@
     "term": "progressive disclosure",
     "aliases": [],
     "definition": "Skills load in stages: metadata always (about 100 tokens per Skill), the SKILL.md body when triggered (under 5k tokens), bundled files only as needed.",
+    "whyItMatters": "You can install many Skills without context penalty. Scripts run through bash, and only their output enters context, never their code.",
+    "example": "When Claude runs a Skill's `validate_form.py`, the script's code never loads; only its output, such as \"Validation passed\", uses tokens.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
       "title": "Agent Skills",
@@ -1883,6 +2176,8 @@
       "prompt cache"
     ],
     "definition": "An API feature that lets a request resume from a previously processed prompt prefix, reducing processing time and cost for prompts with repeated content.",
+    "whyItMatters": "Cache reads cost **0.1×** base input on most models; 5-minute writes cost 1.25× and 1-hour writes 2×. It pays off when the same large prefix repeats.",
+    "example": "Cache a long system prompt and tool definitions shared by every request.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
       "title": "Prompt caching",
@@ -1894,6 +2189,8 @@
     "term": "prompt chaining",
     "aliases": [],
     "definition": "A workflow that splits a task into a sequence of steps, each LLM call processing the previous output, with optional programmatic checks (gates) between steps.",
+    "whyItMatters": "Ideal when a task decomposes cleanly into fixed subtasks. It trades latency for higher accuracy by making each LLM call an easier task.",
+    "example": "Write an outline, check it meets criteria, then write the document from the outline.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -1905,6 +2202,8 @@
     "term": "prompt injection",
     "aliases": [],
     "definition": "A vulnerability where inputs alter an LLM's behavior or output in unintended ways. The input need not be human-visible, as long as the model parses it.",
+    "whyItMatters": "It's unclear if fool-proof prevention exists, so limit impact: least-privilege model access, human approval for high-risk actions, and untrusted external content kept separate and clearly marked.",
+    "example": "A user asks an LLM to summarize a webpage whose hidden instructions make it insert an image linking to a URL, exfiltrating the private conversation.",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
       "title": "LLM01: Prompt Injection",
@@ -1919,6 +2218,8 @@
       "system prompt leakage"
     ],
     "definition": "Exposure of sensitive information you expect to stay hidden in your prompt, such as a proprietary formula in the system prompt.",
+    "whyItMatters": "No method is foolproof. Try monitoring (output screening, post-processing) first; use leak-resistant prompting only when absolutely necessary.",
+    "example": "Post-process outputs with regular expressions or keyword filtering for terms from the hidden formula.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
       "title": "Reduce prompt leak",
@@ -1932,6 +2233,8 @@
       "Pydantic AI"
     ],
     "definition": "A Python AI SDK from Pydantic: a typed, extensible agent loop where switching to another model is a string swap.",
+    "whyItMatters": "Give an agent an output type and tools and every run comes back validated and typed; tool arguments are validated before your code runs.",
+    "example": "`Agent('test')` runs entirely offline without calling an LLM, so you can exercise your agent, tools and outputs before using a real model.",
     "source": {
       "url": "https://pydantic.dev/docs/ai/overview/",
       "title": "Pydantic AI",
@@ -1946,6 +2249,8 @@
       "retrieval-augmented generation"
     ],
     "definition": "**Retrieval augmented generation**: relevant documents are retrieved from an external knowledge base at query time and passed into the context window, grounding the response in evidence.",
+    "whyItMatters": "Use it when answers need up-to-date information, domain-specific knowledge or cited sources. It's only as good as the knowledge base and what gets retrieved at runtime.",
+    "example": "For each query, retrieve the relevant documents and pass them into the context with the question; or give Claude a retrieval function through tool use so it fetches them itself.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
@@ -1959,6 +2264,8 @@
       "rate limiting"
     ],
     "definition": "The maximum number of API requests an organization can make over a period, measured per model class in requests (RPM), input tokens (ITPM) and output tokens (OTPM) per minute. Exceeding one returns a 429.",
+    "whyItMatters": "Wait as long as the 429's `retry-after` header says; earlier retries fail. A sharp jump in usage can also hit acceleration limits, so ramp traffic up gradually.",
+    "example": "Set a lower per-minute token limit on one workspace so it can't starve the others; organization-wide limits still apply.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -1972,6 +2279,8 @@
       "Read(./.env)"
     ],
     "definition": "A deny rule such as `Read(./.env)` that blocks Claude's file tools, recognized Bash file commands and redirections from reading a path.",
+    "whyItMatters": "It doesn't cover subprocesses that open files themselves, like a Python script. For OS-level enforcement for all processes, enable the sandbox.",
+    "example": "`Read(*.env)` then `Read(!sample.env)` blocks every *.env file except sample.env.",
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
       "title": "Configure permissions",
@@ -1983,6 +2292,8 @@
     "term": "refusal fallback",
     "aliases": [],
     "definition": "Re-sending a request that came back with `stop_reason: \"refusal\"` to another Claude model, which can usually still answer it.",
+    "whyItMatters": "Re-sending to the same model usually earns another refusal. On the Claude API, server-side fallback (beta) retries within a single call.",
+    "example": "Set `\"fallbacks\": \"default\"` to retry on the model Anthropic recommends for the refusal category.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
       "title": "Refusals and fallback",
@@ -1997,6 +2308,8 @@
       "request ID"
     ],
     "definition": "A unique identifier on every API response, sent in the `request-id` header and in error response bodies as `request_id`.",
+    "whyItMatters": "Include it when you contact support about a specific request. The Python and TypeScript SDKs expose it as `_request_id` on responses.",
+    "example": "`print(f\"Request ID: {message._request_id}\")`",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
@@ -2010,6 +2323,8 @@
       "request_too_large"
     ],
     "definition": "Maximum request size per endpoint: 32 MB for Messages and Token Counting, 256 MB for Message Batches, 500 MB for the Files API.",
+    "whyItMatters": "Going over returns a 413 `request_too_large` error. Partner platforms set their own: Bedrock allows 20 MB and Google Cloud 30 MB.",
+    "example": "A 40 MB Messages request gets a 413 `request_too_large`; the same payload fits the Message Batches API, which accepts up to 256 MB.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
@@ -2023,6 +2338,8 @@
       "retry-after header"
     ],
     "definition": "Sent with a 429 rate-limit error: the number of seconds to wait until you can retry the request. Earlier retries will fail.",
+    "whyItMatters": "Wait at least that long before retrying. A 429 with no `retry-after` may be the monthly spend cap, where retries fail until access resumes.",
+    "example": "`retry-after: 20` means wait 20 seconds before sending the request again.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -2036,6 +2353,8 @@
       "role prompt"
     ],
     "definition": "Setting a role in the system prompt, such as \"You are a helpful coding assistant specializing in Python\", to focus Claude's behavior and tone.",
+    "whyItMatters": "The lightest fix when answers are too generic for your use case: even a single sentence makes a difference.",
+    "example": "The guide's example sends the role as `system` in the Messages API request.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -2047,6 +2366,8 @@
     "term": "routing",
     "aliases": [],
     "definition": "A workflow that classifies an input and directs it to a specialized follow-up task, such as a different prompt, tool set or model.",
+    "whyItMatters": "Use it when distinct categories are better handled separately; without it, optimizing for one kind of input can hurt performance on others.",
+    "example": "Send easy, common questions to a smaller, cost-efficient model and hard ones to a more capable one.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -2061,6 +2382,8 @@
       "Bash sandbox"
     ],
     "definition": "In Claude Code, an OS-enforced boundary around the shell commands Claude runs: you set which files and network domains they can reach. It's off by default; turn it on with `/sandbox`.",
+    "whyItMatters": "It wraps shell commands only: file tools, hooks and MCP servers run outside it, and reads reach `~/.ssh` by default unless denied. Inside it, commands can run without asking for approval.",
+    "example": "`\"sandbox\": {\"enabled\": true, \"network\": {\"allowedDomains\": [\"github.com\", \"*.npmjs.org\"]}}` in `~/.claude/settings.json`.",
     "source": {
       "url": "https://code.claude.com/docs/en/sandboxing",
       "title": "Sandboxing",
@@ -2075,6 +2398,8 @@
       "search result content block"
     ],
     "definition": "A content block (`type: \"search_result\"`) for your own retrieved content, so Claude can cite it the way it cites web search results, with the source and title you provide. Used in RAG apps.",
+    "whyItMatters": "Citations are off by default: set `citations: {\"enabled\": true}`, and use the same setting on every search result in a request. Results can come from a tool call or go directly in the user message.",
+    "example": "`{\"type\": \"search_result\", \"source\": \"https://example.com/article\", \"title\": \"Article Title\", \"content\": [{\"type\": \"text\", ...}]}`",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
       "title": "Search results",
@@ -2090,6 +2415,8 @@
       "text/event-stream"
     ],
     "definition": "**SSE**: a way for a server to push new data to a web page at any time over HTTP, as a stream of events, instead of the page asking for each update.",
+    "whyItMatters": "Choose it when the server must push updates as they happen, instead of the page requesting each one. The `EventSource` interface handles connecting, receiving events and data, errors and closing.",
+    "example": "A page opens an `EventSource` connection and handles each message the server pushes as an event with data.",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events",
       "title": "Server-sent events",
@@ -2103,6 +2430,8 @@
       "client tool"
     ],
     "definition": "Client tools (yours, plus Anthropic-schema tools such as `bash`) run in your application. Server tools (such as `web_search`) run on Anthropic's infrastructure.",
+    "whyItMatters": "For client tools your application drives the loop and returns each `tool_result`. For server tools you never construct a `tool_result`; you read the results.",
+    "example": "`text_editor` has an Anthropic-published, trained-in schema, but your code still executes each call.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "title": "How tool use works",
@@ -2117,6 +2446,8 @@
       "settingSources: []"
     ],
     "definition": "Agent SDK option choosing which filesystem settings load (user, project, local, plus CLAUDE.md and `.claude/` files). Omitted: same as the CLI. `[]`: none of them.",
+    "whyItMatters": "Leave out `\"project\"` and the agent won't load CLAUDE.md or project hooks. `[]` alone isn't multi-tenant isolation: managed settings and `~/.claude.json` are read regardless.",
+    "example": "`settingSources: [\"user\", \"project\"]` loads user and project settings, including `<cwd>/CLAUDE.md`, but not local settings.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
       "title": "Use Claude Code features in the SDK",
@@ -2128,6 +2459,8 @@
     "term": "settings precedence",
     "aliases": [],
     "definition": "Highest first: managed, command line, project local, shared project, user. A key set at a higher level overrides the same key lower down.",
+    "whyItMatters": "List keys like `permissions.allow` merge across files instead, and nothing you set overrides managed values, apart from a few security-sensitive exceptions.",
+    "example": "Team file sets `\"model\": \"claude-sonnet-5\"`; your `.claude/settings.local.json` can pick Opus for you alone.",
     "source": {
       "url": "https://code.claude.com/docs/en/settings",
       "title": "Settings files and precedence",
@@ -2146,6 +2479,8 @@
       "local settings"
     ],
     "definition": "Four scopes: **user** (you, all projects), **shared project** (committed, whole team), **project local** (you, one project), **managed** (your organization).",
+    "whyItMatters": "Pick the file by who a setting should affect: team permissions and hooks in `.claude/settings.json`, personal overrides in `.claude/settings.local.json`.",
+    "example": "User file: `~/.claude/settings.json` (theme, default model, your own permission rules).",
     "source": {
       "url": "https://code.claude.com/docs/en/settings",
       "title": "Settings files and precedence",
@@ -2159,6 +2494,8 @@
       "spend-cap 429"
     ],
     "definition": "A 429 `rate_limit_error` returned once your organization reaches its tier's monthly spend cap. It has no `retry-after` header.",
+    "whyItMatters": "Retrying, including the SDKs' automatic retries, fails until access resumes. On the Messages API, `error.details.error_code` is `enforced_spend_limit_reached`.",
+    "example": "Access resumes at 00:00 UTC on the first day of the next month, or sooner by moving to a higher tier.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -2172,6 +2509,8 @@
       "stateless Messages API"
     ],
     "definition": "The Messages API keeps no conversation state between calls: you always send the full conversational history with each request.",
+    "whyItMatters": "A chatbot that sends only the newest message loses context. Build the conversation up over time by resending every turn in `messages`.",
+    "example": "Earlier turns don't have to come from Claude: you can include synthetic `assistant` messages.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
       "title": "Using the Messages API",
@@ -2183,6 +2522,8 @@
     "term": "stopping condition",
     "aliases": [],
     "definition": "A rule that ends an agent loop even if the task isn't finished, such as a maximum number of iterations.",
+    "whyItMatters": "Agent tasks often end on completion, but Anthropic's guidance says it's common to add stopping conditions to maintain control.",
+    "example": "Stop the loop and report back after 20 tool calls.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -2196,6 +2537,8 @@
       "stop reason"
     ],
     "definition": "A response field saying why Claude stopped, e.g. `end_turn` (finished naturally) or `max_tokens` (hit your limit).",
+    "whyItMatters": "Your code must branch on it: use the reply on `end_turn`, run tools on `tool_use`, raise the limit or continue on `max_tokens`.",
+    "example": "Others: `stop_sequence` (emitted one of your stop sequences), `tool_use` (calling a tool), `pause_turn`, `refusal`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "title": "Stop reasons and fallback",
@@ -2210,6 +2553,8 @@
       "stop_sequence"
     ],
     "definition": "A Messages API parameter: custom text sequences that make the model stop generating when it encounters one of them.",
+    "whyItMatters": "When one matches, `stop_reason` is `\"stop_sequence\"` and the response's `stop_sequence` field holds the matched string.",
+    "example": "`\"stop_sequences\": [\"</answer>\"]` stops generation when Claude emits the closing tag.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
@@ -2223,6 +2568,8 @@
       "Strands"
     ],
     "definition": "An open-source toolkit for building AI agents in Python and TypeScript (agent harness and SDK). Agents run in-process; Amazon Bedrock is the default model provider, with others available.",
+    "whyItMatters": "Framework or own loop: choose it over a hand-written loop when you need lifecycle controls (turn limits, token budgets), MCP, multi-agent patterns or model portability across providers.",
+    "example": "Turn a Python function into a tool with the `@tool` decorator, then switch the agent between Amazon Bedrock, Anthropic or OpenAI without changing agent code.",
     "source": {
       "url": "https://strandsagents.com/llms.txt",
       "title": "Strands Agents",
@@ -2234,6 +2581,8 @@
     "term": "stream error recovery",
     "aliases": [],
     "definition": "Recovering an interrupted stream: save the content received before the error, then send a continuation request so Claude resumes.",
+    "whyItMatters": "On Claude 4.6 and later, put the partial response in a **user** message with an instruction to continue; on 4.5 and earlier, it went in an assistant message.",
+    "example": "Tool use and extended thinking blocks can't be partially recovered; resume from the most recent text block.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -2251,6 +2600,8 @@
       "content_block_stop"
     ],
     "definition": "`message_start`, then each content block (start, one or more deltas, stop), then one or more message deltas, then a final `message_stop`.",
+    "whyItMatters": "A raw SSE parser must follow this order, accept `ping` events anywhere, and handle unknown event types gracefully.",
+    "example": "A text reply: `message_start` → `content_block_start` → `content_block_delta` (repeated) → `content_block_stop` → `message_delta` → `message_stop`, with `ping` events in between.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -2264,6 +2615,8 @@
       "\"stream\": true"
     ],
     "definition": "Setting `\"stream\": true` on a Messages request returns the response incrementally as server-sent events (SSE).",
+    "whyItMatters": "A UI can show text as it is generated, and the SDKs require streaming for large `max_tokens` values to avoid HTTP timeouts.",
+    "example": "Events: `message_start`, `content_block_delta`s, `message_delta`, `message_stop`. Show each `text_delta` as it arrives.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
@@ -2278,6 +2631,8 @@
       "strict mode"
     ],
     "definition": "Setting `strict: true` on a tool definition constrains sampling so Claude's tool inputs strictly follow the tool's `input_schema`.",
+    "whyItMatters": "Without it, Claude might send `\"2\"` instead of `2` or omit required fields. With it, there's no need to validate and retry tool calls.",
+    "example": "Add `\"strict\": true` at the top level of the tool, alongside `name`, `description` and `input_schema`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
       "title": "Strict tool use",
@@ -2291,6 +2646,8 @@
       "agentic memory"
     ],
     "definition": "The agent regularly writes notes to memory outside its context window; the notes are pulled back into context at later times.",
+    "whyItMatters": "It gives persistent memory with minimal overhead, and Anthropic says it excels for iterative development with clear milestones.",
+    "example": "A custom agent maintaining a `NOTES.md` file to track progress across a complex task.",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
       "title": "Effective context engineering for AI agents",
@@ -2304,6 +2661,8 @@
       "structured output"
     ],
     "definition": "Constrains Claude's responses to a schema so output is valid and parseable. Two features: **JSON outputs** (`output_config.format`) for the response, and **strict tool use** (`strict: true`) for tool inputs.",
+    "whyItMatters": "It removes JSON parse errors, missing fields and retries for schema violations. Still check `stop_reason`: a `refusal` or `max_tokens` stop can return output that doesn't match the schema.",
+    "example": "`output_config: {format: {type: \"json_schema\", schema: {...}}}` to extract name, email and plan interest from a sales email.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "title": "Structured outputs",
@@ -2317,6 +2676,8 @@
       "sub-agent"
     ],
     "definition": "A specialized assistant that handles one kind of task in its own context window, with a custom system prompt, specific tool access and independent permissions, and returns only a summary.",
+    "whyItMatters": "Use one when a side task would flood your context with logs or search results, or to restrict tools. Stay in the main conversation for iterative back-and-forth or when latency matters.",
+    "example": "Use a subagent to run the test suite and report only the failing tests with their error messages.",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
       "title": "Create custom subagents",
@@ -2330,6 +2691,8 @@
       "context isolation"
     ],
     "definition": "A non-fork subagent starts fresh: its own system prompt plus the Agent tool's prompt, without the parent's history. Only its final message returns.",
+    "whyItMatters": "The Agent tool's prompt string is the only content passed from parent to subagent, so include file paths, errors and decisions in it.",
+    "example": "A doc-reviewer subagent limited to Read and Grep can analyze files but never modify them.",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
       "title": "Subagents in the SDK",
@@ -2343,6 +2706,8 @@
       "task description"
     ],
     "definition": "What a lead agent gives each subagent: an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.",
+    "whyItMatters": "Without detailed task descriptions, subagents duplicate work, leave gaps or fail to find necessary information.",
+    "example": "Not just \"research the semiconductor shortage\", but a scoped objective, sources and output format.",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "title": "How we built our multi-agent research system",
@@ -2354,6 +2719,8 @@
     "term": "success criteria",
     "aliases": [],
     "definition": "The measurable targets an LLM app must meet. Good criteria are **specific**, **measurable**, **achievable** and **relevant** to the app's purpose and users.",
+    "whyItMatters": "An LLM app starts with clear criteria, then evals that measure them. Instead of \"good performance\", specify e.g. an F1 of at least 0.85 on a held-out test set.",
+    "example": "Bad: \"Safe outputs\". Good: < 0.1% of 10,000 trials flagged for toxicity by the content filter.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
       "title": "Define success criteria and build evaluations",
@@ -2367,6 +2734,8 @@
       "system parameter"
     ],
     "definition": "The top-level Messages API field for instructions that apply from the start of a conversation, such as a goal or role.",
+    "whyItMatters": "Put standing instructions in the top-level `system` field: a `system` message can't be the first entry in `messages`.",
+    "example": "Some newer models (e.g. Claude Opus 5.5) also accept `\"role\": \"system\"` messages after a user turn.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
       "title": "Using the Messages API",
@@ -2378,6 +2747,8 @@
     "term": "temperature",
     "aliases": [],
     "definition": "A parameter that controls the randomness of a model's predictions during text generation.",
+    "whyItMatters": "Higher temperature gives more creative, diverse outputs; lower gives more conservative, deterministic outputs that stick to the most probable phrasing.",
+    "example": "Fiction brainstorming: a higher temperature allows variation in phrasing and answers; a lower one keeps to the most probable answer.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
@@ -2392,6 +2763,8 @@
       "display: \"summarized\""
     ],
     "definition": "The `display` field of the thinking config. `\"summarized\"` returns a summary of Claude's reasoning; `\"omitted\"` (the default on many models) returns thinking blocks with an empty `thinking` field. Billing is the same.",
+    "whyItMatters": "Set `\"omitted\"` when your app doesn't show thinking: text starts streaming sooner. It lowers latency, not cost, since you're still charged for the full thinking tokens.",
+    "example": "A chat UI that shows Claude's reasoning sends `thinking: {\"type\": \"adaptive\", \"display\": \"summarized\"}`; a backend job leaves it `\"omitted\"`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
@@ -2405,6 +2778,8 @@
       "TTFT"
     ],
     "definition": "The time from sending the prompt until the model generates the first token of its response.",
+    "whyItMatters": "Particularly relevant with streaming, when you want a responsive experience. Baseline latency instead covers processing the prompt and generating the response.",
+    "example": "A chat app streams responses so users see output as soon as the first token arrives, rather than waiting for the complete reply.",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
       "title": "Reducing latency",
@@ -2416,6 +2791,8 @@
     "term": "token",
     "aliases": [],
     "definition": "The smallest unit a language model works in: a word, subword, character or byte. The glossary puts a Claude token at approximately 3.5 English characters.",
+    "whyItMatters": "Costs, limits and context use are counted in tokens, and the ratio to characters depends on the model and language. Use token counting with the model you plan to use instead of estimating.",
+    "example": "Claude 4.7 and later models produce approximately 30 percent more tokens for the same text than earlier models, so recount before switching.",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
       "title": "Glossary",
@@ -2427,6 +2804,8 @@
     "term": "token bucket",
     "aliases": [],
     "definition": "The algorithm the API uses for rate limiting: capacity is continuously replenished up to your maximum, rather than reset at fixed intervals.",
+    "whyItMatters": "Limits can apply over shorter intervals: 60 requests per minute might be enforced as 1 per second, so short bursts can trigger 429s.",
+    "example": "Spread 60 requests across the minute instead of sending them all in the first second.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
@@ -2441,6 +2820,8 @@
       "Token Counting API"
     ],
     "definition": "`POST /v1/messages/count_tokens` returns an input-token estimate for Messages inputs, except most server tools, the MCP connector and URL or file sources.",
+    "whyItMatters": "It is free, with its own RPM limits. Count under the model you'll use: Claude 4.7+ tokenizers yield about 30% more tokens than earlier models.",
+    "example": "Before a migration, count one request under each model and compare the two `input_tokens` values.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
       "title": "Token counting",
@@ -2457,6 +2838,8 @@
       "openWorldHint"
     ],
     "definition": "Optional MCP hints about tool behavior, e.g. `readOnlyHint` (doesn't modify its environment) or `destructiveHint`. Clients must treat them as untrusted unless the server is trusted.",
+    "whyItMatters": "They're hints, not guarantees: never skip a confirmation just because an untrusted server marks a tool `readOnlyHint: true`.",
+    "example": "`\"annotations\": {\"readOnlyHint\": false, \"destructiveHint\": false, \"idempotentHint\": true}` for a tool that only adds data and is safe to repeat.",
     "source": {
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/schema",
       "title": "Schema reference",
@@ -2468,6 +2851,8 @@
     "term": "tool_choice",
     "aliases": [],
     "definition": "A request field that controls tool calling: **auto** (Claude decides), **any** (must use one of the tools), **tool** (must use the named tool) or **none**.",
+    "whyItMatters": "`any` and `tool` fail on Claude Opus 5.5, Fable 5.1 and Mythos 5.1, and with manual extended thinking; use `auto`, with strict tool use for schema-valid inputs.",
+    "example": "`{\"type\": \"tool\", \"name\": \"get_weather\"}` forces that tool where supported.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
@@ -2481,6 +2866,8 @@
       "input_schema"
     ],
     "definition": "A user-defined tool entry: a **name** matching `^[a-zA-Z0-9_-]{1,128}$`, a detailed plaintext **description**, and an `input_schema` (a JSON Schema object).",
+    "whyItMatters": "The API builds a special system prompt from your tool definitions. Each optional `input_examples` entry must match `input_schema`, or you get a 400.",
+    "example": "`get_weather` with a required `location` string and an optional `unit` of \"celsius\" or \"fahrenheit\".",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
@@ -2494,6 +2881,8 @@
       "tool_result block"
     ],
     "definition": "The content block your app sends on the next request with a tool's output, answering a `tool_use` block. Claude never sees your implementation, only the schema and the result.",
+    "whyItMatters": "Every client tool call is a round trip: the loop only continues once you send the result back. Server tools such as `web_search` never need one, because Anthropic runs them.",
+    "example": "Claude's `tool_use` asks for a database query; your app runs it and sends the rows back as a `tool_result` block in a user message on the next request.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "title": "How tool use works",
@@ -2507,6 +2896,8 @@
       "clear_tool_uses_20250919"
     ],
     "definition": "A context editing strategy, `clear_tool_uses_20250919`, that clears the oldest tool results once context passes a threshold, leaving placeholder text.",
+    "whyItMatters": "Fits agents with heavy tool use whose old results are no longer needed. Defaults: trigger at **100,000** input tokens, keep the **3** most recent tool uses.",
+    "example": "List a tool in `exclude_tools` if its uses and results must never be cleared.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
       "title": "Context editing",
@@ -2518,6 +2909,8 @@
     "term": "tool runner",
     "aliases": [],
     "definition": "A beta SDK helper that runs your tools when Claude calls them, sends results back and manages conversation state until Claude stops calling tools.",
+    "whyItMatters": "For human-in-the-loop approval, custom logging or conditional execution, use the manual loop instead.",
+    "example": "Python: tools use `@beta_tool`; `runner.until_done()` gets the final message.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
       "title": "Tool runner (SDK)",
@@ -2532,6 +2925,8 @@
       "defer_loading: true"
     ],
     "definition": "Lets Claude work with hundreds or thousands of tools: tools marked `defer_loading: true` stay out of context until Claude searches the catalog and loads only the ones it needs.",
+    "whyItMatters": "Loading every definition up front bloats context, and Claude's tool selection degrades as the tool count grows. At least one tool, normally the tool search tool itself, must stay non-deferred.",
+    "example": "Add `{\"type\": \"tool_search_tool_regex_20251119\", \"name\": \"tool_search_tool_regex\"}` and set `defer_loading: true` on the rest.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
       "title": "Tool search tool",
@@ -2546,6 +2941,8 @@
       "tool calling"
     ],
     "definition": "Lets Claude call functions you define or Anthropic provides. Claude decides when to call a tool from the request and the tool description, then returns a structured call that your app (client tools) or Anthropic (server tools) runs.",
+    "whyItMatters": "With the default `tool_choice` of `{\"type\": \"auto\"}`, Claude decides each turn whether to call a tool. To require a call rather than rely on prompting, set `tool_choice`.",
+    "example": "`tools: [{\"type\": \"web_search_20260209\", \"name\": \"web_search\"}]`: Anthropic runs the search and returns cited results in the same response.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "title": "Tool use with Claude",
@@ -2559,6 +2956,8 @@
       "tool_use block"
     ],
     "definition": "The response content block Claude emits to call a tool: the tool name plus a JSON object of arguments. Your app runs the operation and sends the output back in a `tool_result` block.",
+    "whyItMatters": "A response with `stop_reason: \"tool_use\"` means your app must run the call and reply. If you're writing a regex to extract a decision from prose, it should have been a tool call.",
+    "example": "Loop while `stop_reason == \"tool_use\"`: execute each `tool_use` block, send back `tool_result` blocks, and repeat until another stop reason.",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
       "title": "How tool use works",
@@ -2570,6 +2969,8 @@
     "term": "updatedInput",
     "aliases": [],
     "definition": "A hook output field: in a `PreToolUse` hook it replaces the tool's arguments before the tool runs.",
+    "whyItMatters": "It replaces the entire input object, so include unchanged fields alongside modified ones. Permission rules are evaluated against the input your hook returns, not the one Claude sent.",
+    "example": "A `PreToolUse` hook returns `permissionDecision: \"allow\"` with `updatedInput` holding the answer, so `AskUserQuestion` runs without prompting.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
@@ -2583,6 +2984,8 @@
       "UserPromptSubmit hook"
     ],
     "definition": "The Claude Code hook event that fires when a prompt is submitted, before Claude processes it.",
+    "whyItMatters": "Use it to validate or block prompts, or add context, before Claude sees them. It runs before every prompt and blocks processing until done, so a stuck hook stalls the session.",
+    "example": "Return `{\"decision\": \"block\", \"reason\": \"...\"}` to stop a prompt; the reason is shown to the user and isn't added to Claude's context.",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
@@ -2596,6 +2999,8 @@
       "web_fetch"
     ],
     "definition": "A server tool that lets Claude retrieve the full content of specified web pages and PDF documents. You pay only standard token costs for the fetched content.",
+    "whyItMatters": "With untrusted input alongside sensitive data it's an exfiltration risk. Claude can only fetch URLs already in the conversation; `allowed_domains` and `max_uses` narrow it further.",
+    "example": "`tools=[{\"type\": \"web_fetch_20250910\", \"name\": \"web_fetch\", \"max_uses\": 5}]`, then \"Summarize this article: <url>\".",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
       "title": "Web fetch tool",
@@ -2609,6 +3014,8 @@
       "web_search"
     ],
     "definition": "A server tool giving Claude real-time web content, so it can answer with up-to-date information beyond its knowledge cutoff. Responses include citations for the sources used.",
+    "whyItMatters": "Cap searches per request with `max_uses`, and scope sources with `allowed_domains` or `blocked_domains`, not both (a 400 error). When showing output to end users, include the citations.",
+    "example": "`tools=[{\"type\": \"web_search_20250305\", \"name\": \"web_search\", \"max_uses\": 5, \"allowed_domains\": [\"example.com\"]}]`",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-search-tool",
       "title": "Web search tool",
@@ -2622,6 +3029,8 @@
       "WebSockets"
     ],
     "definition": "An API for a two-way interactive session between browser and server: either side can send messages without the client polling for replies.",
+    "whyItMatters": "The stable `WebSocket` interface has no backpressure: if messages arrive faster than you process them, the client can fill memory or max out CPU. `WebSocketStream` handles backpressure but is non-standard.",
+    "example": "Close a page's WebSocket when the user is done with it: an open connection may stop the browser from adding the page to the bfcache.",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
       "title": "The WebSocket API (WebSockets)",
@@ -2633,6 +3042,8 @@
     "term": "workflow vs agent",
     "aliases": [],
     "definition": "**Workflows** run LLMs and tools through predefined code paths. **Agents** let the LLM dynamically direct its own process and tool use.",
+    "whyItMatters": "Workflows give predictability for well-defined tasks; agents give flexibility at the cost of latency and spend. Start with the simplest solution.",
+    "example": "A fixed translate → check → format pipeline is a workflow; an assistant that decides which files to edit is an agent.",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -2644,6 +3055,8 @@
     "term": "workspace",
     "aliases": [],
     "definition": "A way to organize API usage within an organization, separating projects, environments or teams while keeping centralized billing and administration.",
+    "whyItMatters": "Give each project or environment its own API keys, members, rate limits and spend limits. A key scoped to one workspace can only access resources in that workspace.",
+    "example": "An admin creates a `Production` workspace via `client.organization.workspaces.create(name=\"Production\")`, then caps its monthly spend under **Spend limits**.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/workspaces",
       "title": "Workspaces",
@@ -2657,6 +3070,8 @@
       "x-api-key header"
     ],
     "definition": "A request header carrying your API key from the Console. It is the legacy fallback for the `Authorization: Bearer` header, and is still supported.",
+    "whyItMatters": "Raw HTTP calls need either it or `Authorization: Bearer`; the SDKs send the authentication header for you, so you set it by hand only outside an SDK.",
+    "example": "A raw request sends `x-api-key: <your Console API key>` together with `anthropic-version: 2023-06-01`.",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
       "title": "API overview",
@@ -2670,6 +3085,8 @@
       "XML tag"
     ],
     "definition": "Wrapping each type of prompt content in its own tag, such as `<instructions>` or `<context>`, so Claude can parse a complex prompt unambiguously.",
+    "whyItMatters": "Reduces misinterpretation when instructions, context, examples and variable inputs share one prompt. Use consistent, descriptive tag names.",
+    "example": "Nest for hierarchy: `<documents>` holds each `<document index=\"1\">`, with its source and content in their own tags.",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -2683,6 +3100,8 @@
       "ZDR"
     ],
     "definition": "**ZDR**: an arrangement under which Anthropic doesn't store prompts or responses at rest after the API response returns. Enabled per organization, for eligible features only.",
+    "whyItMatters": "Check the feature eligibility table. Under ZDR, the API does **not** block features marked \"No\" (often stateful ones); using one steps outside your ZDR arrangement for that data.",
+    "example": "A ZDR organization can't call the API from browser code via CORS, so its web app routes requests through a backend proxy server.",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
       "title": "API and data retention",

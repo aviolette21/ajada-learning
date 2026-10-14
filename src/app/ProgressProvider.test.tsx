@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { openTestDb } from '../../tests/renderWithApp';
 import { fixtureContent } from '../content/fixtures';
 import type { AppDb } from '../storage/db';
-import { buildQueue, newState, rate } from '../study/scheduler';
 import { DEFAULT_SETTINGS, type MockSession } from '../study/types';
 import { ClockProvider } from './clock';
 import { ContentProvider } from './ContentContext';
@@ -12,7 +11,6 @@ import { NotifierProvider, SAVE_FAILED } from './Notifier';
 import { ProgressProvider, useProgress } from './ProgressProvider';
 
 const NOW = new Date('2026-09-26T10:00:00');
-const EARLIER = new Date('2026-09-01T10:00:00');
 
 async function setup(existing?: AppDb) {
   const db = existing ?? (await openTestDb());
@@ -39,38 +37,15 @@ describe('ProgressProvider', () => {
     expect(result.current.attempts).toEqual([]);
   });
 
-  it('records a wrong answer and makes its related flashcards due now', async () => {
+  it('records an answer, with a guess marked as not confident', async () => {
     const { result, db, content } = await setup();
-    const learned = rate(newState('c-alpha-one', 'forward', EARLIER), 'easy', EARLIER);
-    await act(() => result.current.saveCardState(learned));
     await act(() => result.current.recordAnswer(content.questionById.get('q-alpha-1')!, 'b', 'quiz'));
-    expect(result.current.attempts).toMatchObject([{ questionId: 'q-alpha-1', correct: false, mode: 'quiz' }]);
-    expect(result.current.cardStates.get('c-alpha-one:forward')!.fsrs.due.getTime()).toBe(NOW.getTime());
-    expect(result.current.cardStates.get('c-alpha-one:reverse')!.fsrs.due.getTime()).toBe(NOW.getTime());
-    expect(await db.getAttempts()).toHaveLength(1);
-  });
-
-  it('resurfaces a never-studied related flashcard in both directions after a wrong answer', async () => {
-    const { result, db, content } = await setup();
-    await act(() => result.current.recordAnswer(content.questionById.get('q-beta-1')!, 'b', 'quiz'));
-    for (const d of ['forward', 'reverse'] as const) {
-      expect(result.current.cardStates.get(`c-beta-one:${d}`)!.fsrs.due.getTime()).toBe(NOW.getTime());
-    }
-    expect((await db.getCardStates()).map((s) => s.key).sort()).toEqual(['c-beta-one:forward', 'c-beta-one:reverse']);
-    const queue = buildQueue({
-      cardIds: ['c-beta-one'], states: result.current.cardStates, mode: 'mixed', now: NOW, newPerDay: 0, rng: () => 0,
-    });
-    expect(queue.map((q) => [q.direction, q.state?.key])).toEqual([
-      ['forward', 'c-beta-one:forward'], ['reverse', 'c-beta-one:reverse'],
+    await act(() => result.current.recordAnswer(content.questionById.get('q-alpha-2')!, 'a', 'quiz', true));
+    expect(result.current.attempts).toMatchObject([
+      { questionId: 'q-alpha-1', correct: false, mode: 'quiz' },
+      { questionId: 'q-alpha-2', correct: true, confident: false },
     ]);
-  });
-
-  it('leaves flashcards alone after a right answer', async () => {
-    const { result, content } = await setup();
-    const learned = rate(newState('c-alpha-one', 'forward', EARLIER), 'easy', EARLIER);
-    await act(() => result.current.saveCardState(learned));
-    await act(() => result.current.recordAnswer(content.questionById.get('q-alpha-1')!, 'a', 'quiz'));
-    expect(result.current.cardStates.get('c-alpha-one:forward')!.fsrs.due).toEqual(learned.fsrs.due);
+    expect(await db.getAttempts()).toHaveLength(2);
   });
 
   it('persists settings, flags and lesson completion', async () => {
@@ -162,7 +137,6 @@ describe('ProgressProvider', () => {
       () => result.current.saveMockSession(session),
       () => result.current.submitMock(session),
       () => result.current.updateSettings({ newCardsPerDay: 3 }),
-      () => result.current.saveCardState(newState('c-alpha-one', 'forward', NOW)),
       () => result.current.discardMockSession('m1'),
     ];
     for (const save of saves) {

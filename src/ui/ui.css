@@ -136,3 +136,4 @@ button.panel-link { padding: 0; border: 0; background: none; font: inherit; }
 .term-title { margin: 0 0 4px; font-size: 19px; }
 .term-aka { margin-bottom: 8px; font-size: 13px; }
 .term-def { margin: 0 0 10px; font-size: 15px; line-height: 1.5; }
+.term-extra { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--text-2); }

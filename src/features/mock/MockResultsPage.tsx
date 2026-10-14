@@ -10,6 +10,7 @@ import { Meter } from '../../ui/Meter';
 import { Screen } from '../../ui/Screen';
 import '../practice/practice.css';
 import { Explanation } from '../practice/Explanation';
+import { formatClock } from './MockExamPage';
 import { QuestionView } from '../practice/QuestionView';
 import './mock.css';
 
@@ -38,6 +39,7 @@ export function MockResultsPage() {
         <div className={`result-score ${result.passes ? 'result-pass' : 'result-fail'}`}>{result.scaledScore}</div>
         <div>{result.passes ? 'Above' : 'Below'} the {PASS_SCORE} pass mark</div>
         <div className="muted">{result.correct} / {result.total} correct ({result.percent}%) · estimated scaled score</div>
+        <div className="muted">Time taken: {formatClock(session.submittedAt - session.startedAt)} (the real exam allows 2:00:00)</div>
         {luckyGuesses > 0 && <div className="muted">{luckyGuesses} of those you marked as a guess</div>}
       </section>
       {retryIds.length > 0 && (

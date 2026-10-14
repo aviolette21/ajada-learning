@@ -1,10 +1,6 @@
 import { AnimatePresence, MotionConfig } from 'motion/react';
-import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import type { Content } from '../content/schema';
-import { BrowsePage } from '../features/cards/BrowsePage';
-import { CardsPage } from '../features/cards/CardsPage';
-import { GlossaryPage } from '../features/cards/GlossaryPage';
-import { ReviewPage } from '../features/cards/ReviewPage';
 import { DomainPage } from '../features/learn/DomainPage';
 import { LearnPage } from '../features/learn/LearnPage';
 import { LessonCheckPage } from '../features/learn/LessonCheckPage';
@@ -21,6 +17,7 @@ import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { SessionPage } from '../features/today/SessionPage';
 import { TodayPage } from '../features/today/TodayPage';
+import { VocabPage } from '../features/vocab/VocabPage';
 import { UpdateBanner } from '../pwa/UpdateBanner';
 import type { AppDb } from '../storage/db';
 import { TabBar } from '../ui/TabBar';
@@ -33,7 +30,7 @@ import { TermsProvider } from './Terms';
 const systemNow = () => new Date();
 
 /** Full-screen flows hide the tab bar. */
-const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes)|practice\/mock\/[^/]+$|cards\/review|learn\/lesson\/[^/]+\/check)/;
+const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
 
 export function Shell() {
   const location = useLocation();
@@ -44,16 +41,15 @@ export function Shell() {
           <Route path="/" element={<TodayPage />} />
           <Route path="/learn" element={<LearnPage />} />
           <Route path="/practice" element={<PracticePage />} />
-          <Route path="/cards" element={<CardsPage />} />
+          <Route path="/vocab" element={<VocabPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/practice/quiz" element={<QuizPage />} />
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
           <Route path="/practice/mistakes" element={<MistakesPage />} />
           <Route path="/practice/progress" element={<ProgressPage />} />
-          <Route path="/cards/review" element={<ReviewPage />} />
-          <Route path="/cards/browse/:domainId" element={<BrowsePage />} />
-          <Route path="/cards/glossary" element={<GlossaryPage back="/cards" />} />
-          <Route path="/glossary" element={<GlossaryPage />} />
+          {/* Flashcards were replaced by Vocabulary; old links land there. */}
+          <Route path="/cards/*" element={<Navigate to="/vocab" replace />} />
+          <Route path="/glossary" element={<Navigate to="/vocab" replace />} />
           <Route path="/practice/mock" element={<MockIntroPage />} />
           <Route path="/practice/mock/:sessionId" element={<MockExamPage />} />
           <Route path="/practice/mock/:sessionId/results" element={<MockResultsPage />} />

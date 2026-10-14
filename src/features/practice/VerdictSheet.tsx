@@ -1,4 +1,7 @@
-import { Link } from 'react-router-dom';
+import { AnimatePresence } from 'motion/react';
+import { useState } from 'react';
+import { useContent } from '../../app/ContentContext';
+import { LessonOverlay } from '../learn/LessonOverlay';
 import { useTermLinks } from '../../app/Terms';
 import { correctIds, formatIds, isCorrect } from '../../content/answers';
 import type { Chosen, Question } from '../../content/schema';
@@ -22,9 +25,13 @@ export function VerdictSheet({ question, chosen, guessed = false, open, onContin
   showLessonLink?: boolean;
 }) {
   const links = useTermLinks()();
+  const { lessonById } = useContent();
+  const lesson = question.lessonId ? lessonById.get(question.lessonId) : undefined;
+  const [lessonOpen, setLessonOpen] = useState(false);
   const correct = isCorrect(question, chosen);
   const answers = correctIds(question);
   return (
+    <>
     <Sheet open={open} label="Answer explanation">
       <div className={`verdict ${correct ? 'ok' : 'bad'}`}>
         <p className="verdict-line">
@@ -35,14 +42,16 @@ export function VerdictSheet({ question, chosen, guessed = false, open, onContin
         {question.mnemonic && (
           <Disclosure title="🧠 Remember it"><p>{renderInline(question.mnemonic, links)}</p></Disclosure>
         )}
-        {showLessonLink && question.lessonId && (
-          <Link className="sheet-row" to={`/learn/lesson/${question.lessonId}`}>
+        {showLessonLink && lesson && (
+          <button type="button" className="sheet-row" onClick={() => setLessonOpen(true)}>
             <span>📖 Read the lesson</span><span className="chev"><IconChevron /></span>
-          </Link>
+          </button>
         )}
         <a className="source" href={question.source.url} target="_blank" rel="noreferrer">📎 Source: {question.source.title}</a>
         <Button block onClick={onContinue}>{continueLabel}</Button>
       </div>
     </Sheet>
+    <AnimatePresence>{lessonOpen && lesson && <LessonOverlay lesson={lesson} onClose={() => setLessonOpen(false)} />}</AnimatePresence>
+    </>
   );
 }

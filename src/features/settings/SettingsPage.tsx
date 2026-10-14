@@ -10,7 +10,7 @@ import { Screen } from '../../ui/Screen';
 
 export function SettingsPage() {
   const p = useProgress();
-  const { questions, cards, lessons, domains, questionById, cardById } = useContent();
+  const { questions, glossary, lessons, domains, questionById, cardById } = useContent();
   const { now } = useClock();
   const [message, setMessage] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -42,22 +42,8 @@ export function SettingsPage() {
     }
   };
 
-  const setNewCards = (n: number) => p.updateSettings({ newCardsPerDay: Math.min(50, Math.max(5, n)) }).catch(ignore);
-
   return (
     <Screen title="Settings" back="/">
-      <section className="panel">
-        <h3>Flashcards</h3>
-        <div className="stepper-row">
-          <span>New cards per day</span>
-          <div className="stepper">
-            <button type="button" className="icon-btn" aria-label="Fewer new cards" onClick={() => setNewCards(p.settings.newCardsPerDay - 5)}>−</button>
-            <output aria-label="New cards per day">{p.settings.newCardsPerDay}</output>
-            <button type="button" className="icon-btn" aria-label="More new cards" onClick={() => setNewCards(p.settings.newCardsPerDay + 5)}>+</button>
-          </div>
-        </div>
-      </section>
-
       <section className="panel">
         <h3>Backup</h3>
         <p className="muted">
@@ -73,7 +59,7 @@ export function SettingsPage() {
       <section className="panel">
         <h3>Flagged items ({flagged.length})</h3>
         {flagged.length === 0 ? (
-          <p className="muted">Tap 🚩 on any question or card that looks wrong or outdated. It will be listed here so you can report it.</p>
+          <p className="muted">Tap 🚩 on any question that looks wrong or outdated. It will be listed here so you can report it.</p>
         ) : (
           <ul className="flag-list">
             {flagged.map((f) => (
@@ -92,7 +78,7 @@ export function SettingsPage() {
       <section className="panel">
         <h3>Content</h3>
         <p className="muted">
-          {questions.length} questions · {cards.length} flashcards · {lessons.length} lessons. Every item links to its official source.
+          {questions.length} questions · {glossary.length} vocabulary terms · {lessons.length} lessons. Every item links to its official source.
           {unofficial && ' The sub-skill breakdown is unofficial until the official exam guide is added.'}
         </p>
       </section>

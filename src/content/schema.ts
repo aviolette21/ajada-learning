@@ -130,6 +130,10 @@ export const GlossaryTermSchema = z.object({
   term: text,
   aliases: z.array(text).default([]),
   definition: upTo(240),
+  /** Shown when the term is opened: how it shows up in exam scenarios. */
+  whyItMatters: upTo(220).optional(),
+  /** One concrete use. */
+  example: upTo(200).optional(),
   source: SourceSchema,
 });
 export const GlossaryFileSchema = z.array(GlossaryTermSchema);

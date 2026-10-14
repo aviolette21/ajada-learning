@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { newState, rate } from '../study/scheduler';
-import { firstActivityAt, isStandalone, needsBackupReminder } from './reminders';
+import { firstActivityAt, needsBackupReminder } from './reminders';
 
 const DAY = 86_400_000;
 const NOW = new Date('2026-09-26T10:00:00');
@@ -26,12 +26,3 @@ describe('firstActivityAt', () => {
   });
 });
 
-describe('isStandalone', () => {
-  const win = (standalone: boolean | undefined, displayMode: boolean) =>
-    ({ navigator: { standalone }, matchMedia: () => ({ matches: displayMode }) }) as unknown as Window;
-  it('detects iOS home-screen mode and display-mode standalone', () => {
-    expect(isStandalone(win(true, false))).toBe(true);
-    expect(isStandalone(win(undefined, true))).toBe(true);
-    expect(isStandalone(win(undefined, false))).toBe(false);
-  });
-});

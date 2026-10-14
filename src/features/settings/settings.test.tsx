@@ -13,14 +13,6 @@ const open = (db?: Awaited<ReturnType<typeof openTestDb>>) =>
   renderWithApp(<SettingsPage />, { db, now, route: '/settings', path: '/settings' });
 
 describe('SettingsPage', () => {
-  it('adjusts new cards per day in steps of 5', async () => {
-    const { db } = await open();
-    await userEvent.click(await screen.findByRole('button', { name: 'More new cards' }));
-    // The stepper shows the new value once the save lands, which can take longer than the click on a slow runner.
-    await waitFor(() => expect(screen.getByLabelText('New cards per day')).toHaveTextContent('20'));
-    expect(await db.getKv('settings')).toMatchObject({ newCardsPerDay: 20 });
-  });
-
   it('exports a backup and records when', async () => {
     const { shareOrDownload } = await import('../../storage/share');
     await open();
@@ -70,6 +62,6 @@ describe('SettingsPage', () => {
     await open(db);
     expect(await screen.findByText('Stem for q-alpha-2?')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Unflag' }));
-    expect(await screen.findByText(/Tap 🚩 on any question or card/)).toBeInTheDocument();
+    expect(await screen.findByText(/Tap 🚩 on any question that looks wrong/)).toBeInTheDocument();
   });
 });

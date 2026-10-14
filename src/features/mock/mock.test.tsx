@@ -43,23 +43,12 @@ describe('MockIntroPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/practice\/mock$/);
   });
-  it('submits an exam that timed out while away and links to its results', async () => {
+  it('keeps an old unfinished exam resumable: there is no time limit', async () => {
     const db = await openTestDb();
-    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'a' } }));
+    await db.putMockSession(session({ startedAt: NOW.getTime() - 3 * MOCK_DURATION_MS }));
     await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
-    const link = await screen.findByRole('link', { name: /timed out and was submitted/ });
-    expect(link).toHaveAttribute('href', '/practice/mock/m1/results');
-    expect((await db.getMockSessions())[0].submittedAt).toBeDefined();
-    expect(await db.getAttempts()).toHaveLength(1);
-    expect(screen.queryByRole('button', { name: 'Resume exam in progress' })).toBeNull();
-  });
-  it('says so when an exam that timed out while away cannot be submitted', async () => {
-    const db = await openTestDb();
-    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1 }));
-    vi.spyOn(db, 'submitMockSession').mockRejectedValue(new Error('quota exceeded'));
-    await renderWithApp(<MockIntroPage />, { db, now, route: '/practice/mock', path: '/practice/mock' });
-    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
-    expect(screen.queryByRole('link', { name: /timed out and was submitted/ })).toBeNull();
+    expect(await screen.findByRole('button', { name: 'Resume exam in progress' })).toBeInTheDocument();
+    expect((await db.getMockSessions())[0].submittedAt).toBeUndefined();
   });
   it('offers to resume an unfinished exam', async () => {
     const db = await openTestDb();
@@ -107,7 +96,7 @@ describe('MockExamPage', () => {
     await db.putMockSession(session());
     const first = await examAt(db);
     expect(await screen.findByText('Question 1 of 4')).toBeInTheDocument();
-    expect(screen.getByLabelText('Time remaining')).toHaveTextContent('1:59:00');
+    expect(screen.getByLabelText('Time elapsed')).toHaveTextContent('0:01:00');
     await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-1/ }));
     expect(screen.getByRole('button', { name: /Right answer q-alpha-1/ })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText('Why a is right for q-alpha-1')).toBeNull();
@@ -152,25 +141,12 @@ describe('MockExamPage', () => {
     expect(await db.getAttempts()).toHaveLength(1);
   });
 
-  it('locks answers once time is up, even if the auto-submit failed', async () => {
+  it('shows elapsed time and never auto-submits', async () => {
     const db = await openTestDb();
-    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1, answers: { 'q-alpha-1': 'b' } }));
-    vi.spyOn(db, 'submitMockSession').mockRejectedValueOnce(new Error('quota exceeded'));
+    await db.putMockSession(session({ startedAt: NOW.getTime() - 3 * MOCK_DURATION_MS }));
     await examAt(db);
-    expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
-    await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-1/ }));
-    expect(screen.getByRole('button', { name: /Right answer q-alpha-1/ })).toHaveAttribute('aria-pressed', 'false');
-    await userEvent.click(screen.getByRole('button', { name: /All questions/ }));
-    await userEvent.click(within(screen.getByRole('dialog', { name: 'Question navigator' })).getByRole('button', { name: 'Submit exam' }));
-    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
-    expect((await db.getMockSessions())[0].answers).toEqual({ 'q-alpha-1': 'b' });
-  });
-
-  it('auto-submits when time runs out', async () => {
-    const db = await openTestDb();
-    await db.putMockSession(session({ startedAt: NOW.getTime() - MOCK_DURATION_MS - 1 }));
-    await examAt(db);
-    await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
+    expect(await screen.findByLabelText('Time elapsed')).toHaveTextContent('6:00:00');
+    expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1');
   });
 });
 

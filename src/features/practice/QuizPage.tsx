@@ -16,6 +16,7 @@ export function QuizPage() {
       questions, attempts, count: quizSize(params.get('n')), rng: Math.random,
       domainIds: (params.get('d') ?? '').split(',').filter(Boolean),
       subSkillIds: (params.get('s') ?? '').split(',').filter(Boolean),
+      questionIds: (params.get('ids') ?? '').split(',').filter(Boolean),
     }),
   );
   const [summary, setSummary] = useState<RunSummary | null>(null);

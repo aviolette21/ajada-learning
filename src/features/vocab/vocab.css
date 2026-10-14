@@ -1,0 +1,9 @@
+.vocab-letter { margin: 18px 0 4px; font-size: 12px; font-weight: 800; color: var(--muted); }
+.vocab-list { margin: 0; padding: 0; list-style: none; }
+.vocab-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid var(--border-soft);
+  background: none; color: var(--text); text-align: left; cursor: pointer;
+}
+.vocab-text { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.vocab-term { font-weight: 700; }
+.vocab-def { font-size: 13.5px; color: var(--text-2); }

@@ -19,7 +19,7 @@ describe('PracticePage', () => {
     expect(await screen.findByRole('link', { name: /Weak spots/ })).toHaveAttribute('href', '/practice/weak');
     expect(screen.getByRole('link', { name: /Mock exam/ })).toHaveAttribute('href', '/practice/mock');
     expect(screen.getByRole('link', { name: /History/ })).toHaveAttribute('href', '/practice/history');
-    expect(screen.getByRole('link', { name: /Glossary/ })).toHaveAttribute('href', '/glossary');
+    expect(screen.getByRole('link', { name: /My mistakes/ })).toHaveAttribute('href', '/practice/mistakes');
   });
 });
 

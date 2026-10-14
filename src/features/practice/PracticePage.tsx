@@ -11,7 +11,7 @@ import './practice.css';
 
 export function PracticePage() {
   const navigate = useNavigate();
-  const { domains, questions, glossary } = useContent();
+  const { domains, questions } = useContent();
   const [size, setSize] = useState<string>(String(QUIZ_SIZE));
   const { attempts, mockSessions } = useProgress();
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
@@ -51,11 +51,7 @@ export function PracticePage() {
         <span className="chev"><IconChevron /></span>
       </Link>
       <Link className="panel panel-link" to="/practice/mock">
-        <span className="grow"><h2><IconClock /> Mock exam</h2><span className="muted">53 questions · 120 min · weighted and scored like the real exam</span></span>
-        <span className="chev"><IconChevron /></span>
-      </Link>
-      <Link className="panel panel-link" to="/glossary">
-        <span className="grow"><h2>Glossary</h2><span className="muted">{glossary.length} terms · tap any underlined term in a question to see it</span></span>
+        <span className="grow"><h2><IconClock /> Mock exam</h2><span className="muted">53 questions · untimed · weighted and scored like the real exam</span></span>
         <span className="chev"><IconChevron /></span>
       </Link>
       <Link className="panel panel-link" to="/practice/history">
