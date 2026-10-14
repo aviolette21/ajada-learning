@@ -2,7 +2,7 @@
   {
     "id": "section-1",
     "number": 1,
-    "title": "How Claude behaves and how you reach it",
+    "title": "MSO Foundations",
     "summary": "The foundations: what tokens and the context window are, why the same prompt can give different answers, how model choice and reasoning modes trade quality against speed and cost, how much to show Claude by example, and the ways your code talks to the API.",
     "modules": [
       { "title": "How LLMs behave", "lessonId": "l-course-how-llms-behave" },
@@ -36,7 +36,7 @@
   {
     "id": "section-2",
     "number": 2,
-    "title": "Building with Claude",
+    "title": "Production-Grade Prompting, Agents & Tool Use",
     "summary": "The craft of a production app: getting reliable structured output, deciding when Claude should think, designing tools Claude picks correctly (or borrowing them over MCP), handling streams safely, keeping context in budget, wiring an agent and its memory, and choosing the right API for bulk and multimodal work.",
     "modules": [
       { "title": "Prompting craft: structured outputs", "lessonId": "l-course-structured-outputs" },
