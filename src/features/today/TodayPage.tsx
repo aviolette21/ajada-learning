@@ -47,17 +47,21 @@ export function TodayPage() {
       <section className="panel">
         <h2>Your readiness by domain</h2>
         <p className="muted readiness-key">
-          The bar is your score in that domain. <span className="key good">Green</span> = at or above the pass line
+          The bar is your estimated score in that domain. It starts at 50% and moves as you answer more; it stays grey ("early estimate") until you've answered 10 of its questions. <span className="key good">Green</span> = at or above the pass line
           (~{Math.round(PASS_FRACTION * 100)}%), <span className="key mid">yellow</span> = close, <span className="key low">red</span> = needs work.
           Biggest point losses are listed first; tap one for its topics.
         </p>
         {ordered.map((d) => {
-          const acc = byDomain.get(d.id)?.accuracy ?? null;
+          const stat = byDomain.get(d.id);
+          const acc = stat?.accuracy ?? null;
+          const status = scoreStatus(acc, stat?.answered ?? 0);
           return (
             <Link key={d.id} className="domain-row domain-link" to="/practice/progress">
               <span>{d.shortName} <span className="muted">· {Math.round(d.weight)}% of exam</span></span>
-              <span className={`status status-${scoreStatus(acc)}`}>{acc === null ? '' : `${Math.round(acc * 100)}% · `}{STATUS_LABEL[scoreStatus(acc)]}</span>
-              <Meter score value={acc} label={`${d.name} score`} />
+              <span className={`status status-${status}`}>
+                {acc === null ? '' : `${Math.round(acc * 100)}% · `}{STATUS_LABEL[status]}{status === 'early' ? ` · ${stat?.answered} answered` : ''}
+              </span>
+              <Meter status={status} value={acc} label={`${d.name} score`} />
             </Link>
           );
         })}

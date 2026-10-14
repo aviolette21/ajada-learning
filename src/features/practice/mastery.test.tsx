@@ -39,9 +39,9 @@ describe('progress by sub-skill', () => {
   it('measures each sub-skill and ranks by exam points at stake', () => {
     const c = fixtureContent();
     const right = subSkillProgress(c.domains, c.questions, [{ questionId: 'q-alpha-1', chosen: 'a', correct: true, mode: 'quiz', at: 1 }], c.questionById);
-    expect(right.find((r) => r.subSkillId === 'a1')).toMatchObject({ weight: 60, accuracy: 1, seen: 1, total: 3, atStake: 0 });
+    expect(right.find((r) => r.subSkillId === 'a1')).toMatchObject({ weight: 60, accuracy: 6 / 11, seen: 1, total: 3 });
     const wrong = subSkillProgress(c.domains, c.questions, [{ questionId: 'q-alpha-1', chosen: 'b', correct: false, mode: 'quiz', at: 1 }], c.questionById);
-    expect(focusNext(wrong, 1)[0]).toMatchObject({ subSkillId: 'a1', atStake: 60 });
+    expect(focusNext(wrong, 1)[0]).toMatchObject({ subSkillId: 'a1', accuracy: 5 / 11 });
   });
 
   it('links each sub-skill to a focused quiz', async () => {

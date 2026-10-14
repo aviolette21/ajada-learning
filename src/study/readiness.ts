@@ -10,14 +10,18 @@ export const PASS_FRACTION = (PASS_SCORE - 100) / 900;
 /** How far below the pass line still counts as "close". */
 export const CLOSE_MARGIN = 0.15;
 
-export type ScoreStatus = 'on-track' | 'close' | 'needs-work' | 'not-started';
+/** Below this many answered questions an area shows "early estimate" instead of a verdict. */
+export const MIN_ANSWERS_FOR_STATUS = 10;
+
+export type ScoreStatus = 'on-track' | 'close' | 'needs-work' | 'early' | 'not-started';
 export const STATUS_LABEL: Record<ScoreStatus, string> = {
-  'on-track': 'on track', close: 'close', 'needs-work': 'needs work', 'not-started': 'not started',
+  'on-track': 'on track', close: 'close', 'needs-work': 'needs work', early: 'early estimate', 'not-started': 'not started',
 };
 
-/** Where an accuracy sits against the pass line. */
-export function scoreStatus(accuracy: number | null): ScoreStatus {
+/** Where an accuracy sits against the pass line; "early" until enough questions back it up. */
+export function scoreStatus(accuracy: number | null, answered = Infinity): ScoreStatus {
   if (accuracy === null) return 'not-started';
+  if (answered < MIN_ANSWERS_FOR_STATUS) return 'early';
   if (accuracy >= PASS_FRACTION) return 'on-track';
   return accuracy >= PASS_FRACTION - CLOSE_MARGIN ? 'close' : 'needs-work';
 }

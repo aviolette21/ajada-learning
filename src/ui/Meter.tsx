@@ -1,12 +1,12 @@
 import { motion } from 'motion/react';
-import { scoreStatus } from '../study/readiness';
+import type { ScoreStatus } from '../study/readiness';
 
-const SCORE_TONE = { 'on-track': 'good', close: 'mid', 'needs-work': 'low', 'not-started': 'none' } as const;
+const STATUS_TONE: Record<ScoreStatus, string> = { 'on-track': 'good', close: 'mid', 'needs-work': 'low', early: 'neutral', 'not-started': 'none' };
 
-/** score: colour against the exam pass line (green at or above it). Otherwise a plain progress bar. */
-export function Meter({ value, label, score = false }: { value: number | null; label: string; score?: boolean }) {
+/** status: colour a score against the exam pass line (grey while it's an early estimate). Otherwise a plain progress bar. */
+export function Meter({ value, label, status }: { value: number | null; label: string; status?: ScoreStatus }) {
   const pct = value === null ? 0 : Math.round(value * 100);
-  const tone = score ? SCORE_TONE[scoreStatus(value)] : value === null ? 'none' : value >= 0.75 ? 'good' : value >= 0.55 ? 'mid' : 'low';
+  const tone = status ? STATUS_TONE[status] : value === null ? 'none' : value >= 0.75 ? 'good' : value >= 0.55 ? 'mid' : 'low';
   return (
     <div className="meter" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}>
       <motion.i className={`meter-fill tone-${tone}`} initial={{ width: 0 }} animate={{ width: `${pct}%` }}
