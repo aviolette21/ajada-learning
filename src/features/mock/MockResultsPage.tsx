@@ -53,7 +53,7 @@ export function MockResultsPage() {
           <div key={d.domainId} className="domain-row">
             <span>{domainById.get(d.domainId)?.shortName}</span>
             <span className="muted">{d.correct}/{d.total}</span>
-            <Meter value={d.correct / d.total} label={`${domainById.get(d.domainId)?.name} score`} />
+            <Meter score value={d.correct / d.total} label={`${domainById.get(d.domainId)?.name} score`} />
           </div>
         ))}
       </section>

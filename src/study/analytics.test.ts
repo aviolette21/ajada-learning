@@ -3,7 +3,7 @@ import { fixtureContent } from '../content/fixtures';
 import { accuracyBy, weightedAccuracy } from './accuracy';
 import { pickQuizQuestions } from './quiz';
 import { mulberry32 } from './random';
-import { readiness, toScaledScore } from './readiness';
+import { PASS_FRACTION, readiness, scoreStatus, toScaledScore } from './readiness';
 import type { Attempt } from './types';
 import { missedQuestionIds, pickWeakQuestions, weakSubSkills } from './weakSpots';
 
@@ -96,5 +96,15 @@ describe('pickQuizQuestions', () => {
   });
   it('uses every domain when none are selected', () => {
     expect(pickQuizQuestions({ questions, attempts: [], domainIds: [], count: 2, rng: mulberry32(9) })).toHaveLength(2);
+  });
+});
+
+describe('scoreStatus', () => {
+  it('places accuracy against the pass line', () => {
+    expect(PASS_FRACTION).toBeCloseTo(0.689, 3);
+    expect(scoreStatus(null)).toBe('not-started');
+    expect(scoreStatus(0.7)).toBe('on-track');
+    expect(scoreStatus(0.6)).toBe('close');
+    expect(scoreStatus(0.5)).toBe('needs-work');
   });
 });

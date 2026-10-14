@@ -14,7 +14,7 @@ function Row({ row }: { row: SubSkillProgress }) {
       <div className="topic-main">
         <span className="topic-name">{row.name}</span>
         <span className="muted">{row.weight}% of exam · {pct(row.accuracy)} · seen {row.seen}/{row.total}</span>
-        <Meter value={row.accuracy} label={`${row.name} accuracy`} />
+        <Meter score value={row.accuracy} label={`${row.name} accuracy`} />
       </div>
       <Link className="chip" to={`/practice/quiz?n=10&s=${row.subSkillId}`} aria-label={`Practice ${row.name}`}>Practice</Link>
     </div>
