@@ -115,7 +115,7 @@ export function MockExamPage() {
           ? <Button onClick={() => setNavOpen(true)}>Review &amp; submit</Button>
           : <Button onClick={() => update({ currentIndex: session.currentIndex + 1 })}>Next</Button>}
       </div>
-      <Sheet open={navOpen} label="Question navigator">
+      <Sheet open={navOpen} label="Question navigator" onClose={() => setNavOpen(false)}>
         <div className="navgrid">
           {session.questionIds.map((id, i) => {
             const isDone = answeredIds.includes(id);

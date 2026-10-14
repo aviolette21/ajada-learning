@@ -32,7 +32,7 @@ export function VerdictSheet({ question, chosen, guessed = false, open, onContin
   const answers = correctIds(question);
   return (
     <>
-    <Sheet open={open} label="Answer explanation">
+    <Sheet open={open} label="Answer explanation" onClose={onContinue}>
       <div className={`verdict ${correct ? 'ok' : 'bad'}`}>
         <p className="verdict-line">
           {correct ? <><IconCheck /> {guessed ? 'Correct, but a guess: it stays in your mistakes.' : 'Correct!'}</> : <><IconX /> Not quite. The answer{answers.length > 1 ? 's are' : ' is'} {formatIds(answers)}.</>}
