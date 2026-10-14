@@ -29,6 +29,7 @@
     ],
     "answer": "b",
     "takeaway": "**Tools** = model-controlled actions, **Resources** = application-controlled read-only context, **Prompts** = user-invoked templates.",
+    "explanation": "Each MCP building block is defined by **who controls it**. Tools are functions the model calls, so `send_message` is a tool. Resources are passive read-only data the application provides, so database schemas are a resource. Prompts are templates the user invokes, like a slash-command menu item, so the meeting template is a prompt (Option B). A is the tempting trap because it swaps tools and resources, and C swaps resources and prompts. D ignores that MCP has three distinct primitives with different controllers.",
     "mnemonic": "Tools: model. Resources: app. Prompts: user.",
     "difficulty": "medium",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "c",
     "takeaway": "Tool quality starts with the **description**: what it does, when (and when not) to use it, each parameter, and caveats.",
+    "explanation": "Anthropic's guidance says detailed **descriptions** are by far the most important factor in tool performance. One-line text like 'Gets data.' leaves Claude guessing, so write what each tool does, when to use it, its parameters and caveats, aiming for at least 3–4 sentences per tool (Option C). D is the tempting trap because examples show usage, but `input_examples` are an optional extra for complex inputs, not a replacement. A goes against the advice to consolidate related operations, and B removes exactly the context Claude needs.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
@@ -113,6 +115,7 @@
     ],
     "answer": "a",
     "takeaway": "**auto**: Claude decides. **any**: some tool. **tool**: this tool. **none**: no tools.",
+    "explanation": "Each `tool_choice` type sets a different level of control: `auto` lets Claude decide, `any` requires some tool, `tool` forces one specific tool, and `none` blocks tools. The stem wants `record_summary` every time, never another tool and never plain text, so only `{\"type\": \"tool\", \"name\": \"record_summary\"}` fits (Option A). B is the tempting trap because it does force a tool call, but it allows any of the provided tools. C leaves the choice to Claude, and D prevents tool use entirely.",
     "mnemonic": "Auto decides, any picks, tool insists, none forbids.",
     "difficulty": "easy",
     "source": {
@@ -155,6 +158,7 @@
     ],
     "answer": "d",
     "takeaway": "Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1 reject forced tool use: use **`auto` plus strict tool use**, or structured outputs for a fixed JSON shape.",
+    "explanation": "On Claude Opus 5.5, both `any` and `tool` return a 400 error, so forced tool use isn't available; `auto` and `none` still work. To keep schema-valid inputs, the docs point to `auto` with `strict: true` on the tool, plus prompting Claude to call it, since prompting still influences which tool `auto` picks (Option D). A is the tempting trap because `any` seems like a softer form of forcing, but it is rejected too. B fails because manual extended thinking doesn't support `any` or `tool`, and C retries an error that isn't transient.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
@@ -197,6 +201,7 @@
     ],
     "answer": "b",
     "takeaway": "Parallel calls need **one** user message holding every `tool_result`, results first and any text after.",
+    "explanation": "When Claude makes several `tool_use` calls in one response, all their `tool_result` blocks belong in **one** user message, before any text. Sending each result in its own message is the most common formatting mistake, and it 'teaches' Claude to avoid parallel calls, which matches the symptom (Option B). D is the tempting trap because ordering seems important, but each result is matched by `tool_use_id`. A is wrong because parallel tool use is on by default, and C wrongly assumes the API prescribes execution order.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -256,6 +261,7 @@
     ],
     "answer": "a",
     "takeaway": "Every `tool_use` gets a `tool_result`, even calls you skipped: mark those `is_error: true` and say why.",
+    "explanation": "The rule is that **every** `tool_use` block gets a `tool_result`, including calls you chose not to run. Send the failure for the first call, and for each skipped one return `is_error: true` with a brief explanation, which is Option A; Claude can then reissue calls on the next turn. B is the tempting trap because skipped calls never ran, but they still need results. C drops the `tool_result` blocks entirely, and D replaces the documented error-result pattern with your own retries.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
@@ -298,6 +304,7 @@
     ],
     "answer": "d",
     "takeaway": "Ask **where the code runs**: user-defined and Anthropic-schema tools are yours to execute; server tools are Anthropic's.",
+    "explanation": "Ask **where the code runs**. Server tools such as `web_search` run on Anthropic's infrastructure, so you never build a `tool_result` for them. User-defined tools like `get_inventory` and Anthropic-schema tools like `bash` are client-executed: your application runs each call and returns the result, so the answer is D. A is the tempting trap because Anthropic publishes the `bash` schema, but publishing a schema doesn't mean Anthropic executes it. B wrongly includes the server tool, and C wrongly assumes Claude runs everything listed.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
@@ -339,6 +346,7 @@
     ],
     "answer": "c",
     "takeaway": "Risky tool that needs a human yes? Drive the loop yourself; the tool runner executes tools automatically.",
+    "explanation": "The SDK tool runner executes tools **automatically** when Claude calls them and sends the results back, so it has no point where a person can approve a refund. The tool runner page says to write the manual tool-use loop when you need human-in-the-loop approval, custom logging or conditional execution (Option C). A is the tempting trap because it assumes the runner already asks first. B only caps loop iterations, and D returns the final message after the tools have already run.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
@@ -380,6 +388,7 @@
     ],
     "answer": "a",
     "takeaway": "In a stdio server, **stdout carries the protocol**: send logs to stderr. HTTP servers can log to stdout.",
+    "explanation": "In a stdio MCP server, **stdout carries the protocol**: anything written there corrupts the JSON-RPC messages. `print()` writes to stdout by default, which is why the server broke. The standard `logging` module writes to stderr, so switching to it keeps messages intact (Option A). B is the tempting trap because interleaving looks like the problem, but writing to stdout at all corrupts the stream, flushed or not. C's markers don't help for the same reason, and D is wrong because servers can log safely to stderr.",
     "mnemonic": "stdout for messages, stderr for logs.",
     "difficulty": "medium",
     "source": {
@@ -422,6 +431,7 @@
     ],
     "answer": "c",
     "takeaway": "The MCP connector needs a **public HTTP** server and uses only its **tools**; stdio servers stay local.",
+    "explanation": "The MCP connector has two limits to notice: the server must be **publicly exposed over HTTP** (`type: \"url\"` with an https URL), and of MCP's features only **tool calls** are currently supported. So the local stdio server must be exposed at a public https URL, and its resources won't be usable, which is Option C. A is the tempting trap because it hopes the launch command works as-is, but local stdio servers can't be connected directly. B's `authorization_token` is for OAuth, and D's toolset configures only tools.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -482,6 +492,7 @@
     ],
     "answer": "d",
     "takeaway": "Skills load in stages: **metadata always**, the SKILL.md body when triggered, files and script output only as needed.",
+    "explanation": "Skills use **progressive disclosure**, loading in stages. At startup only Level 1 metadata, each Skill's `name` and `description` at about 100 tokens per Skill, sits in context; the SKILL.md body loads when a request matches, and files and script output load only as needed (Option D). A is the tempting trap because choosing between Skills seems to require their full bodies, but the description is what Claude matches. B overstates what loads, and C is wrong because metadata is always loaded so Claude can use Skills automatically.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -542,6 +553,7 @@
     ],
     "answer": "b",
     "takeaway": "A Skill is triggered by its **description**: state what it does and when to use it.",
+    "explanation": "Claude decides whether to use a Skill by matching the request against its **`description`**. 'Invoice helper' says neither what the Skill does nor when to use it, so rewrite the description to say both (Option B). C is the tempting trap because the trigger details are already in the body, but the body enters context only after the Skill is triggered, too late to help Claude decide. A uses the reserved word 'claude' and targets the name, and D defeats the point of loading Skills on demand.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
@@ -583,6 +595,7 @@
     ],
     "answer": "a",
     "takeaway": "A side task floods your context? Route it through a **subagent**: only its summary comes back.",
+    "explanation": "The clue is a side investigation whose output you **won't reference again**, filling your main context. Subagents give context isolation: the work happens in their own context and only a summary returns, which is Option A. D is the tempting trap because an MCP server feels external, but MCP connects Claude to outside services and data; it doesn't isolate work. B adds to every session's context instead of isolating it, and C fires on lifecycle events for automation, not for a reasoning task.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -624,6 +637,7 @@
     ],
     "answer": "c",
     "takeaway": "Skills with side effects should be **user-only**: set `disable-model-invocation: true`.",
+    "explanation": "The `/deploy` skill has **side effects**, so it should run only when you invoke it. Setting `disable-model-invocation: true` in the frontmatter makes the skill invisible to Claude until you type `/deploy`, and the docs recommend this for skills with side effects; it also saves context (Option C). B is the tempting trap because a vaguer description seems to match less often, but vague descriptions make Claude load the wrong skill or miss one rather than giving you control. A loses the `/deploy` trigger, and D only namespaces the skill.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -665,6 +679,7 @@
     ],
     "answer": "d",
     "takeaway": "With tool search (the default), idle MCP tools cost little context; keep `alwaysLoad` for the few tools needed every turn.",
+    "explanation": "The teammate's worry describes Claude Code with tool search turned off. By default, **tool search** is on and defers MCP tool schemas, so only tool names and server instructions load at start, and adding more servers has minimal context impact (Option D). A is the tempting trap because it matches the behavior with `ENABLE_TOOL_SEARCH=false`, not the defaults. B invents a fixed per-server cap, and C reverses `alwaysLoad: true`, which loads every tool from a server at session start.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
@@ -706,6 +721,7 @@
     ],
     "answer": "b",
     "takeaway": "A plugin runs code **as you**: permission rules cover Claude's tool calls, not its hooks or MCP server processes.",
+    "explanation": "Permission rules and the sandbox cover **Claude's tool calls**, not a plugin's own code. Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions, so you still need to review `hooks/hooks.json`, `.mcp.json` and `bin/` (Option B). C is the tempting trap because a coworker's marketplace feels trusted, but it is still third-party and its name says who publishes the catalog, not what a plugin does. A is factually wrong, and D reviews only skills.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/security",
@@ -747,6 +763,7 @@
     ],
     "answer": "b",
     "takeaway": "In a tool-result message, `tool_result` blocks go **first**; any text comes after them.",
+    "explanation": "In a user message that carries tool results, the `tool_result` blocks must come **first** in the content array, with any text after all of them. Putting 'Here are the results:' before the result is what triggers the 400, so reorder the blocks (Option B). A is the tempting trap because separating the text seems clean, but tool results must immediately follow their tool use blocks, with no messages between. C uses a `tool` role the Claude API doesn't have, and D's `is_error` only signals tool failure.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
@@ -797,6 +814,7 @@
       "e"
     ],
     "takeaway": "Prevent bad tool calls with **richer descriptions** and `strict: true`; `is_error` results only help Claude recover.",
+    "explanation": "The stem asks to **prevent** invalid calls, not recover from them. An invalid call usually means Claude lacked information, so more-detailed `description` values for the tool and its parameters address the cause (B). Setting `strict: true` guarantees tool inputs always match your schema, preventing missing parameters (E). A is the most tempting wrong pick because returning `is_error` does help, but it is recovery after the invalid call already happened. C adds no information, and D removes it.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
@@ -840,6 +858,7 @@
     ],
     "answer": "d",
     "takeaway": "Mixed server and client turn: return **only** the client `tool_result` blocks, keep the same `tools`, and let the API run the server tool.",
+    "explanation": "In a mixed turn, the server tool call waits on your client results. Send a user message holding **only** the `run_command` `tool_result` and keep the same `tools`; the API then runs the deferred `web_fetch` and Claude continues (Option D). B is the tempting trap because every call seems to need a result, but you don't run server tools. A adds text that ends the assistant turn with an unresolved server call, causing a 400, and C removes the tool the server call is waiting on, which also fails.",
     "difficulty": "hard",
     "diagram": {
       "kind": "flow",
@@ -901,6 +920,7 @@
     ],
     "answer": "a",
     "takeaway": "`is_error` is for **your** tools' failures; server tool errors are handled by Claude without your code.",
+    "explanation": "The split follows **who runs the tool**. Your code runs `lookup_order`, so only your code knows it failed and must return the error with `is_error: true`. Server tools like `web_search` run on Anthropic's side, and Claude handles their errors transparently, so you don't send `is_error` results for them (Option A). B is the tempting trap because it treats every tool alike. C reverses the responsibility, and D wrongly assumes the API detects your own tool's failures.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
@@ -943,6 +963,7 @@
     ],
     "answer": "b",
     "takeaway": "Web fetch reaches only URLs **already in the conversation**: user messages, client tool results, or earlier search and fetch results.",
+    "explanation": "To limit exfiltration, web fetch only reaches URLs **already in the conversation**, such as user messages or client tool results; Claude can't fetch URLs that appear only in its own output. That is exactly what `url_not_in_prior_context` reports here, since Claude built the URLs itself (Option B). A is the tempting trap because domain filtering is another fetch restriction, but a blocked domain returns `url_not_allowed` instead. C names a real limit with a different cause, and D's `use_cache` doesn't change which URLs are allowed.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
@@ -992,6 +1013,7 @@
       "d"
     ],
     "takeaway": "Web fetch near sensitive data: cap it with `max_uses`, fence it with `allowed_domains`, or disable it.",
+    "explanation": "Reducing exfiltration means limiting **where** requests go and **how many** are made. The web fetch docs list `max_uses` to cap the number of fetches per request (A) and `allowed_domains` to restrict fetches to known safe domains (D). C is the most tempting wrong pick because less content in context sounds safer, but `max_content_tokens` controls token usage and doesn't restrict outbound requests. B adds citations, and E only bypasses the cache.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
@@ -1034,6 +1056,7 @@
     ],
     "answer": "c",
     "takeaway": "`disable_parallel_tool_use` lives **inside** `tool_choice`: with `auto` it means at most one call; with `any` or `tool`, exactly one.",
+    "explanation": "You need two things: **at most one** tool call per response, and the freedom to answer in plain text. `disable_parallel_tool_use` goes inside the `tool_choice` object; with `auto` it means at most one call while Claude can still skip tools, which is Option C. B is the tempting trap because it uses the right flag, but with `any` it means **exactly** one tool call, so plain-text answers are impossible. A puts the flag at the wrong level, and D is wrong because parallel tool use is on by default.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
@@ -1076,6 +1099,7 @@
     ],
     "answer": "a",
     "takeaway": "Forced `tool` or `any` choices prefill the turn, so there's no preamble text: use `auto` plus a prompt instruction instead.",
+    "explanation": "With `any` or `tool`, the API **prefills** the assistant message to force a tool call, so Claude emits no natural-language text first, even when asked. To get a short explanation while still steering toward `get_weather`, the docs suggest `auto` plus an explicit instruction in a `user` message (Option A). C is the tempting trap because `any` seems looser than `tool`, but it also forces tool use through a prefill. B keeps the forced choice, and D's examples must match the schema and don't change the prefill.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
@@ -1117,6 +1141,7 @@
     ],
     "answer": "d",
     "takeaway": "Hundreds of tools? Add **tool search** with `defer_loading: true`; selection accuracy degrades past 30–50 loaded tools.",
+    "explanation": "Sending ~200 tool definitions costs tokens up front, and selection accuracy degrades once you exceed 30–50 available tools. The documented fix is the **tool search tool** with `defer_loading: true` on tools not needed up front, so Claude loads only what each request needs (Option D). A is the tempting trap because splitting looks like it solves size, but 50 per request is still where accuracy starts to slip. B still loads every definition, and C defers the search tool itself, which must stay non-deferred.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool",
@@ -1159,6 +1184,7 @@
     ],
     "answer": "b",
     "takeaway": "Design tools around the agent's workflow (`search_contacts`), not around raw endpoints (`list_contacts`).",
+    "explanation": "Anthropic's post on writing tools says to design tools around the **agent's workflow**, not around raw API endpoints. A `list_contacts` tool forces the agent into brute-force reading of every entry, so a targeted `search_contacts` tool that finds the relevant person fits (Option B). D is the tempting trap because a compact format cuts tokens, but every contact still lands in the agent's limited context. A relies on instructions that don't shrink the list, and C repeats the endpoint-wrapping error the post warns about.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
@@ -1201,6 +1227,7 @@
     ],
     "answer": "a",
     "takeaway": "Return **meaningful** names, not cryptic IDs; let a `response_format` parameter add IDs when a later call needs them.",
+    "explanation": "The post recommends returning **meaningful** language over cryptic identifiers, because resolving UUIDs to names reduces hallucinations. Since some follow-up tools still need the UUIDs, a `response_format` enum such as `concise`/`detailed` lets the agent request IDs when needed, which is Option A. D is the tempting trap because it removes IDs entirely, but agents may still need them for follow-up calls. B adds low-signal fields like `mime_type`, and C's sorting doesn't make UUIDs meaningful.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
@@ -1242,6 +1269,7 @@
     ],
     "answer": "d",
     "takeaway": "In the Agent SDK, `readOnlyHint: true` lets side-effect-free tools run in parallel; the other hints are informational.",
+    "explanation": "In the Agent SDK, only one annotation controls parallel calls: `readOnlyHint`, default `false`, decides whether a tool can run in parallel with other read-only tools. Your lookups only read data, so set `readOnlyHint: true`, keeping it accurate because it is metadata rather than enforcement (Option D). A is the tempting trap because 'not destructive' sounds like 'safe to parallelize', but `destructiveHint` is informational only, as are `idempotentHint` (B) and `openWorldHint` (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
@@ -1284,6 +1312,7 @@
     ],
     "answer": "b",
     "takeaway": "**Host** = the AI app; it creates **one client per server**; each **server** provides context to its client.",
+    "explanation": "MCP's architecture has three roles: the **host** is the AI application, it creates **one MCP client per server**, and each client keeps its own dedicated connection to that server. So the IDE creates three clients, one per server, which is Option B. A is the tempting trap because one shared client sounds efficient, but MCP has no client shared across servers. C reverses the roles, since clients live in the host and obtain context from servers, and D invents a federation step that doesn't exist.",
     "difficulty": "medium",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
@@ -1325,6 +1354,7 @@
     ],
     "answer": "c",
     "takeaway": "**stdio** = local, usually one client. **Streamable HTTP** = remote, many clients, standard HTTP auth (OAuth recommended).",
+    "explanation": "The key details are **over the network** and **hundreds of employees**. Streamable HTTP enables remote server communication, and remote servers using it typically serve many MCP clients, which is Option C. A is the tempting trap because stdio's no-overhead performance sounds attractive, but stdio is for local processes on the same machine. B is wrong because stdio uses input/output streams with no network address, and D ignores that local stdio servers typically serve a single client.",
     "difficulty": "easy",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
@@ -1367,6 +1397,7 @@
     ],
     "answer": "a",
     "takeaway": "Sockets are a **custom transport**: same JSON-RPC messages and patterns, newline-delimited framing borrowed from stdio.",
+    "explanation": "MCP is transport-agnostic: clients and servers **may** implement custom transports, but they must preserve the JSON-RPC message format, and transports over a reliable byte stream, such as Unix sockets or TCP, should reuse stdio's newline-delimited framing (Option A). C is the tempting trap because a new transport seems to deserve its own framing, but the spec asks byte-stream transports to reuse the stdio framing. B wrongly forbids custom transports, and D borrows the Streamable HTTP binding's POST mechanism.",
     "difficulty": "hard",
     "source": {
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
@@ -1408,6 +1439,7 @@
     ],
     "answer": "d",
     "takeaway": "Remote server that **pushes** events: WebSocket (`type: \"ws\"`, header auth). Request/response only: HTTP, which supports OAuth.",
+    "explanation": "The requirement is a remote server that **pushes events** unprompted, which suits WebSocket's persistent bidirectional connection. In Claude Code you configure it as a `type: \"ws\"` entry in `.mcp.json` (or with `claude mcp add-json`) and pass auth in `headers`, which is Option D. A is the tempting trap because it looks like the usual setup, but `--transport` doesn't accept `ws`, and WebSocket servers use header-only auth, not OAuth. B relies on deprecated SSE, and C's HTTP fits servers that only respond.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
@@ -1450,6 +1482,7 @@
     ],
     "answer": "b",
     "takeaway": "MCP: bad **input** to a real tool → result with `isError: true`. Unknown tool or malformed request → protocol error.",
+    "explanation": "MCP separates **tool execution errors** from **protocol errors**. Bad input to a real tool, such as a wrongly formatted date, is a tool execution error, reported in the result with `isError: true` and a note on the expected format so the model can self-correct and retry (Option B). A is the tempting trap because bad input sounds like a protocol issue, but protocol errors are for unknown tools, malformed requests and server errors, and models recover from them less often. C gives the model nothing to act on, and D changes the tool list, which it must not do.",
     "difficulty": "medium",
     "source": {
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
@@ -1492,6 +1525,7 @@
     ],
     "answer": "c",
     "takeaway": "Elicitation: **form** mode for ordinary structured input; **URL** mode for credentials and OAuth, kept out of the client and model.",
+    "explanation": "Elicitation has two modes, chosen by **sensitivity**. Form mode is for ordinary structured input, but servers must not use it for passwords, API keys or access tokens. URL mode sends the user to a URL out of band, so the data never passes through the client or the LLM context, which fits authorizing an account and supplying a key (Option C). A is the tempting trap because a password field looks right. B uses deprecated sampling and routes the key through the model, and D puts the key in chat.",
     "difficulty": "hard",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/client-concepts",
@@ -1541,6 +1575,7 @@
       "d"
     ],
     "takeaway": "Connector tool control lives in `mcp_toolset`: **allowlist** (default off, enable a few) or **denylist** (default on, disable a few).",
+    "explanation": "Connector tool control lives in `mcp_toolset`, where tool-specific `configs` override `default_config`. An **allowlist** sets `enabled: false` by default and enables only `search_events` (A). A **denylist** keeps the default and sets `enabled: false` on the two write tools (D). Both stop Claude calling the write tools. B is the most tempting wrong pick, but `defer_loading` only delays sending a tool's description; the tools stay enabled. C fails validation, and E adds a second toolset for one server, which is rejected.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
@@ -1582,6 +1617,7 @@
     ],
     "answer": "d",
     "takeaway": "Remote MCP server: **always validate tokens**, including the audience, so tokens issued for other APIs are rejected.",
+    "explanation": "MCP's authorization guide says a token reaching your server isn't necessarily **meant** for it. Accepting any signed, unexpired token lets tokens issued for other internal APIs through, so check that each token's audience matches your server and reject the rest, which also helps avoid token passthrough (Option D). B is the tempting trap because logging seems useful for tracing misuse, but the guide says never to log `Authorization` headers or tokens. A doesn't secure a remote server, and C makes stolen tokens dangerous for longer.",
     "difficulty": "hard",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
@@ -1624,6 +1660,7 @@
     ],
     "answer": "a",
     "takeaway": "`mcp_servers` = remote servers, **tools only**. Local servers, prompts or resources → your own MCP client plus the SDK helpers.",
+    "explanation": "Two needs in the stem rule out the MCP connector: it currently supports only **tool calls**, not prompts or resources, and it can't connect local **stdio** servers. For either case the connector page points to running your own MCP client with the SDK's client-side MCP helpers, which is Option A. C is the tempting trap because it tries to register the stdio server directly, but `type` supports only 'url' with an https URL. B lists features the connector doesn't support, and D's `authorization_token` is only for OAuth.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
@@ -1666,6 +1703,7 @@
     ],
     "answer": "b",
     "takeaway": "**MCP** connects; a **skill** teaches. Pair them: the server runs queries, the skill holds the schema and query patterns.",
+    "explanation": "**MCP connects; a skill teaches.** Queries already run, so the connection works; what's missing is knowledge of your table conventions and query patterns. A skill documenting the schema and query patterns teaches Claude how to use the MCP tools well, which is Option B. A is the tempting trap because better tool descriptions sound like the fix, but MCP already provides the connection and tools, and usage knowledge belongs in a skill. C's hook pastes reference material every time, and D isolates work rather than teaching conventions.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -1708,6 +1746,7 @@
     ],
     "answer": "a",
     "takeaway": "Same setup needed in a **second repo** or by other teams? Package it as a **plugin**.",
+    "explanation": "The trigger in the stem is a **second repository** needing the exact same setup, with other teams wanting it too. A plugin bundles skills, hooks, subagents and MCP servers into one installable unit you can reuse across repositories or distribute through a marketplace (Option A). C is the tempting trap because user-level config avoids per-repo copies, but it belongs to one user and doesn't reach other teams. B can't carry hooks or MCP connections, and D's subagent is an isolated worker, not a package.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -1750,6 +1789,7 @@
     ],
     "answer": "c",
     "takeaway": "CLAUDE.md = always-on rules, under 200 lines. Reference material needed only **sometimes** → a skill.",
+    "explanation": "CLAUDE.md loads **in full every session**, and the guide says to keep it under 200 lines. At 900 lines, mostly payments reference Claude needs only sometimes, it is crowding out the core conventions. Moving the reference into a skill, which loads on demand, keeps CLAUDE.md lean (Option C). A is the tempting trap because reordering seems to fix the missed conventions, but the file still loads in full. B's output styles set role, tone and format, and D's hook is for actions that run every time.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -1792,6 +1832,7 @@
     ],
     "answer": "b",
     "takeaway": "Claude needs data from a system it **can't reach**? Connect that system with **MCP**.",
+    "explanation": "The guide's trigger is exactly this situation: if you keep copying data from a browser tab Claude **can't see**, connect that system as an MCP server, which is Option B. A is the tempting trap because describing the dashboard seems helpful, but a skill adds knowledge and workflows, not access to an external system's data. C adds context to every session without connecting anything, and D's subagent isolates context but still can't reach the monitoring system on its own.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -1834,6 +1875,7 @@
     ],
     "answer": "c",
     "takeaway": "For shell, file editing, memory or computer use, prefer Anthropic's **trained-in schemas**; your app still executes them.",
+    "explanation": "Anthropic-schema tools like `bash` are **trained-in**: Claude has been optimized on thousands of successful trajectories using these exact signatures, so it calls them more reliably and recovers better than a custom `run_shell` tool (Option C). A is the tempting trap because Anthropic publishes the `bash` schema, but the tool is client-executed and your application runs each command. B is wrong because custom tools can call any application logic, and D is wrong because the execution model is the same: `tool_use`, your code runs it, `tool_result`.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
@@ -1876,6 +1918,7 @@
     ],
     "answer": "d",
     "takeaway": "Need code run with no infrastructure? **`code_execution`** is server-executed; `bash` and `text_editor` run in your app.",
+    "explanation": "The constraint is **not hosting or securing** any execution environment. `code_execution` is a server-executed tool: Anthropic runs the code in its own sandbox, and you just enable it and read the results (Option D). A is the tempting trap because Anthropic publishes the `bash` schema, but `bash` is client-executed, so your application still runs the commands. C's `text_editor` is client-executed too, and B's custom tool means writing the schema and executing the code yourself.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
@@ -1917,6 +1960,7 @@
     ],
     "answer": "a",
     "takeaway": "Same Skill, different runtime: **API = no network, no runtime installs**; Claude Code = full network access.",
+    "explanation": "The same Skill runs in a **different runtime** depending on the surface. On the Claude API, Skills run in a sandboxed container with no network access, so the step calling your REST API fails, while Claude Code Skills have full network access (Option A). C is the tempting trap, but the stem says the code execution tool is in the request and the rest of the Skill works, so the container is running. B's lack of syncing affects availability, not a single step, and D is wrong because bundled scripts do run.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
@@ -1966,6 +2010,7 @@
       "d"
     ],
     "takeaway": "Skill sharing: claude.ai = per user; **API = workspace-wide**; Claude Code = project `.claude/skills/` or a plugin.",
+    "explanation": "Sharing depends on the **surface**. Custom Skills uploaded through the Claude API are workspace-wide, so everyone using the internal app gets it (B). For Claude Code, committing the Skill to the repository's `.claude/skills/` directory shares it with the project (D). A is the most tempting wrong pick because a single upload in claude.ai sounds organization-wide, but custom Skills there are individual to each user. C fails because Skills don't sync across surfaces, and E because claude.ai has no org-wide distribution for custom Skills.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
@@ -2007,6 +2052,7 @@
     ],
     "answer": "b",
     "takeaway": "Treat a Skill like **software**: trusted sources only, and audit every file, scripts included, before production use.",
+    "explanation": "Treat a Skill like **installing software**. Skills bundle executable scripts and can invoke tools such as bash or code execution, so a Skill from an unknown author must be audited thoroughly, every file included, before it touches customer data (Option B). A is the tempting trap: a matching description proves nothing, because a malicious Skill can act differently from its stated purpose. C wrongly says Skills can't run code, and D wrongly assumes a sandbox, since Claude Code Skills have full network access.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
@@ -2049,6 +2095,7 @@
     ],
     "answer": "c",
     "takeaway": "`allowedTools` = skip the prompt; `tools` = what exists. To hide built-ins, use `tools: []` (or bare names in `disallowedTools`).",
+    "explanation": "`allowedTools` and `tools` work at different layers. `allowedTools` is the permission layer: listed tools skip the prompt, but other tools stay available, which is why Claude still tries Bash. `tools` controls what exists, so `tools: []` removes every built-in and leaves only your MCP tools (Option C). A is the tempting trap because a deny rule sounds strong, but a scoped rule like `Bash(rm *)` keeps the tool in context and denies only matching calls. B repeats the permission-layer fix, and D's `readOnlyHint` doesn't hide built-ins.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
@@ -2091,6 +2138,7 @@
     ],
     "answer": "d",
     "takeaway": "A few focused tasks → **subagents**. Big jobs or cross-checked findings → a **dynamic workflow**.",
+    "explanation": "The scale and the **cross-checking** are the clues. A dynamic workflow is a script Claude writes that runs many subagents in the background and returns one result, and the docs' own example is an audit with agents verifying each finding (Option D). A is the tempting trap because a subagent isolates heavy reading, but subagents suit quick, focused workers, and a single one can't cross-check its findings. B's skill content adds to your main context, and C's hook fires on edits rather than planning an audit.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -2133,6 +2181,7 @@
     ],
     "answer": "a",
     "takeaway": "Claude hunting for definitions? Install a **code intelligence plugin**: language-server lookups replace broad file reads.",
+    "explanation": "The problem is broad file reads used just to **find symbols**. A code intelligence plugin connects a language server, giving symbol-level navigation and type errors, and symbol lookups often replace broad file reads, so context use can go down (Option A). B is the tempting trap because a subagent keeps the reads out of your context, but it still reads the files. C's CLAUDE.md section loads in full every session, and D's printed index lands in context, adding to it rather than saving it.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -2182,6 +2231,7 @@
       "e"
     ],
     "takeaway": "**Hook** = fires every time, no judgment (block, lint, notify). **Skill** = knowledge or steps Claude applies with judgment.",
+    "explanation": "The dividing line is **judgment**. A hook fires every time with no thinking, so it fits a rule that must always hold, like blocking any edit to `.env` (A), and a fixed action like posting to Slack when a session ends (E). B is the most tempting wrong pick because a release checklist sounds procedural, but Claude adapts it to each release, and the docs use `/release` as a skill example. The style guide (C) is reference knowledge, and the debugging playbook (D) needs Claude to decide how to apply it, so both are skills.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/features-overview",
@@ -2224,6 +2274,7 @@
     ],
     "answer": "c",
     "takeaway": "Deterministic step in a Skill? Ship it as a **script**: Claude runs it, and only the output costs tokens.",
+    "explanation": "When a Skill step is **deterministic**, ship it as a script. A bundled `validate.py` that Claude runs gives consistent results, and only its output uses tokens, which is far more efficient than generating equivalent code each run (Option C). A is the tempting trap because pasted code seems reusable, but the SKILL.md body enters context when the Skill triggers, while a bundled script's code never does. B misuses the description, which is trigger metadata, and D still leaves Claude generating code every time.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",

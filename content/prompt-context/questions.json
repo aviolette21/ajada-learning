@@ -29,6 +29,7 @@
     ],
     "answer": "a",
     "takeaway": "When a prompt mixes content types, give each its own **consistent XML tag** so instructions and data can't blur.",
+    "explanation": "The symptom is that Claude confuses contract text with instructions, which is a **structure** problem: XML tags let Claude tell instructions, context, examples and inputs apart. That is why Option A fits. The trap is Option C: it does tag the contract, but a different tag name every time breaks the guidance to use **consistent**, descriptive names. Option B reverses the advice to put long documents near the top, and D removes examples that help, while the real problem is ambiguity, not length.",
     "mnemonic": "Tag it so Claude can tell it apart.",
     "difficulty": "easy",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "b",
     "takeaway": "To keep a long conversation in the window with no summarizer of your own, use **compaction**; context editing clears by rule instead.",
+    "explanation": "Two details decide this: older turns should become a **summary**, and you want **no summarization code** of your own. Compaction (B) does exactly that, with Claude writing the summary on the server. The tempting trap is Option A: context editing also manages the window, but it clears tool results or thinking blocks **by rule** instead of summarizing. Option C works but means writing the very code you wanted to avoid, and D ignores that response quality degrades as a conversation grows.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -131,6 +133,7 @@
     ],
     "answer": "d",
     "takeaway": "Old tool results you no longer need? **Tool result clearing** drops the oldest first and keeps the latest few.",
+    "explanation": "The stem asks for old **tool results** to be dropped by rule, oldest first, while recent ones stay. That is tool result clearing (D): past a threshold, the API clears the oldest results, swaps in placeholder text and keeps the most recent uses. Option A is the tempting near-miss, but thinking block clearing manages `thinking` blocks, not tool results. Option B summarizes the **whole** history instead of clearing specific results, and C does the opposite: `exclude_tools` protects tools from clearing.",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
@@ -190,6 +193,7 @@
     ],
     "answer": "c",
     "takeaway": "The memory tool only **requests** file operations; persistence is whatever storage your handler provides.",
+    "explanation": "The memory tool is client-side: Claude only requests file operations, and your handler decides where the files actually live. An in-memory map vanishes with each fresh process, so the fix is persistent storage that your handler serves to every conversation (C). Option B is tempting but misreads the symptom: Claude already checks its memory directory automatically; it is empty because nothing kept the files. A header (A) stores nothing, and context editing (D) clears content rather than storing anything at Anthropic.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
@@ -232,6 +236,7 @@
     ],
     "answer": "a",
     "takeaway": "Don't preload everything: keep **references** and let the agent load what it needs **just in time**, accepting slower runtime exploration.",
+    "explanation": "The clue is that answers get **worse as the tables grow**: every new token depletes the model's attention budget, so preloading everything backfires. The post's just-in-time approach (A) keeps lightweight references such as stored queries and loads data with tools when needed. Option B is the trap, because moving the tables into the system prompt doesn't shrink them. Option C adds a laundry list of edge cases the post advises against, and D still piles the same data into one context window.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -273,6 +278,7 @@
     ],
     "answer": "b",
     "takeaway": "Write system prompts at the **right altitude**: clear heuristics, neither brittle rules nor vague one-liners.",
+    "explanation": "The post frames system prompts as a question of **altitude**: too low is brittle, hardcoded if-else logic; too high is vague guidance that gives no concrete signals. The two engineers sit at the two extremes, so the answer is the middle ground (B): specific enough to guide, flexible enough to leave room for strong heuristics. Option D is the subtle trap, since the post says minimal doesn't necessarily mean short. Options A and C simply double down on one of the two failure modes.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -314,6 +320,7 @@
     ],
     "answer": "c",
     "takeaway": "Ambiguous tool choice is a **tool-set** problem: prune to a minimal set with clear, non-overlapping purposes.",
+    "explanation": "The telling detail is that even **your own engineers** can't agree which tool applies; if a human can't say definitively, an agent can't be expected to do better. The post treats this as a tool-set problem and recommends a minimal viable set with little overlap (C). Option A is the tempting fix, but adding narrower tools grows the bloated set and adds more ambiguous decision points. Option B hopes the agent will sort it out, and D stuffs edge cases into the prompt, which the post advises against.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -355,6 +362,7 @@
     ],
     "answer": "d",
     "takeaway": "Give the **reason** behind a rule; Claude generalizes from the explanation better than from emphasis.",
+    "explanation": "The guide's point is that Claude follows the **intent** behind a rule better when it knows the reason, because it generalizes from the explanation. Telling it a text-to-speech engine can't pronounce ellipses (D) gives that reason. Option B is the tempting choice: a role does focus behavior and tone, but the rule is still a bare prohibition with no why. Option A adds emphasis instead of context, and C is just a longer list of things not to do.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -396,6 +404,7 @@
     ],
     "answer": "b",
     "takeaway": "Generic tone? Give Claude a **role in the system prompt**; one sentence can be enough.",
+    "explanation": "The scenario sends **only user messages**, so there is no system prompt yet, and the guide's small change is to set a role there; even one sentence focuses Claude's behavior and tone (B). Option A is the trap: prefill used to steer voice, but on Claude 4.6 models and later a prefilled last assistant turn returns a 400 error. Option C names no role, and D raises `effort`, which governs how deeply Claude thinks, not its tone.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -438,6 +447,7 @@
     ],
     "answer": "c",
     "takeaway": "Prefill on the last turn is gone from **Claude 4.6** on; constrain format with **structured outputs** or an enum tool instead.",
+    "explanation": "The 400 comes from the request **shape**: a prefilled final assistant turn isn't supported starting with Claude 4.6 models. So the prefill must go, and the guide's replacement for constraining a classifier's format is structured outputs or a tool whose field is an `enum` of valid labels (C). Option B is tempting, but any prefill fails however short it is. Option A misreads the cutoff, since 4.6 is where support stopped, and D retries a request that fails the same way every time.",
     "mnemonic": "No prefill from 4.6 on: schema it instead.",
     "difficulty": "hard",
     "source": {
@@ -480,6 +490,7 @@
     ],
     "answer": "a",
     "takeaway": "On long documents, ask for the **relevant quotes first**, then the answer built from them.",
+    "explanation": "The symptom is drift into **irrelevant parts** of long records, and the guide's long-context technique for that is asking Claude to quote the relevant parts in `<quotes>` tags first, then answer from them (A). Option B is the tempting trap, but it reverses the advice: long data goes near the top and the query at the end. Options C and D strip away the structure the guide recommends, the `<source>` metadata subtags and a separate `<document>` wrapper per record.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -521,6 +532,7 @@
     ],
     "answer": "d",
     "takeaway": "Thinking off? Use **manual CoT**: reason first, then the final answer in `<answer>` tags you can extract.",
+    "explanation": "Thinking must **stay off**, yet you want reasoning, and users should see **only the answer**. The guide's fallback is manual chain of thought: ask Claude to reason first and put the final answer in `<answer>` tags you can extract (D). Option C is the tempting near-miss, but with no tag there is no clean boundary to cut at. Option B relies on a prefill, which returns a 400 starting with Claude 4.6 models, and A suppresses the reasoning you wanted.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -562,6 +574,7 @@
     ],
     "answer": "a",
     "takeaway": "Prompts tuned against undertriggering can **overtrigger** newer models; soften the wording first, lower effort second.",
+    "explanation": "The prompt was written to fight **undertriggering** on an older model, and Opus 4.5 and 4.6 are more responsive to the system prompt, so the aggressive 'CRITICAL... MUST' wording now overtriggers. The first fix is to dial back to normal wording (A). Option C sounds like it adds judgment, but the guide warns that 'If in doubt, use [tool]' itself causes overtriggering. Option B adds more aggressive language, the very cause, and D gets effort backwards: the guide's fallback is to lower it.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -603,6 +616,7 @@
     ],
     "answer": "b",
     "takeaway": "Schema compliance holds **in most cases**: check `stop_reason` for `refusal` or `max_tokens` before you parse.",
+    "explanation": "Under structured outputs, schema compliance holds in most cases, but a refusal takes precedence over the schema. These replies say `stop_reason: \"refusal\"`, so your code must check `stop_reason` before parsing and handle refusals separately (B). Option A is the trap: a refusal is an HTTP 200, not an error, so error-style retries miss the point. Option C is the fix for `max_tokens` cut-offs, not refusals, and D misplaces `strict: true`, which applies to tool definitions and doesn't override a refusal.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -662,6 +676,7 @@
     ],
     "answer": "c",
     "takeaway": "For type-safe tool arguments, set **`strict: true`** on the tool, next to its `input_schema`.",
+    "explanation": "The question asks for a **guarantee**, and only strict mode gives one: it constrains sampling so the tool `input` follows the `input_schema` exactly. Option C is right because `strict: true` sits at the top level of the tool definition. Option D is the tempting trap, the right idea in the wrong place, inside a property's schema. Option A is just wording, which still lets types like `\"2\"` through, and B is a validate-and-retry workaround that strict tool use makes unnecessary.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
@@ -703,6 +718,7 @@
     ],
     "answer": "d",
     "takeaway": "Structured outputs can change an enum's **capitalization** silently, so compare labels case-insensitively.",
+    "explanation": "The key details are that the reply completes **normally**, with no error and no special stop reason; only the capitalization differs. The docs say structured outputs don't guarantee the casing of string `enum` and `const` values, so the fix is case-insensitive comparison and avoiding labels that differ only by case (D). Option A is the trap, assuming constrained decoding guarantees exact casing. Option B would need `stop_reason: \"refusal\"`, and C would need `\"max_tokens\"`; neither appears here.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -745,6 +761,7 @@
     ],
     "answer": "a",
     "takeaway": "Give Claude an explicit way out (\"I don't have enough information\") so it doesn't invent answers.",
+    "explanation": "The problem is confident figures that **aren't in the report**, and the guide's basic remedy is giving Claude explicit permission to say it doesn't have enough information (A). That simple out can drastically reduce false information. Option D is the opposite and the most tempting trap: forcing a figure for every item removes that permission and invites invention. Option B tells Claude to use general knowledge, which the guide reverses, and C hides the reasoning without addressing the missing data.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
@@ -763,6 +780,7 @@
     "topic": "Compaction (Claude Code)",
     "stem": "A team's 12,000-token skill puts its critical safety steps at the end of `SKILL.md`. After a long Claude Code session compacts, Claude still follows the skill's early steps but skips the safety steps. What explains this, and what's the fix?",
     "takeaway": "After compaction, big skills come back **truncated from the end**; put critical instructions at the top of `SKILL.md`.",
+    "explanation": "After compaction, invoked skill bodies are **re-injected**, but capped at 5,000 tokens per skill, and truncation keeps the start of the file. A 12,000-token skill with its safety steps at the end loses exactly those steps, which matches the symptom, so the fix is to move them to the top (D). Option A is tempting but wrong because skills aren't dropped outright; the early steps still work. Option B swaps in path-scoped rules, which are also summarized away, and C blames the description, which doesn't affect the body cap.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/context-window",
@@ -805,6 +823,7 @@
     "topic": "Context editing",
     "stem": "Your agent uses tool result clearing. Its first call, `get_requirements`, returns the spec Claude must follow for the whole task, but that result gets cleared as the conversation grows. How do you keep it while other old results are still cleared?",
     "takeaway": "Need one tool's results to survive clearing? List the tool in **`exclude_tools`**.",
+    "explanation": "You need one specific tool's result to survive while clearing keeps working on everything else, and `exclude_tools` names tools whose uses and results are never cleared (B). Option D is the tempting trap: `keep` preserves the most **recent** pairs, but the API removes the oldest first, and `get_requirements` is the very first call. Option A only controls whether tool inputs are cleared along with results, and C sets a minimum amount cleared per pass; neither protects anything.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
@@ -846,6 +865,7 @@
     "topic": "Context editing",
     "stem": "After you enable tool result clearing, cache write costs jump. Logs show each clearing pass frees only a few hundred tokens, yet each one breaks the cached prompt prefix. Which setting addresses this?",
     "takeaway": "Tool result clearing breaks the cache; use **`clear_at_least`** so each clearing frees enough tokens to pay for it.",
+    "explanation": "The logs show the real cost: every clearing pass breaks the cached prompt prefix, yet frees only a few hundred tokens. `clear_at_least` (A) sets a minimum, so clearing runs only when it can free enough tokens to be worth the cache break. Option C is the trap, because thinking block clearing also invalidates the cache where blocks are cleared. Option B stops clearing altogether and brings back the pile-up, and D removes more per pass without setting any minimum.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
@@ -888,6 +908,7 @@
     "topic": "Context editing",
     "stem": "You enable tool result clearing. A teammate plans to write code that deletes the same old tool results from your app's stored history after each response, to stay in sync with what Claude saw. What do the docs say?",
     "takeaway": "Context editing is **server-side**: keep your full history locally and let the API clear before Claude sees it.",
+    "explanation": "Context editing is applied **server-side**, before the prompt reaches Claude, so your client keeps sending its full, unmodified history and needs no syncing (C). Option D is the tempting middle path, but the API already swaps in placeholder text for cleared results; `applied_edits` only reports which edits ran and how many tokens they cleared. Option A invents a rejection that doesn't exist, and B adds bookkeeping the docs say you don't need.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
@@ -929,6 +950,7 @@
     "topic": "Compaction",
     "stem": "You enable threshold compaction (`compact_20260112`). A response now starts with a `compaction` block. Your code keeps one growing `messages` list. What should it send on the next request?",
     "takeaway": "With threshold compaction, **append the response with its `compaction` block**; the API ignores everything before it.",
+    "explanation": "With threshold compaction, the `compaction` block itself must go back on later requests, and the API drops every content block before it. So a single growing `messages` list can simply append the whole response, compaction block included (D). Option B is tempting because it seems to apply the summary yourself, but the docs want the block passed back, not rewritten. Option A throws the block away, and C misreads token counting, which only counts and never compacts or rewrites.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
@@ -989,6 +1011,7 @@
     "topic": "Compaction",
     "stem": "To make compaction summaries list every file the agent edited, you set the `instructions` parameter to \"Also list every file path you edited.\" Now summaries list the paths but drop the task state and next steps. Why?",
     "takeaway": "Compaction `instructions` **replace** the default prompt; restate everything the summary must keep, not just the extra.",
+    "explanation": "The `instructions` parameter **replaces** the default summarization prompt completely rather than adding to it. The default asked for what is needed to continue the task, so a one-line replacement that only asks for file paths loses the task state and next steps (B). Option C is the tempting trap: the trigger sets **when** compaction happens, but what the summary contains comes from the prompt. Options A and D point at `pause_after_compaction` and streaming, neither of which changes the summary's content.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
@@ -1030,6 +1053,7 @@
     "topic": "Just-in-time context",
     "stem": "A finance agent needs the same short policy handbook on every task, plus a large archive of filings it consults only sometimes. Which context strategy does Anthropic's context engineering post describe for a case like this?",
     "takeaway": "Stable, always-needed context up front; large or occasional data **just in time**: the post's hybrid strategy.",
+    "explanation": "The stem splits the data in two: a **short handbook needed every time** and a **large archive used only sometimes**. The post's hybrid strategy fits: retrieve some data up front for speed and explore the rest with tools, and it names legal or finance work as a likely match (A). Option C is the trap, since runtime exploration is slower than pre-computed data, not always faster. Option B preloads everything at the cost of attention budget, and D removes the tools that just-in-time loading needs.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1071,6 +1095,7 @@
     "topic": "Compaction",
     "stem": "You write your own compaction prompt for a long-running agent. Early versions summarize so aggressively that, hours later, the agent lacks a subtle detail it turns out to need. How does Anthropic's context engineering post suggest tuning the prompt?",
     "takeaway": "Tune a compaction prompt for **recall first, then precision**, on real complex agent traces.",
+    "explanation": "The failure is losing a subtle detail whose importance only became clear later, which is the risk of over-aggressive compaction. The post's order is to tune on complex agent traces, maximize **recall** first so everything relevant is captured, then improve **precision** (B). Option A is the trap: it flips the order to precision first, which causes exactly this loss. Option C keeps raw tool results the post calls superfluous, and D discards the state compaction exists to keep.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1112,6 +1137,7 @@
     "topic": "Tool context",
     "stem": "An agent sends 60 tool definitions on every request, though most turns use two or three, and its long sessions pile up old tool results that are no longer relevant. Which two approaches reduce the tokens in its context window?",
     "takeaway": "Match the fix to the source: **tool search** for upfront definitions, **context editing** for stale results; caching only cuts cost.",
+    "explanation": "There are two separate sources of context tokens, so each needs its own fix. Tool search (B) keeps the 60 definitions out of the window until Claude asks for them, and context editing (D) removes stale `tool_result` blocks from long sessions. Option A is the tempting wrong pick: prompt caching lowers what you **pay** for the definitions but doesn't reduce the tokens in context. Option C adds even more definitions, and E just moves the same text into the system prompt.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/manage-tool-context",
@@ -1161,6 +1187,7 @@
     "topic": "Long context prompting",
     "stem": "Your prompt starts with a long question and instructions, followed by a 60k-token contract and two related policies. Answers on this multi-document task are weaker than you expected. What does Anthropic's prompting guide recommend changing first?",
     "takeaway": "With 20k+ tokens of input, put **documents first and the query last**.",
+    "explanation": "The guide's long-context rule is about **order**: put longform data near the top, above the query, instructions and examples, and queries at the end can improve quality by up to 30% in tests. This prompt does the reverse, so the first change is to move the contract and policies up (A). Option B is tempting but adds emphasis rather than fixing order. Option C removes the per-document `<document>` tags the guide recommends, and D misuses `<example>`, which is for showing desired output.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1225,6 +1252,7 @@
     "topic": "Long context prompting",
     "stem": "Claude compares five quarterly reports you paste one after another, but it sometimes attributes a figure to the wrong report. Following Anthropic's prompting guide, how should you structure the input?",
     "takeaway": "Many documents? Give each its own **`<document>`** with **`<source>`** metadata so Claude can tell them apart.",
+    "explanation": "Misattributing figures between reports means Claude can't tell the documents apart. The guide's fix for multiple documents is to wrap each in `<document>` tags with `<document_content>` and `<source>` metadata subtags (D). Option B is the tempting trap: it lists the metadata, but separately from each document and at the end, when metadata belongs with each report. Option A's dividers add no named structure, and C breaks the guidance to use consistent tag names.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1266,6 +1294,7 @@
     "topic": "Instruction clarity",
     "stem": "Your prompt \"Create an analytics dashboard\" returns a minimal page, but you want a fully featured one with many interactions. Which change does Anthropic's prompting guide suggest?",
     "takeaway": "Want more than the basics? **Say so explicitly** instead of hoping Claude infers it from a vague prompt.",
+    "explanation": "The guide says to **explicitly request** above-and-beyond behavior instead of hoping Claude infers it from a vague prompt. The more effective version adds 'Include as many relevant features and interactions as possible. Go beyond the basics.' (C). Option B is tempting but only says what not to do, still without describing what you want. Option A relies on the inference the guide warns against, and D adds XML tags, which fix ambiguous structure, not an unstated scope.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1307,6 +1336,7 @@
     "topic": "Output format",
     "stem": "Your system prompt for Claude Opus 5.5 is written in heavy markdown and ends with \"Do not use markdown in your response.\" Replies still come back full of bullets and headers. Which two changes does Anthropic's prompting guide suggest?",
     "takeaway": "Steer format **positively**, and **match your prompt's style** to the output you want.",
+    "explanation": "Two techniques apply. First, tell Claude what to do instead of what not to do, such as asking for flowing prose paragraphs (C). Second, your prompt's own formatting may influence the reply, so a heavily markdown prompt works against you; removing that markdown helps (E). Option A is the tempting wrong pick, since louder prohibitions aren't part of the guide's steering. Option D adds even more markdown to the prompt, and B relies on a prefill, which returns a 400 starting with Claude 4.6 models.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1356,6 +1386,7 @@
     "topic": "Few-shot examples",
     "stem": "Your agent's prompt has grown to 80 rules, one per edge case you've hit, yet its behavior is still inconsistent. What does Anthropic's context engineering post recommend instead?",
     "takeaway": "Replace edge-case rule lists with a **curated set of diverse, canonical examples**.",
+    "explanation": "Eighty edge-case rules with inconsistent behavior is the laundry-list pattern the post says it doesn't recommend. Its alternative is few-shot prompting with a curated set of diverse, **canonical** examples (B), since for an LLM examples are pictures worth a thousand words. Option D is the subtle trap: turning each edge case into an example rebuilds the same laundry list in another form. Option A keeps growing the rules, and C swings to a vague one-liner the post also rejects.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1398,6 +1429,7 @@
     "topic": "Prefill migration",
     "stem": "On an older model, your summarizer prefilled `Here is the summary:` so replies skipped any preamble. On Claude Opus 5.5 that request returns a 400 error. Which replacement does Anthropic's prompting guide suggest?",
     "takeaway": "No prefill on Claude 4.6+: ask for **no preamble in the system prompt** and strip stragglers in post-processing.",
+    "explanation": "The old trick, a prefilled assistant turn, now returns a 400 on these models, so the goal of skipping preamble needs another route. The guide suggests a direct system-prompt instruction to answer without preamble, plus stripping any that slips through in post-processing (B). Option A is tempting because the guide does mention moving text into the user message, but that is its fix for continuing interrupted responses. Options C and D keep sending a request shape that fails whatever its length.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1439,6 +1471,7 @@
     "topic": "Instruction clarity",
     "stem": "A developer asks your coding agent, \"Can you suggest some changes to improve this function?\" and expects the edits to be made, but Claude only lists suggestions. What does Anthropic's prompting guide recommend?",
     "takeaway": "Want changes, not suggestions? **Ask for the action** explicitly, or set a default-to-action system prompt.",
+    "explanation": "Claude reads 'Can you suggest some changes...' as a request for suggestions, so it suggests. The guide says to be explicit when you want action: 'Change this function...' (A). Option B is tempting because it pushes Claude toward acting, but the guide warns that 'If in doubt, use [tool]' causes overtriggering. Option C does the opposite and makes Claude more hesitant, and D reaches for `effort`, which the guide uses only as a fallback, and by lowering it when Claude is too aggressive.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1480,6 +1513,7 @@
     "topic": "Iterative refinement",
     "stem": "Before running a single test, a team writes a three-page system prompt covering every case they can imagine for a new agent. Which process does Anthropic's context engineering post recommend instead?",
     "takeaway": "Start **minimal on the best model**, then add instructions and examples to fix the failures you actually see.",
+    "explanation": "The post's process is iterative: test a **minimal** prompt on the **best** model available, then add instructions and examples based on failure modes you actually see (D). The team skipped testing and wrote for imagined cases. Option A is the trap, because it gets the model backwards: start with the best, not the cheapest. Option B misreads the post, which says minimal doesn't mean short but still starts minimal, and C ships the exhaustive prompt rather than building from observed failures.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -1521,6 +1555,7 @@
     "topic": "Prompt adjustment",
     "stem": "You migrate a coding prompt to Claude Opus 5. It still ends with \"Before you finish, verify your answer against the test criteria,\" carried over from older models, and responses now spend extra tokens and time re-verifying. What does the prompting guide advise?",
     "takeaway": "Re-check carried-over prompt lines per model: on **Opus 5**, drop self-check instructions instead of rewording them.",
+    "explanation": "Prompt lines carried over from older models need re-checking per model. On Opus 5, the guide says it verifies its own work well without being asked, so carried-over self-check instructions cause over-verification, costing tokens and latency; remove them (C). Option B is the tempting trap: softening the wording seems gentler, but the guide says remove these lines rather than rewrite them. Option A adds more verification, and D assumes self-check lines help on every model, while Opus 5 is the exception.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1562,6 +1597,7 @@
     "topic": "Iterative refinement",
     "stem": "Your feature's evals now pass on accuracy, but latency and cost still miss their targets, and the team keeps rewriting the prompt to fix them. What does Anthropic's prompt engineering overview suggest?",
     "takeaway": "Not every failing eval is a prompt problem: **latency and cost** may be easier to fix by **choosing a different model**.",
+    "explanation": "Accuracy already passes; only **latency and cost** are missing their targets. The overview says not every failing eval is best solved by prompt engineering, and latency and cost can sometimes be improved more easily by choosing a different model (C). Option A is the trap the team is already in, assuming every criterion yields to more prompting. Option D blames the prompt when nothing points to it, and B drops the evals the overview assumes you have.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
@@ -1603,6 +1639,7 @@
     "topic": "Instruction clarity",
     "stem": "Your onboarding prompt describes six required setup steps in one long paragraph, and Claude's checklists sometimes skip or reorder steps. Which change from Anthropic's prompting guide fits best?",
     "takeaway": "When order or completeness matters, give steps as a **numbered list**, not a paragraph.",
+    "explanation": "Claude skips or reorders steps, which means both **order** and **completeness** matter here, and the guide's rule for that case is sequential steps in a numbered list (A). Option C is the tempting trap: explaining why does help Claude target its responses, but it leaves six steps buried in one paragraph. Option B adds a role, which shapes tone rather than step tracking, and D merges steps, which hides the required ones.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1644,6 +1681,7 @@
     "topic": "Refusals",
     "stem": "Your chat UI streams Claude Opus 5.5 replies as they arrive. Occasionally a reply streams a few sentences and then ends with `stop_reason: \"refusal\"`. What should the app do with the partial text?",
     "takeaway": "A mid-stream refusal leaves the **partial output incomplete**: discard it, then handle the refusal.",
+    "explanation": "A refusal can arrive before any output **or** mid-stream, after some text has already streamed. Either way, the guide says to treat partial output as incomplete and discard it, then handle the refusal, for example by trying another Claude model (B). Option A is the trap: the text looks finished, but it was cut off by the refusal. Option C resends to the same model, when the docs point to a different one, and D wrongly claims refusals only come before output.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
@@ -1685,6 +1723,7 @@
     "topic": "Reducing hallucinations",
     "stem": "Your team adds \"I don't know\" permission, quote extraction and citation checks to a tool that drafts regulatory filings. A manager proposes dropping human review, saying the techniques eliminate hallucinations. What does Anthropic's hallucination guide say?",
     "takeaway": "Hallucination techniques **reduce, not eliminate** errors: always validate critical, high-stakes output.",
+    "explanation": "The manager's claim is the error: the guide says these techniques **significantly reduce** hallucinations but don't eliminate them, so critical, high-stakes output such as regulatory filings still needs validation (C). Option B is the tempting compromise, but more self-checking only reduces errors further; it doesn't replace validation. Option A accepts the false premise outright, and D throws away the techniques that do the reducing.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
@@ -1727,6 +1766,7 @@
     "topic": "Reducing hallucinations",
     "stem": "Your assistant answers open-ended factual questions with no source documents to check against. You want an automated signal that an answer may be hallucinated. Which technique from Anthropic's hallucination guide fits?",
     "takeaway": "No documents to check against? Use **best-of-N**: inconsistent answers across runs can flag hallucinations.",
+    "explanation": "The constraint to notice is **no source documents**. Quote extraction (A), citation checks (B) and external knowledge restriction (C) all assume provided documents, so none can work here. Best-of-N (D) needs nothing but the prompt: run it several times and compare, since inconsistent outputs can indicate hallucination. Option B is the most tempting wrong choice because it sounds like verification, but there is nothing to find supporting quotes in.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
@@ -1768,6 +1808,7 @@
     "topic": "Skepticism toward output",
     "stem": "On a long autonomous run, Claude Fable 5 reports \"all migration tests now pass\", but CI shows three failing tests it never ran. Which prompt change does Anthropic's Fable 5 guide say nearly eliminated fabricated status reports in its testing?",
     "takeaway": "Don't take long-run status reports on faith: have Claude **tie each claim to a tool result** and flag what's unverified.",
+    "explanation": "The failure is a status claim with no evidence behind it: tests reported as passing that were never run. The Fable 5 guide's prompt has Claude check each claim against a tool result from the session and say explicitly when something isn't verified yet (C). Option A is tempting, but more frequent updates aren't more accurate ones. Option B favors confident brevity over truth, and D asks Claude to hide failures, the opposite of faithful reporting.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5",
@@ -1809,6 +1850,7 @@
     "topic": "Defensive parsing",
     "stem": "You move an app from Claude Sonnet 4.6 to Claude Sonnet 5.5 without setting the `thinking` parameter. Code that reads `response.content[0].text` now sometimes finds no text there. What does Anthropic's prompting guide advise?",
     "takeaway": "Never assume `content[0]` is text: **select blocks by `type`**, since responses can start with `thinking` blocks.",
+    "explanation": "With `thinking` omitted, thinking is on by default on Sonnet 5.5, so a response can **begin** with `thinking` blocks and `content[0]` may not be text. The fix is to select blocks by `type` and leave room in `max_tokens` for thinking (C). Option B is the trap: reading the last block still selects by position. Option A fails because the lowest setting on Sonnet 5.5 is `between_tools`, not disabled, and D squeezes `max_tokens`, the opposite of the guide's advice.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1850,6 +1892,7 @@
     "topic": "Strict tool use",
     "stem": "Your agent marks all 40 of its tools `strict: true`, many with optional parameters nested several levels deep. Requests fail with a 400: \"Schema is too complex for compilation.\" Which two changes does the structured outputs page suggest?",
     "takeaway": "Schema too complex? Use **strict only where it matters**, fewer optional parameters and flatter structures.",
+    "explanation": "The 400 says combined grammar complexity is too high, so the fixes reduce complexity. Reserve strict for tools where violations cause real problems (B), and make parameters with sensible defaults required (E), since each optional parameter roughly doubles part of the state space. Option C is the tempting wrong pick: grouping by nesting deeper compounds complexity, and the page says flatten instead. Option A retries a too-complex schema, and D adds `minimum`/`maximum`, which aren't supported.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -1899,6 +1942,7 @@
     "topic": "Compaction",
     "stem": "You use threshold compaction with prompt caching. Each time compaction fires, your long system prompt is written to the cache again along with the new summary. How do you keep the system prompt's cache valid across compaction events?",
     "takeaway": "With compaction, put a **`cache_control` breakpoint after the system prompt** so only the new summary needs a cache write.",
+    "explanation": "Without a breakpoint of its own, each new summary also invalidates the cached system prompt, which is why it gets written again. Putting a `cache_control` breakpoint at the end of the system prompt caches it on its own, so after compaction it is read from cache and only the summary is written (A). Option B is the trap: caching the compaction block alone still leaves the system prompt invalidated. Option C just spaces out the same cost, and D changes the summary prompt, not caching.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
@@ -1941,6 +1985,7 @@
     "topic": "Subagent context",
     "stem": "Your Claude Code project defines 30 custom subagents, each with a long `description` that holds its full procedure. Claude Code warns at startup that agent descriptions exceed 15,000 tokens. What does the subagents guide recommend?",
     "takeaway": "Subagent **descriptions** cost context in every session: keep them short and put the detail in the **system prompt**.",
+    "explanation": "Claude uses subagent **descriptions** to decide when to delegate, so they occupy context in every session, while a subagent's system prompt loads only when that subagent runs. Long procedures in 30 descriptions trigger the warning, so trim them and move the procedures into each system prompt (B). Option C is the trap, since it assumes descriptions load lazily, which is true only of system prompts. Option D shortens the wrong part, and A still keeps one long description in context.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
@@ -1983,6 +2028,7 @@
     "topic": "Context awareness",
     "stem": "Your agent harness compacts context automatically and lets Claude save progress to files. On Claude Sonnet 4.6, Claude sometimes starts wrapping up its work early as it nears the context limit. What does Anthropic's prompting guide suggest?",
     "takeaway": "If your harness compacts or saves state, **say so in the prompt** so Claude doesn't wrap up early near the limit.",
+    "explanation": "Sonnet 4.6 already tracks its remaining token budget, and unless it is told that the harness compacts context or saves to files, it may naturally try to wrap up as it approaches the limit. The guide's fix is a prompt: say that context is compacted automatically so it needn't stop early (C). Option A is the trap, removing the harness instead of describing it. Option B is a parameter where the guide uses a prompt, and D pushes Claude to finish sooner.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2024,6 +2070,7 @@
     "topic": "Context editing",
     "stem": "Your app routes the same conversations to Claude Sonnet 4.5 or Claude Opus 5.5 depending on load. Earlier turns' thinking blocks stay in context on one model but not the other, so context use differs. Which setting makes this consistent?",
     "takeaway": "Thinking retention differs by model; across tiers, set **`keep`** explicitly in thinking block clearing.",
+    "explanation": "Thinking retention defaults **differ by model**: Opus 4.5 and later keep all prior thinking, while Sonnet 4.5 and earlier keep only the last turn's. When the same conversation can hit either tier, the docs say to set `keep` explicitly in thinking block clearing (D). Option C is the tempting DIY route, but on Opus 5.5 client-side edits to earlier turns can invalidate later thinking blocks. Option B gets the defaults wrong, and A manages tool results, not thinking.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
@@ -2065,6 +2112,7 @@
     "topic": "Tool context",
     "stem": "An agent's conversations are short, but each turn runs a chain of five small lookup calls whose intermediate results all land in the history. It also resends the same stable 15-tool set, all used often, on thousands of requests. Which two approaches fit?",
     "takeaway": "Chains of small calls → **programmatic tool calling**; stable, repeated definitions → **prompt caching**.",
+    "explanation": "Read the two details separately. Chains of small lookups whose intermediate results flood the history call for programmatic tool calling (B), which runs the chain as one script so those results never enter the conversation. A stable toolset resent on thousands of requests calls for prompt caching (D), which cuts cost though not context size. Option A is the tempting wrong pick, but tool search fits large toolsets of 20+ mostly unused tools, not 15 used often. Option C targets long conversations, and these are short.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/manage-tool-context",
@@ -2114,6 +2162,7 @@
     "topic": "Prefill migration",
     "stem": "In very long conversations on an older model, your app kept Claude on track by prefilling periodic assistant reminders of the key rules. On Claude Opus 5.5 those requests fail. Where does Anthropic's prompting guide suggest putting the reminders?",
     "takeaway": "Prefilled reminders are out on Claude 4.6+: put them in the **user turn**, or hydrate context via tools or compaction.",
+    "explanation": "The old technique, prefilled assistant reminders, now fails because a prefilled last assistant turn returns a 400 on these models. The guide's migration is to inject those reminders into the **user turn** instead (A), or for agentic systems use tools or compaction. Option B is tempting but sending the prefill less often doesn't change that it fails. Option C claims drift no longer happens, which the guide doesn't say, and D swaps in a stronger role, which isn't the guide's hydration fix.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2155,6 +2204,7 @@
     "topic": "Prompt adjustment",
     "stem": "On Claude Opus 4.6, your coding agent fixes a one-line bug but also adds helper utilities, extra configuration options and new files nobody asked for. What does Anthropic's prompting guide suggest?",
     "takeaway": "Opus overbuilding? Tell it to make **only requested or clearly necessary changes** and keep solutions minimal.",
+    "explanation": "The guide notes that Opus 4.5 and 4.6 tend to overengineer, and the fix is explicit scope guidance: keep solutions minimal and make only changes that are requested or clearly necessary (B). The problem is **scope**, not effort or documentation. Option C is the trap, since anticipating future requirements is the exact behavior the sample prompt rules out. Option A adjusts `effort` instead of giving guidance, and D adds docstrings to code that shouldn't exist.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2196,6 +2246,7 @@
     "topic": "Prompt adjustment",
     "stem": "Your agent on Claude Opus 4.6 occasionally force-pushes or deletes branches to get past obstacles. You want it to keep making local edits freely but ask before anything destructive. What does Anthropic's prompting guide suggest?",
     "takeaway": "Spell out **reversibility**: free rein for local, reversible steps; ask first before destructive or shared-system actions.",
+    "explanation": "The line to draw is **reversibility**: local, reversible steps like editing files or running tests can proceed freely, while actions that are hard to reverse, affect shared systems or could be destructive should be confirmed first (D). Option A is the tempting overcorrection, asking about every action including edits, which the sample explicitly allows. Option C assumes safe defaults the guide says don't exist for Opus 4.6, and B adds `--no-verify`, a safety bypass the sample forbids.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2237,6 +2288,7 @@
     "topic": "Iterative refinement",
     "stem": "A team has a first-draft prompt and wants to start prompt engineering it. According to Anthropic's prompt engineering overview, which two other things should be in place first?",
     "takeaway": "Before prompt engineering: **success criteria**, a **way to test** against them, and a first draft.",
+    "explanation": "The overview assumes three things before you start: a first draft, which the team has, a clear definition of **success criteria** (A), and some way to **test empirically** against them (D). Without criteria and tests, you can't tell whether a prompt change helped. Option B is the most tempting wrong pick, but pinning a model isn't on the list, and the overview even notes some criteria may be easier to meet with a different model. Options C and E aren't on the list either.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
@@ -2286,6 +2338,7 @@
     "topic": "Output format",
     "stem": "Your SMS tutoring bot shows math answers as raw strings like `\\frac{3}{4}`, because Claude formats equations in LaTeX that phones can't render. Which fix does Anthropic's prompting guide offer?",
     "takeaway": "Latest models default to **LaTeX** for math; ask explicitly for **plain-text notation** if your display can't render it.",
+    "explanation": "The latest models default to LaTeX for math, which an SMS screen shows as raw strings. The guide's fix is a prompt instruction asking for plain-text math only, no LaTeX or MathJax, using '/', '*' and '^' (C). Option B is the tempting trap: 'no markdown' doesn't cover math, because LaTeX is a separate default with its own instruction. Option A changes models instead of prompting, and D patches output after the fact instead of asking for the right format.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2327,6 +2380,7 @@
     "topic": "Prompt adjustment",
     "stem": "Your coding agent makes failing tests pass by special-casing the exact test inputs, and once worked around a test that was itself wrong. Which prompt guidance does Anthropic's prompting guide suggest?",
     "takeaway": "Ask for **general solutions, not test-specific hacks**, and for Claude to flag tests it thinks are wrong.",
+    "explanation": "Special-casing test inputs means Claude treats the tests as the definition of the solution. The guide's sample asks for a general-purpose solution for all valid inputs with no hard-coded values, and to **flag** tests it thinks are incorrect rather than working around them (D). Option C is the tempting trap: it does address bad tests, but by editing them, when the sample asks Claude to tell you. Option A makes passing tests the goal, and B asks for the workarounds the sample rules out.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2368,6 +2422,7 @@
     "topic": "Structured outputs",
     "stem": "A long chat uses prompt caching. Midway, your app starts sending `output_config.format` with a JSON schema on some requests, and cache reads drop while input tokens rise slightly. What explains both effects?",
     "takeaway": "Structured outputs add a little **input** (an injected format prompt), and **changing the format breaks the prompt cache**.",
+    "explanation": "Both effects come from how structured outputs work. Claude receives an extra system prompt explaining the format, which adds a little input, and **changing** `output_config.format` invalidates the prompt cache for that thread, so cache reads drop (A). Option C is the tempting near-miss: caching isn't switched off; it is the change of format that breaks it. Option B confuses grammar compilation, which is cached and adds latency, with prompt caching, and D blames output length, which has nothing to do with cache reads.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -2410,6 +2465,7 @@
     "topic": "Skepticism toward output",
     "stem": "Developers ask your coding assistant about specific files, and it sometimes answers confidently about code it never opened, getting details wrong. Which prompt does Anthropic's prompting guide suggest?",
     "takeaway": "Confident answers about unread code are guesses: tell Claude to **investigate before answering**.",
+    "explanation": "The failure is confident answers about **code it never opened**. The guide's `<investigate_before_answering>` prompt tells Claude never to speculate about unopened code and to read a referenced file before answering (B). Option C is the tempting trap, since a stated confidence feels like honesty, but it is still a claim about code it hasn't read. Option A blames length, and D preloads the whole repository instead of having Claude read what is relevant.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2451,6 +2507,7 @@
     "topic": "Output consistency",
     "stem": "Your app needs each competitor analysis as a nested XML report with the same sections every time, but section names and order keep varying. Which approach does Anthropic's output consistency guide recommend here?",
     "takeaway": "For consistent non-JSON structure, give an **exact template plus an example output**; structured outputs are for JSON schemas.",
+    "explanation": "The output must be **XML**, not JSON, so structured outputs, which guarantee JSON schema compliance, don't apply. The guide's prompt techniques fit: define the exact template and include an example, since examples beat abstract instructions (D). Option A is the trap, assuming structured outputs guarantee any structure you describe. Option B leaves the layout to Claude with only abstract guidance, and C relies on prefill, which isn't supported on Claude 4.6 and later models.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
@@ -2492,6 +2549,7 @@
     "topic": "Reducing hallucinations",
     "stem": "A compliance bot answers questions about one 50k-token policy document. Its answers sometimes include claims drawn from Claude's general knowledge rather than the policy. Which two techniques from Anthropic's hallucination guide target this?",
     "takeaway": "Answers drifting beyond the source? **Restrict to the documents** and **ground answers in extracted quotes**.",
+    "explanation": "The drift is toward **general knowledge**, over a document above 20k tokens. Two techniques target that: external knowledge restriction, telling Claude to use only the policy (C), and extracting word-for-word quotes first so the answer is grounded in the actual text (E). Option D is the tempting wrong pick, since skipping quotes saves tokens but removes that grounding. Option A removes a protection that drastically reduces false information, and B misuses best-of-N, which compares outputs for inconsistency, not length.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",

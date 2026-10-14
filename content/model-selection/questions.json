@@ -29,6 +29,7 @@
     ],
     "answer": "a",
     "takeaway": "A big prefix that repeats should be **cached**; streaming doesn't make input cheaper.",
+    "explanation": "The key detail is that a large prefix is **identical on every request**, which is exactly what prompt caching is for: the repeated part is read from cache at a fraction of the input price and is processed faster. The stem asks for cost **and** latency, which rules out Option D: batches are cheaper but asynchronous, so latency goes up. Streaming (B) only changes how output arrives, and `max_tokens` (C) caps output length; neither touches the 20k input tokens.",
     "mnemonic": "Same start, every time? Cache it.",
     "difficulty": "easy",
     "diagram": {
@@ -90,6 +91,7 @@
     ],
     "answer": "b",
     "takeaway": "Put static content **first** and the breakpoint on the **last identical block**; varying content goes after it.",
+    "explanation": "The cache works on a **prefix**: everything up to the breakpoint must be identical across requests to hit. Here the tools and system prompt never change, but the timestamp block changes every time, so the breakpoint belongs on the last static block (B), which caches the tools along with it. Option A is the tempting trap: marking the whole prompt sounds like more caching, but the varying block means the prefix never matches. Moving the timestamp to the front (C) breaks every later match too.",
     "mnemonic": "Static first, breakpoint at the seam, changes after.",
     "difficulty": "hard",
     "diagram": {
@@ -151,6 +153,7 @@
     ],
     "answer": "c",
     "takeaway": "The cache lives **5 minutes** by default and is refreshed free on each hit; use `ttl: \"1h\"` when gaps are longer.",
+    "explanation": "The clue is the **20–40 minute gap**: the default cache lives only 5 minutes, so each returning user arrives after the entry has expired and pays for a fresh write. Option C, `\"ttl\": \"1h\"`, is built for longer gaps, at the price of 2× base input on writes instead of 1.25×. Option A is the trap, since it assumes a 24-hour lifetime that doesn't exist. More breakpoints (B) split what's cached but don't make any entry live longer, and shrinking the prompt (D) just turns caching off.",
     "mnemonic": "Five minutes by default; an hour if you set `ttl`.",
     "difficulty": "medium",
     "source": {
@@ -194,6 +197,7 @@
     ],
     "answer": "b",
     "takeaway": "On models before Claude 4.7, a token is roughly **3.5 English characters**; Claude 4.7 and later produce about 30% more tokens for the same text.",
+    "explanation": "The rule from the glossary is that, on models before Claude 4.7, one token is roughly **3.5 English characters**, so you divide characters by 3.5: 70,000 ÷ 3.5 ≈ 20,000 (B). Option C is the tempting near-miss: it uses about 5 characters per token, which undercounts. Option A counts one token per character, and D multiplies instead of dividing, ending up with more tokens than characters. Remember it's an estimate; the exact count depends on the model and language.",
     "mnemonic": "Glossary rule of thumb: characters ÷ 3.5.",
     "difficulty": "easy",
     "source": {
@@ -237,6 +241,7 @@
     ],
     "answer": "d",
     "takeaway": "Input alone over the window is a **400**; input plus `max_tokens` over it is accepted and may stop with `model_context_window_exceeded`.",
+    "explanation": "Two different limits are in play. Input **alone** over the window gets a 400, but here the 990k input fits; only input plus `max_tokens` goes over. On Claude 4.5 models and newer that combination is accepted, and generation may stop with `model_context_window_exceeded` (D). Option B is the trap: it describes the behavior of models before Claude 4.5. Option C confuses the API with chat interfaces like claude.ai; in API requests previous turns are preserved completely.",
     "difficulty": "hard",
     "diagram": {
       "kind": "segmented-bar",
@@ -302,6 +307,7 @@
     ],
     "answer": "a",
     "takeaway": "A bigger window isn't a reason to fill it: accuracy and recall **degrade** as context grows (context rot).",
+    "explanation": "The principle is **context rot**: accuracy and recall degrade as token count grows, so more context isn't automatically better. The 600k wiki fits easily inside the 1M window, which rules out truncation (B) and points to A: curate what goes into context. Option C is tempting because long prompts can sound like a pricing issue, but most 1M-window models bill long context at standard pricing, and price doesn't change answer quality anyway. Dropping content first-in, first-out (D) is chat-interface behavior, not the API.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
@@ -344,6 +350,7 @@
     ],
     "answer": "c",
     "takeaway": "Caching changes the **price** of prefix tokens, not the **space** they take in the context window.",
+    "explanation": "Caching changes the **price** of prefix tokens, not the **space** they take: cached prefixes still occupy the context window, so C is right. With caching, input is split across `input_tokens`, `cache_read_input_tokens` and `cache_creation_input_tokens`, and all three count toward the window. That rules out Option A, the tempting idea that only uncached tokens count, and Option B, since cache reads count just like writes. Where the prefix lives (D) doesn't matter either; everything in the request counts.",
     "difficulty": "hard",
     "diagram": {
       "kind": "segmented-bar",
@@ -408,6 +415,7 @@
     ],
     "answer": "d",
     "takeaway": "Pretraining teaches **next-word prediction**; fine-tuning and RLHF are what make Claude follow instructions as an assistant.",
+    "explanation": "The glossary separates two stages. **Pretraining** on a large unlabeled corpus teaches next-word prediction, and such models aren't inherently good at following instructions; **fine-tuning and RLHF** refine them, and Claude has been fine-tuned to be a helpful assistant (D). That's why the teammate's premise is wrong. Option A is tempting but swaps the stages: pretraining doesn't use curated Q&A pairs. Option B fails because Claude isn't a bare model and the API doesn't offer fine-tuning, and C understates RLHF.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
@@ -449,6 +457,7 @@
     ],
     "answer": "b",
     "takeaway": "Temperature controls **randomness**: lower means conservative and probable, higher means more diverse.",
+    "explanation": "Temperature controls **randomness**: lower values give conservative, probable outputs, higher values give more creative and diverse ones. The team wants **more variety**, so lowering temperature (B) would push the slogans toward the most probable phrasing, the opposite of the goal. Option A is the trap because it reverses the direction: exploring rare, surprising word choices is what higher temperature does. Temperature doesn't control length (C), and it isn't limited to fiction prompts (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
@@ -490,6 +499,7 @@
     ],
     "answer": "a",
     "takeaway": "Don't rely on **identical** outputs: even at temperature 0, the API is not fully deterministic.",
+    "explanation": "The rule from the glossary is that results are **not fully deterministic even at temperature 0**, so an exact-string assertion will occasionally fail with nothing changed (A). Option B is the tempting misconception, assuming temperature 0 guarantees identical output and hunting for a bug that isn't there. Moving to a third-party cloud provider (C) doesn't help, because the non-determinism applies there too. Raising temperature (D) makes replies vary more, not less.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
@@ -532,6 +542,7 @@
     ],
     "answer": "c",
     "takeaway": "Few-shot examples should be **relevant**, **diverse** and **tagged**; similar examples teach unintended patterns.",
+    "explanation": "Examples are one of the most reliable ways to steer format, but Claude also learns whatever the examples **share**. All four are short billing tickets, so outage reports get summarized like billing notes. The fix is relevant, **diverse** examples wrapped in `<example>` tags (C). Option B is the tempting trap: more billing examples only reinforce the unintended pattern. Dropping examples (A) throws away the strongest steering tool, and removing the tags (D) blurs examples with instructions.",
     "mnemonic": "Relevant, diverse, tagged: 3–5 examples.",
     "difficulty": "medium",
     "source": {
@@ -574,6 +585,7 @@
     ],
     "answer": "d",
     "takeaway": "Raw HTTP requests need **auth**, `anthropic-version` and `content-type`; the SDKs send all three for you.",
+    "explanation": "A raw HTTP call to the Messages API needs **auth**, `content-type` and `anthropic-version`; the teammate has the first two, so the version header (D) is missing. Option B is the tempting distractor because it sounds required, but `anthropic-workspace-id` is only needed with a multi-workspace key, and the stem says this is a standard key. `x-api-key` (A) is a legacy fallback that isn't needed when `Authorization` is set, and `anthropic-beta` (C) is only for beta features.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
@@ -615,6 +627,7 @@
     ],
     "answer": "c",
     "takeaway": "Official client SDKs cover **Python, TypeScript, C#, Go, Java, PHP and Ruby**.",
+    "explanation": "The stem asks for an **official, general-purpose client** with streaming, retries and error handling, and Anthropic ships official client SDKs for Python, TypeScript, C#, Go, Java, PHP and Ruby, so C fits directly. Option A is the trap: it assumes Ruby has no official SDK, and compatibility layers aren't general-purpose Messages API clients anyway. The Agent SDK (B) works at a higher level, providing the agent loop, and the `ant` CLI (D) is meant for shell scripting and interactive use.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
@@ -656,6 +669,7 @@
     ],
     "answer": "a",
     "takeaway": "The SDKs retry transient failures **twice by default**; set `max_retries` rather than stacking a second retry loop.",
+    "explanation": "The SDKs already retry transient failures such as 5xx errors **twice by default**. Your loop makes 4 tries (1 + 3 retries), and each try makes up to 3 SDK attempts, so 4 × 3 = 12, which is why A fits; tune or disable this with `max_retries` rather than stacking loops. Option B is the tempting assumption that the SDK never retries, sending you looking for a server-side cause. The SDK doesn't retry 400s (C), and it does honor `retry-after` with exponential backoff (D).",
     "mnemonic": "SDK retries twice, so check before you wrap it.",
     "difficulty": "hard",
     "source": {
@@ -699,6 +713,7 @@
     ],
     "answer": "b",
     "takeaway": "A stream is `message_start` → content blocks (start, deltas, stop) → `message_delta` → `message_stop`.",
+    "explanation": "A stream is wrapped by message events: `message_start` comes first with an empty `content`, then each content block arrives as `content_block_start`, its deltas and `content_block_stop`, then `message_delta` events, and finally `message_stop` (B). Option C is the tempting near-miss: it puts `message_delta` before the blocks, but those deltas carry top-level changes such as usage, which come **after** the content. Option A starts with blocks before `message_start`, and D forgets each block's start and stop events.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -762,6 +777,7 @@
     ],
     "answer": "d",
     "takeaway": "`input_json_delta` carries **partial** JSON: accumulate it and parse it at `content_block_stop`.",
+    "explanation": "`input_json_delta` events carry **partial** JSON strings, so parsing each fragment on its own is guaranteed to fail. Accumulate them and parse once at `content_block_stop`, or let the SDK helpers do it (D). Option B is the tempting misread: the deltas are strings, but the final `tool_use.input` is always an object. Option A fails because `message_start` has empty `content`, and C fails because `text_delta` only updates text blocks; tool input arrives only as `input_json_delta`.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
@@ -803,6 +819,7 @@
     ],
     "answer": "c",
     "takeaway": "Parsers must **tolerate** `ping` and unknown event types: new ones may be added.",
+    "explanation": "The streaming guide says new event types **may be added** under the versioning policy, so a parser must handle unknown types gracefully (C) instead of throwing. The crashes started because the parser treats anything outside its switch as fatal. Option A is the tempting reflex, treating the unfamiliar event as a protocol error and retrying, but an unknown event isn't an error at all. `ping` events (B) are a normal part of the stream, and turning off streaming (D) misreads expected change as corruption.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
@@ -845,6 +862,7 @@
     ],
     "answer": "a",
     "takeaway": "Large `max_tokens` means **stream**, and `.get_final_message()` / `.finalMessage()` gives you the whole `Message` anyway.",
+    "explanation": "The constraint is a **very large `max_tokens`** with no need for incremental text. Large non-streaming calls risk HTTP timeouts, so the guide's answer is to stream, and `.stream()` with `.get_final_message()` (A) streams internally while returning the same `Message` that `.create()` would. Option C works but is unnecessary, since the SDK already accumulates events for you. Option B fails because `\"stream\": true` returns server-sent events, not one JSON body, and splitting the report (D) dodges the recommended fix.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
@@ -887,6 +905,7 @@
     ],
     "answer": "b",
     "takeaway": "Messages requests max out at **32 MB**; bigger requests get 413 `request_too_large`.",
+    "explanation": "A 413 `request_too_large` is about the request's **byte size**, not its tokens: Messages requests are capped at 32 MB, and this one is 40 MB (B). Option A is the tempting confusion, since too much content sounds like a context window problem, but that would be a token limit, not a request-size error. Rate limits (C) cap requests and tokens per minute, not single-request size. Bedrock (D) won't help either, because it limits requests to 20 MB, smaller than the direct API's 32 MB.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
@@ -928,6 +947,7 @@
     ],
     "answer": "d",
     "takeaway": "When streaming, a 200 isn't the end of error handling: errors such as `overloaded_error` can arrive **mid-stream**.",
+    "explanation": "When streaming, the 200 status arrives **before** the body is finished, so an error can still occur partway through. `overloaded_error` (529) means the API itself is temporarily overloaded under high traffic across all users, which is D. Option C is the trap: treating 200 as final success ignores that mid-stream errors exist. Options A and B mislabel the error type: key problems are `authentication_error` (401) and rate limits are `rate_limit_error` (429), each with its own name.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -970,6 +990,7 @@
     ],
     "answer": "c",
     "takeaway": "Start most workloads on **Opus 5.5**; move to **Fable 5.1** when evals at the highest effort still fall short.",
+    "explanation": "The guide's path is to start most workloads on Opus 5.5 and move up to **Claude Fable 5.1** when evals at `xhigh` or `max` effort still fall short on demanding reasoning or long-horizon agentic work, which matches this hours-long research agent (C). Option B is tempting because Sonnet 5.5 is capable, but it targets speed and capability on everyday work, not going beyond Opus. Haiku 5.5 (A) targets lowest latency and price, and lowering effort (D) gives up capability, the opposite of what's needed.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
@@ -1012,6 +1033,7 @@
     ],
     "answer": "d",
     "takeaway": "Effort trades thoroughness for speed and cost on **one model**: use `low` for simple, speed-sensitive work.",
+    "explanation": "Effort trades thoroughness for speed and cost **on one model**. Quality is fine but the task is simple, high-volume and too slow and costly, which is exactly what `output_config.effort: low` (D) is for: significant token savings with some capability reduction. Option A is the tempting shortcut, but on Opus 5.5 adaptive thinking is always on and `thinking: {\"type\": \"disabled\"}` returns a 400. Raising to `xhigh` (B) spends more tokens, and `adaptive` (C) is a thinking mode, not an effort value.",
     "mnemonic": "Simple and fast? Turn effort down.",
     "difficulty": "medium",
     "source": {
@@ -1054,6 +1076,7 @@
     ],
     "answer": "a",
     "takeaway": "Bigger thinking budgets cost **latency**; above 32k tokens, use batch processing to avoid timeouts.",
+    "explanation": "Larger thinking budgets mean longer requests: thinking beyond **32k tokens** can hit system timeouts and open-connection limits, so the guide recommends batch processing (A) for this 48,000-token budget. Option B is the tempting fix, but this model supports only manual extended thinking, so `type: \"adaptive\"` returns a 400. Option C fails because the minimum budget is 1,024 tokens. Option D breaks a rule: `budget_tokens` must be less than `max_tokens` (except with interleaved thinking), since thinking counts toward `max_tokens`.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
@@ -1096,6 +1119,7 @@
     ],
     "answer": "b",
     "takeaway": "Cost = input MTok × input price + output MTok × output price; output tokens cost **5×** input on Sonnet 5.5.",
+    "explanation": "Cost is **input MTok × input price plus output MTok × output price**, billed separately. Here 10 MTok × $2 = $20 for input and 2 MTok × $10 = $20 for output, giving $40 (B). Option A is the tempting shortcut of billing all 12M tokens at the input rate, which ignores that output costs 5× more on Sonnet 5.5. Option C applies the Batch API's 50% discount, which doesn't fit a synchronous workload, and D swaps the two prices.",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
@@ -1156,6 +1180,7 @@
     ],
     "answer": "d",
     "takeaway": "Token counts depend on the **model's tokenizer**: recount with `count_tokens` for the model you're moving to.",
+    "explanation": "Token counts depend on the **model's tokenizer**. Claude Fable 5.1 uses the tokenizer introduced with Claude Opus 4.7, where a prompt counts roughly 30% higher than on earlier models, so last quarter's Sonnet 4.5 counts are stale; recount with the token counting API for the new model ID (D). Option B is the tempting shortcut, but the increase varies with content, so a fixed 1.3× is only a guess. Reusing counts (A) ignores the tokenizer change, and token counting (C) is free to use.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
@@ -1197,6 +1222,7 @@
     ],
     "answer": "b",
     "takeaway": "Server-to-client only? Use **server-sent events** (`EventSource`); WebSockets are for when the client must send messages too.",
+    "explanation": "The deciding detail is that the browser **never needs to send messages back**. Server-sent events are unidirectional, server to client, over a persistent HTTP connection, so `EventSource` (B) fits. Option A is the tempting assumption that only WebSockets can push data to the browser; SSE pushes too. Option C misreads SSE as two-way, which it isn't. Polling every second (D) is unnecessary, because an `EventSource` keeps the connection open and the server sends events as they happen.",
     "difficulty": "easy",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
@@ -1238,6 +1264,7 @@
     ],
     "answer": "c",
     "takeaway": "Both sides send on one connection? Use **WebSockets**; the `WebSocket` interface is the stable, widely supported choice.",
+    "explanation": "Here **both sides send** on one long-lived connection: audio goes up while replies come down, and the stem also demands wide browser support today. The `WebSocket` interface (C) opens a two-way session with good browser and server support. Option B is tempting because `WebSocketStream` handles backpressure, but it's non-standard and supported in only one rendering engine. WebTransport (A) is more complex and less widely supported, and polling (D) is exactly what WebSockets let you avoid.",
     "difficulty": "easy",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API",
@@ -1279,6 +1306,7 @@
     ],
     "answer": "a",
     "takeaway": "Over HTTP/1.1, SSE shares a cap of **6 connections per browser + domain**; serve streams over **HTTP/2**.",
+    "explanation": "Over HTTP/1.1, SSE is limited to **6 open connections per browser + domain**, shared across all tabs, so with one stream per tab the seventh tab hangs. Serving the streams over HTTP/2, where the limit is negotiated (default 100), fixes it (A). Option B is the tempting misread: the cap isn't per tab, so merging streams in one tab doesn't address it. A shorter `retry:` (C) only changes reconnect delay, and waiting for browsers (D) won't work since the issue is marked \"Won't fix\".",
     "difficulty": "hard",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
@@ -1328,6 +1356,7 @@
       "d"
     ],
     "takeaway": "SSE messages end at a **blank line**; consecutive `data:` lines join with newlines, and lines starting with `:` are comments.",
+    "explanation": "Two framing rules matter. A message ends at a **blank line**, a pair of newlines (B), and consecutive `data:` lines in one message are joined with a newline between them (D), so one event can span several lines. Option A is the most tempting wrong pick, treating each line as an event, which breaks multi-line messages. A line starting with a colon (C) is a comment, not the event type, which comes from the `event` field, and `retry` (E) is a reconnection time in milliseconds, not an attempt count.",
     "difficulty": "medium",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
@@ -1370,6 +1399,7 @@
     ],
     "answer": "d",
     "takeaway": "`onmessage` only sees **unnamed** events; listen for named SSE events with `addEventListener(name, ...)`.",
+    "explanation": "`onmessage` only sees events **without** an `event` field. Every event in this stream is named, such as `event: content_block_delta`, so each fires under its own name and needs `addEventListener(\"content_block_delta\")` (D). Option B is the tempting fix, but a `message` listener catches only unnamed events or `event: message`. The events are clearly arriving, which rules out a closed connection (C), and `withCredentials` (A) only governs CORS credentials.",
     "difficulty": "medium",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
@@ -1412,6 +1442,7 @@
     ],
     "answer": "a",
     "takeaway": "`EventSource` **restarts closed connections by default**; call `close()` when the stream is truly finished.",
+    "explanation": "`EventSource` **restarts a closed connection by default**, so when the server closes after the last event, the browser reconnects and the report is generated again. The page itself must end it by calling `evtSource.close()` at the final event (A). Option B is the tempting fix, but `retry` only sets how long the browser waits before reconnecting, not whether it does. A comment line (C) is ignored by the client, and dropping the `id` field (D) doesn't change the default restart.",
     "difficulty": "medium",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
@@ -1453,6 +1484,7 @@
     ],
     "answer": "c",
     "takeaway": "Keep idle SSE streams alive with periodic **comment lines** (starting with `:`), which clients ignore.",
+    "explanation": "The problem is an **idle** connection: nothing flows for a minute, so a proxy drops it. Within the event stream format, a line starting with `:` is a comment that clients ignore, and sending one periodically keeps the connection alive (C). Option B is the tempting distractor, but `retry` is the browser's reconnection wait after a loss; it doesn't stop the drop. Browser heartbeats (A) are impossible on a one-way SSE connection, and the stream must stay `text/event-stream`, not JSON (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events",
@@ -1508,6 +1540,7 @@
       "e"
     ],
     "takeaway": "SDKs add **headers, retries, timeouts, types, streaming and auto-pagination**; workspace IDs, limits and request size stay your job.",
+    "explanation": "The SDKs take over the plumbing of each request: they send the auth, `anthropic-version` and `content-type` headers (A), retry failures and manage timeouts (C), and follow `next_page` cursors with an auto-paginating iterator (E). Option B is the most tempting wrong pick, since it's another header, but `anthropic-workspace-id` stays your job when your key needs it. Rate limits (D) are raised through a tier increase in the Console, and the 32 MB request limit (F) is still yours to respect.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
@@ -1550,6 +1583,7 @@
     ],
     "answer": "b",
     "takeaway": "Multi-workspace keys need **`anthropic-workspace-id`** on each request; the SDK doesn't add it for you.",
+    "explanation": "A **multi-workspace key** makes `anthropic-workspace-id` required on each request, and the SDK only sends the auth, version and content-type headers, so your code must add the workspace header itself (B). Option A is the tempting assumption that the SDK figures out the workspace from the key; it doesn't. `x-api-key` (C) is just a legacy way to carry the key and doesn't pick a workspace, and `anthropic-beta` (D) is for beta features, not workspace selection.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
@@ -1592,6 +1626,7 @@
     ],
     "answer": "d",
     "takeaway": "SDK timeouts are **retried twice** by default, so the worst-case wait is about the timeout × 3; tune `max_retries` too.",
+    "explanation": "The 20-second timeout **does** apply, but timed-out requests are retried twice by default, so three 20-second attempts add up to about a minute (D). The fix is to lower `max_retries` on this client as well as the timeout. Option A is the tempting explanation that the float is being ignored, but `timeout` accepts a float and sets the limit. Option B is wrong because `timeout` applies to all requests on the client, and C fails because the SDK itself raises `APITimeoutError` at the limit.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -1634,6 +1669,7 @@
     ],
     "answer": "c",
     "takeaway": "Need headers too? Use **`.with_raw_response`**, then `.parse()` for the usual `Message`.",
+    "explanation": "`messages.create()` returns only the parsed object, so to see response headers you need the raw response: `with_raw_response.create()` exposes `.headers`, and `.parse()` then gives the same `Message` (C). Option A is tempting because `_request_id` does come from a response header, but it holds only the `request-id` value, not every header. `extra_headers` (B) adds **request** headers, and `with_streaming_response` (D) requires a context manager so the response is reliably closed.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -1676,6 +1712,7 @@
     ],
     "answer": "b",
     "takeaway": "Iterate the list call itself: SDK **auto-pagination** fetches the following pages for you.",
+    "explanation": "List methods are **paginated**: `.data` holds only the current page, so looping over it stops at 20. Iterating the `list()` call itself with `for` (or `async for`) makes the SDK fetch more pages as needed (B). Option C is the tempting near-miss, but `has_next_page()` only tells you whether another page exists; `get_next_page()` fetches it. `last_id` (A) is the next-page cursor, not a count, and the async client (D) paginates the same way.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -1718,6 +1755,7 @@
     ],
     "answer": "d",
     "takeaway": "Not every list endpoint pages alike: Models and Batches use **`after_id` + `has_more`**, not `page`/`next_page`.",
+    "explanation": "Not every list endpoint pages the same way. Sessions uses `page`/`next_page`, but Models (like Message Batches and several Admin endpoints) takes `after_id`/`before_id` and returns `has_more`, `first_id` and `last_id` (D). The pager sees no `next_page` and assumes it's done. Option A is the tempting conclusion, but Models does return pages; it just uses a different cursor scheme. `order` (B) only sets sort direction, and `prev_page` (C) exists only on Sessions.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/overview",
@@ -1759,6 +1797,7 @@
     ],
     "answer": "a",
     "takeaway": "Several betas? Send **one** `anthropic-beta` header with comma-separated names; Google Cloud ignores extra copies.",
+    "explanation": "The detail that matters is the platform change: **Google Cloud reads only one** `anthropic-beta` header and ignores the rest, so one of two separate headers is dropped. Put both names in a single comma-separated header (A). Option B is tempting because a body field exists elsewhere, but the `anthropic_beta` array is for Bedrock's InvokeModel API. Beta names are the same across platforms that accept them (C), and multiple betas can share one request (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/beta-headers",
@@ -1800,6 +1839,7 @@
     ],
     "answer": "c",
     "takeaway": "A 400 naming `anthropic-beta` means a **wrong or inaccessible beta name**; use the exact documented name.",
+    "explanation": "A 400 `invalid_request_error` that **names the `anthropic-beta` header** points at a bad value in that header: a misspelled beta name, or a beta your organization doesn't have access to (C). The fact that it started right after editing the beta list fits. Option D is the tempting misread, but combining betas is allowed, comma-separated or with repeated headers. Retrying (A) just resends the same invalid value, and a missing `anthropic-version` (B) wouldn't produce an error about `anthropic-beta`.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/beta-headers",
@@ -1841,6 +1881,7 @@
     ],
     "answer": "b",
     "takeaway": "Beta endpoints such as Sessions need their **endpoint-specific beta header** on every raw request; `client.beta` adds it for you.",
+    "explanation": "Some endpoints are betas themselves: `/v1/sessions` (with `/v1/agents` and `/v1/environments`) needs `anthropic-beta: managed-agents-2026-04-01` on **every** request (B). The SDK's `client.beta` adds that header automatically, which is why the SDK call works and the raw one doesn't. Option A is the tempting trap: `betas` is the SDK's parameter, but raw HTTP takes beta names in the header. `agent-memory-2026-07-22` (C) is for `/v1/memory_stores`, and raw calls are possible (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/beta-headers",
@@ -1890,6 +1931,7 @@
       "d"
     ],
     "takeaway": "A version keeps existing parameters, but **outputs and enum values can grow**: parse responses tolerantly.",
+    "explanation": "A version pins **existing** parameters, but outputs can still grow. Within `2023-06-01`, Anthropic may add new values to the output, such as extra fields (A), and new variants to enum-like values, such as stream event types (D); a strict schema that rejects anything unexpected can break on either. Option E is the most tempting wrong pick, but the input change allowed is adding **optional** inputs, not making existing ones required. Removing inputs (B) or renaming outputs (C) would break the version's guarantee.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/versioning",
@@ -1932,6 +1974,7 @@
     ],
     "answer": "d",
     "takeaway": "Point the SDK at another host with **`ANTHROPIC_BASE_URL`** (or `base_url`); `ANTHROPIC_API_KEY` supplies the key.",
+    "explanation": "The constraint is **no code change**: the bare `Anthropic()` call has to be redirected from outside. The client's `base_url` can come from the `ANTHROPIC_BASE_URL` env var, so setting it to the mock's address does it (D). Option A is tempting because it sounds like a test setting, but `ANTHROPIC_LOG` only turns on logging and doesn't change where requests go. `ANTHROPIC_API_KEY` (B) supplies the key, not the host, and `default_headers` (C) change headers, not the URL.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -1974,6 +2017,7 @@
     ],
     "answer": "a",
     "takeaway": "When streaming, take `stop_reason` from **`message_delta`**; it's `null` in `message_start`.",
+    "explanation": "When streaming, `stop_reason` is `null` in the initial `message_start` event and only **provided in `message_delta`**, which arrives after the content blocks. Saving it from `message_start` captures that initial `null` every time, so read it from `message_delta` (A). Option D is the tempting near-miss, since `message_stop` is the final event, but `stop_reason` isn't in it. A `null` isn't a refusal (B), which has its own value, and the replies are complete, so retrying (C) changes nothing.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
@@ -2016,6 +2060,7 @@
     ],
     "answer": "c",
     "takeaway": "The Python SDK sends with **`httpx2`**: tools that patch `httpx` need `httpx2.alias_httpx()` called first.",
+    "explanation": "The Python SDK sends requests with **`httpx2`**, not `httpx`, so tools like `respx` that patch `httpx` never see them. Calling `httpx2.alias_httpx()` at startup, before anything imports `httpx`, makes `import httpx` resolve to `httpx2` (C). Option A is the tempting fix of handing the SDK a plain `httpx.Client`, but `http_client` must be an `httpx2` client and that raises a `TypeError`. `ANTHROPIC_LOG` (B) only enables logging, and `max_retries` (D) has nothing to do with the mocks.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -2057,6 +2102,7 @@
     ],
     "answer": "b",
     "takeaway": "Turn on the Python SDK's logs with **`ANTHROPIC_LOG=debug`** (or `info`); no code change needed.",
+    "explanation": "The Python SDK logs through the standard library `logging` module, and setting the **`ANTHROPIC_LOG`** env var to `debug` or `info` turns it on with no code change (B). Option A is the tempting distractor because it is also an env var, but `ANTHROPIC_BASE_URL` only sets the base URL requests go to. Option C is ruled out twice: `max_retries` isn't a logging switch and it means editing code. `default_headers` (D) set request headers and don't enable SDK logs.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -2098,6 +2144,7 @@
     ],
     "answer": "b",
     "takeaway": "Fast mode raises **output tokens per second** (up to 2.5x); it isn't a fix for time to first token.",
+    "explanation": "Match the symptom to the lever. Users wait for the **first word**, but once text starts it streams fine, so the problem is time to first token. Fast mode's benefits are focused on output tokens per second, up to 2.5x, not TTFT, so it won't fix the initial wait (B). Option A is the trap: it takes the real 2.5x figure and applies it to the wrong metric. Fast mode runs the same model, not a smaller one (C), and it isn't available with the Batch API at all (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
@@ -2139,6 +2186,7 @@
     ],
     "answer": "c",
     "takeaway": "Fast mode is the **same model with faster output** at a premium price; intelligence and capabilities don't change.",
+    "explanation": "Fast mode runs the **same model** with the same weights and behavior on a faster inference configuration, so there's no change to intelligence or capabilities; the trade-off is premium pricing (C). That addresses the manager's quality worry directly. Option B is the tempting near-miss: it gets quality right but says standard rates, when fast mode is billed at $8 / $40 per MTok on Opus 5.5. Option A invents a distilled model, and D is wrong because fast mode pricing applies across the full context window.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
@@ -2180,6 +2228,7 @@
     ],
     "answer": "a",
     "takeaway": "Check `usage.speed`: on Opus 4.6, `speed: \"fast\"` runs at standard speed without an error; on Opus 4.7 it returns an error.",
+    "explanation": "The clue is **no error** plus standard speed and rates. Claude Opus 4.6 doesn't have fast mode, and unlike other unsupported models it doesn't reject `speed: \"fast\"`; it silently runs at standard speed, and `usage.speed` shows \"standard\" (A). Option B is the tempting explanation, but exceeding fast mode's rate limit returns a 429 with `retry-after` rather than falling back silently. Fast mode doesn't require streaming (C), and it isn't free (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
@@ -2229,6 +2278,7 @@
       "d"
     ],
     "takeaway": "Fast mode: Claude API only, premium price ($8 / $40 on Opus 5.5), its own rate limit, and no Batch API.",
+    "explanation": "Fast mode for Claude Opus 5.5 is a research preview on the **Claude API only**, so it works for the first deployment but not on Bedrock (B), and its premium pricing on Opus 5.5 is $8 / $40 per MTok (D). Option E is the most tempting wrong pick because it mixes up two models: on Opus 4.7, `speed: \"fast\"` returns an error, and it's Opus 4.6 that silently runs at standard speed. Fast mode has its own rate limit (C) and isn't available with the Batch API (A).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
@@ -2271,6 +2321,7 @@
     ],
     "answer": "d",
     "takeaway": "Effort shapes **every** output token, tool calls included: lower it for fewer, terser calls.",
+    "explanation": "Effort shapes **every** output token, including tool calls and their arguments, not just thinking. Lower effort tends to make fewer tool calls, combine operations, skip the preamble and use terse confirmations, which is exactly what the team wants, so lower `output_config.effort` (D). Option A is the tempting intuition that more effort means smarter, leaner work, but higher effort tends to explain more and make more calls. Effort isn't a per-tool setting (C), and B wrongly limits it to thinking.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
@@ -2312,6 +2363,7 @@
     ],
     "answer": "a",
     "takeaway": "`xhigh` is for long-horizon agentic and coding work; `max` removes every constraint on token spending.",
+    "explanation": "Effort levels map to workload shape. This agent runs **over an hour** with token budgets in the millions, and evals show gains above `high`, which is the long-horizon case `xhigh` is built for (A). The other constraint is not wanting unconstrained spending, which rules out Option B, the tempting pick: `max` is the level with **no** constraints on token spending, not a cap. `medium` (C) is the balanced default, and `low` (D) is for simple, cost-sensitive tasks.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
@@ -2353,6 +2405,7 @@
     ],
     "answer": "b",
     "takeaway": "Adaptive thinking means Claude decides **whether** and **how much** to think; a missing block on an easy request is expected.",
+    "explanation": "With **adaptive thinking**, the model decides per request whether and how much to think, and when it skips thinking on a simple request no thinking block is produced, whatever `display` says (B). That's why easy requests lack a block and hard ones keep it. Option C is tempting because it sounds like a display issue, but `omitted` still returns thinking blocks with an empty `thinking` field. Option A fails because `budget_tokens` with `enabled` returns a 400 on Opus 5.5, and thinking can't be switched off (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -2402,6 +2455,7 @@
       "d"
     ],
     "takeaway": "Temperature tunes **diversity**, but even at 0 the API isn't fully deterministic, on any provider.",
+    "explanation": "Two separate ideas are tested. Temperature tunes **diversity**: higher values vary phrasing and, for fiction, answers too (A). And the API is not fully deterministic: identical extraction inputs may produce different outputs across calls, even at temperature 0 (D). Option C is the most tempting wrong pick, since temperature 0 sounds like it should lock outputs down, but the glossary says it doesn't. Lower temperature doesn't explore rare words (B), and third-party providers are non-deterministic too (E).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/glossary",
@@ -2444,6 +2498,7 @@
     ],
     "answer": "c",
     "takeaway": "Input over the window gets a **400**; input that fits but overflows with `max_tokens` is accepted on Claude 4.5+ and may stop with `model_context_window_exceeded`.",
+    "explanation": "Separate the two overflow cases. Here the input **alone**, 1.2M tokens, is larger than the 1M window, and that gets a 400 \"prompt is too long\" error on every model (C). Option A is the tempting trap: `model_context_window_exceeded` is for input that fits while input plus `max_tokens` goes over. The API preserves what you send rather than dropping old content (B), which is chat-interface behavior, and input over the window isn't processed at any price (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
@@ -2486,6 +2541,7 @@
     ],
     "answer": "d",
     "takeaway": "On Haiku 5.5, earlier turns' thinking stays in context as **input**; trim it with thinking block clearing.",
+    "explanation": "The extra growth comes from **thinking history**: Haiku 4.5 kept only the latest turn's thinking blocks, while Haiku 5.5 keeps all earlier turns' blocks in context, counted as input (D). In a multi-turn chat that adds up turn after turn; thinking block clearing removes older ones. Option A is the tempting misread: kept thinking is billed as input, not again as output. Option B reverses the cache minimum, which drops to 512 tokens on Haiku 5.5, and C fails because context-awareness tags aren't injected there.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5",
@@ -2528,6 +2584,7 @@
     ],
     "answer": "a",
     "takeaway": "Injected context-awareness tags exist only on some Sonnet and Haiku models; on Opus 4.7+, Sonnet 5.5 and Haiku 5.5, use **task budgets** (beta).",
+    "explanation": "Claude Opus 4.7 and later Opus models **don't receive** the injected context-awareness tags, so the pacing signal disappears after the move. The replacement is task budgets (beta), which give the model an explicit budget for its loop (A). Option B is tempting because it sounds like re-enabling a feature, but context awareness has nothing to enable and isn't available on these models. You never send the tags yourself (C), and compaction (D) summarizes earlier turns rather than reporting a budget.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
@@ -2577,6 +2634,7 @@
       "c"
     ],
     "takeaway": "Budget the **whole request**: system prompt, messages, tool results and tool definitions all count, plus the output.",
+    "explanation": "**Everything in the request** counts toward the context window, not just user and assistant messages. That includes tool definitions (A) and the system prompt (C), which a budget counting only messages would miss, so the limit arrives early. Option D is the most tempting wrong pick because cache fields look like extra accounting, but input is split across three usage fields that all count once; nothing is double-counted. Training data (B) isn't part of the window, which is the request's working memory.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
@@ -2618,6 +2676,7 @@
     ],
     "answer": "c",
     "takeaway": "On the current tokenizer, 1M tokens is roughly **555k words**; older models fit about 750k.",
+    "explanation": "Words-per-token depends on the **tokenizer**. The 750k-words figure belonged to models before the tokenizer introduced with Claude Opus 4.7; on the current one, 1M tokens is roughly 555k words, so 700,000 words probably won't fit (C). Option A is the trap: the teammate is quoting the older figure as if it applied to every current model. Option B confuses words with characters (2.5M is the rough character count), and D fails because all four current models share the same 1M-token window.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/overview",
@@ -2660,6 +2719,7 @@
     ],
     "answer": "d",
     "takeaway": "With thinking on, **worked examples** (problem, method, answer) steer how Claude reasons; don't ask it to print its reasoning.",
+    "explanation": "Prose alone leaves the school's method open to interpretation. **Worked examples** showing problem, method and answer work with thinking: they shape how Claude approaches similar problems in its own thinking blocks (D). Option A is the tempting old habit, but on Opus 5.5 asking it to write out reasoning in `<thinking>` tags may be declined; rely on thinking instead. Thinking can't be turned off (B), and the guide prefers general instructions over a hand-written plan for every problem type (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2701,6 +2761,7 @@
     ],
     "answer": "b",
     "takeaway": "Going from zero-shot to **multishot** (3–5 relevant, diverse, tagged examples) is the most reliable way to steer format and tone.",
+    "explanation": "The symptom is varying **format and tone**, and examples are one of the most reliable ways to steer exactly that. Going from zero-shot to multishot with 3–5 relevant, diverse examples in `<example>` tags is the fix (B). Option A is tempting because one example seems simpler, but a single example to copy is neither enough nor diverse. ALL-CAPS rules without reasons (C) throw away the explanation Claude generalizes from, and mixing examples into the notes (D) blurs them with the input.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -2742,6 +2803,7 @@
     ],
     "answer": "c",
     "takeaway": "Thinking replaces single-pass answering with **scratch work and checking**, paid for as output tokens.",
+    "explanation": "Without thinking, the model answers in a **single pass**. With it, Claude restates the problem, tries approaches, checks intermediate results and drops dead ends before answering, which is why multi-step math improves (C). Option A is tempting because exploring candidates sounds like sampling, but thinking isn't a temperature setting; it's generated text in `thinking` blocks. No calculator tool is involved (B), and thinking isn't free (D): it's billed as output and counts toward `max_tokens`.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -2784,6 +2846,7 @@
     ],
     "answer": "a",
     "takeaway": "Thinking text is a **summary** (or omitted), never the raw chain, and you pay for the full thinking either way.",
+    "explanation": "No `display` value returns the **raw chain of thought**: `summarized` gives a summary written by a different model from the one you target (A). For an audit trail, that's the limit you have to plan around. Option C is the tempting workaround, asking Claude to restate its reasoning in the response, but on Opus 5 that may be refused with `reasoning_extraction`. `summarized` isn't a whitespace trim (B), and you're billed for the full thinking tokens, not just the summary (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -2825,6 +2888,7 @@
     ],
     "answer": "d",
     "takeaway": "`display: \"omitted\"` cuts **time to first text token**, not cost: Claude still thinks, and the thinking is still billed.",
+    "explanation": "The goal is **earlier reply text** while keeping thinking. `display: \"omitted\"` has the server stream only each thinking block's signature, so text begins sooner, while Claude still thinks and is still charged for it (D). Option A is the trap: `summarized` is already the default here, and it's the setting that streams thinking text ahead of the reply. Disabling thinking (B) gives up the quality benefit, and lowering `max_tokens` (C) cuts into the room thinking and the answer both need.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -2866,6 +2930,7 @@
     ],
     "answer": "b",
     "takeaway": "On Haiku 5.5, `low` suits chat and simple, high-volume requests; long agent tasks need `medium` or `high`.",
+    "explanation": "The symptoms, skipped searches, stopping early and skipped checks in a **long agent prompt**, are what the guidance says `low` effort tends to cause on Haiku 5.5. The fix is to go back to the `medium` default, or `high` for longer agent tasks (B). Option C is tempting because `max` sounds thorough, but on Haiku 5.5 disabling thinking at `xhigh` or `max` returns a 400. Turning thinking off at `low` (A) gives less thinking, not more care, and there is no `minimal` level (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
@@ -2907,6 +2972,7 @@
     ],
     "answer": "c",
     "takeaway": "Upgrades can change **defaults**: Opus 5.5 runs at `medium` unless you set effort, so set it and re-run your evals.",
+    "explanation": "The team **didn't set effort**, so they got the new model's default. A request that omits effort runs at `medium` on Opus 5.5, one level below Opus 5's `high`, which explains less thorough answers on hard tasks (C); set effort explicitly and re-run the sweep. Option D is the tempting guess that the new model just thinks less, but it's the reverse: at the same setting it tends to think more. Thinking is always on (A), and a manual `budget_tokens` returns a 400 (B).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
@@ -2957,6 +3023,7 @@
       "d"
     ],
     "takeaway": "Manual `budget_tokens` runs on Claude 4.5 models (and, deprecated, on 4.6); Claude 4.7 and later return a 400.",
+    "explanation": "Manual `budget_tokens` with `type: \"enabled\"` runs on the **Claude 4.5** models: Haiku 4.5 supports only manual extended thinking (A), and Opus 4.5 rejects `adaptive` but runs `enabled` with a budget (D). Claude 4.7 and later return a 400 for it. Option C is the most tempting wrong pick, since Opus 4.8 sounds close to 4.5, but it returns a 400 and accepts adaptive thinking instead. Haiku 5.5 (B) and Sonnet 5.5 (E) are adaptive too.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -2998,6 +3065,7 @@
     ],
     "answer": "d",
     "takeaway": "On Sonnet 5.5, `disabled` is gone: the lowest setting is `between_tools`, at `high` effort or below.",
+    "explanation": "On Sonnet 5.5, `disabled` is no longer accepted; the **lowest setting** is `between_tools`, accepted at `low`, `medium` and `high` effort, which keeps up-front thinking off while still returning progress updates between tool calls (D). The request runs at `medium`, so it fits. Option A is the tempting fix of just omitting the field, but that gives adaptive thinking, which is on by default. A manual budget (B) returns a 400, and at `xhigh` (C) even `between_tools` is rejected.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/whats-new-sonnet-5-5",
@@ -3039,6 +3107,7 @@
     ],
     "answer": "b",
     "takeaway": "When thinking is on by default, **leave room in `max_tokens`** for thinking plus the answer.",
+    "explanation": "On Haiku 5.5, **adaptive thinking is on by default**, and thinking tokens count toward `max_tokens`. With only 200 tokens, a response can run out after its `thinking` block, before any text (B); leave room for thinking plus the answer. Option D is tempting because thinking text is often hidden, but `display` only controls whether summarized text is returned, not where the label goes. Haiku 5.5's output limit is higher, not lower (A), and the tokenizer (C) doesn't shape responses.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5",
@@ -3080,6 +3149,7 @@
     ],
     "answer": "d",
     "takeaway": "Thinking blocks are tied to models: from Sonnet 5.5, only a move **up to Opus 5.5** keeps the reasoning; other switches drop it.",
+    "explanation": "Thinking blocks are **tied to models**: on the Claude API, the only other model that reads Sonnet 5.5's thinking blocks is Claude Opus 5.5, so that switch keeps the earlier reasoning (D). Every other switch drops the blocks; the request still succeeds, and dropped blocks aren't billed. Option C is the tempting pick because Fable 5.1 is the most capable model, but capability doesn't make it read Sonnet 5.5's blocks. Opus 5 (A) and Haiku 5.5 (B) drop them as well.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/whats-new-sonnet-5-5",
@@ -3121,6 +3191,7 @@
     ],
     "answer": "c",
     "takeaway": "Fable 5.1 lists at **2.5×** Opus 5.5's per-token prices; move up for demanding long-horizon work or when Opus 5.5 evals at higher effort fall short.",
+    "explanation": "Compute each model's full bill, then subtract. Opus 5.5 costs 20 × $4 + 4 × $20 = $160 a day; Fable 5.1 costs 20 × $10 + 4 × $50 = $400. The difference is $240 (C). Option A is the tempting shortcut of comparing input only (20 × $6 = $120), which forgets that output adds another $120. Options B and D are each model's whole daily bill rather than the gap between them, a common slip when the question asks for \"how much more\".",
     "difficulty": "easy",
     "diagram": {
       "kind": "segmented-bar",
@@ -3179,6 +3250,7 @@
     ],
     "answer": "b",
     "takeaway": "Fast mode runs only on **Opus 5.5, Opus 5 and Opus 4.8**; Opus 4.7 rejects it with an error.",
+    "explanation": "Fast mode is supported on **Opus 5.5, Opus 5 and Opus 4.8**, not on Opus 4.7, so the team has to move models and then send `speed: \"fast\"` with the beta header (B). Option A is the tempting assumption that unsupported models quietly fall back, but on Opus 4.7 `speed: \"fast\"` returns an error; only Opus 4.6 runs silently at standard speed. Sonnet 5.5 (C) doesn't offer fast mode, which is always at premium pricing, and fast mode isn't available with the Batch API (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode",
@@ -3221,6 +3293,7 @@
     ],
     "answer": "a",
     "takeaway": "Some upgrades change **response shape** without errors: on Opus 5.5, notes between tool calls arrive as `thinking` blocks.",
+    "explanation": "The clue is **no errors**, just missing notes. On Opus 5.5, text written between tool calls comes back in progress-update `thinking` blocks, and those are empty at the default `display: \"omitted\"`, so the UI has nothing to show; set a `display` value that returns it (A). Option C is tempting because always-on thinking is a real change, but the notes still exist, inside `thinking` blocks. Options B and D are breaking changes that return 400s, so they'd fail requests rather than silence them.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
@@ -3270,6 +3343,7 @@
       "e"
     ],
     "takeaway": "Opus 5 to 5.5: replace `disabled` thinking with an effort level and forced `tool_choice` with `auto` + strict; caching and fast mode carry over.",
+    "explanation": "Two settings this integration sends now return 400s on Opus 5.5. Thinking is always on, so `disabled` must go and effort becomes the lever (C). Forced tool use (`any` or `tool`) is rejected too, so switch to `auto` with `strict: true` (E). Option B is the most tempting wrong pick because caching changes seem plausible in a migration, but Opus 5.5 supports caching and doesn't require a different TTL. Fast mode carries over (A), and a manual `budget_tokens` also returns a 400 (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5",
@@ -3312,6 +3386,7 @@
     ],
     "answer": "b",
     "takeaway": "Changing **top-level** effort restarts the cache; on supported models, change it **per message** instead.",
+    "explanation": "Top-level effort **shapes the rendered prompt**, so changing it between requests means earlier cached prefixes no longer match. Per-message effort (beta), an empty `role: \"system\"` message carrying the new `output_config.effort`, leaves everything before it unchanged, so the cache still hits (B). Option A is tempting because breakpoints are the usual caching tool, but they don't stop the prefix from changing. A prompt instruction (C) isn't the effort parameter, and TTL (D) can't make a changed prefix match.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
@@ -3354,6 +3429,7 @@
     ],
     "answer": "d",
     "takeaway": "Hidden thinking is still **billed output**: budget for it even when you never see it.",
+    "explanation": "Opus 5.5 defaults to `display: \"omitted\"`, so thinking blocks come back empty, but the **full thinking is still billed** as output tokens. That's why `output_tokens` dwarfs the visible answer (D); omitting reduces latency, not cost. Option C is the tempting fix, but `display` changes what's returned, not what's billed. It isn't a billing error (A), and you aren't billed only for a summary (B); you're charged for the full thinking tokens either way.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -3396,6 +3472,7 @@
     ],
     "answer": "a",
     "takeaway": "Haiku 5.5 is priced by **prompt length**: over 100k input tokens (cache reads included), the whole request pays more.",
+    "explanation": "Haiku 5.5 is priced by **prompt length**, and prompt length counts all input tokens, cache reads and writes included. 70,000 + 40,000 = 110,000, over the 100,000 threshold, so the whole request pays the higher prices (A). Option B is the tempting trap of counting only uncached input. Option C assumes a split rate, but each request is priced as a whole. Option D applies a rule that holds for Claude 4.6 and later models **except** Haiku 5.5.",
     "difficulty": "hard",
     "diagram": {
       "kind": "segmented-bar",
@@ -3454,6 +3531,7 @@
     ],
     "answer": "c",
     "takeaway": "Per-token price isn't the whole story: Claude 4.7+ tokenizers count about **30% more tokens** for the same text, so recount.",
+    "explanation": "The per-token prices drop by a third, but cost is price × **token count**, and the count changes too. Claude 4.7 and later models use a tokenizer that produces approximately 30% more tokens for the same text, while Sonnet 4.6 uses the previous one (C), so the saving is smaller than one-third. Option A is the trap of assuming token counts stay the same. Sonnet 5.5 includes the full 1M window at standard pricing (B), and its cache hits are cheaper, not pricier (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
@@ -3496,6 +3574,7 @@
     ],
     "answer": "d",
     "takeaway": "Cache multipliers and the 50% **batch discount stack**: apply the cache rate, then halve it.",
+    "explanation": "Caching multipliers **stack** with other pricing modifiers, including the Batch API discount. So start with the cache-read rate, $2 × 0.05 = $0.10 per MTok, then apply the 50% batch discount to get $0.05 (D). Option A is the tempting stop halfway: it applies the cache rate but assumes the discounts can't combine. Option B ignores the cache multiplier entirely, and C borrows Opus 5.5's cache-read price instead of Sonnet 5.5's.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
@@ -3538,6 +3617,7 @@
     ],
     "answer": "b",
     "takeaway": "With caching, `input_tokens` is only the **uncached tail**: total input = cache reads + cache writes + `input_tokens`.",
+    "explanation": "With caching, input is split three ways: `input_tokens` holds only the tokens **after** the last cache breakpoint, while `cache_read_input_tokens` and `cache_creation_input_tokens` hold the rest, each with its own price multiplier. The dashboard misses both cache fields, so costs look too low (B). Option A is the tempting assumption that `input_tokens` already includes cached input. Cached tokens aren't free (C): reads and writes are both billed. Cached input isn't in `output_tokens` (D).",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
@@ -3596,6 +3676,7 @@
     ],
     "answer": "c",
     "takeaway": "For billing-grade cost by workspace, use the **Cost API** with **Admin** credentials, not per-response token sums.",
+    "explanation": "Finance needs **USD by workspace that reconciles with billing**, which is exactly what the Cost API (`/v1/organizations/cost_report`) returns when grouped by workspace, using Admin API credentials (C). Option B is tempting because the Usage API is close, but these are Admin endpoints and workspace keys don't work. Summing response `usage` (A) is the approach the Usage and Cost API exists to replace, and D fails because the Cost API has daily granularity only and groups by workspace or description, not app.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
@@ -3645,6 +3726,7 @@
       "c"
     ],
     "takeaway": "Usage API: tokens by model, key and workspace, typically **5 minutes** fresh, polled about once a minute.",
+    "explanation": "The Usage API can group and filter by API key, workspace, model and more (A), and new usage typically appears **within about 5 minutes** of a request, occasionally longer (C). Option D is the most tempting wrong pick for a near-real-time dashboard, but the supported sustained rate is about once per minute; cache results if you need frequent updates. Priority Tier costs aren't in the cost endpoint (B), and code execution costs appear in the cost endpoint, not usage (E).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
@@ -3686,6 +3768,7 @@
     ],
     "answer": "a",
     "takeaway": "`count_tokens` is free and **model-specific**, but it's an estimate: expect small differences from actual usage.",
+    "explanation": "The docs call the token count an **estimate**: actual input tokens used when creating a message might differ by a small amount, which matches a count that's a few tokens off (A). Option C is tempting because tokens added for system optimizations are real, but you're not billed for them, so they don't explain a billing gap. Token counting doesn't apply caching (B), and it counts with the tokenizer of the `model` you pass rather than a fixed one (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
@@ -3727,6 +3810,7 @@
     ],
     "answer": "c",
     "takeaway": "At standard multipliers, a 5-minute write pays off after **one** read and a 1-hour write after **two**.",
+    "explanation": "Break-even compares the extra write cost with savings per read. A 5-minute write (1.25×) pays off after **one** read, while a 1-hour write (2×) needs **two**, which the pricing page states directly (C). The 30-minute interval matters only because it forces the 1-hour cache. Option A is the trap: it applies the 5-minute break-even to the more expensive 1-hour write. Option D tries to derive the answer from the 0.1× read price, and B ignores that the write does pay off.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/pricing",
@@ -3769,6 +3853,7 @@
     ],
     "answer": "b",
     "takeaway": "Track reasoning cost with `output_tokens_details.thinking_tokens`; `budget_tokens` is a **target**, not a meter.",
+    "explanation": "To see how much of billed output went to reasoning, read `usage.output_tokens_details.thinking_tokens`, which reports exactly that; when streaming, it appears only on the final `message_delta` event (B). Option A is the tempting assumption that the budget is always fully spent, but `budget_tokens` is a **target**, not a meter, and Claude may stop well before it. The breakdown isn't in `message_start` (C), and subtracting from `max_tokens` (D) doesn't isolate reasoning.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",

@@ -29,6 +29,7 @@
     ],
     "answer": "c",
     "takeaway": "Measure, don't eyeball: set **success criteria**, then build an **automated, task-specific** eval set that includes edge cases.",
+    "explanation": "Each fix breaking another case shows the team can't measure whether a change helps overall. The central cycle is to define success criteria, then design evaluations to measure against them: an automated, task-specific set that mirrors real inputs, edge cases included (C). Option A is the tempting trap, since careful hand-grading feels rigorous, but the guidance favors volume of automatically graded questions. Option B leaves out edge cases, and D keeps eyeballing the same few chats.",
     "mnemonic": "Criteria first, then many automated tests.",
     "difficulty": "medium",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "b",
     "takeaway": "A refusal is a **model-output** outcome, not a transient error: retry on a **different model**, not the same one.",
+    "explanation": "A refusal is a normal HTTP 200 **model output**, not a transient error, so re-sending it unchanged to the same model usually earns another refusal. The better recovery is sending the same request to another Claude model, or using server-side fallback (`fallbacks`, beta) to do it in one call (B). Option A is the trap, treating it like a retryable failure. Option C parses `stop_details.explanation`, which isn't stable, and D mislabels a 200 as a 5xx.",
     "mnemonic": "Refused? Change the model, not the timing.",
     "difficulty": "easy",
     "diagram": {
@@ -134,6 +136,7 @@
     ],
     "answer": "a",
     "takeaway": "Compare **parsed** tool inputs, never serialized strings: escaping can differ between model versions.",
+    "explanation": "The values print the same but the **raw JSON text** differs, because Unicode and forward-slash escaping can differ between model versions. The fix is to parse the input with `JSON.parse()` or `json.loads()` and compare values, never serialized strings (A). Option B is the tempting trap: `strict: true` sounds like it enforces consistency, but it addresses invented parameters and wrong types, not escaping. Options C and D fix tool selection and value choice, neither of which is wrong here.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
@@ -175,6 +178,7 @@
     ],
     "answer": "d",
     "takeaway": "An LLM grader needs a **clear rubric**, a **specific output** and thinking on; test its reliability before you scale.",
+    "explanation": "Two symptoms point to the fix: free-form commentary is hard to aggregate, and similar replies get different verdicts. Anthropic's tips are a detailed rubric, a specific output such as 'correct'/'incorrect' or 1–5, and a grader with thinking on (D). Option C is the tempting half-fix: a numeric-only score aggregates well, but turning thinking off loses the reasoning that improves complex judgments. Option A is slow and expensive human grading, and B's exact match lacks the nuance helpfulness needs.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
@@ -217,6 +221,7 @@
     ],
     "answer": "b",
     "takeaway": "Agent SDK telemetry records **structure**, not content, by default; turn content on only for pipelines approved to store it.",
+    "explanation": "Agent SDK telemetry is **structural** by default: spans carry durations, model names and tool names, but no content. That matches what you see. `OTEL_LOG_TOOL_CONTENT=1` adds a `tool.output` span event with tool results, which you should enable only if storing that content is approved (B). Option A is the trap, since that variable is what enables traces, which you already have. Option C breaks the SDK, which uses standard output as its message channel, and D only affects batching.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",
@@ -258,6 +263,7 @@
     ],
     "answer": "d",
     "takeaway": "A 400 after a code change is an **integration** bug: fix what your request sends instead of retrying it.",
+    "explanation": "The break started right after a **code change**, and the error is a 400 that retries don't fix, which points at your request. Edited, filtered-out or reconstructed thinking blocks in the latest assistant message return a 400, so pass every `thinking` and `redacted_thinking` block back exactly as received (D). Option C is the tempting trap, blaming the config, but that same config worked before the loop change. Option A would be a 529, and B a 401 or 403.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -299,6 +305,7 @@
     ],
     "answer": "c",
     "takeaway": "Empty `end_turn` replies after tools usually trace to **your message structure**: never add text right after `tool_result` blocks.",
+    "explanation": "Empty replies with `end_turn` trace back to **your message structure**: text right after tool results teaches Claude to expect user input after every tool use, so it ends its turn. Drop the trailing text and send only the results (C). Option A is the tempting trap, but Claude has already decided it's done, so resending the empty response won't help. Option B would show `stop_reason: \"max_tokens\"`, and D would show `\"refusal\"`; neither matches.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
@@ -340,6 +347,7 @@
     ],
     "answer": "d",
     "takeaway": "Every `tool_use` id needs its own `tool_result`, all in **one** user message and before any text.",
+    "explanation": "The error says some `tool_use` ids have no `tool_result` after them: Claude asked for three tools and you answered only one. Every `tool_use` block needs its own `tool_result`, all placed before any text (D). Option A is the tempting trap: it separates the results, but multiple `tool_result` blocks belong in **one** user message. Option B sets `disable_parallel_tool_use` too late to affect calls already made, and C retries a request whose problem is its content.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
@@ -381,6 +389,7 @@
     ],
     "answer": "b",
     "takeaway": "Keep tool results to **data**; put your instructions in a `user` turn, since Claude treats instructions in tool results as untrusted.",
+    "explanation": "Claude is trained to treat instructions inside tool results as potentially untrusted third-party content, so asking for confirmation is the expected behavior, not a fault. The problem is in your integration: keep the result to data and send your instruction in a `user` turn after the `tool_result` block (B). Option A is the trap, calling it a refusal and switching models. Option C's `strict: true` governs tool call parameters, and D's sharper description fixes tool choice, which was already right.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
@@ -431,6 +440,7 @@
       "e"
     ],
     "takeaway": "Retry **transient** failures (500, 529, connection errors) with backoff; 400, 401 and 413 need a fix, not a retry.",
+    "explanation": "The split is **transient versus fixable**. 500 `api_error` is an unexpected internal error (B) and 529 `overloaded_error` means temporary overload (E); both are worth retrying with exponential backoff. Option D is the most tempting wrong pick, since size can feel like a passing problem, but a request over the limit is still too large however often you resend it. Option A is a request-format problem and C is a bad API key, so both need a fix, not a retry.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -474,6 +484,7 @@
     ],
     "answer": "a",
     "takeaway": "A `reasoning_extraction` refusal comes from **your prompt** asking for reasoning in the output: fix the prompt, don't fall back.",
+    "explanation": "The `stop_details.category` of `reasoning_extraction` is the key detail: this refusal is triggered by your prompt asking for reasoning in the output, and this category has no recommended fallback, which is why fallback didn't help. Change the prompt: ask for a short explanation, or set `display: \"summarized\"` and read the thinking blocks (A). Option D is the trap, assuming a different fallback list would work. Option B retries a normal 200, and C parses the unstable `explanation` text.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
@@ -516,6 +527,7 @@
     ],
     "answer": "d",
     "takeaway": "Split each `tool` span in a trace: **`blocked_on_user`** is permission wait, **`execution`** is the tool's own run time.",
+    "explanation": "Each `claude_code.tool` span splits into child spans for the permission wait (`blocked_on_user`) and the run itself (`execution`). Execution took 2 seconds and nearly all the rest is in `blocked_on_user`, so the time went to waiting for a permission decision (D). Option B is the tempting trap, but a subagent's model calls appear as their own spans nested under the tool span, not inside `blocked_on_user`. Option A ignores that API calls get `claude_code.llm_request` spans, and C affects export timing, not span timings.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",
@@ -557,6 +569,7 @@
     ],
     "answer": "a",
     "takeaway": "OTel export **fails silently** by default; set `CLAUDE_CODE_OTEL_DIAG_STDERR=1` to see exporter errors.",
+    "explanation": "Agents run normally but nothing arrives and nothing errors, which matches the default behavior: the CLI fails **silently** on export errors. The first step is to surface them with `CLAUDE_CODE_OTEL_DIAG_STDERR=1` and read them through the SDK's `stderr` callback (A). Option B is the tempting shortcut, but the `console` exporter writes to standard output, the SDK's message channel. Option C adds tool content rather than surfacing failures, and D assumes a crash the stem rules out.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/observability",

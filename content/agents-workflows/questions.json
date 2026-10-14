@@ -29,6 +29,7 @@
     ],
     "answer": "a",
     "takeaway": "Fixed, well-defined steps → **workflow**; open-ended problems needing model-driven decisions → **agent**.",
+    "explanation": "The rule is to pick the simplest solution that works: workflows run LLMs and tools through **predefined code paths**, which buys predictability and consistency. Notice the stem says the steps are **always the same** and the team wants consistent results, so nothing needs model-driven decisions. Option B is the tempting trap, but agents fit when you need flexibility, not because they always perform better. Option C reverses the trade-off (agents often cost more latency and money), and D adds moving parts without need.",
     "mnemonic": "Fixed path → workflow; open path → agent.",
     "difficulty": "easy",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "d",
     "takeaway": "Add a **stopping condition** (e.g. a maximum number of iterations) to keep control of an agent loop, and feed it real tool results each step.",
+    "explanation": "Agent loops usually end when the task is done, but Anthropic's guidance notes it is common to add a **stopping condition** such as a maximum number of iterations to keep control. The stem's detail is that the agent *occasionally* fails to converge, so you need a bound on the loop itself. Option B is the trap: tasks often end on completion, but that is no guarantee. Option C only caps one response's length, not the number of iterations, and A removes the tool results an agent needs to judge its progress.",
     "mnemonic": "Cap the loop to keep control.",
     "difficulty": "medium",
     "source": {
@@ -113,6 +115,7 @@
     ],
     "answer": "c",
     "takeaway": "Multi-agent pays off on **valuable, parallelizable** work; shared context and tight dependencies between agents are a poor fit today.",
+    "explanation": "Multi-agent systems shine on **breadth-first** work that splits into **independent directions** a lead agent can farm out in parallel, and the task must be valuable enough to pay for the extra tokens. Option C matches both. Option A is the tempting one because coding feels complex, but agents that all need the same context or depend heavily on each other are a poor fit today. Option B fails on value (about 15x the tokens of a chat), and D is a one-agent fact lookup where more agents would be overinvestment.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -155,6 +158,7 @@
     ],
     "answer": "b",
     "takeaway": "Multi-agent systems trade **tokens** (about 15× a chat) for performance, so save them for high-value tasks.",
+    "explanation": "The manager's intuition is backwards: each subagent has its own context window, so the **total** token count grows, to about 15x a chat in Anthropic's data. That is why the task's value must justify the spend, which is Option B. Option A is the trap, mistaking smaller per-agent contexts for a smaller bill. Option C is half right (parallelism did cut research time) but the tokens do not stay flat, and D quotes the about 4x figure that applies to single agents, not multi-agent systems.",
     "mnemonic": "Chat 1×, agent 4×, multi-agent 15×.",
     "difficulty": "easy",
     "source": {
@@ -197,6 +201,7 @@
     ],
     "answer": "a",
     "takeaway": "Teach the orchestrator to delegate: every subagent gets an **objective, output format, tools and boundaries**.",
+    "explanation": "The failure is in delegation: a vague brief like \"research the semiconductor shortage\" let subagents misread the task, duplicate searches and leave gaps. Anthropic's fix is teaching the orchestrator to give each subagent an **objective, output format, tool/source guidance and clear boundaries** (Option A). Option B is tempting because more agents seem to add coverage, but vague briefs just multiply duplicate work. Option C undoes the separate context windows that enable independent investigation, and D changes the model while keeping the vague instructions.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -239,6 +244,7 @@
     ],
     "answer": "d",
     "takeaway": "Bridge sessions with **artifacts**: a progress file plus git history that every new session reads first and updates before it ends.",
+    "explanation": "The symptom is that each fresh context window starts blind, so the fix is a durable **artifact** the next session reads first: a progress file plus the git log, updated every session (Option D). Option A is the tempting trap, because compaction sounds like it carries context forward, but on its own it does not always pass perfectly clear instructions to the next agent. Option B led the model to run out of context mid-feature, and C is the known failure mode where a later agent sees progress and declares the job done.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -298,6 +304,7 @@
     ],
     "answer": "b",
     "takeaway": "Guard against early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
+    "explanation": "The problem is a fresh session judging \"done\" from what exists. The harness counters this with a **JSON feature list** where every feature starts as failing and agents may only flip its `passes` field, so the full scope stays visible (Option B). Option A is the closest trap, but the harness picks JSON because the model is less likely to inappropriately rewrite it than Markdown. Option C invites missing or buggy functionality, and D fails because unit tests or curl checks alone missed features that didn't work end-to-end.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
@@ -340,6 +347,7 @@
     ],
     "answer": "c",
     "takeaway": "Match the technique to the task: **compaction** for back-and-forth, **notes** for milestones, **sub-agents** for parallel research.",
+    "explanation": "The post matches long-horizon techniques to task shape. The stem's key detail is **iterative development with clear milestones** (checking off each defined stage), which is where **structured note-taking** outside the context window excels (Option C). Option A is the tempting one since compaction also handles long runs, but it is suited to heavy back-and-forth conversation, not milestone-driven building. Option B fits parallel research, and D fails because context windows of all sizes are likely to face pollution and relevance concerns.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -381,6 +389,7 @@
     ],
     "answer": "a",
     "takeaway": "If one optimized LLM call works, stop there: add agentic complexity only **when simpler solutions fall short**.",
+    "explanation": "Anthropic's rule is to find the **simplest solution possible** and add complexity only when simpler solutions fall short. Notice the stem says one well-prompted call with retrieval **already answers most questions correctly**, so keep optimizing that call (Option A). Option D is the subtle trap: a fixed workflow sounds safe, but the guidance says the simplest solution might mean not building agentic systems at all. Option B gets the trade-off backwards, and C adds complexity that has not shown it improves outcomes.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -423,6 +432,7 @@
     ],
     "answer": "b",
     "takeaway": "Embed Claude Code's agent in your own process → **Agent SDK**; raw API calls → Client SDK; Anthropic-hosted → Managed Agents.",
+    "explanation": "The deciding details are **built-in file, shell and web tools, permissions and hooks**, embedded in **your own** Python service in a process you operate. That is the Claude Agent SDK, a library that runs the Claude Code binary inside your app (Option B). Option A is the tempting trap because it is also a library, but the Client SDK gives raw API access and leaves the tool loop to you or its beta tool runner. Option C is the interactive terminal, and D has Anthropic host the agent rather than you.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/overview",
@@ -465,6 +475,7 @@
     ],
     "answer": "c",
     "takeaway": "Check `ResultMessage.subtype` before reading `result`; after `error_max_turns`, **resume** the session rather than start over.",
+    "explanation": "In the SDK, `result` exists **only on the `success` variant**, so you must check `subtype` before reading it; every result still carries a `session_id`. After `error_max_turns`, the right move is to resume that session with a higher turn limit (Option C). Option A is the trap: it assumes `result` holds a partial answer, which it does not. Option B confuses `max_tokens` (output length) with the cap on tool-use turns, and D drops a budget that is a good default for production agents.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
@@ -507,6 +518,7 @@
     ],
     "answer": "d",
     "takeaway": "`allowed_tools` **pre-approves**; it does not restrict. To block a tool under `bypassPermissions`, use `disallowed_tools`.",
+    "explanation": "The principle: `allowed_tools` only **pre-approves**; it does not restrict. Under `bypassPermissions`, unlisted calls fall through to the mode, which approves them, so Bash still ran. Deny rules are checked **before** the permission mode, so adding `Bash` to `disallowed_tools` blocks it while keeping the mode (Option D). Option A is the tempting trap, because calls auto-approved by `bypassPermissions` skip `canUseTool` entirely. Option B is another allow rule with the same fall-through problem, and C is false since deny rules still apply.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
@@ -548,6 +560,7 @@
     ],
     "answer": "a",
     "takeaway": "To **prevent** a tool action, deny it in `PreToolUse` with a reason; a `PostToolUse` hook runs after the tool already ran.",
+    "explanation": "To **prevent** an action, a hook must run before the tool and be able to block it: that is `PreToolUse`, returning a deny decision plus a `permissionDecisionReason` so Claude knows why and avoids retrying (Option A). Option B is the tempting trap, but `PostToolUse` fires on the result, after the `.env` write already happened. Option C uses an async output, which cannot block because the agent has already moved on, and D's `Stop` hook fires only when the run ends, far too late.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -608,6 +621,7 @@
     ],
     "answer": "c",
     "takeaway": "Handler errors don't stop the loop; return **`isError: true`** with an actionable message so Claude can retry or adapt.",
+    "explanation": "A handler error does not stop the agent loop; the in-process MCP server turns it into an error result and the loop continues. The issue is that Claude only sees an unhelpful raw exception, so catch it and return `isError: true` with a message you write: what failed and what to try (Option C). Option B is the tempting near-miss, but without `isError` Claude treats the failure as a normal result. Option A misreads how errors behave, and D's `readOnlyHint` governs parallel calls, not retries.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
@@ -649,6 +663,7 @@
     ],
     "answer": "b",
     "takeaway": "Subagents start fresh: pass what they need **in the Agent tool's prompt**; only their final message returns to the parent.",
+    "explanation": "A non-fork subagent starts fresh: the **Agent tool's prompt string** is the only content passed from parent to subagent, so the ten turns of findings never reached it. The fix is to put the file path, error and decisions in that prompt (Option B). Option C is the tempting trap, but the needed facts came from the parent's turns, not its system prompt, and the subagent uses its own by design. Option A is backwards (it inherits no history), and D changes what the subagent can do, not what it knows.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
@@ -690,6 +705,7 @@
     ],
     "answer": "d",
     "takeaway": "Managed Agents: **agent** = model, prompt and tools; **environment** = where it runs; **session** = one run; **events** = messages.",
+    "explanation": "Managed Agents splits configuration into resources. The stem asks for **model, system prompt, tools, MCP servers and skills** defined once and reused across runs: that bundle is an **agent**, referenced by ID across sessions (Option D). Option A is the tempting one because it also sounds like reusable setup, but an environment only configures where sessions run (cloud or self-hosted sandbox). A session (B) is one running instance, and events (C) are the messages exchanged with the agent.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
@@ -731,6 +747,7 @@
     ],
     "answer": "a",
     "takeaway": "Fixed, sequential steps with checks in between → **prompt chaining**, which makes each LLM call an easier task.",
+    "explanation": "Prompt chaining decomposes a task into **fixed sequential steps**, each call processing the previous output, with checks (gates) on intermediate results. The stem's clues are that the steps **never change**, there is a check on the outline, and you accept extra latency for accuracy, so Option A fits. Option C is the tempting trap because it also splits work, but orchestrator-workers is for subtasks you can't predict in advance. Routing (B) sends inputs down different paths, and an agent (D) suits paths you can't hardcode.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -788,6 +805,7 @@
     ],
     "answer": "c",
     "takeaway": "Distinct input categories fighting over one prompt → **route** each one to its own specialized path.",
+    "explanation": "The tell is that tuning the one prompt for refunds makes technical answers worse: distinct input categories are fighting over one prompt. **Routing** classifies each query and sends it to a specialized prompt and tools, giving separation of concerns (Option C). Option B is tempting because refining replies sounds like better quality, but an evaluator-optimizer loop doesn't keep one category's tuning from hurting another. Voting (A) repeats the same task, and chaining (D) still runs every query through the same prompts.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -829,6 +847,7 @@
     ],
     "answer": "d",
     "takeaway": "Same task, several runs → **voting**; different independent subtasks → **sectioning**. Both aggregate outputs programmatically.",
+    "explanation": "Parallelization has two variations: **sectioning** splits a task into different independent subtasks, while **voting** runs the same task several times for diverse outputs. Here several prompts each review the **same code** for the same goal, flagging problems, which is voting (Option D). Option A is the closest trap since it is also parallelization, but sectioning would give each prompt a different subtask. Orchestrator-workers (B) decides subtasks dynamically, and chaining (C) runs calls in sequence rather than independently.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -870,6 +889,7 @@
     ],
     "answer": "b",
     "takeaway": "Can't predict the subtasks? An **orchestrator** decides them per input; parallelization needs them defined in advance.",
+    "explanation": "The deciding detail is that the number of files and the change in each **depend on the request**, so subtasks can't be listed in advance. Orchestrator-workers handles that: a central LLM breaks the task down per input, delegates to workers and synthesizes results (Option B). Option A is the tempting look-alike, but sectioning requires predefined subtasks. Routing (C) sends an input to one follow-up path rather than splitting it, and chaining (D) needs a task that decomposes cleanly into fixed steps.",
     "difficulty": "hard",
     "diagram": {
       "kind": "flow",
@@ -927,6 +947,7 @@
     ],
     "answer": "c",
     "takeaway": "Clear criteria plus feedback that measurably improves drafts → an **evaluator-optimizer** loop.",
+    "explanation": "An evaluator-optimizer loop fits when there are **clear evaluation criteria** and feedback **measurably improves** the output: one call drafts, another critiques, and the draft is revised in a loop. The stem gives both conditions (a second model critiques reliably, and revisions measurably help), so Option C fits. Option D is the tempting trap since a translate-then-format pipeline sounds natural, but chaining runs each step once with no feedback loop. Routing (A) and sectioning (B) also lack any iterative refinement.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -968,6 +989,7 @@
     ],
     "answer": "a",
     "takeaway": "Start with **direct API calls**; frameworks help you start fast, but know what is under the hood and trim layers for production.",
+    "explanation": "The advice is to **start with LLM APIs directly**, since many patterns take a few lines of code, and if you do use a framework, understand what's under the hood, because wrong assumptions about it are a common source of customer error (Option A). The stem's goal of never looking at prompts or responses is exactly the risk, which makes Option B the trap: hidden prompts are harder to debug. Option C overcorrects (frameworks do help you start), and D is backwards, since production calls for fewer abstraction layers.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1009,6 +1031,7 @@
     ],
     "answer": "d",
     "takeaway": "For a fixed, locked-down tool surface, pair `allowedTools` with **`dontAsk`**: anything that would prompt is denied instead.",
+    "explanation": "The stem wants two things: listed read tools approved without prompts, and **every other call that would prompt denied outright**, without depending on a missing `canUseTool`. `allowedTools` plus `permissionMode: \"dontAsk\"` does exactly that (Option D). Option C is the tempting trap, since leaving `default` looks restrictive, but unlisted calls then fall through to `canUseTool` instead of a hard deny. Option A lets `bypassPermissions` approve everything unlisted, and B's `acceptEdits` widens the surface with file edits and commands.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
@@ -1050,6 +1073,7 @@
     ],
     "answer": "c",
     "takeaway": "Start restrictive and loosen as trust builds: **`set_permission_mode()`** changes the mode mid-session for every later tool request.",
+    "explanation": "Permission modes can change **during a streaming session**, and the new mode applies immediately to every later tool request. So once the user approves the approach, calling `set_permission_mode(\"acceptEdits\")` on the client loosens edits for the rest of the session (Option C). Option A is the tempting trap, but restarting is unnecessary and throws away the session. Option B would remove Edit and Write from the request entirely, and D is the opposite of the goal, since plan mode never auto-approves edits.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
@@ -1091,6 +1115,7 @@
     ],
     "answer": "b",
     "takeaway": "A subagent's own `permissionMode` applies only under a `default`, `dontAsk` or `plan` parent; under **`bypassPermissions`** it inherits full access.",
+    "explanation": "A subagent's own `permissionMode` counts **only when the parent is in `default`, `dontAsk` or `plan`**; otherwise it runs in the parent's mode. The key detail is the parent's `bypassPermissions`, so the reviewer inherits it and gets full system access despite its `default` setting (Option B). Option A is the trap, assuming the subagent's definition always wins. Option C invents a switch to `dontAsk`, and D invents a default plan mode for review subagents; neither exists.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
@@ -1132,6 +1157,7 @@
     ],
     "answer": "b",
     "takeaway": "Many sessions in one place → store each **`session_id`** and pass it to `resume`; `continue` only finds the most recent one.",
+    "explanation": "When many sessions live in one working directory, you need to name the exact one: store each customer's `session_id` from the result message and pass it to `resume` (Option B). Option A is the tempting shortcut, but `continue` resumes the **most recent** session in the directory, which may belong to another customer; it suits one conversation at a time. Option C keeps the session only in memory for the call, so nothing survives to the next day, and D creates a new forked session, leaving the original conversation untouched.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
@@ -1173,6 +1199,7 @@
     ],
     "answer": "d",
     "takeaway": "Sessions and forks branch the **conversation**, not the files; use file checkpointing to snapshot and revert file changes.",
+    "explanation": "Sessions and forks branch the **conversation**, not the files. The forked agent's edits to `auth.ts` were real and landed in the shared directory, so any session there sees them; file checkpointing is the tool for snapshotting and reverting (Option D). Option A is the tempting explanation, but a fork gets its own session ID and the histories stayed separate. Option B is wrong because resuming continues the original's own history, and C fails because sessions persist the conversation and restore no files.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
@@ -1214,6 +1241,7 @@
     ],
     "answer": "a",
     "takeaway": "With no `system_prompt`, the SDK uses a **minimal** prompt; set the `claude_code` preset to match `claude -p`.",
+    "explanation": "With `system_prompt` unset, the SDK uses a **minimal** default prompt, not the Claude Code prompt that `claude -p` uses, so the preset's security and safety instructions are missing. Setting the `claude_code` preset restores the CLI's behavior (Option A). Option B is the tempting trap, but default `query()` options already load CLAUDE.md, and it is injected into the conversation rather than replacing the system prompt. Option C wrongly assumes the SDK always uses the CLI prompt, and D misuses `append`, which only adds text after the preset.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
@@ -1255,6 +1283,7 @@
     ],
     "answer": "c",
     "takeaway": "Want Claude Code's behavior plus your rules? Use the **`claude_code` preset with `append`**: nothing is removed.",
+    "explanation": "The goal is **everything** Claude Code's prompt provides **plus** your standards, so the safest move is the one that removes nothing: the `claude_code` preset with your standards in `append` (Option C). Option A is the tempting trap, because a custom `systemPrompt` sends only what you write, leaving you responsible for replacing tool guidance and safety instructions. Option B's minimal default also omits the preset's safety instructions, and D's output style drops the software engineering instructions unless `keep-coding-instructions: true` is set.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
@@ -1296,6 +1325,7 @@
     ],
     "answer": "a",
     "takeaway": "A session reuses its recorded system prompt until compaction; send mid-session changes **in the conversation** (next message or hook `additionalContext`).",
+    "explanation": "A session reuses the system prompt **recorded on its first request** until compaction, so a new `append` on resume is never seen. Mid-session changes must travel **in the conversation**: your next user message, or `additionalContext` from a hook such as `UserPromptSubmit` (Option A). Option B is the tempting retry, but repeating `append` hits the same recorded prompt. Option D fails because custom strings are recorded too, and C is discouraged in production because turning recording off stops the changed prompt from reusing the prompt cache.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
@@ -1337,6 +1367,7 @@
     ],
     "answer": "d",
     "takeaway": "CLAUDE.md and `.claude/rules/` load through **`settingSources`**; `[]` turns off user, project and local settings, including them.",
+    "explanation": "CLAUDE.md and `.claude/rules/*.md` load through **setting sources**, and `settingSources: []` turns off user, project and local settings, which is why the conventions vanished. Adding back only the `project` source restores the shared CLAUDE.md while still keeping host settings out (Option D). Option B is the closest trap, but `local` loads `CLAUDE.local.md` and `settings.local.json`, not the project's shared file. Option A only picks enabled skills, and C's auto memory is a separate input, not where the project CLAUDE.md comes from.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
@@ -1387,6 +1418,7 @@
       "c"
     ],
     "takeaway": "Defaults are not tenant isolation: give each tenant **its own filesystem**, and set `settingSources: []` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`.",
+    "explanation": "Defaults do not isolate tenants, because some inputs are read regardless of `settingSources`. So the docs recommend **its own filesystem** per tenant (B), since an SDK process can otherwise pick up per-directory memory, plus `settingSources: []` with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` (C) to turn off settings and the auto memory that settings sources don't control. Option E is the most tempting wrong pick: `~/.claude.json` is always read and can only be relocated with `CLAUDE_CONFIG_DIR`. Option D does not suppress claude.ai connectors, and A relies on defaults.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
@@ -1428,6 +1460,7 @@
     ],
     "answer": "b",
     "takeaway": "Hook matchers test the **tool name**; filter on paths or other arguments inside the callback via `tool_input`.",
+    "explanation": "Tool-based hook matchers are tested against the **tool name** only, never file paths or other arguments, so `\"\\.env$\"` matches nothing. Match `Write|Edit` and check `tool_input.file_path` inside the callback (Option B). Option A is the tempting fix, but `PostToolUse` matches tool names too, and it runs after the write already happened. Option C has it backwards (no matcher means the hook runs for every event of that type), and D's async output cannot block anything because the agent has already moved on.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
@@ -1469,6 +1502,7 @@
     ],
     "answer": "c",
     "takeaway": "To change what a tool does, return **`updatedInput`** inside `hookSpecificOutput`, with `allow` to auto-approve it; `defer` drops it.",
+    "explanation": "To **rewrite** a tool call rather than block it, return `updatedInput` inside `hookSpecificOutput`, and pair it with `permissionDecision: \"allow\"` so the rewritten write is auto-approved (Option C). Option A is the subtle trap: the right field in the wrong place, since a top-level `updatedInput` is not applied. Option D fails because with `defer` the `updatedInput` is ignored and the turn ends with `stop_reason` `\"tool_deferred\"`. Option B's `systemMessage` only shows the user a message and changes nothing about the call.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
@@ -1510,6 +1544,7 @@
     ],
     "answer": "c",
     "takeaway": "`pause_turn` means the server-side loop hit its iteration cap: **re-send** the conversation, paused response included, to continue.",
+    "explanation": "`pause_turn` means the server-side loop for server-executed tools hit its **iteration cap** while the model was still working, so the turn is not finished. Re-send the conversation **including the paused response** and the model continues where it left off (Option C). Option D is the tempting trap: it treats the pause as an output-length problem and drops the paused response, losing progress. Option A returns an unfinished answer, and B is wrong because Anthropic runs server-executed tools, so you never build `tool_result` blocks for them.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -1570,6 +1605,7 @@
     ],
     "answer": "b",
     "takeaway": "Messages API = **custom loops and fine-grained control**; Managed Agents = pre-built harness for long-running, asynchronous work.",
+    "explanation": "The stem's need is **fine-grained control** over each step, when tools run and how results feed back, with a team willing to build the loop itself. The docs match that to the Messages API with your own agent loop (Option B). Option C is the tempting trap because self-hosting sounds like more control, but it only changes where sessions run; the pre-built harness still drives the loop. Option A is that same pre-built harness for long-running, asynchronous work, and D only schedules recurring runs on cron.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
@@ -1619,6 +1655,7 @@
       "e"
     ],
     "takeaway": "Self-hosted sandboxes move **tool execution** to your worker; orchestration and the model stay on Anthropic's side, and tool I/O still flows there.",
+    "explanation": "A self-hosted sandbox moves **tool execution** into the bank's network, nothing more. Claude requests tool calls, the worker runs each one locally and posts the result back (A), and those tool inputs and outputs still flow to Anthropic's control plane so the model can decide its next step (E). Option B is the most tempting wrong pick: Claude itself still runs on Anthropic's side. Option C misplaces the model setting (it lives on the agent), and D is wrong because the worker claims work from a queue with only outbound HTTPS.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -1677,6 +1714,7 @@
     ],
     "answer": "d",
     "takeaway": "Managed Agents sessions are steerable: send **more user events** mid-execution, or interrupt to change direction.",
+    "explanation": "Managed Agents sessions are **steerable while running**: you can send additional user events to guide the agent mid-execution, or interrupt it to change direction (Option D). Option C is the tempting trap, since event history is persisted and fetchable in full, but you steer by sending new events, not by rewriting old turns. Option A wastes the run by waiting when the workflow lets you intervene now, and B confuses roles: an environment configures where sessions run and carries no task instructions.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
@@ -1718,6 +1756,7 @@
     ],
     "answer": "c",
     "takeaway": "Session overrides **replace** a field in full and never merge; list every tool the session should have.",
+    "explanation": "Session overrides **replace** a field in full and never merge, so a `tools` override listing only the new tool leaves the session with only that tool (Option C). The fix is to list every tool the session needs. Option D is the tempting explanation, but `tools`, `mcp_servers` and `skills` can be overridden alongside `model` and `system`, so the override was applied, not discarded. Options A and B misread the scope: overrides create no new agent version and affect only the session you create.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/sessions",
@@ -1759,6 +1798,7 @@
     ],
     "answer": "a",
     "takeaway": "Outside Python and TypeScript, run the CLI as a subprocess: **`claude -p`** with `--output-format json`.",
+    "explanation": "The constraints are a Go codebase, Claude Code's **own agent loop and built-in tools**, and a machine you operate, while the SDK packages are Python and TypeScript only. The documented route is running the CLI as a subprocess with `-p` and `--output-format json` (Option A). Option B is the tempting trap, but the Client SDK gives raw API access without Claude Code's tools. Option C is the interactive CLI built for daily use, not scripted control, and D is a hosted harness Anthropic runs, not your process.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/overview",
@@ -1801,6 +1841,7 @@
     ],
     "answer": "d",
     "takeaway": "Products built on the Agent SDK authenticate with **API keys**; claude.ai login needs prior approval from Anthropic.",
+    "explanation": "The rule: unless **previously approved** by Anthropic, third-party products, including Agent SDK agents, may not offer claude.ai login or claude.ai rate limits, so use API key authentication (Option D). Option A is the tempting rationale, since the SDK runs the Claude Code binary, but that does not grant third parties the login. Option C is the same restriction applied to rate limits, and B adds a branding problem: \"Claude Code\" and \"Claude Code Agent\" are not permitted product names.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/overview",
@@ -1842,6 +1883,7 @@
     ],
     "answer": "b",
     "takeaway": "Can't predict the steps or hardcode the path? That's the case for an **agent**: an LLM using tools in a loop on environmental feedback.",
+    "explanation": "Agents fit **open-ended** problems where you can't predict the number of steps or hardcode a fixed path; the LLM uses tools in a loop guided by environmental feedback (Option B). The stem's key detail is the **unknown number of files** and unpredictable steps. Option D is the tempting trap, since one optimized call is often enough for many applications, but not when the LLM may need to work for many turns. Chaining (A) needs fixed subtasks, and routing (C) sends each input to one follow-up task.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1883,6 +1925,7 @@
     ],
     "answer": "d",
     "takeaway": "Autonomy brings **higher costs and compounding errors**: test agents extensively in sandboxes and add guardrails.",
+    "explanation": "Autonomy brings **higher costs and the potential for compounding errors**, so the post recommends extensive testing in **sandboxed environments** with appropriate guardrails before production (Option D). Option B is the tempting misreading of autonomy, but pausing for human feedback at checkpoints or blockers is part of agent design. Option A removes the stopping conditions that keep control of the loop, and C adds abstraction layers that obscure prompts and responses, when the post suggests reducing layers for production.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1933,6 +1976,7 @@
       "d"
     ],
     "takeaway": "Agents shine where results are **verifiable and measurable**, like code with tests, but human review still matters.",
+    "explanation": "The post says coding suits agents because results are **verifiable**: solutions can be checked with automated tests (A), which also gives agents feedback to iterate on, and output quality can be **measured objectively** (D). Option B is the most tempting wrong pick, but the post says human review remains crucial to align solutions with broader system requirements. Option C describes a workflow, since a hardcodable path doesn't need an agent, and E is backwards because agentic systems often trade cost and latency for performance.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -1974,6 +2018,7 @@
     ],
     "answer": "a",
     "takeaway": "Guardrails work better as a **separate parallel call** (sectioning) than folded into the call that writes the answer.",
+    "explanation": "The symptom is one call doing two jobs badly. Sectioning splits independent subtasks across parallel calls, and the post's guardrail example has **one instance answer while another screens**, which tends to beat one call handling both (Option A). Option C is the tempting trap since critique sounds like screening, but evaluator-optimizer refines answers against criteria in a loop; it is not the post's guardrail pattern. Voting (B) repeats the same task, and routing (D) sends inputs by category without adding a screen on every query.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -2015,6 +2060,7 @@
     ],
     "answer": "c",
     "takeaway": "**Routing** can send easy, common inputs to smaller, cost-efficient models and keep capable models for hard ones.",
+    "explanation": "Routing classifies each input and sends it down a specialized path, and the post's example uses it to send **easy, common** questions to smaller, cost-efficient models and **hard, unusual** ones to more capable models (Option C). That matches a mostly-easy traffic mix where the big model is too expensive. Option A is tempting because it involves several models, but voting multiplies calls per question for confidence, not savings. Chaining (B) adds calls per question, and orchestrator-workers (D) is for unpredictable subtasks.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -2056,6 +2102,7 @@
     ],
     "answer": "b",
     "takeaway": "Prompt chaining **trades latency for accuracy**: more sequential calls, each one an easier task.",
+    "explanation": "Prompt chaining deliberately **trades latency for accuracy**: more sequential calls, each one an easier task (Option B). That fits the stem, where splitting write and translate improved quality. Option A is the tempting trap, assuming less context per call means less precision, but the post says chaining is done to gain accuracy. Option C describes an agent, since a chain runs predefined code paths, and D is backwards: predictability and consistency on well-defined tasks are a workflow's strength.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -2097,6 +2144,7 @@
     ],
     "answer": "d",
     "takeaway": "Agents misjudge effort, so give the lead agent **explicit scaling rules** to prevent overinvestment in simple queries.",
+    "explanation": "The root cause is that agents **struggle to judge appropriate effort** per query, so Anthropic embedded **explicit scaling rules** in the prompt tying subagent count to complexity: simple fact-finding gets 1 agent with 3-10 tool calls, comparisons 2-4 subagents, complex research more than 10 (Option D). Option A is the tempting blunt fix, but a cap of one throws away the parallel breadth complex research needs. Option B shifts allocation away from the lead agent, and C changes the model while the misjudged effort remains.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2138,6 +2186,7 @@
     ],
     "answer": "a",
     "takeaway": "**Synchronous** subagents are simpler to coordinate but bottleneck; async adds parallelism at the cost of coordination complexity.",
+    "explanation": "Anthropic chose **synchronous** subagents because it simplifies coordination, accepting that a slow subagent can block the run and the lead can't steer mid-task. Async would add parallelism but bring challenges in result coordination, state consistency and error propagation (Option A). Option B is the tempting trap, treating async as a free win and sync as a mistake. Option C is false because in the synchronous design subagents can't coordinate with each other, and D misattributes duplicated searches, which came from vague task descriptions.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2179,6 +2228,7 @@
     ],
     "answer": "c",
     "takeaway": "Let subagents **write outputs to a filesystem** and return references, avoiding a lossy game of telephone through the coordinator.",
+    "explanation": "Copying every long output through the coordinator is a lossy **game of telephone** that also burns tokens. The post's pattern is for subagents to save work to external systems such as files and return **lightweight references** (Option C). Option D is the tempting fix since it seems to stop the truncation, but relaying complete outputs through conversation history is exactly the token overhead the pattern avoids. Option A is the telephone game itself, and B gives up separate context windows, a core benefit of multi-agent.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2220,6 +2270,7 @@
     ],
     "answer": "b",
     "takeaway": "Multi-agent systems work mainly by **spending more tokens** in parallel, separate context windows; token usage explained 80% of variance.",
+    "explanation": "Anthropic's BrowseComp analysis found **token usage alone explained 80% of the performance variance**: multi-agent systems work mainly because they spend enough tokens on the problem, spread across separate context windows that add capacity for parallel reasoning (Option B). Option A is the colleague's tempting theory, and model choice was a factor, but token usage explained far more. Option C credits fewer tool calls, which the analysis doesn't, and D is wrong because each subagent works in its own context window.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2270,6 +2321,7 @@
       "c"
     ],
     "takeaway": "Evaluate state-changing agents by **end state** and a few **checkpoints**, not by whether they followed one prescribed path.",
+    "explanation": "When an agent mutates state and runs take **different valid paths** to the same result, judge outcomes, not routes. Check whether it reached the correct **final state** (A), and for complex workflows break evaluation into discrete **checkpoints** where key state changes should occur (C). Option B is the most tempting wrong pick, but prescribing one path would fail correct runs. Option D delays evals when about 20 queries were enough to see early impact, and E drops human testing that still finds edge cases evals miss.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2311,6 +2363,7 @@
     ],
     "answer": "c",
     "takeaway": "Agents are **stateful and errors compound**: resume from the failure point, and pair model adaptability with retries and checkpoints.",
+    "explanation": "Agents are **stateful and errors compound**, so restarting a long run from the beginning is expensive and frustrating. Anthropic resumes from where the error occurred, backed by retry logic and regular checkpoints (Option C). Option A is the tempting brute-force fix, but it is exactly the restart-from-scratch problem in the stem. Option B is backwards, since letting the agent know a tool is failing so it can adapt works surprisingly well, and D cuts short research agents that genuinely need many turns.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2352,6 +2405,7 @@
     ],
     "answer": "a",
     "takeaway": "Running agents can be mid-task at any moment, so use **rainbow deployments** that keep old and new versions running side by side.",
+    "explanation": "The key detail is that in-flight agents are **mid-task**, and they might be anywhere in their process, so you can't switch every agent to the new version at once without risking breaking them. Rainbow deployments shift traffic gradually while old and new versions keep running side by side (Option A). Option D is the tempting workaround, but agent systems run almost continuously, so there is no reliable idle window. Option B is the hard cutover that breaks agents, and C restarts tasks from scratch, which is costly.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
@@ -2393,6 +2447,7 @@
     ],
     "answer": "d",
     "takeaway": "Sub-agents keep **detailed search context isolated** and hand the lead agent a condensed summary of their work.",
+    "explanation": "Sub-agents protect the lead's context by doing focused exploration in **clean, separate windows** and returning only a **condensed, distilled summary**; a sub-agent may use tens of thousands of tokens but hand back often 1,000-2,000 (Option D). Option B is the tempting reversal, since full transcripts would dump the raw results right back into the main context. Option A is wrong because sub-agents don't share the lead's context, and C is wrong because they don't enlarge any window; they move the work elsewhere.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
@@ -2434,6 +2489,7 @@
     ],
     "answer": "b",
     "takeaway": "Subagents suit **self-contained work that returns a summary**; iterative, context-sharing work belongs in the main conversation.",
+    "explanation": "The docs say subagents suit **self-contained** work that returns a summary, while frequent back-and-forth and phases that **share significant context** belong in the main conversation (Option B). The stem's clues are shifting requirements and planning, implementing and testing the same feature. Option A is the tempting trap: a clean window sounds good, but a non-fork subagent starts fresh and would lose the shared context. Option D gets latency backwards for the same reason, and C is wrong because Skills run in the main conversation context.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
@@ -2476,6 +2532,7 @@
     ],
     "answer": "c",
     "takeaway": "Nesting is on by default (up to three layers); stop **one** subagent from delegating by removing the **Agent** tool from it.",
+    "explanation": "Nesting must stay on for the reviewer, so you need a **per-subagent** control. Removing the Agent tool from the verifier, by omitting it from its tools list or adding it to `disallowedTools`, stops just that subagent from spawning (Option C). Option A is the tempting global switch, but a value of 1 turns nesting off entirely, so the reviewer couldn't dispatch verifiers either. Option B is false (subagents can nest up to three layers by default), and D's prompt instruction isn't the documented control.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
@@ -2517,6 +2574,7 @@
     ],
     "answer": "a",
     "takeaway": "Strands is built on a **model-driven agent loop**: reason, select a tool, run it, feed the result back, until a final response.",
+    "explanation": "Strands is built on a **model-driven agent loop**: invoke the model, execute any tools it requests, feed the results back, and repeat until the model produces a final response (Option A). The key idea is that the model decides at each step whether to act or answer. Option C is the tempting trap because it sounds agentic, but it fixes the whole plan up front instead of deciding per iteration. Option B describes a predefined workflow, and D stops after one tool's raw output rather than looping.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -2576,6 +2634,7 @@
     ],
     "answer": "c",
     "takeaway": "In the Strands loop a failing tool becomes an **error result** for the model, not a crash, so the agent can recover.",
+    "explanation": "In the Strands loop, the execution system captures a tool failure and sends it back to the model as an **error result**, rather than throwing an exception that terminates the loop, so the model can recover or try alternatives (Option C). Option A is the tempting assumption from ordinary code, where an uncaught exception ends execution. Option B is wrong because nothing is dropped silently; the error information reaches the model. Option D confuses failures with interrupts, which are the mechanism for pausing for human input.",
     "difficulty": "medium",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/",
@@ -2617,6 +2676,7 @@
     ],
     "answer": "b",
     "takeaway": "Strands **limit** stops are graceful (history stays valid); a **max_tokens** truncation cannot be continued within the loop.",
+    "explanation": "Strands separates **graceful budget exhaustion** from truncation. `limit_turns` means the per-invocation turn budget ran out with valid history, so you can reinvoke with a higher budget; `max_tokens` means the response was truncated at the token limit and cannot be continued in the loop (Option B). Option A is the tempting overreaction, treating both as unrecoverable. Option C swaps the meanings of the two reasons, and D confuses `limit_turns` with `guardrail_intervened`, the guardrail stop.",
     "difficulty": "hard",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/",
@@ -2667,6 +2727,7 @@
       "d"
     ],
     "takeaway": "Context fills because **every loop iteration adds history**: trim tool output, manage the conversation, and split big tasks.",
+    "explanation": "Every loop iteration **adds results to the history**, so long tool-heavy runs exhaust the window. The listed fixes include making tools return **summaries or relevant excerpts** (A) and **decomposing large tasks** so each subtask gets a fresh context (D). Option E is the most tempting wrong pick since keeping details sounds safe, but accumulating every result is the cause. Option C disables the conversation manager the docs suggest configuring, and B goes the wrong way, since deeply nested schemas consume tokens.",
     "difficulty": "medium",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/",
@@ -2708,6 +2769,7 @@
     ],
     "answer": "d",
     "takeaway": "Strands: **Workflow** = fixed DAG, **Graph** = defined flowchart with LLM-chosen branches, **Swarm** = emergent handoffs between agents.",
+    "explanation": "The deciding detail is that the handoff path **emerges from each agent's findings**, with each agent passing control to a suitable peer. That is a **Swarm**, and the Strands docs use multidisciplinary incident response as its example (Option D). Option B is the tempting look-alike, since a Graph supports conditional branching, but its path still follows edges you define. A Workflow (A) fixes the path in a DAG with no cycles, and agents as tools (C) keeps one orchestrator in charge.",
     "difficulty": "medium",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/",
@@ -2749,6 +2811,7 @@
     ],
     "answer": "b",
     "takeaway": "In Strands the simplest multi-agent setup is **agents as tools**: pass a specialist agent in an orchestrator's tools.",
+    "explanation": "The simplest composition in Strands is **agents as tools**: pass the specialist agent in the orchestrator's tools list, and the orchestrator reads its description and calls it only when a query fits, like any tool (Option B). Option A is the tempting trap because it works, but Graph is meant for structured orchestration with branches and loops, which is more than needed here. Option C calls the specialist on every query, ignoring the \"only when\" requirement, and D's A2A protocol is for agents running as separate services.",
     "difficulty": "easy",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/",
@@ -2790,6 +2853,7 @@
     ],
     "answer": "a",
     "takeaway": "A small, single-provider, short-run agent is fine on a **hand-written loop**; adopt a framework when you need several of its jobs at once.",
+    "explanation": "Strands' guide says a **hand-written loop** is the better call when most of these hold: one provider, few tools, short runs, minimal dependencies. The stem ticks every box, including dependencies being a real cost, so a framework's features would go unused (Option A). Option C is the tempting future-proofing move, but with a single agent there is nothing to orchestrate; add jobs as you need them. Option B is false since almost every agent starts as a while loop, and D is wrong because Strands runs in your process with no hosted control plane.",
     "difficulty": "medium",
     "source": {
       "url": "https://strandsagents.com/docs/user-guide/migrate/choosing-an-agent-foundation/",
@@ -2831,6 +2895,7 @@
     ],
     "answer": "c",
     "takeaway": "LangGraph = **state** (shared snapshot) + **nodes** (do the work) + **edges** (decide what runs next).",
+    "explanation": "LangGraph has three roles: **state** is the shared snapshot, **nodes** encode logic and return updates (they do the work), and **edges** choose which node runs next (Option C). Option A is the tempting trap because it uses the right words with the roles scrambled. Option B narrows nodes to tools and edges to tool calls, when both are just functions that can contain an LLM or plain code. Option D is wrong on all counts: nodes need not call an LLM, and edges can be conditional branches as well as fixed transitions.",
     "difficulty": "easy",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
@@ -2880,6 +2945,7 @@
       "d"
     ],
     "takeaway": "LangGraph **interrupts** need a checkpointer and a thread_id: the state is saved, then resumed with a `Command`.",
+    "explanation": "`interrupt()` pauses by saving graph state through the persistence layer, so you need a **checkpointer** to hold the paused state (B), and a **thread ID** in the config that tells the checkpointer which saved state to load when you resume (D). Option C is the most tempting wrong pick, but interrupts are dynamic and can sit anywhere in node code, unlike static breakpoints. Option A is unnecessary since you resume the same graph with a `Command`, and E is wrong because the interrupt value must be JSON-serializable.",
     "difficulty": "medium",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/interrupts",
@@ -2921,6 +2987,7 @@
     ],
     "answer": "d",
     "takeaway": "LangGraph **checkpointers** = short-term, per-thread state; **stores** = long-term memory shared across threads.",
+    "explanation": "The key word is **across** threads. Checkpointers persist one thread's graph state, which is short-term, thread-scoped memory; a **store** keeps long-term, cross-thread data such as user preferences outside the graph state (Option D). Option A is the tempting trap, since a checkpointer does persist state, just not beyond its thread. Option B stores the preference in graph state, which is still persisted per thread, and C keeps checkpoints in RAM, losing them on restart while still being thread-scoped.",
     "difficulty": "easy",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/persistence",
@@ -2962,6 +3029,7 @@
     ],
     "answer": "a",
     "takeaway": "Each LangGraph state key has a **reducer**; with none, the latest update **overwrites**. Use one like `operator.add` to accumulate.",
+    "explanation": "Each LangGraph state key has a **reducer** that decides how updates combine, and with no reducer the latest update **overwrites** the key. So B's `[\"review\"]` replaced A's entry; annotating the key with a reducer like `operator.add` accumulates the lists (Option A). Option B is the tempting workaround, but nodes return partial updates and needn't return the whole state. Option C confuses persistence with merging, and D blames the schema type, when the reducer, not TypedDict versus Pydantic, decides how updates apply.",
     "difficulty": "hard",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
@@ -3003,6 +3071,7 @@
     ],
     "answer": "c",
     "takeaway": "In PydanticAI, set **output_type** to a Pydantic model: the run returns validated, typed data instead of free text.",
+    "explanation": "Setting the agent's `output_type` to the `Invoice` Pydantic model makes PydanticAI build the JSON schema, validate the returned data, and type `result.output` as `Invoice` (Option C). The stem's need is typed, validated data from **every run**, not text to parse. Option B is the tempting trap, but a function tool is an optional call whose result goes back to the model, while an output type is what the run must end with. Options A and D are hand-rolled parsing that leave validation to you.",
     "difficulty": "easy",
     "source": {
       "url": "https://pydantic.dev/docs/ai/core-concepts/output/",
@@ -3044,6 +3113,7 @@
     ],
     "answer": "b",
     "takeaway": "PydanticAI passes services to instructions and tools as **typed dependencies** (`RunContext`), which tests can override.",
+    "explanation": "PydanticAI has a type-safe **dependency injection** system: declare services with `deps_type`, read them in tools from `ctx.deps` via `RunContext`, and override the agent's dependencies in tests (Option B). That swaps the fake client without changing the tools. Option A is the tempting habit from ordinary Python, but monkeypatching module globals isn't PydanticAI's approach. Option C misuses output validators, which check output and can raise `ModelRetry`, and D changes the output type without touching the dependencies.",
     "difficulty": "medium",
     "source": {
       "url": "https://pydantic.dev/docs/ai/core-concepts/dependencies/",
@@ -3085,6 +3155,7 @@
     ],
     "answer": "d",
     "takeaway": "For checks that need I/O, use **@agent.output_validator** and raise **ModelRetry**; the output retry budget defaults to 1.",
+    "explanation": "Output validators exist for validation that needs **async I/O**, and raising `ModelRetry` inside one asks the model to fix its output in the same run; each retry uses one unit of the output retry budget, which defaults to 1 (Option D). Option B is the tempting trap, but a tool only runs if the model chooses to call it, whereas a validator always checks the output. Option A's regex schema can't run the live database check, and C reruns the whole agent when a retry is enough.",
     "difficulty": "hard",
     "source": {
       "url": "https://pydantic.dev/docs/ai/core-concepts/output/",
@@ -3126,6 +3197,7 @@
     ],
     "answer": "a",
     "takeaway": "The memory tool runs **client-side**, so your handler must **validate every path** and keep every operation inside `/memories`.",
+    "explanation": "The memory tool is **client-side**: Claude only requests operations and your application executes them, so security is your handler's job. The docs require validating every path in every command, resolving it to canonical form, and rejecting traversal like `../` that escapes `/memories` (Option A). Option B is the tempting assumption that the API filters paths first, but it doesn't. Option C confuses Claude usually refusing to write sensitive data with path protection, and D would expose files outside the memory directory.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
@@ -3175,6 +3247,7 @@
       "e"
     ],
     "takeaway": "For long-running work, an **initializer** sets up progress and feature files, and **memory plus compaction** keeps what must survive.",
+    "explanation": "For multi-session work, set memory up **deliberately**: an initializer session creates a progress log and feature checklist before substantive work (E), and pairing memory with **compaction** keeps the active context small while memory preserves what must survive summarization (C). Option A is the most tempting wrong pick, since writing notes as you go sounds helpful, but the docs say not to write them ad hoc. Option B marks features done before end-to-end verification, and D skips reading memory at startup and re-explores the code.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
@@ -3218,6 +3291,7 @@
     ],
     "answer": "b",
     "takeaway": "Decouple the **brain** (harness) from the **hands** (sandbox) and keep a durable **session log**, so any piece can fail and be replaced.",
+    "explanation": "The problem is a coupled **pet** container: lose it and you lose the session. Anthropic decoupled the harness, sandbox and session log so each can fail independently; the harness calls the sandbox as a tool and the log lives outside it, so a new harness can resume from the last event (Option B). Option A is the tempting quick fix, but a bigger container is still a pet you can't afford to lose. Option C is the original coupled design, and D is wrong because the session is a durable log, not Claude's context window.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/managed-agents",
@@ -3259,6 +3333,7 @@
     ],
     "answer": "c",
     "takeaway": "Harness workarounds **go stale** as models improve; question them regularly and build on interfaces that outlast them.",
+    "explanation": "Harnesses **encode assumptions** about what Claude can't do, and those go stale as models improve; the context-reset fix for Sonnet 4.5's early wrap-up became dead weight on Opus 4.5 (Option C). Option A is the tempting safety instinct, but the post found the resets had no remaining value once the behavior was gone. Option B freezes the model instead of building on interfaces meant to outlast any particular harness, and D draws a multi-agent conclusion the post never makes.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/managed-agents",

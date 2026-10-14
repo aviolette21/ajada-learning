@@ -29,6 +29,7 @@
     ],
     "answer": "b",
     "takeaway": "Treat third-party content as **data**: deliver it in `tool_result` blocks, label its source, say it's untrusted, and apply least privilege.",
+    "explanation": "The rule being tested is that third-party content is **data, not orders**. Emails from unknown senders are untrusted, so deliver them in `tool_result` blocks, where Claude treats embedded instructions with skepticism, and state in the system prompt that such content never overrides it. Option A is the trap: putting the email in `system` gives the attacker's text the most authority. Option C mixes your instructions into untrusted data, and D breaks least privilege, so a successful injection could do real damage.",
     "mnemonic": "Their text is data, not orders.",
     "difficulty": "medium",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "c",
     "takeaway": "When the **user** is the adversary, defend the input side: screens, validation, refusal prompts and action on repeat offenders.",
+    "explanation": "First work out who the adversary is. The stem says **no third-party content is involved**: your own user keeps rewording prompts to get around your policy, which is a jailbreak or direct injection. For repeat offenders the guide says to adjust responses and consider throttling or banning, which is Option C. Options A and B are the trap because they are defenses against indirect injection in third-party strings, not against the user. D screens tool outputs, but this attack arrives in the user's own messages.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -113,6 +115,7 @@
     ],
     "answer": "d",
     "takeaway": "Catch leaks with **output screening and post-processing** first; add leak-resistant prompting only when absolutely necessary, and test it.",
+    "explanation": "Anthropic's prompt-leak guide says to try **monitoring first**, such as screening and post-processing outputs for terms from the hidden content, which is Option D. The tempting choice is B, because more safeguards sound safer, but the guide warns that leak-proofing adds complexity that may degrade performance elsewhere, so use it only when absolutely necessary. C is wrong because prompt leaks can expose hidden content and no method is foolproof. A fails on Claude Opus 5.5 because prefilling isn't supported on Claude 4.6 and later models.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
@@ -154,6 +157,7 @@
     ],
     "answer": "a",
     "takeaway": "Screen tool outputs like user input: only content the classifier clears goes back raw; otherwise return an error or a summary.",
+    "explanation": "A tool-output screen works like an input screen: only content the classifier clears goes back to Claude raw. When it reports `injection_suspected: true`, the guide says to return an error or a stripped summary as the `tool_result` and consider telling the user, which is Option A. Option B is the tempting trap: Claude's skepticism toward tool results is one layer, but ignoring the screen's verdict defeats its purpose. C puts third-party content in `system`, which you should never do, and D asks the classifier something the screen isn't designed to answer.",
     "difficulty": "hard",
     "diagram": {
       "kind": "flow",
@@ -214,6 +218,7 @@
     ],
     "answer": "a",
     "takeaway": "First guardrail layer: a **lightweight model** classifies user input, via structured outputs, before your main model sees it.",
+    "explanation": "The stem asks for a **cheap first layer** that checks each user message before the main conversation sees it. That is a harmlessness screen: a lightweight model like Claude Haiku 5.5 pre-screens input, with structured outputs constraining the reply to a simple classification, which is Option A. D is the closest trap, but it uses a heavier model and free-text verdicts, the opposite of cheap and simple. B is a tool for third-party content, and C ignores that the guide's extra steps exist to strengthen guardrails beyond Claude's built-in resilience.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -271,6 +276,7 @@
     ],
     "answer": "b",
     "takeaway": "For auditable output, have Claude back **each claim with a quote** and retract what it can't support; still validate critical facts.",
+    "explanation": "The constraint to notice is that every claim must be **traceable to a brief**, with unsupported claims removed. Verifying with citations does exactly that: Claude finds a supporting quote for each claim and retracts any it can't support, making the output auditable (Option B). Best-of-N (A) is the tempting trap because it does help detect hallucinations, but comparing drafts never ties a claim to a source. C reviews reasoning rather than claims, and D only helps when information is missing.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
@@ -312,6 +318,7 @@
     ],
     "answer": "d",
     "takeaway": "Keep a persona steady with a **detailed role** in the system prompt plus **prepared scenarios** and expected responses.",
+    "explanation": "Anthropic's consistency guide says a persona stays steady when the system prompt gives a **detailed role** and **prepared scenarios** with expected replies. The clue here is the one-line role failing on unusual questions: more detail helps Claude generalize the character's traits, and prepared scenarios cover diverse situations, which is Option D. A is tempting but prefilling isn't supported on Claude 4.6 and later models. B only enforces JSON shape, and C points to chaining, which the guide suggests for complex tasks rather than for role-based apps.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/increase-consistency",
@@ -353,6 +360,7 @@
     ],
     "answer": "c",
     "takeaway": "A policy hook must **`exit 2`** (or return a JSON deny); without valid JSON, exit 1 is a non-blocking error for most events, so the action proceeds.",
+    "explanation": "Hook exit codes carry meaning. Without valid JSON on stdout, `exit 1` is a **non-blocking error** for most events, so the action proceeds and only an error notice appears, exactly the symptom in the stem. A hook meant to enforce policy must `exit 2` (or return a JSON deny), which is Option C. B is the tempting trap because the stream seems suspicious, but stderr is where a blocking hook's message comes from; the problem is the code. A is wrong because `PreToolUse` can block, and D because user, project and local hooks can block too.",
     "mnemonic": "One is a warning; two is a wall.",
     "difficulty": "medium",
     "diagram": {
@@ -420,6 +428,7 @@
     ],
     "answer": "a",
     "takeaway": "When something must **always** happen, use a hook, rather than relying on the LLM to choose to run it.",
+    "explanation": "The key phrase is formatting after **every** edit **without relying on Claude** to choose it. CLAUDE.md is a request; a hook is deterministic control, so the action always happens. `PostToolUse` with an `Edit|Write` matcher runs after the file-editing tools, which is Option A. B is the tempting trap because it uses the same matcher, but `PreToolUse` fires before the edit, so the file hasn't changed yet. C runs only at session start, and D adds model judgment to what is a fixed rule.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks-guide",
@@ -461,6 +470,7 @@
     ],
     "answer": "d",
     "takeaway": "`-p` and SDK runs skip the trust prompt, so vet or disable a foreign repo's hooks: they run with your full user permissions.",
+    "explanation": "The fact to notice is that `-p` and SDK sessions **never show the trust dialog** and treat the folder as trusted, so hooks committed in a foreign repo's `.claude/settings.json` do run. Command hooks run with your full user permissions, so you should vet the settings, start with `--bare`, or disable hooks, which is Option D. A is the tempting trap: in `-p` runs that dialog never appears. B is wrong because project settings are a hook location, and C because hooks aren't sandboxed.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -503,6 +513,7 @@
     ],
     "answer": "b",
     "takeaway": "Shared or automated workloads get their own identity: a **service account key** (or Workload Identity Federation), not a person's key.",
+    "explanation": "The rule is that **shared or automated workloads need their own identity**, not a person's. A personal key acts as one person and breaks when they leave, so the guide says to have an organization admin create a service account and use its key, which is Option B. C is tempting because a workspace key survives staff changes, but workspace keys are legacy and identity-backed keys or Workload Identity Federation are preferred. A and D still use personal keys, so changing expiration or rotating between people doesn't fix whose identity they carry.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -544,6 +555,7 @@
     ],
     "answer": "c",
     "takeaway": "Suspect a leak? **Disable** (reversible) or **Delete** (permanent) the key at once; expiration can't be edited after creation.",
+    "explanation": "Two constraints matter: the key must stop working **now**, and you must be able to **restore** it if it turns out to be safe. Disable is reversible: the status becomes `inactive`, and Re-enable returns it to `active`, which is Option C. Option A is the tempting trap because deleting is the standard leak response, but it is permanent and the key can't be brought back. B fails because expiration can't be changed after creation, and D ignores the guide's advice to act on any suspected leak.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -585,6 +597,7 @@
     ],
     "answer": "a",
     "takeaway": "Read rules gate Claude's tools and recognized commands; to block **every** process, including scripts, enable the **sandbox**.",
+    "explanation": "Read deny rules gate **Claude's own tools** and recognized Bash file commands, not arbitrary subprocesses. A Python script that opens `.env` itself bypasses those rules entirely, and only the sandbox blocks every process from a path, which is Option A. D is the tempting trap because it assumes the script shelled out to `cat`, but Read deny rules already cover recognized commands like `cat`; the leak came from the script's own file access. B misreads `./` paths, and C adds a `Write` rule that Claude Code never consults.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
@@ -626,6 +639,7 @@
     ],
     "answer": "c",
     "takeaway": "**Red-team before deploying**: feed the agent content with injection attempts and confirm Claude ignores them and your screens catch the rest.",
+    "explanation": "The question is how to confirm defenses actually work **before launch**. Anthropic's guide says to red-team the agent with emails, documents and tool outputs that deliberately contain injection attempts, checking that Claude ignores them and that your screens and confirmation steps catch the rest, which is Option C. D is the tempting trap: the guide recommends monitoring outputs too, but in addition to red-teaming, not instead. A ignores the guide's advice to test despite Claude's resilience, and B postpones the injection cases until after launch.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -668,6 +682,7 @@
     ],
     "answer": "b",
     "takeaway": "With the computer use or browser use tool, Anthropic runs **extra classifiers** over returned screenshots and page text to catch possible injections.",
+    "explanation": "With the computer use and browser use tools, your prompts aren't the only defense: Anthropic runs **additional classifiers** over returned screenshots and page text to catch potential injections, and steers Claude to check that an instruction really came from you, which is Option B. A is the tempting trap because it assumes screening exists only for your own `tool_result` content. C is wrong because the guide names screenshots among the scanned output, and D invents a session-ending behavior the guide doesn't describe.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -709,6 +724,7 @@
     ],
     "answer": "d",
     "takeaway": "The simplest leak defense: **leave out** proprietary details Claude doesn't need for the task.",
+    "explanation": "The detail to notice is that the margins and supplier names are included 'for context' but **never needed** to answer customers. The simplest leak defense is to leave out what Claude doesn't need; extra content also distracts it from its no-leak instructions, so D is right. A is the tempting trap because layered no-leak instructions feel protective, but the guide reserves them for when absolutely necessary since they may degrade performance. B relies on prefilling, unsupported on Claude Opus 5.5, and C wrongly assumes user-turn content can't leak.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-prompt-leak",
@@ -750,6 +766,7 @@
     ],
     "answer": "b",
     "takeaway": "A system prompt is **not a secret** and not a security control: keep credentials out of it entirely.",
+    "explanation": "OWASP's point is that a system prompt is **not a secret and not a security control**. The tester extracted it despite the no-reveal rule, so the real fix is to keep credentials out of the prompt entirely, in systems the model doesn't directly access, which is Option B. A is the tempting trap, but even a model trained not to reveal its prompt isn't guaranteed to comply. C still leaves the connection string in the prompt, which OWASP says shouldn't happen at all, and D addresses guardrail inference rather than the stored secret.",
     "difficulty": "easy",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/",
@@ -791,6 +808,7 @@
     ],
     "answer": "c",
     "takeaway": "Never delegate authorization to the model: enforce privilege checks **deterministically, outside the LLM**, where they can be audited.",
+    "explanation": "OWASP's rule is that authorization must **never be delegated to the LLM**; it must run deterministically and auditably. The clue is that the `set_limit` tool trusts whatever Claude sends, so a prompt-based admin rule is the only guard, and injection can alter it. Enforcing the role check in the backend that serves `set_limit` is Option C. B is the tempting trap because a second checker sounds stricter, but it still puts the decision in an LLM. A and D also leave authorization with the model.",
     "difficulty": "hard",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/",
@@ -840,6 +858,7 @@
       "d"
     ],
     "takeaway": "Prevent excessive agency by trimming **functionality, permissions and autonomy**; rate limits and logs only limit the damage.",
+    "explanation": "OWASP prevents excessive agency by trimming **functionality, permissions and autonomy**. The task only needs to read mail, so A removes excessive functionality with a read-only extension, and D removes excessive permissions with a read-only OAuth scope. C is the tempting wrong pick because rate limiting sounds protective, but OWASP lists it as damage reduction, not prevention; logging (E) is the same. B leaves the send function in place, so a crafted email could still trigger it.",
     "difficulty": "medium",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
@@ -881,6 +900,7 @@
     ],
     "answer": "a",
     "takeaway": "Treat LLM output as **untrusted**: encode it for where it's used (HTML for web pages, parameterized queries for SQL).",
+    "explanation": "OWASP says to treat model output with **zero trust**, like any untrusted input, and to encode it for its context. Because the app inserts Claude's answers as raw HTML, HTML-encoding the output is the fix (Option A). B is the tempting trap, but LLM output can be controlled by prompt input, so a system prompt rule doesn't secure what's rendered. C is wrong because OWASP lists browser-interpreted Markdown as an XSS cause, and D validates only the input while leaving the model's output unchecked.",
     "difficulty": "easy",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
@@ -922,6 +942,7 @@
     ],
     "answer": "d",
     "takeaway": "In multi-tenant RAG, enforce tenancy at retrieval: **permission-aware** stores and strict partitioning, so one tenant's data never reaches another.",
+    "explanation": "The leak is an **access-control gap** in a shared vector database, so the fix belongs in the data layer. OWASP recommends fine-grained access controls, permission-aware vector stores and strict partitioning between groups, so one customer's embeddings can never be retrieved for another, which is Option D. A is the tempting trap because it targets the symptom, but a prompt rule doesn't stop the wrong documents being retrieved. B and C change how much or how accurately you retrieve, not who is allowed to see what.",
     "difficulty": "medium",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/",
@@ -963,6 +984,7 @@
     ],
     "answer": "a",
     "takeaway": "For PII, **sanitize before processing** (redact or tokenize) and restrict data access; prompt rules alone can be bypassed.",
+    "explanation": "OWASP's guidance on sensitive information disclosure is to **sanitize before processing**, redacting or tokenizing sensitive values (for example with pattern matching), and to apply strict least-privilege access, which is Option A. B is the tempting trap: prompt restrictions can help, but they may not always be honored and can be bypassed via prompt injection. C's user education leaves the existing notes unsanitized, and D does the opposite of least privilege by loading every note into the prompt.",
     "difficulty": "medium",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
@@ -1004,6 +1026,7 @@
     ],
     "answer": "d",
     "takeaway": "Consumer-facing chatbots must **disclose they're AI** rather than human, up front; naming Anthropic or the model isn't required.",
+    "explanation": "Under Anthropic's Usage Policy, consumer-facing chatbots must tell users they are interacting with **AI rather than a human**, at a minimum from the start of the chat, which is Option D. B is the tempting trap because not lying when asked feels sufficient, but the disclosure must come up front rather than on request. A is wrong because the policy doesn't require naming Anthropic, Claude or the model, and C describes qualified human review, a High-risk Use Case Requirement rather than a general chatbot rule.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/legal/aup",
@@ -1051,6 +1074,7 @@
       "c"
     ],
     "takeaway": "High-risk recommendations (credit, legal, medical…) need a **qualified human in the loop** and **clear AI disclosure** to the person affected.",
+    "explanation": "Credit decisions are a **high-risk use case**, and the policy names two controls for them. A qualified person must review each recommendation before it's delivered or used in a decision (A), and the affected applicants must be told that AI produced it (C). B is the most tempting wrong pick because it sounds like stronger disclosure, but the policy requires saying AI was used, not naming Anthropic or the model. D routes work to Anthropic, which the policy doesn't require, and E is a sampling setting, not a policy control.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/legal/aup",
@@ -1090,6 +1114,7 @@
     ],
     "answer": "c",
     "takeaway": "Model resistance isn't the last line: layer **network, filesystem and container controls** so a successful injection still can't do harm.",
+    "explanation": "Claude models are designed to resist prompt injection, but the guide still calls **defense in depth** good practice. The stem's own scenario, a file telling the agent to send data out, is the guide's example of where network controls can block the request entirely, so C is right. A is the tempting trap because it takes the model's resistance as the last line. B overstates command parsing, which is a permission gate rather than a sandbox, and D adds another prompt layer when the guide's layers sit outside the model.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
@@ -1131,6 +1156,7 @@
     ],
     "answer": "b",
     "takeaway": "Sandbox runtime and containers **share the host kernel**; for kernel-level isolation in multi-tenant or untrusted workloads, use **gVisor or VMs**.",
+    "explanation": "The requirement is protection even against a **kernel vulnerability**. Sandbox-runtime processes, like standard containers, share the host kernel, so for kernel-level isolation the guide points to gVisor or a separate VM, often worth the overhead for multi-tenant or untrusted workloads, which is Option B. C is the tempting trap because containers feel isolated, but standard containers share the host kernel too. A only narrows network access, and D's `--pids-limit` caps process counts to prevent fork bombs.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
@@ -1172,6 +1198,7 @@
     ],
     "answer": "a",
     "takeaway": "A screen that **refuses** has effectively said \"harmful\": never let a missing verdict fail open.",
+    "explanation": "The rule is that a screen must never **fail open**. Claude Haiku 5.5 runs safety classifiers that can decline the screening request itself, leaving `stop_reason: \"refusal\"` and no JSON, and the guide says to treat that refusal as a harmful verdict, which is Option A. C is the tempting trap: it assumes structured outputs always return a verdict, but a refused request returns none. B retries in search of a different answer, and D sends exactly the flagged messages past the screen.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -1213,6 +1240,7 @@
     ],
     "answer": "c",
     "takeaway": "**Layer** safeguards (screens, hardened prompts, validation) and **monitor** outputs to refine them; combining strategies gives robust protection.",
+    "explanation": "Anthropic's jailbreak guide says robust protection comes from **chaining safeguards**, such as a hardened system prompt plus screening, and from regularly analyzing outputs for signs of successful injection, which is Option C. B is the tempting trap because the team already has a screen, but the guide calls for combining strategies and monitoring, not trusting one classifier. A replaces layers with a single prompt, and D relies on model size, which isn't among the guide's defenses.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -1255,6 +1283,7 @@
     ],
     "answer": "b",
     "takeaway": "Deny rules match **command text**; for network enforcement that holds however a command is written, use **sandbox network isolation**.",
+    "explanation": "A deny rule matches a command **as written**, so it depends on command text, and an injected command can be phrased in ways the rule doesn't catch. For enforcement that holds however a command is written, the Claude Code security guide points to **sandbox network isolation**, which limits network access for Bash commands themselves (Option B). A is the tempting trap because blocking `wget` too seems thorough, but it is still a text match. C still lets a user approve `curl` in Manual mode, and D's WebFetch summaries don't restrict Bash.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/security",
@@ -1296,6 +1325,7 @@
     ],
     "answer": "d",
     "takeaway": "Claude Code's folder boundary is a **prompt**, not a wall: to restrict what Bash can touch at the OS level, enable **sandboxing**.",
+    "explanation": "Claude Code's working directory boundary is a **permission prompt, not OS enforcement**. Once the developer approved the Bash command, it could write anywhere their user account can, which explains the file in the home directory, and sandboxing is what restricts Bash at the OS level, so D is right. C is the tempting trap because it trusts the boundary as a wall and looks for another culprit. A misdescribes both modes, and B's additional directory would widen access rather than protect the folder.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/security",
@@ -1345,6 +1375,7 @@
       "e"
     ],
     "takeaway": "Read-only **mounts** protect the code; a read-only **root filesystem** stops the agent persisting changes; other flags guard other risks.",
+    "explanation": "The stem has two separate requirements, and each maps to one flag. Analyzing the repository without modifying it calls for a read-only mount, `-v /path/to/code:/workspace:ro` (B). Not persisting changes to the container's own filesystem calls for `--read-only`, which makes the root filesystem immutable (E). C is the most tempting wrong pick because dropping all capabilities sounds restrictive, but it guards against privilege escalation, not writes. A and D are resource limits for fork bombs and memory exhaustion.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
@@ -1384,6 +1415,7 @@
     ],
     "answer": "a",
     "takeaway": "By default a hook that fails or can't start **lets the action through**; set `onFailure: \"block\"` so a policy hook fails closed.",
+    "explanation": "By default a hook that fails or **can't start** is a non-blocking error, so the action goes through, which is why a renamed script let Bash commands run unchecked for a week. Setting `\"onFailure\": \"block\"` makes a failure to start block the tool call, so the hook fails closed (Option A). B is the tempting trap: `exit 1` without valid JSON is non-blocking, and a missing script never runs at all. C can't help a script that doesn't exist, and D moves the check to after the tool has already run.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1426,6 +1458,7 @@
     ],
     "answer": "b",
     "takeaway": "A hook's `allow` skips the prompt but **never beats a deny or ask rule**; those are still evaluated.",
+    "explanation": "A hook's `permissionDecision: \"allow\"` only **skips the permission prompt**; deny and ask rules are still evaluated regardless of what the hook returns. The `Bash(git push *)` deny rule therefore still blocks `git push origin main`, which is Option B. A is the tempting trap because 'allow' sounds like it overrides everything. C wrongly expects a conflict to become a prompt when the deny rule wins outright, and D is wrong because hooks can approve calls; they just can't beat deny or ask rules.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1467,6 +1500,7 @@
     ],
     "answer": "c",
     "takeaway": "A `UserPromptSubmit` block keeps a prompt **from Claude**, not off disk: the text can remain in the transcript and prompt history.",
+    "explanation": "Separate two goals: keeping the prompt **from Claude** and keeping it **off disk**. Exit 2 on `UserPromptSubmit` achieves the first, but the docs say a blocking hook isn't a way to keep a secret off disk, because the text can remain in the transcript and prompt history, which is Option C. B is the tempting trap: `suppressOriginalPrompt: true` only leaves the text out of the block message. A assumes a blocked prompt is discarded everywhere, and D wrongly says exit 2 only warns.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1508,6 +1542,7 @@
     ],
     "answer": "d",
     "takeaway": "To match all of a server's tools, append `.*`: `mcp__<server>__.*`. A bare `mcp__<server>` is an exact string that matches nothing.",
+    "explanation": "For tool events, matchers are tested against the full tool name, like `mcp__github__create_issue`, and a matcher made only of letters, digits and underscores is compared as an **exact string**. So `mcp__github` matches no tool at all, while `mcp__github__.*` matches every tool from that server (Option D). A is the tempting trap because it assumes matchers compare against the server name. B is wrong because MCP tools appear as regular tools in `PreToolUse`, and C invents a limitation that doesn't exist.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1549,6 +1584,7 @@
     ],
     "answer": "a",
     "takeaway": "To audit or block mid-session settings edits, use a **`ConfigChange`** hook; exit 2 stops the change taking effect.",
+    "explanation": "The stem asks to audit and **block** edits to settings made mid-session. `ConfigChange` fires when a configuration file changes during a session, and exit 2 stops the change taking effect (except for `policy_settings`), so A fits. B is the tempting trap because `FileChanged` sounds like it covers any file, but it has no decision control; exit 2 only shows stderr to the user. C fires on CLAUDE.md and rules files and ignores exit codes, and D can't block or see mid-session changes.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1591,6 +1627,7 @@
     ],
     "answer": "b",
     "takeaway": "Managed hooks are a reliable org guardrail: user, project and local settings **can't disable or remove** them.",
+    "explanation": "`disableAllHooks` respects the managed hierarchy: set in user, project or local settings, it **can't disable managed hooks**; only the same setting at the managed level can. So the admin's audit hook keeps running, which is Option B. A is the tempting trap because it assumes user settings win. C invents a temporary effect that doesn't happen, and D is wrong because hook entries merge across levels, so lower levels add hooks without removing managed ones.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1640,6 +1677,7 @@
       "c"
     ],
     "takeaway": "Redact **outbound** tool inputs at `PreToolUse` (`updatedInput`) and **inbound** results at `PostToolUse` (`updatedToolOutput`).",
+    "explanation": "Redaction needs two interception points, one for each direction. Outbound arguments are caught at `PreToolUse`, where `updatedInput` replaces them before the tool runs (A). Inbound results are caught at `PostToolUse`, where `updatedToolOutput` replaces the tool's result before Claude reads it (C). D is the most tempting wrong pick because it uses the right event, but `PostToolUse` can't block or undo a call; exit 2 only shows stderr to Claude. B can't rewrite the prompt, and E has no decision control.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1681,6 +1719,7 @@
     ],
     "answer": "c",
     "takeaway": "To **prevent** an action, hook the event **before** it: `PreToolUse`. `PostToolUse` can only report after the tool ran.",
+    "explanation": "To **prevent** an action, hook the event that fires **before** it. `PostToolUse` runs after the tool has already executed, which is why dangerous commands still run and Claude only sees the error afterward. Registering the check on `PreToolUse` with a `Bash` matcher lets exit 2 block the call first, which is Option C. D is the tempting trap because `PermissionRequest` sounds like a gate, but exit 2 isn't honored there; you deny through its `decision` object. A keeps the timing problem, and B blocks stopping, not tool calls.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
@@ -1723,6 +1762,7 @@
     ],
     "answer": "a",
     "takeaway": "Never ship an API key in a client app: for iOS and macOS apps, use **App Attest** short-lived tokens.",
+    "explanation": "The constraint is an iOS app calling the API **directly from phones** with no back end. Shipping any static key in the bundle exposes it, so the guide offers App Attest: genuine installations get a short-lived token scoped to your workspace that authorizes only Messages API calls, which is Option A. C is the tempting trap because federation also issues short-lived tokens, but it is for cloud platforms, CI/CD and Kubernetes, not iOS and macOS apps. B and D still ship static keys to devices.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -1764,6 +1804,7 @@
     ],
     "answer": "c",
     "takeaway": "For CI/CD and cloud workloads, **Workload Identity Federation** replaces static keys with short-lived tokens from your IdP.",
+    "explanation": "Security wants **no long-lived Claude API secret** in CI at all. GitHub Actions is an OIDC issuer, so with Workload Identity Federation the pipeline exchanges its identity token at `/v1/oauth/token` for a short-lived Claude API token, leaving no static key to rotate (Option C). D is the tempting trap because App Attest also uses short-lived tokens, but it is for iOS and macOS apps, not pipelines. A keeps a long-lived static secret, and B adds a personal key tied to one person.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -1805,6 +1846,7 @@
     ],
     "answer": "c",
     "takeaway": "Match the **workspace role** to the job: Limited Developer can use the API and manage keys without tracing or file access.",
+    "explanation": "The rule is **least privilege**: pick the smallest workspace role that still covers the job. The contractor must create keys and call the API, but must not view session tracing or download files. Workspace Limited Developer does exactly that, which is Option C. A is the tempting trap because Workspace Developer covers keys and API use, but it lacks the tracing and file restrictions. B can only use the playground, and D grants full control over workspace settings and members.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/workspaces",
@@ -1846,6 +1888,7 @@
     ],
     "answer": "b",
     "takeaway": "Monitor key usage with the **Usage API** (Admin credentials): filter by `api_key_ids[]` and pick a fine bucket like `1h`.",
+    "explanation": "You need **per-key** usage at **hourly** granularity. The Usage API, part of the Admin API, can filter by `api_key_ids[]` and supports `1m`, `1h` or `1d` buckets, so an Admin API key with `bucket_width=1h` fits (Option B); raise `limit` past 24 hourly buckets to cover two days. A is the tempting trap because the workspace key seems relevant, but workspace API keys don't work with Admin API endpoints. C wrongly says no per-key breakdown exists, and D wrongly treats `1d` as the finest bucket.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
@@ -1887,6 +1930,7 @@
     ],
     "answer": "a",
     "takeaway": "Keep secrets **outside the agent's boundary**: a proxy injects credentials into requests, so the agent never sees them.",
+    "explanation": "The goal is that a prompt-injected agent **can't read** the token, so the token must sit outside the agent's security boundary. A proxy outside that boundary injects credentials into outgoing requests, so the agent never sees them, and it can also allowlist and log requests (Option A). C is the tempting trap: a read-only mount stops changes, but the guide warns even read-only access can expose credentials. B leaves the token readable, and D fails because an HTTPS proxy sees only an encrypted tunnel and can't inject credentials.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
@@ -1928,6 +1972,7 @@
     ],
     "answer": "d",
     "takeaway": "Claude Code ignores `.claudeignore`; keep secrets from its file tools with **`Read` deny rules**.",
+    "explanation": "Claude Code's permissions guide says a `.claudeignore` file **has no effect**, so the team's assumption is wrong. To keep Claude's file tools away from secrets, move those entries into `Read` deny rules such as `Read(./.env)` or `Read(./secrets/**)`, which is Option D. A is the tempting trap because the file looks like `.gitignore` and seems like it should work the same way. B invents a partial effect, and C relies on `Write` path rules, which Claude Code never consults, for what is a read problem.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
@@ -1977,6 +2022,7 @@
       "d"
     ],
     "takeaway": "Key hygiene: **secrets manager + rotation**, and **disable or delete** suspected leaks at once; expiration helps but isn't a substitute.",
+    "explanation": "Anthropic's authentication guide lists two hygiene habits here: store keys in a **secrets manager** and rotate them periodically (A), and **disable or delete** any key you suspect has leaked, regardless of expiration (D). B is the most tempting wrong pick because short expirations do limit a leaked key's lifetime, but the guide says expiration is not a substitute for secret hygiene. C and E fail on the facts: expiration can't be changed after creation, and expired keys can't be reactivated.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -2019,6 +2065,7 @@
     ],
     "answer": "a",
     "takeaway": "For rotating or short-lived credentials in Claude Code, use an **`apiKeyHelper`** script rather than a static key in the environment.",
+    "explanation": "The stem describes **short-lived tokens** fetched from a vault, and no long-lived key in shell profiles. Claude Code's guide says to use `apiKeyHelper` for dynamic or rotating credentials: a script that fetches the current token, which is Option A. D is the tempting trap because `ANTHROPIC_AUTH_TOKEN` sounds like a token feature, but it is a bearer token for routing through an LLM gateway or proxy, not an automatic vault refresh. B is the static key you wanted to avoid, and C creates a long-lived token for CI.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/authentication",
@@ -2060,6 +2107,7 @@
     ],
     "answer": "d",
     "takeaway": "Restrict Claude Code logins with **`forceLoginMethod` + `forceLoginOrgUUID`** in managed settings, deployed by device management.",
+    "explanation": "Two constraints matter: logins must belong to your Enterprise organization, **including on first login**. With `forceLoginMethod` and `forceLoginOrgUUID` in managed settings, Claude Code exits at startup if the credential belongs to an unlisted organization, and device management reaches the first login too (Option D). A is the tempting trap: server-managed settings reach only accounts already authenticated into your organization, so they miss the first login. B is blocked under `forceLoginOrgUUID`, and C only displays the active credential.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/authentication",
@@ -2101,6 +2149,7 @@
     ],
     "answer": "d",
     "takeaway": "**JSON-encode** untrusted strings: escaping gives unambiguous delimiters, so an attacker can't close a quote or tag to break out into instructions.",
+    "explanation": "The attack works because free-form text between `<email>` tags lets the body **close the tag** and break out. JSON-encoding each email as a string field gives unambiguous delimiters through escaping, so an attacker can't close a quote or tag to escape into instructions, which is Option D. A is the tempting trap, but the guide doesn't suggest obscuring tags; it recommends JSON-encoding. B moves third-party content into a plain user `text` block, which the guide forbids, and C puts your instructions inside the tool result, where they may be ignored or flagged.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -2150,6 +2199,7 @@
       "c"
     ],
     "takeaway": "Label untrusted content's **source**, and state the **policy** in the system prompt: retrieved content is data and never overrides your instructions.",
+    "explanation": "Anthropic's guide uses two steps to separate untrusted content from your instructions. Label the content's **source**, such as OCR text from a user-uploaded image, in the tool's `description` or result structure so Claude can calibrate trust (A). And state the **policy** in the system prompt: tool content is untrusted data that never overrides it or the user's request (C). D is the most tempting wrong pick, but the guide's sample policy treats embedded instructions as information to report, not commands to weigh. B and E put third-party content where it doesn't belong.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
@@ -2191,6 +2241,7 @@
     ],
     "answer": "b",
     "takeaway": "Keep your own instructions **out of tool results**: send them in the following `user` turn, where they aren't mistaken for injected text.",
+    "explanation": "Claude treats everything inside a `tool_result` as **untrusted data**, so your own instruction placed there looks just like injected text and may be ignored or flagged, which is the symptom here. The guide says to send it in a `user` turn after the `tool_result`, or a mid-conversation system message on supported models (Option B). A is the tempting trap, but formatting doesn't change where the instruction sits. C still places it inside the tool result, and D is wrong because Claude keeps following instructions sent in the right place.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",

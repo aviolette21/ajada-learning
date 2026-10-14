@@ -29,6 +29,7 @@
     ],
     "answer": "c",
     "takeaway": "Team-shared project instructions live in a committed **`./CLAUDE.md`**; personal ones go in `~/.claude/CLAUDE.md` or `CLAUDE.local.md`.",
+    "explanation": "Two requirements decide this: **every developer** should get the instructions, and they should live **in source control**. Only project instructions in a committed `./CLAUDE.md` (or `./.claude/CLAUDE.md`) meet both (C). Option B is the trap: it sits in the repo root, but `CLAUDE.local.md` is for personal, project-specific preferences meant to be added to `.gitignore`. Option A is user scope, shared with no one, and D repeats in chat what CLAUDE.md exists to remember.",
     "mnemonic": "Team → ./CLAUDE.md; me everywhere → ~/.claude; me here → .local.",
     "difficulty": "easy",
     "source": {
@@ -71,6 +72,7 @@
     ],
     "answer": "a",
     "takeaway": "To look before you change anything, use **plan mode**: Claude explores and proposes, and edits wait for your approval.",
+    "explanation": "You want Claude to **explore and propose first**, with edits blocked until you approve the plan. That is plan mode (A): Claude reads, explores and writes a plan, and edits wait for approval. Option C is the tempting near-miss, because `dontAsk` also prevents prompting, but it suits locked-down CI by denying anything that would prompt; it isn't an explore-then-approve flow. Option B lets Claude edit freely, and D runs everything without asking and is meant only for isolated containers and VMs.",
     "mnemonic": "Plan first; edit after approval.",
     "difficulty": "easy",
     "diagram": {
@@ -132,6 +134,7 @@
     ],
     "answer": "d",
     "takeaway": "A committed **`.claude/skills/<name>/SKILL.md`** becomes a team `/name` command; `$ARGUMENTS` receives what you type after it.",
+    "explanation": "The command must reach **anyone who clones the repo** and run as plain `/fix-issue`, with the number inserted. A committed project skill in `.claude/skills/fix-issue/SKILL.md` loads in that repository, and `$ARGUMENTS` receives what follows the name (D). Option C is the tempting trap: plugins share skills, but they run namespaced as `/plugin-name:skill-name`. Option A is a personal skill teammates don't get, and B puts a procedure in CLAUDE.md, which doesn't create a command.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/skills",
@@ -173,6 +176,7 @@
     ],
     "answer": "b",
     "takeaway": "In scripts, use `-p` with `--output-format json`, and add **`--json-schema`** when the output must follow a schema.",
+    "explanation": "The later CI step needs JSON that follows a **fixed schema**, so something must hold the output to that schema. `--json-schema` does, putting conforming output in `structured_output` (B). Option D is the tempting near-miss: `--output-format json` gives JSON metadata, but the `result` field is just text that nobody checks against your schema. Option A asks for JSON only in the prompt, and C streams newline-delimited events for real time, which doesn't enforce a schema either.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
@@ -214,6 +218,7 @@
     ],
     "answer": "a",
     "takeaway": "Share subagents through **`.claude/agents/`**, and limit what they can do with `tools`, not with instructions alone.",
+    "explanation": "Three requirements must hold: shared through the repo, read-only, and on Haiku. A committed `.claude/agents/code-reviewer.md` covers sharing, `tools: Read, Glob, Grep` is an allowlist that leaves out edit tools, and `model: haiku` sets the model (A). Option C is the trap: 'Never edit files' in a prompt doesn't remove tools, and with `tools` omitted the subagent inherits every tool, edits included. Option B is personal user scope, and D exists only for one session.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
@@ -255,6 +260,7 @@
     ],
     "answer": "d",
     "takeaway": "`--continue` reopens the latest interactive conversation here; for a `-p` or SDK session, use **`--resume <session-id>`**.",
+    "explanation": "`claude -p` sessions are saved, but they are left out of `--continue` and the session picker, which is why `--continue` opened an older interactive conversation. Since the session ID was logged, `claude --resume <session-id>` reopens it (D). Option C is the tempting trap, because the picker also leaves out `-p` sessions, so the morning run won't be listed. Option A wrongly says the run wasn't saved, and B forks whatever `--continue` picks, which is still the older conversation.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
@@ -297,6 +303,7 @@
     ],
     "answer": "d",
     "takeaway": "`defaultMode: \"auto\"` is ignored in project and local settings files; set it in **`~/.claude/settings.json`**.",
+    "explanation": "The silent failure is the clue: `defaultMode: \"auto\"` doesn't take effect from `.claude/settings.json` or `.claude/settings.local.json`, and the docs say to move it to your user file, `~/.claude/settings.json` (D). Option A is the tempting trap, since the local file feels like an override, but it has the same problem as the project file. Option B relies on a variable with no effect from v2.1.207 onward, and C adds a broad `Bash(*)` rule that auto mode drops on entry anyway.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
@@ -338,6 +345,7 @@
     ],
     "answer": "a",
     "takeaway": "Conversation boundaries are re-read from the transcript and can be compacted away; for a **hard guarantee**, add a deny rule.",
+    "explanation": "A boundary you state in conversation isn't stored as a rule; it is re-read from the transcript, so compaction can remove it. That is what happened here. For a **must never** requirement, the hard guarantee is a deny rule for push commands (A). Option B is the trap: repeating the boundary helps for a while, but those messages can be compacted away too. Option C misstates the defaults, which allow pushes within your repository, and D approves pushes instead of blocking them.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
@@ -387,6 +395,7 @@
       "b"
     ],
     "takeaway": "Auto mode drops **broad allow rules**, pauses after **3 blocks in a row or 20 total**, and never replaces review of sensitive operations.",
+    "explanation": "Two statements match the docs. On entering auto mode, broad allow rules like `Bash(*)` are dropped while narrow ones stay (A), and after 3 blocks in a row or 20 in total, auto mode pauses and prompting resumes (B). Option C is the most tempting wrong pick, but tool results are **stripped** from the classifier's requests, so it can't read injected file content. Option D is wrong because a subagent's `permissionMode` is ignored in auto mode, and E overstates it: auto mode doesn't guarantee safety.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/permission-modes",
@@ -428,6 +437,7 @@
     ],
     "answer": "c",
     "takeaway": "Subagent `memory` scopes: **`project`** = repo, shareable via git; `local` = repo, not committed; `user` = all your projects.",
+    "explanation": "The memory must be about **this repo** and reach teammates **through version control**. `project` scope fits both: project-specific knowledge in `.claude/agent-memory/` that can be shared via git (C). Option B is the tempting trap, since it is also project-specific, but `local` is meant for knowledge that shouldn't be checked in. Option A spans all your projects from your home directory, and D is wrong because subagents don't load the main conversation's auto memory.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
@@ -469,6 +479,7 @@
     ],
     "answer": "b",
     "takeaway": "For reproducible CI runs, use **`--bare`**: it skips auto-discovery, so you pass context with flags and authenticate with an API key.",
+    "explanation": "The varying results come from **auto-discovery**: a `-p` run still loads hooks and `.mcp.json` servers like an interactive session. `--bare` skips that discovery, so you pass needed context with flags and authenticate with `ANTHROPIC_API_KEY`, because bare mode never reads OAuth credentials (B). Option C is the trap, assuming `-p` loads nothing from disk. Option A changes only the output format, and D resumes a conversation without changing what each machine loads.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
@@ -510,6 +521,7 @@
     ],
     "answer": "d",
     "takeaway": "Live tokens from `claude -p` need **`--output-format stream-json --verbose --include-partial-messages`**.",
+    "explanation": "Getting tokens as they're generated needs `stream-json` plus two more flags: `--verbose` and `--include-partial-messages` (D). Option C is the tempting near-miss: `stream-json` alone is the right format, but the docs pair it with those flags to receive tokens live. Option A returns one structured result at the end, not a stream, and B adds `--json-schema`, which shapes the final output into `structured_output` rather than streaming anything.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
@@ -551,6 +563,7 @@
     ],
     "answer": "c",
     "takeaway": "Instructions for one part of the codebase belong in a **path-scoped rule**: `.claude/rules/*.md` with `paths` frontmatter.",
+    "explanation": "The conventions matter only for `src/api/`, so they should load only when Claude works there. A rule in `.claude/rules/` with `paths` frontmatter loads only when Claude reads, writes or edits a matching file (C). Option A is the trap: it is the right folder, but without `paths` the rule loads at launch like `.claude/CLAUDE.md`. Option B's `@path` imports also load at launch, so they organize without saving context, and D loads at launch too and isn't shared.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
@@ -592,6 +605,7 @@
     ],
     "answer": "b",
     "takeaway": "`/init` generates a starting CLAUDE.md; if one exists, it **suggests improvements** instead of overwriting.",
+    "explanation": "`/init` behaves differently depending on whether a CLAUDE.md exists. With none, it generates one from the codebase; with one already present, it suggests improvements rather than overwriting (B). Option C is the tempting trap because it describes `/init`'s behavior in the no-file case. Option A has it refusing to run, which it doesn't, and D describes the `CLAUDE_CODE_NEW_INIT=1` flow's personal option, not what happens here.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
@@ -633,6 +647,7 @@
     ],
     "answer": "d",
     "takeaway": "To experiment without losing your place, **`/branch`** (or `--fork-session`) copies the conversation and leaves the original intact.",
+    "explanation": "You need two things at once: try the risky approach, and keep the current conversation intact to return to. `/branch` copies the conversation so far and switches you into the copy, leaving the original resumable (D). Option C is the tempting trap: resuming in a second terminal without forking interleaves both terminals' messages into one transcript. Option A starts with an empty context, and B condenses the detailed history you wanted to keep.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
@@ -682,6 +697,7 @@
       "d"
     ],
     "takeaway": "CLAUDE.md files **above** the working directory load at launch and are concatenated; files **below** load on demand.",
+    "explanation": "Loading depends on where each file sits relative to the working directory. Files in the working directory and every directory above it load at launch and are **concatenated**, root first, so `repo/` and `billing/` both load (C). Files in subdirectories load **on demand**, once Claude reads, writes or edits a file there, so `legacy/` waits (D). Option A is the most tempting wrong pick, but closer files don't override; they are read last. Option B skips a parent that does load, and E loads `legacy/` too early.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",

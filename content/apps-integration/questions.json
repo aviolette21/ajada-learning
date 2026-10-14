@@ -29,6 +29,7 @@
     ],
     "answer": "a",
     "takeaway": "`tool_use` means **your turn**: execute the tool and return a `tool_result`, then loop while `stop_reason` is `tool_use`.",
+    "explanation": "The rule is that `stop_reason: tool_use` hands control back to **your code**: for your own client tools, Claude never runs anything itself, so you execute `get_weather` and continue with a `user` turn of `tool_result` blocks, looping while the stop reason stays `tool_use`. Option C is the trap, since it assumes the model runs the tool on its side and you just wait. Option B treats a tool call as a finished answer (that is `end_turn`), and D fixes `max_tokens` truncation, which is not what happened.",
     "mnemonic": "Claude asks, you run, you report back.",
     "difficulty": "easy",
     "diagram": {
@@ -92,6 +93,7 @@
     ],
     "answer": "b",
     "takeaway": "Instructions that apply from the start go in the top-level **`system`** field; a `system` message can't open `messages`.",
+    "explanation": "Instructions that should apply from the very first turn belong in the top-level `system` parameter of the Messages API, not inside `messages`. That is why Option A, the habit carried over from other chat APIs, fails: a `system` message cannot be the first entry in `messages`. Option D's mid-conversation system message is for instructions that only become relevant later, and Option C's synthetic `assistant` turn just builds conversation history; neither sets a persona from the start.",
     "mnemonic": "From the first turn? Top-level system.",
     "difficulty": "easy",
     "source": {
@@ -134,6 +136,7 @@
     ],
     "answer": "c",
     "takeaway": "`max_tokens` is a hard **output** cap; hitting it truncates the reply, so raise it or continue.",
+    "explanation": "`max_tokens` is a hard cap on **output**, and `stop_reason: max_tokens` tells you the reply was cut off by that cap, which explains the mid-sentence endings. The fix is to raise the limit or continue the response in a new request. Option B is tempting because stop sequences also control where output ends, but they only end generation **earlier** and cannot lengthen a truncated reply. A refusal has its own stop reason (A), and caching (D) affects the input prefix, not the output limit.",
     "mnemonic": "Cut off? Check the cap.",
     "difficulty": "medium",
     "source": {
@@ -177,6 +180,7 @@
     ],
     "answer": "d",
     "takeaway": "For live UX, **stream**: `\"stream\": true` delivers the reply incrementally over server-sent events.",
+    "explanation": "The complaint is about **when** text reaches the screen, not how fast or cheap the reply is, and streaming solves exactly that: with `stream` set to true, the response arrives incrementally as server-sent events, so you can render text deltas as they are generated. Option C is the tempting one because caching sounds like a speed fix, but without streaming the UI still waits for the whole response. Raising `max_tokens` (B) only caps length, and batches (A) are for asynchronous work, the opposite of a live chat.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
@@ -218,6 +222,7 @@
     ],
     "answer": "b",
     "takeaway": "Turn a vague goal into a **number you can test**: even hazy topics like safety can be quantified.",
+    "explanation": "Anthropic's guidance is that success criteria must be specific and measurable, and that even hazy topics like safety can be quantified. Option B turns the legal requirement into a number an eval can check: under 0.1% of 10,000 trials flagged for toxicity. Option A is the trap because it sounds strict, but it is just the guide's bad example, safe outputs, in more words: no eval can tell you whether you met it. Option C wrongly assumes safety can't be measured, and D relies on a vague impression with no quantitative measure.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
@@ -259,6 +264,7 @@
     ],
     "answer": "c",
     "takeaway": "Claude fits when labeled data is **scarce**, categories **change**, inputs are **unstructured** or rules are **semantic**.",
+    "explanation": "The ticket-routing guide lists conditions that favor an LLM over traditional ML: scarce labeled data, changing categories, unstructured input and semantic rules. Option C hits two of them at once, a few dozen labeled tickets and categories that keep changing, which Claude handles without extensive relabeling. Option B is tempting but reversed: needing **interpretable reasoning** is the indicator, not lacking that need. Option A is also reversed (the indicator is multilingual support **without** separate models), and D describes simple pattern matching, where traditional ML often fits.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
@@ -300,6 +306,7 @@
     ],
     "answer": "a",
     "takeaway": "Requirements come from the **current process**: learn how people do the task and define the categories before you prompt.",
+    "explanation": "The guide puts understanding the **existing system** first: how tickets are routed today and where that process fails, because the more you know about how humans handle cases, the better your requirements and categories will be. Option B is the tempting trap for anyone with an ML background, but large labeled datasets are what traditional ML needs; Claude can classify with a few dozen examples. Option C undermines accuracy, since routing quality depends on well-defined categories, and D ignores the cost, accuracy and response-time trade-offs.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
@@ -341,6 +348,7 @@
     ],
     "answer": "d",
     "takeaway": "Let constraints pick the start: **tight latency + cost + volume** means start efficiency-first and upgrade only if evals show a gap.",
+    "explanation": "Model selection should start from the constraints. Millions of short, straightforward requests with a tight latency budget and a strict cost ceiling is the profile the guide gives for an **efficiency-first** start with Claude Haiku 5.5, upgrading only where testing shows a capability gap. Option A, capability-first with Opus, suits complex reasoning where accuracy outweighs cost, not this workload. Option B is the subtle trap: fast mode raises output speed, but at premium pricing that breaks the cost ceiling. Option C skips testing on your own data, which the guide requires.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
@@ -382,6 +390,7 @@
     ],
     "answer": "b",
     "takeaway": "Good criteria are **specific, measurable, achievable and relevant**, and usually cover **several dimensions** at once.",
+    "explanation": "Good success criteria are specific, measurable, achievable and relevant, and most use cases need them along **several dimensions**. The stem lists three requirements (sentiment, non-toxicity, speed), and only Option B gives each a measurable target on a defined test set. Option C is the tempting near miss: its F1 target is measurable, but it defers toxicity and speed even though they are requirements here. Option A names the right dimensions but measures none of them, and D sets targets that are not achievable.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
@@ -424,6 +433,7 @@
     ],
     "answer": "c",
     "takeaway": "From 4.6 on, a dateless ID **is** the snapshot; to get a newer model you switch to its new ID.",
+    "explanation": "From the 4.6 generation on, every model ID, dateless or dated, maps to one fixed snapshot; Anthropic ships updated weights or configuration under a **new** model ID. So the teammate is wrong, and Option C states why. Option A is the common misconception the docs call out, and Option B is tempting because pointer behavior did exist, but only for pre-4.6 aliases like `claude-sonnet-4-5`. Option D gets the verdict right but the cause wrong: if behavior shifts on a stable ID, a serving-infrastructure update is the most likely cause, not swapped weights.",
     "mnemonic": "No date doesn't mean no pin.",
     "difficulty": "hard",
     "source": {
@@ -467,6 +477,7 @@
     ],
     "answer": "a",
     "takeaway": "Deprecated means **still working, on a clock**: test the replacement early and move all usage before retirement.",
+    "explanation": "Deprecation means the model **still works but is on a clock**: you should test the recommended replacement well before the retirement date and migrate all usage before it arrives. Option B is the tempting one because it is true that deprecated models keep working, but they are likely less reliable and the guidance is to test early, not switch on the day. Option D fails because requests to a retired model fail rather than redirect, and C misreads legacy status, since legacy models get no updates and may be deprecated too.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -529,6 +540,7 @@
     ],
     "answer": "b",
     "takeaway": "A model migration is a **code change**: check the target model's rejected settings, such as non-default `temperature`, before switching.",
+    "explanation": "A model migration is a **code change**, because the target model can reject settings the old one accepted. The detail to notice is `temperature: 0.3`: Claude Opus 5.5 rejects non-default `temperature`, `top_p` and `top_k` values with a 400, so you omit them and steer with prompting. Option A is the tempting trap because thinking settings changed too, but it is reversed: manual budgets are rejected and sending no `thinking` field is fine. The ID needs no date suffix (C), and 1M context is the default with no beta header (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
@@ -571,6 +583,7 @@
     ],
     "answer": "d",
     "takeaway": "Build in a **loop**: test cases first, then iterate on the prompt and validate before you ship.",
+    "explanation": "Anthropic's prompt engineering flow is a **loop** with a fixed order: test cases, then a preliminary prompt, then iterative testing and refinement against those test cases, then final validation, and only then shipping. The team has the first two steps, so the next move is to iterate and then validate. Option C is the tempting shortcut because it still includes a validation run, but final validation follows iteration rather than replacing it. Shipping first (A) reverses the flow, and B relies on a few hand-graded outputs when the guidance favors more questions with automated grading.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -634,6 +647,7 @@
     ],
     "answer": "c",
     "takeaway": "Supply the key through **`ANTHROPIC_API_KEY`**: the SDKs read it from the environment automatically, so no key lives in code.",
+    "explanation": "The goal is to keep the key **out of code** entirely. The client SDKs read `ANTHROPIC_API_KEY` from the environment automatically, so after setting it, `Anthropic()` needs no key argument and nothing secret gets committed. Option D is tempting because a short expiration limits how long a leaked key works, but the docs say it is not a substitute for secret hygiene, and the key would still be in the file. Option A only changes which header carries the key, and B puts it in a header meant for a workspace ID.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
@@ -675,6 +689,7 @@
     ],
     "answer": "a",
     "takeaway": "Personal, per-project overrides go in **`.claude/settings.local.json`**, which outranks the shared project file.",
+    "explanation": "Claude Code settings follow precedence for single values, and project local (`.claude/settings.local.json`) sits above the shared project file, while Claude Code keeps it out of your commits when it creates it. That gives you Opus in this project without touching teammates. Option B is the tempting trap: user settings feel personal, but they are the **lowest** level, so the team's shared value still wins. Committing the shared file (C) changes everyone's sessions, and managed settings (D) are organization-wide security policy.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -743,6 +758,7 @@
     ],
     "answer": "d",
     "takeaway": "Single values follow precedence, but list keys like `permissions.allow` **merge**: each file adds entries.",
+    "explanation": "Precedence decides between **single values**, but list keys like `permissions.allow` work differently: when the same list key appears in several files, Claude Code combines the lists, so each file adds entries without removing another's. Both `Bash(npm run test *)` and `Bash(npm run lint)` therefore apply. Option A is the trap, because it applies single-value precedence to a list key. Option B gets precedence backwards (user settings are the lowest level), and C invents a cancel-out rule that doesn't exist.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/settings",
@@ -784,6 +800,7 @@
     ],
     "answer": "b",
     "takeaway": "CLAUDE.md **guides**; settings **enforce**. Put hard blocks such as `permissions.deny` in settings.",
+    "explanation": "The stem asks for a **guarantee**, and that is the line between the two layers: CLAUDE.md is context that shapes behavior, while settings rules like `permissions.deny` are enforced by the client regardless of what Claude decides. Options A, C and D all try to make the CLAUDE.md text stronger, and D is the most tempting because specific instructions are followed more consistently. But every version is still guidance, and subdirectory files are concatenated rather than overriding, so none of them is a hard block.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
@@ -826,6 +843,7 @@
     ],
     "answer": "c",
     "takeaway": "Team-shared MCP servers belong in a committed **`.mcp.json`** (project scope); local and user scopes stay private.",
+    "explanation": "MCP server scope decides who gets the server. The default local scope stores it in `~/.claude.json` under the project path, private to you, which is why teammates don't see it. Project scope writes it to `.mcp.json` at the project root, and committing that file shares it with everyone who clones the repo. Option A is the tempting trap: user scope sounds broader, but it covers all **your** projects and stays private to your account. Editing `~/.claude.json` by hand (D) still lives in your home directory, not the repo.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
@@ -868,6 +886,7 @@
     ],
     "answer": "a",
     "takeaway": "`.mcp.json` expands `${VAR}`, but Claude Code **blanks credential variables** like `ANTHROPIC_API_KEY` in remote `url`/`headers`.",
+    "explanation": "`.mcp.json` does expand `${VAR}`, but Claude Code reads credential names like `ANTHROPIC_API_KEY` as **empty** in a remote server's `url` and `headers`, so the header sends a blank bearer token and the gateway returns 401. Copying the value into a variable with a name of your own avoids the rule, since that name expands as written. Option C is the tempting fix because the symptom looks like an unset variable, but a covered name reads as empty whether or not it is set. A fallback (B) is ignored, and moving it to the `url` (D) hits the same rule.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
@@ -909,6 +928,7 @@
     ],
     "answer": "b",
     "takeaway": "The API remembers nothing between calls: **you** carry the conversation by resending the history each turn.",
+    "explanation": "The Messages API is **stateless**: it keeps nothing between calls, so Claude only knows the turns included in the current request. Since the bot sends just the newest message, the earlier turn is simply missing, and the fix is to resend the full history in `messages` every time. Option C is tempting because it sounds like teaching Claude to remember, but no instruction can recover turns that were never sent. Option A assumes server-side storage that doesn't exist, and D both misuses a `system` message and avoids sending the real history.",
     "mnemonic": "Stateless: send it all, every call.",
     "difficulty": "easy",
     "diagram": {
@@ -972,6 +992,7 @@
     ],
     "answer": "c",
     "takeaway": "Claude works on **alternating** turns; back-to-back messages with the same role are merged into one.",
+    "explanation": "Models are trained on alternating `user` and `assistant` turns, and when a request contains consecutive turns with the same role, the API combines them into a single turn. So the question and the follow-up become one `user` turn and both are seen. Option A is the tempting trap because alternation is the expected pattern, but the reference says same-role turns are combined, not rejected. Nothing is dropped (B), and roles are never reassigned (D).",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -1031,6 +1052,7 @@
     ],
     "answer": "a",
     "takeaway": "Treat `content` as a **list of typed blocks**: branch on each block's `type`, never assume index 0 is text.",
+    "explanation": "The response `content` is an **array of content blocks**, each with a `type` that decides its shape, such as `text` or `tool_use`. Once tools are added, the first block can be a tool call with no `text`, which is why `content[0].text` crashes; code should branch on each block's type. Option C is the tempting misconception that tool calls come back in a separate field, but `tool_use` blocks sit in the same array as text. Option B and D wrongly treat content as a plain string in some or all cases.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
@@ -1073,6 +1095,7 @@
     ],
     "answer": "d",
     "takeaway": "An image you reuse should be **uploaded once**; then each request references its `file_id`.",
+    "explanation": "The detail to notice is that the **same** reference image goes out with thousands of requests. For an image you use repeatedly, the vision guide points to the Files API: upload once and reference the returned `file_id` instead of resending base64. Option C is tempting because it shrinks the payload, but the image is still resent every time, and heavy JPEG compression can add artifacts that hurt performance. Images belong in `image` content blocks, not text (A) or the system prompt (B).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
@@ -1114,6 +1137,7 @@
     ],
     "answer": "b",
     "takeaway": "Like long documents, images work best **before** the question: prefer an image-then-text structure.",
+    "explanation": "The vision guide's tip is that Claude works best when images come **before** the text, so where your use case allows it, prefer an image-then-text structure, just like placing long documents before the question. Here the long instructions come first and the receipt last, so swapping the order is the recommendation. Option D is tempting because interleaved images still perform well, as do images after text, but neither is the preferred structure. Option A claims order is ignored, and C is the reverse of the tip.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
@@ -1155,6 +1179,7 @@
     ],
     "answer": "c",
     "takeaway": "Past **20 images** in one request, a stricter dimension limit hits every image: keep each ≤ 2000 px per side or send 20 or fewer.",
+    "explanation": "The phrase **many-image requests** is the clue: once a request carries more than 20 images, a stricter per-image dimension limit applies to every image, even though each is under 8000x8000 px. Resent screenshots and images inside `tool_result` content all count, so the fix is to keep each image at 2000 px or less per side, or send 20 or fewer image blocks. Option A is the trap because 20 is the threshold, but it is not the image cap (that is 100 or 600 depending on the model). The 10 MB size cap (D) is a separate limit.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
@@ -1196,6 +1221,7 @@
     ],
     "answer": "a",
     "takeaway": "A custom stop string ends with `stop_reason: \"stop_sequence\"`; the **`stop_sequence`** field tells you which one matched.",
+    "explanation": "When generation hits one of your custom `stop_sequences`, the API reports `stop_reason` as `stop_sequence` and puts the matched string in the `stop_sequence` field, so your code can tell `</answer>` from `</unsure>` directly. Option B is the tempting trap because the reply did end, but `end_turn` is reserved for a natural finish, and searching the text would be guesswork. Option C confuses stop strings with the token cap, and D looks in `usage`, which only holds token counts.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
@@ -1238,6 +1264,7 @@
     ],
     "answer": "d",
     "takeaway": "The count endpoint takes Messages inputs with a few exceptions, like URL or file images: count those as **base64**.",
+    "explanation": "The token counting endpoint accepts the same inputs as Messages with a few exceptions: it returns an error for `image` or `document` blocks with a `url` or `file` source. That is why only URL-referenced images fail, and sending the image as **base64** lets you count it. Option A is the tempting overreaction, since the endpoint supports images, just not those source types. Option B is wrong because counting is free (it only has RPM limits), and C fails because counting doesn't use caching at all.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
@@ -1280,6 +1307,7 @@
     ],
     "answer": "c",
     "takeaway": "**401** is a problem with the key itself; **403** is a working key without permission for that resource.",
+    "explanation": "Status codes split key problems from access problems: **401** `authentication_error` means the key itself is bad, while **403** `permission_error` means a working key lacks permission for that specific resource. The detail to notice is that other calls with the same key succeed, so the key is fine and you should check organization and workspace access. Option A is the team's plan and the trap: rotating the key fixes a 401, not a 403. A missing resource is 404 (B), and rate limits are 429 (D).",
     "mnemonic": "401: bad key. 403: not allowed.",
     "difficulty": "medium",
     "source": {
@@ -1322,6 +1350,7 @@
     ],
     "answer": "a",
     "takeaway": "A 500 is on Anthropic's side: **back off and retry**, and bring the request ID to support if it keeps happening.",
+    "explanation": "A 500 `api_error` is an unexpected error **inside Anthropic's systems**, so there is nothing to fix in your request or key; the guidance is to retry with exponential backoff and contact support with the request ID if it persists. Option D is the tempting one because it also retries, but a tight loop of immediate retries is the opposite of backoff, which spaces retries out. Malformed requests produce 400 (B), and key problems produce 401 (C).",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -1384,6 +1413,7 @@
     ],
     "answer": "d",
     "takeaway": "**529** means the API is under load, not that you broke your quota; your own rate limits show up as **429**.",
+    "explanation": "The clue is that your own traffic is steady and **well under your limits**, so the problem isn't yours. A 529 `overloaded_error` means the API is temporarily overloaded, which can happen during high traffic across all users. Option A is the tempting trap because it also sounds like too much traffic, but exceeding your own rate limit returns 429 `rate_limit_error`, not 529. Oversized requests return 413 (B), and permission problems return 403 (C).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -1425,6 +1455,7 @@
     ],
     "answer": "b",
     "takeaway": "On a rate-limit 429, honor **`retry-after`**: it says how many seconds to wait, and earlier retries fail.",
+    "explanation": "On a rate-limit 429, the `retry-after` header tells you **how many seconds to wait**, and retries sent earlier will fail, which is exactly what the fixed one-second retry keeps doing. Option A is the tempting misconception that limits reset at the top of each clock minute; the API uses a token bucket that replenishes continuously. Lowering `max_tokens` (C) doesn't help because it doesn't factor into OTPM, and D is wrong because limits also count requests per minute, so small requests can hit 429 too.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -1467,6 +1498,7 @@
     ],
     "answer": "a",
     "takeaway": "A 429 with **no `retry-after`** and `enforced_spend_limit_reached` is the spend cap: retrying won't help until access resumes.",
+    "explanation": "Two details identify this 429: there is **no `retry-after`** header, and `error_code` is `enforced_spend_limit_reached`. Together they mark the tier's monthly spend cap, where retrying fails until access resumes or you move to a higher tier, which is why the SDK's retries keep failing. Option B is the tempting reading of any 429, but a per-minute rate limit comes with `retry-after`. A spend limit you set yourself returns 400 instead (C), and acceleration limits (D) don't carry this error code.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -1509,6 +1541,7 @@
     ],
     "answer": "c",
     "takeaway": "Pace proactively with `anthropic-ratelimit-*` headers: **remaining** shows headroom, **reset** says when it refills.",
+    "explanation": "To pace proactively you need a gauge of headroom on **every** response, and the API provides it in `anthropic-ratelimit-*` headers: the remaining values show what's left before you are limited, and the reset values say when each limit is replenished. Option D is the tempting trap because `retry-after` is also a header about rate limits, but it only tells you how long to wait after a limit is hit. Option A waits until the 429 has already happened, and B ignores that the headers are readable in code, not only in the Console.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -1550,6 +1583,7 @@
     ],
     "answer": "d",
     "takeaway": "Rate limits bite over **short intervals** too: spread requests out rather than bursting them.",
+    "explanation": "A per-minute limit is not just a per-minute total: limits can be enforced over **shorter intervals**, so 60 RPM may be applied as 1 request per second, and 50 requests in one second exceed that even though the minute total stays under 60. Option B is the tempting explanation, but it is wrong in the other direction: the token bucket replenishes continuously rather than resetting each minute. A 429 is about your own limits, not general overload (A), and `max_tokens` doesn't factor into OTPM (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -1591,6 +1625,7 @@
     ],
     "answer": "b",
     "takeaway": "Caching buys **throughput**, not only savings: on most Claude models, cache reads don't count toward ITPM.",
+    "explanation": "The detail to notice is the **same 150k-token manual** on every request. On most Claude models, only `input_tokens` and `cache_creation_input_tokens` count toward ITPM, so once the manual is cached, its cache reads stop consuming the limit and throughput rises without a limit increase. Option C is the tempting assumption because many other providers do count every input token, but most Claude models don't count cache reads. Lowering `max_tokens` (A) targets output, not input, and a second key (D) adds nothing since limits are organization-level.",
     "difficulty": "hard",
     "diagram": {
       "kind": "segmented-bar",
@@ -1651,6 +1686,7 @@
     ],
     "answer": "c",
     "takeaway": "Log **`request-id`** for every call: it's how support finds one specific request.",
+    "explanation": "To point support at **one specific** call, you need a unique identifier, and every API response has one in the `request-id` header (the SDK exposes it as `_request_id`). Options A, B and D are all things worth logging, but each is shared or ambiguous: many requests share a status code or error `type`, and a timestamp does not uniquely identify a call. Option D is the most tempting because it seems precise, yet the docs say to include the request ID for a quick resolution.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -1692,6 +1728,7 @@
     ],
     "answer": "a",
     "takeaway": "In async Python, use **`AsyncAnthropic`**: the same interface, with awaitable calls.",
+    "explanation": "The problem is that sync calls **block the event loop** in an asyncio app, so you need a client whose calls can be awaited. The Python SDK provides `AsyncAnthropic`, with the same interface and awaitable calls, and `DefaultAioHttpClient` can improve async performance. Option C is tempting because a shorter timeout sounds like less blocking, but it only ends slow requests with `APITimeoutError`; the calls still block. `max_retries` (B) configures retries, and `.with_raw_response` (D) exposes raw data such as headers.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -1733,6 +1770,7 @@
     ],
     "answer": "d",
     "takeaway": "On Claude 4.6 and later, recover a broken stream with a **user** message carrying the partial text and a request to continue.",
+    "explanation": "The streaming guide's capture-and-resume strategy avoids re-processing the whole response, and on Claude 4.6 and later it works by sending a new request whose **user** message carries the partial text and asks the model to continue from where it left off. Option B is the tempting trap because putting partial text in a final `assistant` message was the approach for Claude 4.5 and earlier, but not for Opus 5.5. Option A re-processes everything, and C fails because tool use and thinking blocks can't be partially recovered.",
     "difficulty": "hard",
     "diagram": {
       "kind": "flow",
@@ -1791,6 +1829,7 @@
     ],
     "answer": "c",
     "takeaway": "Sometimes the simplest solution is best: a knowledge base that **fits in the prompt** may not need RAG at all.",
+    "explanation": "The Contextual Retrieval post's point is that the simplest solution can be best: a knowledge base under 200,000 tokens (about 500 pages) can go into the prompt whole, and prompt caching makes that faster and more cost-effective. The 120,000-token stable manual fits, so try that before building a pipeline. Option D is tempting because reranking does improve retrieval, but it adds latency to a system you may not need at all. Option A's always claim is wrong, and BM25 (B) still assumes retrieval is needed.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/contextual-retrieval",
@@ -1832,6 +1871,7 @@
     ],
     "answer": "b",
     "takeaway": "Nobody waiting on the answer? **Batch it**: asynchronous processing at 50% lower cost.",
+    "explanation": "The key detail is that **nobody reads the summaries until morning**, so there is no need for immediate responses. The Message Batches API processes large volumes asynchronously at 50% lower cost, and most batches finish in under an hour. Option C is the tempting over-correction: splitting into small batches is unnecessary because one batch can hold up to 100,000 requests or 256 MB. Synchronous calls (A) work but cost more, and canceling after 5 minutes (D) ignores that batches only expire after 24 hours.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -1874,6 +1914,7 @@
     ],
     "answer": "d",
     "takeaway": "Never match batch results by position: they can arrive **in any order**, so key them on `custom_id`.",
+    "explanation": "Batch results can be returned **in any order**, which need not match the order you submitted requests, so writing result N to row N mismatches some rows. The fix is to key each result on its `custom_id`. Option B is the tempting explanation because a dropped result would also shift rows, but every request gets a result, including `errored` ones. Option A assumes submission order is preserved, and C is wrong because results remain available for 29 days after the batch is created.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -1916,6 +1957,7 @@
     ],
     "answer": "a",
     "takeaway": "The wait before the first words appear is **TTFT**, the number that matters for a streaming UI's responsiveness.",
+    "explanation": "The symptom is the wait **before the first words appear**, and that is precisely what time to first token (TTFT) measures: the time from sending the prompt to the first token of the response, which matters most with streaming. Option B is the tempting confusion, since baseline latency is also a latency measure, but it covers processing the prompt and generating the response, not the initial wait. Output length (C) and model size (D) can influence latency, but they are factors, not measures of that wait.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
@@ -1958,6 +2000,7 @@
     ],
     "answer": "b",
     "takeaway": "Make it **work** first, then make it fast: cutting latency too early can hide what top performance looks like.",
+    "explanation": "Anthropic's latency guide says to **engineer a prompt that works well first**, without model or prompt constraints, and only then reduce latency, because cutting latency prematurely might prevent you from discovering what top performance looks like. The team wants to do the reverse, which is Option A's tempting tighten-first plan. Option C fails because `max_tokens` is a blunt cut that can stop mid-sentence or mid-word, and D fails because LLMs count tokens, so sentence or paragraph limits work better than word counts.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
@@ -2000,6 +2043,7 @@
     ],
     "answer": "c",
     "takeaway": "Need verifiable quotes? Use **citations**: the API returns valid pointers into your documents, which prompt-based quoting can't promise.",
+    "explanation": "Prompting Claude to quote sources can't promise the quotes match, while the **citations** feature returns pointers that are guaranteed to be valid for the provided documents, which is what reviewers need. Option A is the tempting trap because a schema with a `quotes` field looks rigorous, but a schema constrains format, not whether quotes are real, and citations can't be combined with structured outputs. The `context` field isn't citable (B), and citations must be enabled on all documents in a request or none (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/citations",
@@ -2042,6 +2086,7 @@
     ],
     "answer": "a",
     "takeaway": "Citations and JSON outputs **can't share a request**: citations interleave blocks with text, which a strict schema forbids.",
+    "explanation": "Citations and structured outputs **can't share a request**: citations interleave citation blocks with text, which conflicts with a strict JSON schema, so the API returns a 400 whenever citations are enabled together with `output_config.format`. That matches the stem exactly, since the errors began when the format was added. Option B is the tempting fix because missing beta headers often cause 400s, but beta headers are no longer required, and that one is only for the deprecated `output_format`. Streaming (C) is compatible, and token counting (D) is unrelated.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -2084,6 +2129,7 @@
     ],
     "answer": "d",
     "takeaway": "For machine-read JSON, use **`output_config.format`**: constrained decoding keeps replies schema-valid.",
+    "explanation": "Asking for JSON in the prompt can't guarantee valid output, while JSON outputs via `output_config.format` use **constrained decoding** so replies follow your schema, with exceptions such as refusals and `max_tokens` cutoffs. Option A is the tempting fix because truncation is one way JSON breaks, but a higher limit does nothing to enforce required fields or types. Option B fails because prefilling is incompatible with JSON outputs, and citations (C) are incompatible with structured outputs and don't control format.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -2125,6 +2171,7 @@
     ],
     "answer": "c",
     "takeaway": "Structured outputs pay a **one-time compile** per schema; structure changes recompile, `description` edits don't.",
+    "explanation": "Structured outputs pay a **one-time compile**: the first request with a new schema is slower because a grammar is compiled, and that grammar is cached for 24 hours from last use. Editing only `name` or `description` fields doesn't invalidate the cache, so the teammate's change won't bring the slowdown back; only structural changes do. Option B is the tempting worry because it assumes any edit recompiles. Option A contradicts the caching, and D blames the injected system prompt, which adds tokens but isn't the first-request delay.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -2166,6 +2213,7 @@
     ],
     "answer": "b",
     "takeaway": "`document` blocks take **PDF and plain text**; convert formats like .docx to text first.",
+    "explanation": "`document` blocks accept PDF and plain text, so a .docx is a type the block doesn't support, and the Files API guide recommends converting it to plain text and including the content directly in the message. Option C is the tempting workaround because `container_upload` also takes files, but it sends them to the code execution tool for analysis, not as a document for Claude to read. Image blocks (A) only take image formats, and D fails because files you upload can't be downloaded.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
@@ -2207,6 +2255,7 @@
     ],
     "answer": "a",
     "takeaway": "Uploaded files are **immutable**: to change one, upload a new file and delete the old one.",
+    "explanation": "Files uploaded through the Files API are **immutable**: they can't be modified or renamed after upload, so changing the content means uploading the revised PDF as a new file, switching to its `file_id` and deleting the old one. Option B is the tempting assumption that you can overwrite content behind an ID, which isn't possible. Option C fails because uploaded files can't be downloaded, and D fails because expiration is set once at upload and can't be added later.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -2267,6 +2316,7 @@
     ],
     "answer": "b",
     "takeaway": "Screening and answering are separate jobs: **section** them into parallel calls instead of one overloaded prompt.",
+    "explanation": "The Building effective agents post notes that one call handling both guardrails and the core response tends to perform worse than separate calls, so it recommends **sectioning**: split fixed, known subtasks into parallel calls, with one instance screening and another answering. Option C is tempting because voting is the other parallelization pattern, but it runs the **same** task repeatedly for diverse outputs. Option A keeps the overloaded single prompt, and D is for subtasks that can't be predicted, whereas these two are fixed.",
     "difficulty": "hard",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
@@ -2308,6 +2358,7 @@
     ],
     "answer": "c",
     "takeaway": "ZDR is **per feature**: stateful features such as batches keep their own retention, and under ZDR the API won't stop you using them.",
+    "explanation": "ZDR coverage is **per feature**, not per organization: it covers the Messages and Token Counting APIs for eligible features, and batch processing is marked No with 29-day retention because asynchronous storage is required. Using it steps outside the ZDR arrangement for that data. Option B is the tempting trap because it assumes the API blocks ineligible features, but under ZDR it does not; returning a 400 is how HIPAA readiness behaves. Option A assumes blanket coverage, and `custom_id` (D) doesn't change retention.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
@@ -2357,6 +2408,7 @@
       "d"
     ],
     "takeaway": "For PHI, use **HIPAA readiness** (not ZDR on top), stick to eligible features, and keep PHI in message content only, never in schemas.",
+    "explanation": "For PHI, the arrangement to use is **HIPAA readiness**: with a signed BAA and a HIPAA-enabled organization, you can process PHI with supported API features (A). It also has a subtle rule (D): compiled JSON schemas are cached separately from message content without the same protections, so PHI belongs only in message content. Option B is the most tempting wrong pick, because adding ZDR sounds safer, but you don't also need it. Managed Agents (C) isn't eligible, and the Console (E) isn't covered.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
@@ -2396,6 +2448,7 @@
     ],
     "answer": "a",
     "takeaway": "Under ZDR there is **no CORS**: browser apps reach Claude through your own backend proxy.",
+    "explanation": "The detail that matters is that the app calls the API **straight from the browser**. CORS is not supported for organizations with ZDR arrangements, so those calls fail, and browser apps must go through a backend proxy that calls the API. Option C is tempting because it looks like a configuration fix, but ZDR is enabled per organization, so a new key in the same organization still has no CORS. Option D treats it as an authentication failure, which it isn't, and the Console (B) isn't covered by ZDR.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
@@ -2437,6 +2490,7 @@
     ],
     "answer": "d",
     "takeaway": "Per-request `inference_geo` is a choice; **workspace** allowed and default geos turn it into a policy.",
+    "explanation": "The requirement holds **even if a developer forgets**, so a per-request setting isn't enough; it has to be enforced at the workspace. Setting `allowed_inference_geos` to `[\"us\"]` makes other geos return an error, and `default_inference_geo` of `us` covers requests that omit the parameter. Option A is the trap because it relies on remembering, and a per-request setting can be left out. Option B confuses workspace geo, which governs data at rest and endpoint processing, with inference, and on Bedrock (C) `inference_geo` doesn't apply.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
@@ -2476,6 +2530,7 @@
     ],
     "answer": "b",
     "takeaway": "A residency requirement can force a **model** change: `inference_geo` needs Claude 4.6 or later.",
+    "explanation": "The clue is the model: `inference_geo` only works on Claude 4.6 and later, and requests that include it on Claude Haiku 4.5 or earlier return a 400, so meeting the residency requirement forces a **model change**. Option D is tempting because US inference does have a 1.1x price, but that applies to 4.6 and later; on older models the parameter isn't supported at all. Option A is wrong because the accepted values are lowercase, and workspace geo (C) is a separate setting for data at rest.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
@@ -2515,6 +2570,7 @@
     ],
     "answer": "a",
     "takeaway": "Isolate noisy workloads with **workspace limits**; the org-wide limit still caps the total.",
+    "explanation": "Custom **per-workspace rate limits** exist to protect other workspaces from overuse: capping the experimentation workspace limits its share of the organization limit and leaves the remaining capacity for production. Option C is tempting as a way to get extra headroom, but organization-wide limits always apply even if workspace limits add up to more. Option B fails because the default workspace can't have limits set, and D fails because rate limits are shared across all `inference_geo` values.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -2564,6 +2620,7 @@
       "c"
     ],
     "takeaway": "Plan capacity **before** a spike: request higher limits early and ramp traffic up gradually.",
+    "explanation": "Launch-day spikes carry two risks, and each correct pick addresses one: **Request tier increase** on the Rate limits page raises limits before launch (A), and ramping traffic up gradually avoids the acceleration limits that sharp usage increases can trigger (C). Option D is the most tempting wrong pick because published limits look like reserved capacity, but they are maximum allowed usage, not guaranteed minimums. Lowering `max_tokens` (B) doesn't affect OTPM, and rate limits are shared across `inference_geo` values (E).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
@@ -2606,6 +2663,7 @@
     ],
     "answer": "d",
     "takeaway": "Criteria must fit the **app's purpose**: what is critical for a medical tool may matter little for a chatbot.",
+    "explanation": "**Relevant** criteria align with each application's purpose and user needs, and the guide's own example is that strong citation accuracy might be critical for medical apps but less so for casual chatbots. A clinical reference assistant is exactly that case, so Option D applies the principle. Option B is tempting because it raises the bar, but 100% accuracy beyond any current model breaks the **achievable** rule. Option A reuses criteria built for a different purpose, and C abandons measurability.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
@@ -2647,6 +2705,7 @@
     ],
     "answer": "c",
     "takeaway": "If users notice different answers to the same question, set a **consistency** target.",
+    "explanation": "Matching the complaint to the criterion is the skill here: users get different answers to the **same question asked twice**, and consistency is the criterion that asks how similar responses must be for similar inputs. Option D is the tempting distractor because it also sounds like answer quality, but relevance and coherence cover whether the answer addresses the question logically, not whether repeat answers match. Context utilization (A) and tone and style (B) measure other things.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
@@ -2688,6 +2747,7 @@
     ],
     "answer": "b",
     "takeaway": "Match the requirement to **who runs the agent**: you (Agent SDK), Anthropic (Managed Agents), or you, loop and all (Client SDK).",
+    "explanation": "The deciding requirement is **who runs the agent loop**. The team wants Anthropic to host and run it, configured through the Claude API, with sessions in an Anthropic-managed cloud sandbox, which is what Managed Agents provides. Option A is the tempting trap because the Agent SDK also gives you a ready-made agent loop, but it runs in a process you operate. The Client SDK (C) leaves the tool loop to you or the beta tool runner, and the Claude Code CLI (D) is for interactive and one-off terminal work.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/overview",
@@ -2730,6 +2790,7 @@
     ],
     "answer": "d",
     "takeaway": "A hard **retention** requirement can rule out a hosted option: Managed Agents is stateful and not ZDR-eligible.",
+    "explanation": "Long-running, tool-heavy tasks sound like a Managed Agents fit, but the **ZDR** requirement rules it out: Managed Agents is stateful, with transcripts that persist until you delete them, so it isn't ZDR-eligible. Your own loop on the Messages API with only ZDR-eligible features meets both needs. Option B is the most tempting trap, since a self-hosted sandbox feels like keeping data in-house, but the ineligibility covers all sub-features. Deleting sessions afterward (A) doesn't change eligibility, and HIPAA readiness (C) neither applies nor satisfies ZDR.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
@@ -2779,6 +2840,7 @@
       "d"
     ],
     "takeaway": "Managed Agents fits **long-running, stateful, scheduled** work you don't want to build a loop for; the Messages API fits fine-grained control.",
+    "explanation": "Managed Agents is a pre-built, stateful harness, so it fits work you don't want to build a loop for: tasks running minutes or hours with many tool calls (A), and recurring runs on a cron schedule with minimal infrastructure (D). Option C is the most tempting wrong pick, because coverage of every transcript sounds like a reasonable requirement, but Managed Agents is stateful by design and not ZDR-eligible. Fine-grained loop control (B) and direct prompting with no harness (E) point to the Messages API.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
@@ -2820,6 +2882,7 @@
     ],
     "answer": "b",
     "takeaway": "Before migrating, **audit**: the Console usage export shows which keys still call a deprecated model.",
+    "explanation": "The problem is not knowing **which keys** still call the deprecated model, and the Console's Usage export answers exactly that: its CSV breaks usage down by API key and model. Option D is the tempting trap because the Model deprecations page sounds like the right place, but it lists models with their status, dates and replacements, not your keys. Waiting for failures (A) violates the guidance to migrate before retirement, and C fails because retired model IDs aren't redirected; requests to them fail.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
@@ -2861,6 +2924,7 @@
     ],
     "answer": "d",
     "takeaway": "Lifecycle dates are **per platform**: on Bedrock or Google Cloud, use that platform's retirement schedule.",
+    "explanation": "Lifecycle dates are **per platform**: the dates on Anthropic's Model deprecations page apply to Anthropic-operated platforms, while partner-operated platforms such as Bedrock and Google Cloud set their own retirement schedules, so you check the Bedrock model table. Option A is the tempting assumption that one date applies everywhere. Option C makes the same mistake through Anthropic's notices, and B overcorrects: partner platforms do retire models, just on their own schedules.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
@@ -2902,6 +2966,7 @@
     ],
     "answer": "a",
     "takeaway": "**Capability** evals measure progress (low pass rates are fine); **regression** evals should sit near 100% and gate changes.",
+    "explanation": "Capability evals and regression evals answer different questions. A capability suite measures progress and can start low, like this 40%, while a regression suite asks whether the agent **still handles what it used to** and should pass at nearly 100%, so a drop signals breakage and makes a good merge gate. Option B is the tempting trap because it reuses the suite they already have, but demanding a higher pass rate per merge mixes up hill-climbing with guarding. A/B tests (C) are too slow per merge, and monitoring (D) only reacts after users are hit.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
@@ -2943,6 +3008,7 @@
     ],
     "answer": "b",
     "takeaway": "Evals guard **before** launch; **production monitoring** catches drift and real-world failures after it.",
+    "explanation": "Evals guard **before** launch, and post-launch drift and real-world failures need a layer that watches the live system: production monitoring of metrics and errors. Option A is the tempting answer because rerunning evals feels like ongoing checking, but automated evals can create false confidence when they don't match real usage, and they can't see distribution drift. Human rater studies (C) are expensive and slow, and A/B tests (D) take days or weeks and need sufficient traffic, the opposite of what the option claims.",
     "difficulty": "easy",
     "source": {
       "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
@@ -2984,6 +3050,7 @@
     ],
     "answer": "d",
     "takeaway": "Canary = **small slice + comparison with the control**, broken down by population, then proceed or roll back.",
+    "explanation": "SRE canarying is a partial, time-limited deployment to a **small share of traffic**, evaluated against the control population to decide whether to proceed. Option C is the subtle trap: it has the small slice, but judging it by the overall service error rate hides the canary's errors in the overall trend, so metrics must be broken down by canary versus control. Option A compares weeks, and time is one of the biggest sources of change, while B exposes every user to any defect.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -3040,6 +3107,7 @@
     ],
     "answer": "a",
     "takeaway": "A canary **spends error budget in proportion** to the traffic it exposes: 20% failures on 5% of traffic is 1% overall.",
+    "explanation": "A canary spends error budget **in proportion to the traffic it exposes**. With 20% of the canary's requests failing and the canary serving 5% of traffic, the overall error rate is 20% of 5%, about 1%, so the release risks only a small fragment of the budget. Option C is the tempting miscalculation, treating the whole canary population as failed when only 20% of its requests fail. Option B ignores that only 5% of traffic is exposed, and D is wrong because canary errors do count against the budget.",
     "difficulty": "hard",
     "diagram": {
       "kind": "segmented-bar",
@@ -3103,6 +3171,7 @@
     ],
     "answer": "c",
     "takeaway": "Postmortems are **blameless**: fix the systems and processes, not people, and record preventive actions.",
+    "explanation": "SRE postmortems are **blameless**: they document the incident, its impact, actions taken and root causes, then put preventive actions in place, without indicting any individual or team. Option C captures that. Option A is the tempting instinct after one person's change caused the outage, but naming someone for retraining is exactly the blame the practice avoids. Skipping it (B) means incidents may recur without a learning process, and D leaves out the root causes and follow-ups a postmortem must record.",
     "difficulty": "easy",
     "source": {
       "url": "https://sre.google/sre-book/postmortem-culture/",
@@ -3142,6 +3211,7 @@
     ],
     "answer": "b",
     "takeaway": "For LLM apps, a **200 with wrong content is still an error**: status codes alone miss it, so add end-to-end checks.",
+    "explanation": "In SRE monitoring, the errors signal covers more than explicit failures like HTTP 500s; it also includes **implicit failures**, such as a 200 response with wrong content. A dashboard counting only 5xx responses shows 0% while summaries are wrong, and only end-to-end tests detect wrong content. Option D is the tempting trap because it matches how the dashboard counts errors today, but it ignores implicit failures. Nothing in the stem is slow, so latency (A) doesn't fit, and saturation (C) measures how full the service is, not correctness.",
     "difficulty": "hard",
     "source": {
       "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
@@ -3181,6 +3251,7 @@
     ],
     "answer": "c",
     "takeaway": "Code Review never blocks a merge by itself; to gate on it, read the severity counts from the check run in your own CI.",
+    "explanation": "Claude Code Review never blocks a merge itself: its check run **always completes neutral**, and findings don't approve or block the PR. To gate merges, your own CI parses the machine-readable comment at the end of the Details text and fails when `normal`, the count of Important findings, is non-zero. Option A is the tempting trap because requiring a check in branch protection is the usual way to gate, but a neutral check never fails. `REVIEW.md` (B) tunes what gets flagged, and Review Behavior (D) only sets when reviews run.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3220,6 +3291,7 @@
     ],
     "answer": "d",
     "takeaway": "Review-only rules (severity, nit caps, skips, must-checks) go in **REVIEW.md**; CLAUDE.md is project context for every task.",
+    "explanation": "The stem asks for rules that apply to **review only** and leave everyday Claude Code sessions unchanged. `REVIEW.md` at the repository root holds exactly that kind of guidance (severity, nit caps, skip rules and repo-specific checks) for the review agents. Option A is the tempting trap because CLAUDE.md is the usual place for project rules, but it is shared context for all tasks, so it would affect every session. Review Behavior (B) only chooses when reviews run, and `skillOverrides` (C) carries no review rules.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3261,6 +3333,7 @@
     ],
     "answer": "a",
     "takeaway": "`@claude review` is a one-off; `@claude review always` also subscribes the PR to reviews on later pushes. Post either as a top-level comment.",
+    "explanation": "Two needs drive the answer: a review **now** and fresh reviews on **every later push**, without touching the repo setting. Posting `@claude review always` as a top-level comment does both, since it starts a review and subscribes the PR to push-triggered reviews, and comment commands work in any trigger mode. Option B is the tempting trap: since a July 2026 update, the bare command runs a single review without subscribing. `once` (C) behaves like the bare command, and D fails because commands must be top-level comments, not inline ones.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3300,6 +3373,7 @@
     ],
     "answer": "b",
     "takeaway": "Fork PRs get a Code Review only on request: comment `@claude review`. Pushes and Re-run never start one.",
+    "explanation": "Fork PRs are a special case: Claude never reviews them automatically, whatever the Review Behavior setting, and only reviews one when someone with write access to the **base** repository comments `@claude review`. That's why After every push did nothing here. Option C is the tempting trap, since it mentions write access, but the access that matters is to the base repo and pushes never start a fork review. Clicking Re-run (A) doesn't start one either, and draft status (D) isn't the cause.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3347,6 +3421,7 @@
       "e"
     ],
     "takeaway": "Act on Code Review findings by pushing fixes or resolving threads; replies and reactions change nothing on the PR.",
+    "explanation": "Code Review findings change only through **code or thread resolution**. For the real bug, fix it and push; because the PR is subscribed, the next push-triggered review resolves the thread once the issue is fixed (B). For the false positive, resolving its thread dismisses it with no code change (E). Option D is the most tempting wrong pick, since replying feels like dismissing, but replies don't dismiss findings or prompt Claude to respond. Asking for a fix in a reply (A) and reacting with a thumbs-down (C) don't change the PR.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3386,6 +3461,7 @@
     ],
     "answer": "b",
     "takeaway": "A background `/code-review --fix` edits outside your checkpoints: `/rewind` won't undo it, but git will.",
+    "explanation": "The detail that matters is that the review ran **in the background**. A background `/code-review --fix` applies its edits outside your session's checkpoints, so `/rewind` can't restore them and you revert with git instead. Option A is the tempting explanation, but `/rewind` does restore code edits from your turn, including a foreground review's. Option C wrongly limits the bypass to `ultra` cloud reviews and treats an effort level as an undo, and D invents an approval step that isn't described.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
@@ -3425,6 +3501,7 @@
     ],
     "answer": "d",
     "takeaway": "Commits pushed with the default `GITHUB_TOKEN` don't trigger CI; let the action authenticate as the Claude GitHub App.",
+    "explanation": "GitHub does not trigger workflows on commits made with the default `GITHUB_TOKEN`, so passing it to `claude-code-action` means Claude's pushes never start CI, regardless of how the push is made. Removing the `github_token` input lets the action authenticate as the Claude GitHub App (or you pass a custom app token). Option B is the tempting trap because `allowed_bots` sounds like it permits bot commits to run things, but it only decides which bots may trigger the Claude action itself. `actions: read` (A) lets Claude read CI results, and C still pushes with the same token.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/github-actions",
@@ -3464,6 +3541,7 @@
     ],
     "answer": "c",
     "takeaway": "No `prompt` input = interactive mode (waits for `@claude`); a `prompt` input = automation mode (runs on the event).",
+    "explanation": "`claude-code-action` has two modes: with no `prompt` input it runs in **interactive** mode and waits for the trigger phrase, `@claude` by default; with a `prompt` input it runs in **automation** mode on the event itself. To triage every new issue without a mention, the issue workflow needs a `prompt`. Option A is the tempting reversal, since removing the prompt is exactly what makes the action wait for a mention. `--max-turns` (B) only limits turns, and the quick-setup review workflow (D) reviews pull requests, not issues.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/github-actions",
@@ -3511,6 +3589,7 @@
       "d"
     ],
     "takeaway": "Cap Claude in CI with `--max-turns` and workflow timeouts; keep requests specific and `CLAUDE.md` concise.",
+    "explanation": "The question asks what **caps the work each run can do**, so look for hard limits rather than general hygiene. `--max-turns` (A) caps how many iterations Claude takes, and a workflow-level timeout (D) stops a runaway job outright. Option B is the trap: the guide says to keep `CLAUDE.md` concise, since Claude reads it on every run. `github_token` (C) is for GitHub operations, not billing, and full git history (E) is not one of the guide's levers.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/github-actions",
@@ -3550,6 +3629,7 @@
     ],
     "answer": "a",
     "takeaway": "Refactor in **small, testable increments** that preserve behavior, then have Claude run the tests to verify the refactor.",
+    "explanation": "The refactoring recipe has two parts: keep the same behavior while changing code in **small, testable increments**, then verify by running tests. Because other modules depend on `utils.js`, every step needs to be checkable. Option C is tempting since tests run at the end anyway, but one big rewrite is exactly what the recipe avoids. Option B skips the verification step the recipe ends with, and D contradicts the tip to keep backward compatibility when needed.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/common-workflows",
@@ -3589,6 +3669,7 @@
     ],
     "answer": "d",
     "takeaway": "Claude Code worktrees branch from an existing commit, so a repo needs at least one commit before `claude --worktree` works.",
+    "explanation": "Each worktree is a separate checkout on its own branch, **created from an existing commit**. The key detail is a brand-new repo with no commits, and the error about resolving `HEAD` says there is nothing to base the worktree on, so make a first commit. Option C is tempting because the error mentions a branch, but the missing piece is the base commit, not a pre-made branch. A remote (A) isn't a stated requirement, and multiple worktrees (B) are fine.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/common-workflows",
@@ -3628,6 +3709,7 @@
     ],
     "answer": "a",
     "takeaway": "Review AI-written code in a **fresh context** (Writer/Reviewer), so the reviewer isn't biased toward its own work.",
+    "explanation": "The bias here comes from the reviewer having **just written the code**, so the fix is a reviewer that never saw that reasoning: the Writer/Reviewer pattern, a second session with fresh context whose findings you pass back. Option B is the obvious trap, since the same session still carries the reasoning that produced the code. Summarizing with `/compact` (C) or raising effort (D) changes neither who is reviewing nor the context it reviews from.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -3675,6 +3757,7 @@
       "e"
     ],
     "takeaway": "For big migrations: list the files, fan out `claude -p`, test on a few first, and pre-approve tools with `dontAsk` for unattended runs.",
+    "explanation": "Two details drive this: the run is **unattended** and it is **large**. For unattended runs, `--allowedTools` pre-approves what the migration needs and `--permission-mode dontAsk` denies anything else (E), so nothing waits for a human. For scale, test the loop on 2–3 files and refine the prompt first (B). Option D is the trap: leaving tools unapproved makes each invocation stall on a prompt nobody answers. A single session (A) and no file list (C) go against the fan-out approach.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -3717,6 +3800,7 @@
     ],
     "answer": "c",
     "takeaway": "Checkpoints cover Claude's file edits only; changes made through Bash need **git** to undo.",
+    "explanation": "Checkpoints only track changes made through **Claude's file editing tools**; changes made by Bash commands aren't captured, which is why checkpoints aren't a replacement for git. Here the codemod ran through Bash, so `/rewind` restores only the 3 tool edits and git must undo the 40 codemod files. Option A is tempting because each prompt does create a checkpoint, but that checkpoint never saw the Bash changes. Option D has it exactly backwards.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -3756,6 +3840,7 @@
     ],
     "answer": "b",
     "takeaway": "**409** is a state conflict (concurrent change, duplicate unique value): resolve it, then retry.",
+    "explanation": "Each status code points to a different cause, so match the scenario to the code. **409** means the request conflicts with the **current state of a resource**, such as a concurrent change; two workers modifying the same resource at once is exactly that, so resolve the conflict and retry. Option A is tempting because two workers are involved, but key problems are 401 `authentication_error`. Overload is 529 (C) and an oversized body is 413 (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -3797,6 +3882,7 @@
     ],
     "answer": "a",
     "takeaway": "Long requests that time out (**504**) should use **streaming** or the **Message Batches API**.",
+    "explanation": "A **504** means the request timed out while processing, and the stem stresses a **very long output** sent without streaming. For long-running requests the page recommends the streaming Messages API, or the Message Batches API when results can wait. Option B is the trap: more `max_tokens` lets the request run even longer, and the page warns against a large `max_tokens` without streaming or batches. Retrying (C) repeats the same slow call, and 500, not 504, is the internal error (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -3839,6 +3925,7 @@
     ],
     "answer": "c",
     "takeaway": "Handle API errors by **exception class**, most specific first, never by matching message strings.",
+    "explanation": "The bug is matching on **message text**, which can change, as the SDK update showed. The SDK raises typed exceptions, so catch classes such as `anthropic.NotFoundError`, handling the most specific first. Option A is tempting because it seems more precise, but it is still string-matching the message. Catching base `Exception` (B) throws away the distinctions, and D assumes raw JSON comes back when the SDK raises exceptions instead.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -3880,6 +3967,7 @@
     ],
     "answer": "d",
     "takeaway": "Parse API error JSON defensively: `type` values can grow over time, so give unknown ones a fallback path.",
+    "explanation": "The fragile part is the `switch` that **throws on unknown values**. Under the versioning policy, values in these error objects may expand, so new `type` values can appear and must be handled with a fallback. Option A is tempting, but the API always returns JSON errors with a top-level `error` object containing `type` and `message`, for 4xx and 5xx alike, so B is wrong too. The values are fixed machine strings like `not_found_error`, not localized (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
@@ -3921,6 +4009,7 @@
     ],
     "answer": "b",
     "takeaway": "For long generations, **stream**: the SDK rejects non-streaming calls expected to run past ~10 minutes.",
+    "explanation": "The SDK raises this `ValueError` up front for a **non-streaming request expected to run past about 10 minutes**, which a very large `max_tokens` triggers. The page's fix is to stream, for example with `stream=True` (overriding `timeout` also disables it). Option A is the trap: this isn't a timeout to retry, and retrying sends the identical request. `max_retries` (C) only configures retries, and the async client (D) isn't exempt.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
@@ -3963,6 +4052,7 @@
     ],
     "answer": "d",
     "takeaway": "Retry blindly only **idempotent** methods (GET, PUT, DELETE…); POST and PATCH aren't guaranteed to be idempotent.",
+    "explanation": "When you can't tell whether the server processed a request, only an **idempotent** method is safe to send again. PUT is idempotent, and sending the full order to `/orders/42` gives the same intended effect however many times it lands. Option A is the trap: an identical body doesn't make POST idempotent, since repeated POSTs can add repeated rows. PATCH (B) isn't guaranteed idempotent, and idempotency is about the effect on the server, not matching status codes (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent",
@@ -4002,6 +4092,7 @@
     ],
     "answer": "a",
     "takeaway": "**PATCH** = partial change (not guaranteed idempotent); **PUT** = full replacement (idempotent).",
+    "explanation": "The deciding detail is that the client sends **only the field it wants changed** and the rest must stay untouched. That is PATCH, which applies partial modifications to a resource. Option B is the trap: PUT sounds like 'update', but it represents a **complete replacement** of the resource, not a partial change. OPTIONS (C) doesn't edit data, and D wrongly treats HTTP as a one-to-one map of CRUD.",
     "difficulty": "easy",
     "source": {
       "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/PATCH",
@@ -4049,6 +4140,7 @@
       "d"
     ],
     "takeaway": "Interoperable JSON: unique names, no reliance on member order, UTF-8 with no BOM.",
+    "explanation": "Interoperability means every receiver, whatever library it uses, agrees on the data. **Unique names** (A) make all implementations agree on the name-value mappings, and **not depending on member order** (D) avoids a point where parsers differ. Option C is the tempting one, but with duplicate names behavior is unpredictable: many parsers keep the last pair, others error or report all pairs. A BOM (B) is forbidden on networked JSON, and text exchanged between open systems must be UTF-8, not UTF-16 (E).",
     "difficulty": "medium",
     "source": {
       "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
@@ -4088,6 +4180,7 @@
     ],
     "answer": "b",
     "takeaway": "With double-precision parsers, only integers within ±(2**53 − 1) are sure to be exact; bigger JSON numbers may be approximated.",
+    "explanation": "RFC 8259 lets implementations set limits on number range and precision. With IEEE 754 doubles, only integers in **[-(2**53)+1, (2**53)-1]** are sure to be agreed exactly, and `9007199254740993` is larger, so it may be approximated. Option D is the trap: the parser isn't non-compliant, because the RFC explicitly allows these limits. There's no 2**31 cap (A), and numbers are their own JSON type, not strings (C).",
     "difficulty": "hard",
     "source": {
       "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
@@ -4127,6 +4220,7 @@
     ],
     "answer": "d",
     "takeaway": "Cap async concurrency with **`asyncio.Semaphore(n)`** and `async with` around each call.",
+    "explanation": "You need a **counter of concurrent holders**: `asyncio.Semaphore(10)` blocks `acquire()` when the counter hits zero, so at most 10 calls are in flight, and `async with` around each call is the preferred form. Option A is the trap: a Lock is a mutex, so only one task holds it at a time, not ten. An Event (B) is a flag that notifies tasks, not a counter, and `threading.Semaphore` (C) is wrong for tasks on one event loop.",
     "difficulty": "easy",
     "source": {
       "url": "https://docs.python.org/3/library/asyncio-sync.html",
@@ -4168,6 +4262,7 @@
     ],
     "answer": "b",
     "takeaway": "`gather(..., return_exceptions=True)` returns results and exceptions together, in input order.",
+    "explanation": "By default, the first exception from `gather()` propagates immediately, so you lose the result list. With `return_exceptions=True`, exceptions are treated like results and aggregated, in the **same order as the awaitables** you passed, which gives you both successes and failures matched to inputs. Option C is tempting but adds an unneeded step, since order already follows the inputs. Option A misstates the default: the others aren't cancelled and no partial list comes back.",
     "difficulty": "medium",
     "source": {
       "url": "https://docs.python.org/3/library/asyncio-task.html",
@@ -4209,6 +4304,7 @@
     ],
     "answer": "c",
     "takeaway": "Use **`git revert`** to undo a past commit by recording a new, reversing commit; it needs a clean working tree.",
+    "explanation": "Two constraints matter: undo **only one past commit** with later commits on top, and **keep a record** of doing it. `git revert <commit>` records a new commit that reverses the earlier one, so history stays intact. Option D is tempting because it also uses revert, but revert requires a clean working tree, so uncommitted edits can't fold in. `reset --hard` (A) throws away uncommitted changes, and `restore --source` (B) extracts files rather than removing commits.",
     "difficulty": "easy",
     "source": {
       "url": "https://git-scm.com/docs/git-revert",
@@ -4248,6 +4344,7 @@
     ],
     "answer": "b",
     "takeaway": "CODEOWNERS is read from the PR's **base branch**: merge it there before it can request reviews.",
+    "explanation": "Code owners are requested automatically on a PR that changes code they own, but **only if CODEOWNERS is on the PR's base branch**. Here the file exists only on the feature branch, and the PR targets `main`, which lacks it, so no request goes out. Option A is tempting because fork PRs are a documented case, but code owners apply to any PR touching their code. Requests don't wait for an approval (C), and the file is named `CODEOWNERS`, not `.codeowners` (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
@@ -4287,6 +4384,7 @@
     ],
     "answer": "b",
     "takeaway": "Switching to unrelated work? Run **`/clear`** first; leftover context from the old task only crowds out the new one.",
+    "explanation": "The new task is **unrelated**, and old auth context is distracting Claude. The guide says to use `/clear` between unrelated tasks, which resets the context so nothing from the auth work is carried over. Option A is the trap: `/compact` keeps a summary of the auth work in context, which is the very thing you want gone. A CLAUDE.md note (C) loads every session and should hold only broad guidance, and D is wrong because irrelevant context in long sessions can reduce performance.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -4329,6 +4427,7 @@
     ],
     "answer": "c",
     "takeaway": "Corrected twice and still wrong? **Start fresh** with a better prompt; accumulated failed attempts pollute the context.",
+    "explanation": "The guide's rule of thumb: after **two failed corrections**, run `/clear` and write a better initial prompt using what you learned, because a clean session with a better prompt almost always outperforms one full of corrections. Three failed fixes in a long session means the context is polluted with failed approaches. Option B is tempting since `Esc` lets you redirect, but it preserves context, so the failures stay. Louder wording (A) and stuffing CLAUDE.md (D) don't remove the clutter.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -4370,6 +4469,7 @@
     ],
     "answer": "a",
     "takeaway": "To shrink context but keep what matters, give `/compact` **instructions** saying what the summary should focus on.",
+    "explanation": "You want two things: **free up context** and **keep the API details**. `/compact` replaces the history with a summary, and adding instructions such as `Focus on the API changes` tells that summary what to keep. Option B is tempting because it frees the most space, but `/clear` empties the context, so the details are gone and you'd retype them by hand. `/context` (C) only shows what's using context, and `/rename` (D) just names the session.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
@@ -4411,6 +4511,7 @@
     ],
     "answer": "d",
     "takeaway": "Rules that must outlive `/compact` belong in the **project-root CLAUDE.md**, not only in the chat.",
+    "explanation": "Instructions given only in chat can disappear after compaction. The **project-root CLAUDE.md** is different: after `/compact`, Claude re-reads it from disk and re-injects it, so a rule there survives. Options B and C are the subtle traps: path-scoped rules and nested CLAUDE.md files load on demand, so after compaction the rule may be missing until a matching file is touched. Marking a chat message IMPORTANT (A) doesn't make it persist.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
@@ -4453,6 +4554,7 @@
     ],
     "answer": "b",
     "takeaway": "Path-scoped rules and nested CLAUDE.md files are **summarized away** by compaction; the root CLAUDE.md is re-injected.",
+    "explanation": "Context that loads on demand into history, like a path-scoped rule, gets **summarized away** by compaction; the project-root CLAUDE.md is re-injected from disk. So to have the rule present after every compaction, drop `paths:` or move it to the root CLAUDE.md. Option A is the trap because it feels more targeted, but a nested CLAUDE.md also loads into history when triggered and is summarized away the same way. Hook output (C) and chat restatements (D) are history too.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/context-window",
@@ -4503,6 +4605,7 @@
       "d"
     ],
     "takeaway": "Named sessions resume by name: **`claude --resume <name>`** from the shell, or **`/resume <name>`** inside a session.",
+    "explanation": "The session has a name from `/rename`, so you can resume it **by name**: `claude --resume oauth-migration` from the shell (B), or `/resume oauth-migration` inside a running session (D). Option A is the trap: `--continue` reopens the **most recent** session in the directory, and the stem says you worked in two others since. `-n` (C) names a new session, and `/clear` with a name (E) names the session you're leaving and starts fresh.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
@@ -4544,6 +4647,7 @@
     ],
     "answer": "a",
     "takeaway": "Resume restores the conversation, not every launch flag: **re-pass** `--mcp-config`, `--plugin-dir` and similar when you resume.",
+    "explanation": "Resume restores the conversation, but some launch flags aren't restored: if a session depended on `--mcp-config` or `--plugin-dir`, pass them again with `--continue`. That fits the stem exactly, since the conversation came back but the tools and skills didn't. Option D is tempting, but resume restores the full history, including tool calls; MCP isn't blocked. Model and permissions generally carry over (B), and `--continue` did open the right conversation (C).",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
@@ -4593,6 +4697,7 @@
       "d"
     ],
     "takeaway": "Keep the main context lean: **`/clear`** between tasks and send exploration to **subagents**.",
+    "explanation": "Both correct habits keep unneeded material out of the main context. `/clear` between unrelated tasks (A) resets the window, and delegating research to subagents (D) keeps exploration in separate context windows that report back summaries. Option C is tempting because more investigation feels thorough, but unscoped investigation is a named failure pattern that fills the context. Bloating CLAUDE.md (B) makes Claude ignore instructions, and repeated corrections (E) pollute context.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/best-practices",
@@ -4635,6 +4740,7 @@
     ],
     "answer": "b",
     "takeaway": "claude.ai behavior includes **its own system prompt** (current date, formatting habits); those system prompts don't apply to the API.",
+    "explanation": "claude.ai and the mobile apps use **their own system prompt**, which supplies information such as the current date, and those system prompts don't apply to the Claude API. The stem's detail, an API call with **no system prompt**, means nothing gives the model the date. Option A is tempting because it blames the model, but the difference is the system prompt, not training. Nothing is stripped by the API (C), and memory (D) isn't where the date comes from.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/release-notes/system-prompts/overview",
@@ -4677,6 +4783,7 @@
     ],
     "answer": "a",
     "takeaway": "CLAUDE.md arrives as a **user message**; use `--append-system-prompt` when instructions belong at the system-prompt level.",
+    "explanation": "CLAUDE.md content reaches Claude as a **user message** after the system prompt, wherever in the file you put it. To deliver instructions at the system-prompt level, the guide recommends `--append-system-prompt`, which is passed at launch and suits a CI script. Option B is the trap: an IMPORTANT heading changes emphasis, not delivery, so it's still a user message. An `@path` import (C) is still CLAUDE.md content, and auto memory (D) loads as context like CLAUDE.md.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
@@ -4719,6 +4826,7 @@
     ],
     "answer": "c",
     "takeaway": "New operator rule mid-session? A **mid-conversation system message** adds operator authority without invalidating the cached prefix.",
+    "explanation": "You need **operator authority** without re-processing a cached history. A `system`-role message appended after the latest user turn carries operator authority and sits at the end, so the existing cache entry still matches. Option A is the trap: editing the top-level `system` field would re-process the whole history instead of reusing the cached prefix. A `user` message (B) is treated as the end user, and a system message can't come first in `messages` (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages",
@@ -4761,6 +4869,7 @@
     ],
     "answer": "d",
     "takeaway": "Right after tool results, injection-resistant models may distrust a system message; put the **user's words in the user turn**.",
+    "explanation": "Sonnet 5.5 and Haiku 5.5 resist injection via tool results, so a `system` message placed **right after a `tool_result`** can be treated as untrusted. The guide's fix is to put the user's words as a `text` block in that same user message after the last `tool_result`. Option C is tempting since it moves the message, but between a `tool_use` and its `tool_result` is a 400 error. No beta header exists (A), and Sonnet 5 lacks mid-conversation system messages (B).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages",
@@ -4803,6 +4912,7 @@
     ],
     "answer": "b",
     "takeaway": "A custom SDK system prompt should say what **system reminders** are, or Claude may read app-added context as the user's words.",
+    "explanation": "The `claude_code` preset explains what **system reminders** are; a custom `systemPrompt` string replaces the preset, so that explanation is gone and Claude may read CLAUDE.md content and hook output as the user's words. Add a sentence saying reminders are context from the application. Option D is tempting because it touches CLAUDE.md, but the SDK injects CLAUDE.md into the conversation, not the system prompt. A only works on the preset, and C turns off attachments rather than labeling them.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
@@ -4845,6 +4955,7 @@
     ],
     "answer": "c",
     "takeaway": "File IDs are **workspace-wide**: keep them server-side, never take them from users, and give each tenant its own workspace.",
+    "explanation": "Files are **scoped to the workspace**, not to an end user, conversation or API key, so any request in that workspace can reference any file. If the browser supplies the `file_id`, one user could send another's ID and read their upload. Keep IDs server-side, map users to files in your app, and give each tenant its own workspace. Option D is the trap because it assumes per-conversation scoping. Expiration (B) is lifecycle, not access control, and A is false too.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
@@ -4886,6 +4997,7 @@
     ],
     "answer": "d",
     "takeaway": "Structured outputs reject `minimum`/`maximum`-style constraints: strip them (most SDK helpers do) and **enforce them in code**.",
+    "explanation": "Numerical constraints such as `minimum` and `maximum` are **unsupported** in structured-output schemas, which is why the API returns a 400 with details. Drop them, or let an SDK helper strip them into field descriptions and validate against your original schema, enforcing the bounds in code. Option A is tempting, but `strict: true` belongs on tool definitions and wouldn't make these limits supported. Wrapping in `anyOf` (B) keeps the bounds, and the error isn't a timeout (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -4936,6 +5048,7 @@
       "e"
     ],
     "takeaway": "Structured-output schemas can't use recursion or length/number limits; `enum`, internal `$ref` and `additionalProperties: false` are fine.",
+    "explanation": "Two kinds of schema features are rejected: **recursive schemas** (A), and **string length constraints** like `maxLength` (E). Option C is the most tempting wrong pick, because `$ref` sounds risky, but a `$ref` to the schema's own `$defs` is supported; only an external `$ref` isn't. A string `enum` (B) works, and `additionalProperties: false` (D) isn't just allowed but required for objects.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -4977,6 +5090,7 @@
     ],
     "answer": "a",
     "takeaway": "Structured outputs emit **required properties first**; if order matters, make every property required.",
+    "explanation": "Structured outputs keep properties in **schema order, except that required properties come first**, followed by optional ones. Since `title` is optional and `id` and `score` are required, `title` lands last. Make every property required, or let the parser accept the order. Option C is the trap: it overcorrects by claiming order is ignored, when it's kept with one caveat. `additionalProperties: false` (B) is required anyway, and `max_tokens` (D) only matters if output is cut off.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -5018,6 +5132,7 @@
     ],
     "answer": "c",
     "takeaway": "Never put PHI in a **schema** (property names, `enum`, `const`, `pattern`): schemas are cached apart from protected message content.",
+    "explanation": "Structured outputs being HIPAA eligible covers **prompts and responses**, not schemas. Compiled schemas are cached separately, for up to 24 hours since last use, without the PHI protections that message content gets. So patient names belong only in message content, never in an `enum`. Option A is the trap: eligibility doesn't extend to the schema. Moving names to a `pattern` (B) is still the schema, and D is wrong because schemas are cached, not discarded.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -5068,6 +5183,7 @@
       "c"
     ],
     "takeaway": "Make tool choice easy: **consolidate** related actions into one tool and **namespace** tool names by service.",
+    "explanation": "The symptom is Claude **picking the wrong tool**, so the fixes reduce selection ambiguity. Grouping `create_pr`, `review_pr` and `merge_pr` into one tool with an `action` parameter (B) removes near-duplicates, and namespacing by service (C), such as `github_` and `slack_`, makes each name unambiguous. Option A is the tempting trap: detailed descriptions are the most important factor in tool performance, so shortening them hurts. Bloated responses (D) and step-by-step reasoning parameters (E) are discouraged.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
@@ -5110,6 +5226,7 @@
     ],
     "answer": "d",
     "takeaway": "JSON outputs (what Claude **says**) and strict tool use (how it **calls tools**) work together in one request.",
+    "explanation": "JSON outputs control **what Claude says** and strict tool use controls **how it calls tools**, and the guide lists them as compatible in one request. With `strict: true` tools plus `output_config.format`, Claude calls tools with guaranteed-valid parameters and returns structured JSON, which suits agentic workflows. Option A is the teammate's mistaken claim. Citations (B) and prefilling (C) are each incompatible with JSON outputs, so neither delivers the report.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -5152,6 +5269,7 @@
     ],
     "answer": "c",
     "takeaway": "Project scope **enables** a plugin for collaborators but doesn't **download** it; each of them runs the install once.",
+    "explanation": "Committing a project-scope plugin entry **enables** the plugin for collaborators, but it doesn't **download** it to their machines. That's why Claude Code reports it as enabled but not installed. Each collaborator runs `claude plugin install <name>@<marketplace> --scope project` once. Option B is tempting, but `/reload-plugins` only loads plugins already installed. Option A assumes the commit downloads it, and D gets precedence backwards and still wouldn't download anything.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5194,6 +5312,7 @@
     ],
     "answer": "b",
     "takeaway": "Plugin scopes: **user** = all your projects, **project** = everyone in the repo, **local** = just you in this repo.",
+    "explanation": "Match the scope to who should get the plugin: **just you, in this repo only**. That's local scope, recorded in `.claude/settings.local.json`. Option C is the trap, since it is also per-repo, but project scope writes to the committed `.claude/settings.json` and enables it for everyone in the repository. User scope (A) applies to every project on your machine, and managed scope (D) is set by your organization.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5236,6 +5355,7 @@
     ],
     "answer": "a",
     "takeaway": "To opt out of a project-enabled plugin, **disable it for yourself** in local settings; don't touch the shared file.",
+    "explanation": "You want it off **for you** while the shared project keeps it. **Disable for me** writes `false` for the plugin in your own `.claude/settings.local.json`, leaving the project install untouched. Option D is tempting because it sets the same `false`, but in the shared `.claude/settings.json`, so committing it turns it off for teammates. Uninstall for everyone (B) removes it from the shared file, and removing the marketplace (C) uninstalls every plugin from it.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5277,6 +5397,7 @@
     ],
     "answer": "b",
     "takeaway": "In `claude -p`, **`/plugin` doesn't run**: install with `claude plugin install` from the shell, and installed plugins still load.",
+    "explanation": "In `claude -p` and other non-interactive runs, the **`/plugin` command doesn't run**; plugins are managed with `claude plugin` commands from the shell, and installed plugins do load in `-p` runs. So the CI job should run `claude plugin install formatter@your-org` first. Option D is the trap, overcorrecting by moving to an interactive session, when only `/plugin` is unavailable. `--verbose` (A) and `/reload-plugins` (C) don't make `/plugin` work.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5318,6 +5439,7 @@
     ],
     "answer": "d",
     "takeaway": "Cloud sessions don't inherit your **local plugin setup**; organizations distribute plugins to them through managed settings.",
+    "explanation": "A cloud session at claude.ai/code **doesn't load plugins installed on your machine**, nor ones turned on by the repo's `.claude/settings.json`; organizations distribute plugins there through managed settings. That explains why the same repo behaves differently. Option B is tempting because it suggests a scope fix, but scope doesn't matter: local installs don't reach cloud sessions at all. There's no plugin browser there (C), and reloading (A) changes nothing.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5367,6 +5489,7 @@
       "e"
     ],
     "takeaway": "Scripted installs: register the **official marketplace** first on fresh machines, and pass **`--yes`** for command-source plugins.",
+    "explanation": "Two details matter: **brand-new machines** and an **unattended script**. Where nobody has opened an interactive session, the official marketplace isn't registered, so add it first with `claude plugin marketplace add` (C). A `command` source asks you to accept its command, and a script has no one to answer, so pass `--yes` (E). Option A is the trap: `/plugin` doesn't run in `claude -p`. Open sessions need a restart or `/reload-plugins` (B), and `--scope managed` isn't an install option (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/discover-plugins",
@@ -5408,6 +5531,7 @@
     ],
     "answer": "a",
     "takeaway": "Claude Desktop reads `claude_desktop_config.json` at startup: after editing it, **fully restart** the app.",
+    "explanation": "Claude Desktop reads `claude_desktop_config.json` **at startup**, so the application must restart to load the new configuration and start the MCP server: completely quit it and relaunch. Option B is the trap, since a new chat feels like a reload, but it isn't enough. Option C would introduce a real problem, because config paths must be valid and absolute, and D confuses the config file with your Claude account settings.",
     "difficulty": "easy",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/connect-local-servers",
@@ -5458,6 +5582,7 @@
       "d"
     ],
     "takeaway": "Claude in Amazon Bedrock keeps the Messages API shape, but some features, such as **Message Batches** and the **Files API**, aren't available there.",
+    "explanation": "Claude in Amazon Bedrock keeps the Messages API shape, but some features aren't there. **Message Batches** (B) is among the unsupported API endpoints, and the **Files API** (D) falls under unsupported input sources, so the nightly batch and `file_id` uploads need replacing. The tempting picks are A, C and E, but prompt caching, thinking and citations are all listed as supported feature highlights, so those parts of the design can stay.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
@@ -5500,6 +5625,7 @@
     ],
     "answer": "c",
     "takeaway": "On Bedrock, **global** endpoints route dynamically with no premium; **regional** endpoints pin one region for residency at a 10% premium.",
+    "explanation": "Two requirements pull in different directions: one product needs **single-region** processing, the rest wants **cheapest and most available**. A regional endpoint pins the region you specify, at a 10% premium, while the global endpoint routes dynamically with no premium. So split the traffic. Option A is the trap: global routing spans regions and can't guarantee residency. All-regional (B) adds needless cost, and inference profiles (D) still span a geography, not one region.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
@@ -5541,6 +5667,7 @@
     ],
     "answer": "d",
     "takeaway": "On Google Cloud, the **model is in the URL** and `anthropic_version: \"vertex-2023-10-16\"` is in the body; the rest matches the Messages API.",
+    "explanation": "The request on Agent Platform is nearly identical to the Messages API, with **two differences**: `model` goes in the endpoint URL rather than the body, and `anthropic_version` is sent in the body, not as a header, with the value `vertex-2023-10-16`. Option C is tempting because it moves `model`, but to a header instead of the URL, and it leaves the version header unchanged. A ignores both differences, and B invents renames that aren't among them.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
@@ -5582,6 +5709,7 @@
     ],
     "answer": "a",
     "takeaway": "On Foundry, `model` is your **deployment name**, which matches the model ID only if you kept the default name.",
+    "explanation": "On Foundry, the **deployment name** becomes the value you pass in `model`. It defaults to the model ID, which is why `claude-opus-5-5` would work only with the default name; here you chose `support-opus`, so that's what `model` needs. Option B is tempting because provider-prefixed IDs feel platform-correct, but Foundry doesn't use one. The Target URI (C) is the endpoint URL, and no `@foundry` suffix exists (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
@@ -5623,6 +5751,7 @@
     ],
     "answer": "b",
     "takeaway": "Foundry responses lack the `anthropic-ratelimit-*` headers: track limits with **Azure monitoring** and use backoff on 429s.",
+    "explanation": "Foundry **does not include** Anthropic's standard `anthropic-ratelimit-*` headers, so a throttle reading them gets nothing. The guide says to manage rate limiting through Azure's monitoring tools and back off on 429s. Option C is tempting because `usage` sounds like quota, but it reports token consumption for the request, not remaining limits. No header (A) or auth method (D) turns the rate limit headers back on.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
@@ -5664,6 +5793,7 @@
     ],
     "answer": "c",
     "takeaway": "In Bedrock's Converse API, visual PDF analysis needs **citations enabled**; otherwise you get text extraction only.",
+    "explanation": "In Bedrock's Converse API, full **visual** PDF understanding requires **citations enabled**; without them it falls back to basic text extraction. That matches the symptom exactly: text answers work, but charts are invisible. Option D is tempting but false, since PDF support converts each page to an image plus text so charts can be analyzed. File IDs (A) aren't available on Bedrock anyway, and nothing in the stem points to a page limit (B).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
@@ -5705,6 +5835,7 @@
     ],
     "answer": "d",
     "takeaway": "PDF requests allow up to **600 pages**, but only **100** when the context window is under 1M tokens; split larger documents.",
+    "explanation": "The key contrast is the **context window**: the same PDF fails at 200k tokens and works at 1M. The page limit is 600 pages per request, but only **100** when the context window is under 1M tokens, so 180 pages fails on the smaller model; split it into chunks. Option C is tempting, but the limit applies to the whole request however the PDF is supplied. The 32 MB cap doesn't depend on the model (A), and all active models support PDFs (B).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
@@ -5746,6 +5877,7 @@
     ],
     "answer": "b",
     "takeaway": "A PDF page costs its **text tokens plus image tokens**; use token counting to estimate real documents.",
+    "explanation": "Each PDF page is sent as **extracted text plus an image**, and that image is costed like any other image input. Counting only the text misses the image tokens, so real usage comes out higher. Option A is tempting because it also explains extra cost, but standard pricing applies with no additional PDF fees. Text isn't priced at a special rate (C), and the guide actually recommends the token counting API to estimate PDFs (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
@@ -5787,6 +5919,7 @@
     ],
     "answer": "c",
     "takeaway": "Claude 4.7 and later see images at **high resolution** (up to ~3× the visual tokens); downsample when you don't need the detail.",
+    "explanation": "Claude 4.7 and later use a **high-resolution tier** (2576 px long edge), so a 1920x1080 screenshot isn't downsized and costs about 2691 tokens instead of 1560. Since quality was already fine, downsample images that don't need that fidelity. Option D is tempting because it also blames image size, but images aren't padded to 4K; only those over the limits are downscaled. Images aren't billed twice (A), and high resolution needs no beta header (B).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
@@ -5836,6 +5969,7 @@
       "b"
     ],
     "takeaway": "Files API: upload once, pay as **input tokens** when used, files are **workspace-scoped**, and your uploads can't be downloaded.",
+    "explanation": "Two facts hit this design directly. Users want their originals back, but **uploaded files can't be downloaded** (A); only files created by skills or the code execution tool can. And uploads are free, but file content used in Messages is **billed as input tokens** (B). Option E is the tempting wrong pick, but files are workspace-scoped, not per API key. The file limit is 500 MB, not 32 MB (C), and the Files API needs no beta header (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
@@ -5878,6 +6012,7 @@
     ],
     "answer": "b",
     "takeaway": "`expires_in_seconds` (1 hour to 90 days) is fixed at upload; after `expires_at`, requests that reference the file **fail**.",
+    "explanation": "`expires_in_seconds` is **set once at upload and can't be changed**. After 10 days the 7-day file has passed its `expires_at`, so a Messages request that references it fails before inference. Option A is the trap: referencing a file doesn't renew it. Option D twists a real detail, since only metadata stays readable for up to 30 days, and content isn't retrievable after expiry, so there's no cached copy (C).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/files",
@@ -5919,6 +6054,7 @@
     ],
     "answer": "c",
     "takeaway": "A `tool_result` with search results must hold **only** `search_result` blocks; put extra text inside one of them.",
+    "explanation": "The rule: if **any** block in a `tool_result` is a `search_result`, **all** of its blocks must be `search_result`. The note can't sit beside them, but text inside a search result's `content` is allowed, and becomes citable too. Option A is tempting because it seems like a fix, but order doesn't matter, only block types. Tool results can hold text inside a search result (B), and citation settings don't change the rule (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
@@ -5961,6 +6097,7 @@
     ],
     "answer": "a",
     "takeaway": "Search-result citations cite **whole text blocks**; split `content` into focused blocks for finer `cited_text`.",
+    "explanation": "The **text block is the minimal citable unit**: Claude cites whole blocks, and `cited_text` is always the full text of the cited block. One long block per article means every citation is the whole article. Split `content` into smaller, focused blocks for finer boundaries. Option B is the trap: a prompt can't make `cited_text` smaller than a block. `start_block_index` and `end_block_index` (C) are fields in returned citations, and `max_tokens` (D) doesn't change blocks.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
@@ -6003,6 +6140,7 @@
     ],
     "answer": "d",
     "takeaway": "On models like Opus 5.5, thinking is on but **hidden** by default (`display: \"omitted\"`); request `\"summarized\"` to see a summary.",
+    "explanation": "Thinking is **on** for Opus 5.5 but its default `display` is `omitted`, which streams no thinking text: each block opens, gets one empty `thinking_delta` and a `signature_delta`, then closes. That's the exact sequence in the stem. Request `{\"type\": \"adaptive\", \"display\": \"summarized\"}` to see a summary. Option C is the trap: thinking is already on, and `enabled` with `budget_tokens` returns 400 there. It isn't truncation (A), and no later event carries the text (B).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
@@ -6044,6 +6182,7 @@
     ],
     "answer": "b",
     "takeaway": "Streamed deltas are **per content block**: route each one by its `index`, which matches the final `content` array.",
+    "explanation": "A stream carries a **series of content blocks**, and each block's `index` matches its position in the final `content` array. The `text_delta` events build block 0, while the `input_json_delta` events build block 1, partial JSON for a `tool_use` input. Option A is the trap: concatenating everything would splice tool-input JSON into the reply text. `index` isn't a retry counter (C), and streams aren't limited to one block (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
@@ -6086,6 +6225,7 @@
     ],
     "answer": "d",
     "takeaway": "Manual thinking needs `budget_tokens` **≥ 1,024 and < `max_tokens`**, since thinking counts toward `max_tokens`.",
+    "explanation": "Manual thinking has two rules: `budget_tokens` must be **at least 1,024** and **less than `max_tokens`**, because thinking counts toward the turn's `max_tokens`. Here 2,000 isn't below 1,500, so raise `max_tokens`. Option B is the subtle trap: shrinking the budget to 1,000 fits under `max_tokens` but breaks the 1,024 minimum. Adaptive (A) returns a 400 on extended-thinking-only Haiku 4.5, and `budget_tokens` belongs in `thinking`, not `output_config` (C).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
@@ -6128,6 +6268,7 @@
     ],
     "answer": "b",
     "takeaway": "Moving to 4.7+ models: replace `budget_tokens` with **adaptive thinking + `effort`**; at lower effort Claude may skip thinking on easy inputs.",
+    "explanation": "On Claude 4.7 and later, `type: \"enabled\"` itself returns a 400, so the size of the budget isn't the issue. The migration is to remove `budget_tokens`, set `thinking: {type: \"adaptive\"}`, and control reasoning depth with `output_config: {effort: ...}`. Option A is tempting because it treats the 400 as a too-big budget, but no such ceiling exists. The beta header (C) has no effect on manual mode there, and Opus 5.5 does think (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
@@ -6170,6 +6311,7 @@
     ],
     "answer": "c",
     "takeaway": "One batch holds up to **100,000 requests or 256 MB**, whichever comes first; split bigger jobs across batches.",
+    "explanation": "A batch is limited to **100,000 requests or 256 MB, whichever comes first**. At about 90 MB the job is under the size limit, but 250,000 requests exceed the count, so split into batches of at most 100,000 (at least three). Option A is the trap: it fixes size, which was never the problem. Moving to the Messages API (B) gives up the 50% batch discount, and rather than asking support (D), split the job so it stays within the stated limit.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -6219,6 +6361,7 @@
       "b"
     ],
     "takeaway": "Errored, canceled and expired batch requests **aren't billed**: resubmit expired ones, and fix errored ones using `result.error`.",
+    "explanation": "Errored, canceled and expired requests **aren't billed**, so act on each type. Expired requests hit the 24-hour expiration before reaching the model, so resubmitting them in a new batch is sound (A). Errored results carry the standard error shape in `result.error`, and some are invalid requests that must be fixed before retrying (B). Option C is the tempting trap: result order isn't guaranteed, so match by `custom_id`. Errored requests aren't charged (D), and results last 29 days (E).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -6261,6 +6404,7 @@
     ],
     "answer": "a",
     "takeaway": "Caching and batch discounts **stack**, but hits are best-effort: put identical `cache_control` blocks in every batched request.",
+    "explanation": "Batch requests run **asynchronously and concurrently**, so cache hits are best-effort (typically 30% to 98%). To raise the hit rate, put **identical `cache_control` blocks** on the shared prompt in every request. Option D is the trap: it assumes requests run in order and always hit, which they don't. `stream: true` (B) isn't supported in batches, and a `max_tokens: 0` pre-warm (C) isn't supported either.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -6303,6 +6447,7 @@
     ],
     "answer": "d",
     "takeaway": "Pre-4.6 short names like `claude-sonnet-4-5` are **aliases**; pin with the dated ID. From 4.6 on, the dateless ID is the snapshot.",
+    "explanation": "The guarantee that the model stays constant covers **model IDs, not aliases**. From 4.6 on, a dateless ID is the fixed snapshot, but before 4.6, a short name like `claude-sonnet-4-5` is an alias pointing to the most recent dated snapshot. So pin with `claude-sonnet-4-5-20250929`. Option A is the trap, applying the 4.6-and-later rule to an earlier model. The `anthropic.` prefix (B) is the Bedrock format, and `claude-sonnet-4-6` (C) is a different model.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
@@ -6345,6 +6490,7 @@
     ],
     "answer": "b",
     "takeaway": "A model ID's **weights never change**; small behavior shifts on a stable ID most likely come from serving infrastructure.",
+    "explanation": "A model ID's **weights and configuration never change**; updates ship under new IDs. But serving infrastructure, such as the request router, safety classifiers and sampling logic, can change and occasionally cause minor behavior differences, which fits small shifts with no code changes. Option A is the trap: Anthropic doesn't retrain an existing ID. From 4.6 on a dateless ID like `claude-opus-4-7` is one fixed snapshot, not an alias (C) or a monthly re-snapshot (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
@@ -6386,6 +6532,7 @@
     ],
     "answer": "b",
     "takeaway": "On Bedrock, Google Cloud or Foundry, **pin** with `ANTHROPIC_DEFAULT_*_MODEL` set to version IDs before rollout.",
+    "explanation": "Two goals: **everyone on the same version** and **you choose when they move**. On third-party providers, the guide says to pin before rollout by setting the model env vars, such as `ANTHROPIC_DEFAULT_OPUS_MODEL`, to version-specific IDs. Option A is the trap: aliases update over time, and on Bedrock the default can lag the newest release. `/model` (C) only sets one person's default, and `\"model\": \"opus\"` (D) still follows the alias.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/model-config",
@@ -6427,6 +6574,7 @@
     ],
     "answer": "a",
     "takeaway": "Aliases like `opus` **move** to newer releases over time; pin a full model name for reproducible results.",
+    "explanation": "Aliases such as `opus` **point to the recommended version and update over time**, which is exactly what shifted the evals. To keep the model fixed until you choose to move, set `model` to a full name such as `claude-opus-5-5`. Option D is tempting because it looks more specific, but `opus[1m]` only adds a 1M-token window to the alias and still follows it. `opusplan` (B) also follows aliases, and `default` (C) clears the override rather than pinning.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/model-config",
@@ -6469,6 +6617,7 @@
     ],
     "answer": "d",
     "takeaway": "To **restrict** models org-wide, set `availableModels` in managed settings, with `enforceAvailableModels` so the Default option obeys it too.",
+    "explanation": "This needs **enforcement**, not a default. A managed `availableModels` list applies to `/model`, `--model`, `ANTHROPIC_MODEL` and `model`, and `enforceAvailableModels` extends it to the Default option, so engineers can't select Opus anywhere. Option A is tempting, but `\"model\": \"sonnet\"` only sets a starting model that every listed override can change. A CLAUDE.md rule (B) instructs Claude, not model selection, and C only changes what the `sonnet` alias resolves to.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/model-config",
@@ -6510,6 +6659,7 @@
     ],
     "answer": "a",
     "takeaway": "Managed Agents version every config change; send **`version`** on updates so a concurrent edit fails with 409 instead of overwriting.",
+    "explanation": "Managed Agents version every config change, and supplying `version` on an update gives **optimistic concurrency**: if someone else updated first, the mismatch returns 409, so the caller re-reads and retries instead of silently overwriting. Option B is the trap: omitting `version` is exactly what caused the problem, since the update applies unconditionally and the last write wins. Archiving (C) is permanent and read-only, and agents do keep a version history (D).",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
@@ -6551,6 +6701,7 @@
     ],
     "answer": "c",
     "takeaway": "A string agent ID means **latest version**; pin sessions with a version object to roll prompt changes out gradually.",
+    "explanation": "A **string** agent ID creates the session with the **latest** version, so it can't hold 90% on version 7. Passing an object that pins `version` lets your own rollout logic choose 7 or 8 per session, which is how you stage a rollout. Option B is the trap: it assumes a string stays on the old version, but every new session would get 8. The API doesn't split traffic for you (A), and overrides (D) change one session without using agent versions.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/sessions",
@@ -6592,6 +6743,7 @@
     ],
     "answer": "b",
     "takeaway": "Unconstrained plugin dependencies track the **latest** release; pin a tested semver range in `plugin.json` `dependencies`.",
+    "explanation": "A bare dependency like `\"secrets-vault\"` has **no version constraint**, so it moves to each new release whenever users update. Declare it as an object with a tested range: for a git-backed dependency, `~2.1.0` keeps users on `2.1.x` patches and never moves them to `2.2`; widen it after testing. Option A is tempting, but the dependency moves on manual updates too, not just automatic ones. C governs cross-marketplace dependencies, and versions aren't installed side by side (D).",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/dependencies",
@@ -6633,6 +6785,7 @@
     ],
     "answer": "d",
     "takeaway": "Version constraints resolve against **git tags** named `<plugin>--v<version>`; an untagged repo can't satisfy a range.",
+    "explanation": "Version constraints on git-backed dependencies **resolve against git tags** named `<plugin-name>--v<version>`, and install the highest tag in range. The error says no tag satisfies `~2.1.0`, so the maintainer must create tags like `secrets-vault--v2.1.0`, for example with `claude plugin tag --push`. Option A is the trap: the `version` in `plugin.json` isn't what's checked; the tag's version is. npm (B) isn't required, and the allowlist (C) doesn't affect version resolution.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/dependencies",
@@ -6674,6 +6827,7 @@
     ],
     "answer": "c",
     "takeaway": "Cross-marketplace dependencies are **blocked by default**; the root marketplace allows them with `allowCrossMarketplaceDependenciesOn`.",
+    "explanation": "By default Claude Code **won't install a dependency from another marketplace**. The **root** marketplace, the one hosting the plugin the user installs, can permit it with `allowCrossMarketplaceDependenciesOn` in `marketplace.json`, so you add `shared-marketplace` there. Option D is the trap: it puts the allowlist on the wrong side, but only the root marketplace's list applies. A bare name (A) is looked up in your own marketplace, and a `version` range (B) doesn't grant permission.",
     "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/dependencies",
@@ -6724,6 +6878,7 @@
       "b"
     ],
     "takeaway": "Policy developers can't override belongs in **managed settings**: server-managed from the admin console, or a managed file or MDM policy.",
+    "explanation": "Developers can't override **managed** sources, because nothing in their own files changes them. Server-managed settings from the claude.ai admin console (A) and a `managed-settings.json` file or MDM policy on each machine (B) are both managed. Option D is the tempting trap: `--settings` ranks above user, project and local files, but below managed settings, and a developer can simply launch without it. Project files (C) are overridden by local settings, and user settings (E) are the developer's own.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/settings",
@@ -6774,6 +6929,7 @@
       "b"
     ],
     "takeaway": "Keep CLAUDE.md for every-session facts; **path-scoped rules** and **skills** keep the rest out of context. `@imports` don't.",
+    "explanation": "The goal is to cut what loads **into every session**. API conventions that matter only under `src/api/` fit a path-scoped `.claude/rules/` file (A), which loads only when Claude works with matching files, and a 40-step release procedure fits a skill (B). Option C is the tempting trap: `@path` imports organize the file but still load at launch, so the cost stays. `CLAUDE.local.md` (D) and `~/.claude/CLAUDE.md` (E) also load every session.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
