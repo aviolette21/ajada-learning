@@ -505,5 +505,194 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-api-substrate",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "title": "SDKs, REST, streaming and async",
+    "summary": "You reach Claude over a REST API, usually through an official client SDK that handles headers, retries, types and streaming for you. Choose how to call it by asking whether a user is waiting and whether the work is real-time or bulk offline: synchronous, streaming, async/await, or the Message Batches API.",
+    "keyPoints": [
+      "The Claude API is a **REST API** at `https://api.anthropic.com`; messages go to `POST /v1/messages` with auth, `anthropic-version` and `content-type` headers.",
+      "Client SDKs (Python, TypeScript, C#, Go, Java, PHP, Ruby) add automatic headers, types, **retries**, error handling, streaming and timeouts.",
+      "**Streaming** (`\"stream\": true`) sends output as server-sent events, so users see text as it's generated.",
+      "**Async/await** clients such as Python's `AsyncAnthropic` have the same interface; you `await` each call in asyncio code.",
+      "The **Message Batches API** is asynchronous bulk processing at **50%** of standard prices; most batches finish in under 1 hour."
+    ],
+    "sections": [
+      {
+        "heading": "The Messages REST API",
+        "body": "The Claude API is a **RESTful API** at `https://api.anthropic.com`. You send JSON over HTTP: the Messages API is `POST /v1/messages`, and related endpoints include the Message Batches API (`POST /v1/messages/batches`) and the Token Counting API (`POST /v1/messages/count_tokens`).\n\nRequests carry these headers:\n\n- auth: `x-api-key`, or `Authorization: Bearer <token>`\n- `anthropic-version`, for example `2023-06-01`\n- `content-type: application/json`\n\nThe Messages API is stateless, so each request carries the full conversation you want Claude to see.",
+        "example": "`curl https://api.anthropic.com/v1/messages -H \"x-api-key: $ANTHROPIC_API_KEY\" -H \"anthropic-version: 2023-06-01\" -H \"content-type: application/json\" -d '{\"model\": \"claude-opus-5-5\", \"max_tokens\": 1024, \"messages\": [{\"role\": \"user\", \"content\": \"Hello, Claude\"}]}'`"
+      },
+      {
+        "heading": "What the client SDKs add",
+        "body": "The **client SDKs** are official, general-purpose Messages API clients for Python, TypeScript, C#, Go, Java, PHP and Ruby. They handle the plumbing you'd otherwise write yourself:\n\n- automatic headers (auth, `anthropic-version`, `content-type`)\n- type-safe requests and responses\n- built-in retries and error handling (the Python SDK retries certain errors 2 times by default, with a short exponential backoff)\n- streaming support\n- request timeouts and connection management\n\nYou still send each request and handle each response. Claude Code, the Claude Agent SDK and Claude Managed Agents work at a higher level, providing the agent loop and tool execution.",
+        "example": "Python: `client = Anthropic()` reads `ANTHROPIC_API_KEY` from the environment by default. `client.messages.create(model=\"claude-opus-5-5\", max_tokens=1024, messages=[...])` returns a typed `Message`, and a 429 that persists after the automatic retries surfaces as `anthropic.RateLimitError`."
+      },
+      {
+        "heading": "Synchronous vs streaming",
+        "body": "A **synchronous** call such as `messages.create` waits and returns the whole `Message` at once.\n\n**Streaming** (`\"stream\": true`) returns the response incrementally as server-sent events (SSE). The model starts sending its response before the output is complete, so your UI can render text as it arrives, which significantly improves the app's perceived responsiveness.\n\nStreaming also matters for long requests. The Python SDK warns against a large `max_tokens` without streaming, because some networks drop idle connections, and it raises a `ValueError` when a non-streaming request is expected to take longer than about 10 minutes. If you only need the final result, stream with `.stream()` and call `.get_final_message()`.",
+        "example": "`with client.messages.stream(model=\"claude-opus-5-5\", max_tokens=1024, messages=[...]) as stream:` then `for text in stream.text_stream: print(text, end=\"\")` shows the reply as it's generated, instead of after a long blank wait."
+      },
+      {
+        "heading": "Async/await",
+        "body": "**Async/await** is about how your program waits, not about Claude. The Python SDK's `AsyncAnthropic` client has the same interface as the sync `Anthropic` client, but you `await` its calls from asyncio code: `await client.messages.create(...)`, and with `stream=True` you read the events with `async for`. For better concurrency, it can use an `aiohttp` HTTP backend (`DefaultAioHttpClient`).\n\nThe reply still comes back from that same call. That's the difference from the Message Batches API, where processing is asynchronous on Anthropic's side and you poll for results later.",
+        "example": "`client = AsyncAnthropic()`, then inside `async def handle(q):` write `message = await client.messages.create(model=\"claude-opus-5-5\", max_tokens=1024, messages=[{\"role\": \"user\", \"content\": q}])`."
+      },
+      {
+        "heading": "The Message Batches API",
+        "body": "The **Message Batches API** processes large volumes of Messages requests asynchronously. You create a batch, each request in it is handled independently, and you poll for the batch's status and retrieve results once processing has ended.\n\n- All usage is charged at **50%** of standard API prices.\n- Most batches finish in under 1 hour. Results are available once every request completes or after 24 hours, and a batch expires if processing doesn't complete within 24 hours.\n- A batch holds up to 100,000 requests or 256 MB; results stay available for 29 days.\n- `stream: true` and fast mode aren't supported in batch requests.\n\nIt suits work that doesn't need an immediate response: large-scale evaluations, content moderation, data analysis and bulk content generation.",
+        "example": "Each request has a `custom_id` and the usual `params`: `client.messages.batches.create(requests=[{\"custom_id\": \"review-1\", \"params\": {...}}])`. When `processing_status` is `\"ended\"`, iterate `client.messages.batches.results(batch_id)` and check each entry's `result.type`.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Submit now, collect results later.",
+          "steps": [
+            {
+              "label": "Create batch"
+            },
+            {
+              "label": "Processed asynchronously"
+            },
+            {
+              "label": "Poll status"
+            },
+            {
+              "label": "Retrieve results"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Choosing a call style",
+        "body": "Two questions decide it: is a user waiting, and is the work real-time or bulk offline?\n\n- **A user is waiting on the reply:** stream it, so text appears as it's generated.\n- **Your code only needs the finished result:** a synchronous call returns the whole `Message`; for a large `max_tokens`, stream and call `.get_final_message()`.\n- **An asyncio app with many requests in flight:** use the async client and `await` each call.\n- **Bulk work nobody needs right away:** the Message Batches API, at half the price, with most batches done within an hour.\n\nThese combine: an asyncio server can stream each user's reply while a nightly job sends the bulk work as a batch.",
+        "example": "A chat UI streams each reply. A FastAPI backend awaits its calls with `AsyncAnthropic`. A nightly job scoring 50,000 product reviews goes through the Message Batches API at 50% of the standard price."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-async-client-streaming",
+      "q-course-stream-for-waiting-user",
+      "q-course-async-not-batch"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/api/overview",
+        "title": "API overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+        "title": "SDKs, CLI, and libraries",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+        "title": "Python SDK",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+        "title": "Reducing latency",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+        "title": "Batch processing",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-streaming-events",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "title": "Streaming without corrupting state",
+    "summary": "With `\"stream\": true`, a response arrives as a sequence of server-sent events instead of one finished `Message`, so your handler builds the message up piece by piece. Collect each block's deltas and act only after that block's `content_block_stop`. A stream ending is not the same as a message completing: check `stop_reason` from `message_delta` before you trust the result.",
+    "keyPoints": [
+      "Order: `message_start` → per block `content_block_start`, deltas, `content_block_stop` → `message_delta` → `message_stop`, with `ping` events anywhere.",
+      "`input_json_delta` fragments are **partial JSON strings**: accumulate them and parse once that block's `content_block_stop` arrives.",
+      "`stop_reason` is `null` in `message_start` and arrives in `message_delta`, whose `usage` counts are **cumulative**.",
+      "An error event can arrive mid-stream; `tool_use` and `thinking` blocks can't be partially recovered.",
+      "Never save a partial assistant turn as if it were finished: completion needs `message_stop` **and** a `stop_reason` you've handled."
+    ],
+    "sections": [
+      {
+        "heading": "What streaming changes",
+        "body": "**Streaming** means setting `\"stream\": true` on a Messages request so the response arrives incrementally as **server-sent events** (SSE). Users see text as it's generated instead of waiting for the whole reply.\n\nThe trade-off is that you no longer receive one complete `Message` object. You receive many small events, and your code has to assemble them into content blocks, each identified by an `index` that matches its position in the final `content` array. Until the last event arrives, everything you hold is provisional.\n\nIf you don't need the text as it arrives, the SDKs can stream internally and hand you the finished `Message` through an accumulation helper such as `stream.get_final_message()` (TypeScript: `stream.finalMessage()`).",
+        "example": "A chat UI prints each `text_delta` as it arrives, so the user sees \"Hello\" and then \"!\" appear. Meanwhile, the handler adds both pieces to block 0, so that once the stream completes it holds the full text \"Hello!\" to store in the conversation history."
+      },
+      {
+        "heading": "The event sequence and what to do with each",
+        "body": "Every stream follows the same flow. Here's what a handler does at each step:\n\n- `message_start`: create an empty message. It holds a `Message` with empty `content`, and `stop_reason` is `null`.\n- `content_block_start`: open a new block at the given `index` (`text`, `tool_use` or `thinking`).\n- `content_block_delta`: append the fragment to the block at that `index` (`text_delta`, `input_json_delta`, `thinking_delta` or `signature_delta`).\n- `content_block_stop`: mark that block complete. Only now is it safe to use.\n- `message_delta`: record the top-level changes, including `stop_reason`. Its `usage` token counts are cumulative, so replace your total rather than adding to it.\n- `message_stop`: the final event. The message is done.\n\n`ping` events can appear anywhere, and new event types may be added, so handle unknown types gracefully.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "One stream: a message wrapper around one or more content blocks.",
+          "steps": [
+            {
+              "label": "message_start"
+            },
+            {
+              "label": "content_block_start"
+            },
+            {
+              "label": "content_block_delta",
+              "sublabel": "repeats"
+            },
+            {
+              "label": "content_block_stop"
+            },
+            {
+              "label": "message_delta",
+              "sublabel": "stop_reason"
+            },
+            {
+              "label": "message_stop"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Don't act on a partial block",
+        "body": "A delta is a fragment, not a value. For `tool_use` blocks, the deltas are **partial JSON strings** (`input_json_delta`), whereas the final `tool_use.input` is always an object. Accumulate the strings and parse the JSON once you receive that block's `content_block_stop`. Parsing or executing earlier means running a tool on half an argument.\n\nThe same applies to thinking: a `thinking` block's `signature` arrives as a single `signature_delta` just before its `content_block_stop`, so a thinking block saved before then is missing its signature.\n\nRoute every delta by its `index`. A text block and a tool block in the same response stream as separate indexes and must be assembled separately. The SDK streaming helpers do this for you, and in the Python and TypeScript SDKs they can also give you the parsed `input` incrementally.",
+        "example": "Block 1 opens as `tool_use` named `get_weather` with `\"input\": {}`. Deltas then arrive: `{\"location\":`, ` \"San`, ` Francisc`, `o,`, ` CA\"}`. Only after `content_block_stop` for index 1 does the joined string parse to `{\"location\": \"San Francisco, CA\"}`. That's the moment to run the tool."
+      },
+      {
+        "heading": "When the stream stops early",
+        "body": "Streams can stop before they finish. The API may send an **error event** mid-stream (for example `overloaded_error`, which would be an HTTP 529 without streaming), and networks drop connections. So **track completion on purpose**: record which blocks reached `content_block_stop`, whether a `message_delta` delivered a `stop_reason`, and whether `message_stop` arrived.\n\nOn an interrupted stream, **don't save the partial assistant turn** to history as if it were a finished reply. `tool_use` and `thinking` blocks can't be partially recovered, so never execute or store a half-built one.\n\nIf you want to resume rather than retry, the docs give a pattern: save what you received, then send a continuation request. For Claude 4.6 and later models, put the partial text in a **user** message that asks Claude to continue. For Claude 4.5 and earlier, use it to start a new assistant message. You can resume from the most recent text block.",
+        "example": "The connection drops after block 0 (text) completed and while block 1 (`tool_use`) was still streaming. Your handler doesn't call the tool and doesn't append an assistant message to history. It retries the request, or, on Claude Opus 5.5, it resumes by sending the received text in a user message that says the previous response was interrupted and asks Claude to continue."
+      },
+      {
+        "heading": "A stream ending is not a message completing",
+        "body": "Getting `message_stop` means the stream closed cleanly, not that the answer is usable. Check `stop_reason` from `message_delta` before you act:\n\n- `end_turn`: Claude finished naturally, so use the response.\n- `tool_use`: run the tool and return the result.\n- `max_tokens`: the reply hit your limit and is truncated. If the last block is an incomplete `tool_use`, retry with a higher `max_tokens`.\n- `refusal`: Claude declined, and this still arrives as a normal HTTP 200.\n- `pause_turn`: a server-tool loop hit its iteration limit, so send the content back to continue.\n\nA connection that just goes quiet, with no `message_stop` at all, isn't a completed message either.",
+        "example": "A stream closes with `message_delta` carrying `\"stop_reason\": \"max_tokens\"` and then `message_stop`. The final block is a `tool_use` whose JSON was cut off. Your handler treats the response as incomplete: no tool call, no history update. It retries with a larger `max_tokens`."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-stream-tool-start-empty",
+      "q-course-stream-dropped-mid-tool",
+      "q-course-stream-stop-not-complete"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+        "title": "Stop reasons and fallback",
+        "checkedOn": "2026-10-14"
+      }
+    ]
   }
 ]

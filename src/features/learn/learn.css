@@ -11,3 +11,13 @@
 .lesson-overlay { position: fixed; inset: 0; z-index: 40; overflow-y: auto; background: var(--bg); }
 .lesson-overlay-head { position: sticky; top: 0; z-index: 1; padding: calc(var(--safe-top) + 8px) 16px 8px; background: var(--bg); border-bottom: 1px solid var(--border-soft); }
 .lesson-overlay-body { max-width: 640px; margin: 0 auto; padding: 8px 16px calc(var(--safe-bottom) + 24px); }
+.lesson-example { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border-soft); border-left: 3px solid var(--success-text); border-radius: 10px; background: var(--surface); }
+.lesson-example > strong { display: block; margin-bottom: 2px; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--success-text); }
+.lesson-example p, .lesson-example li { margin: 6px 0; font-size: 14px; }
+.lesson .terms-list { margin: 0 0 8px; }
+.lesson .terms-list > div { padding: 6px 0; border-bottom: 1px solid var(--border-soft); }
+.lesson .terms-list > div:last-child { border-bottom: 0; }
+.lesson .terms-list dt { font-weight: 700; color: var(--text); }
+.lesson .terms-list dd { margin: 2px 0 0; color: var(--text-2); }
+.course-entry { border-color: var(--accent); }
+.center-text { margin: 8px 0 0; text-align: center; font-size: 13px; }

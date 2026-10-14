@@ -45,6 +45,13 @@ export function fixtureRaw(): RawContent {
     glossary: [
       { id: 'g-gizmo', term: 'gizmo', aliases: ['GZM'], definition: 'A gizmo is a test term.', whyItMatters: 'Gizmos decide test outcomes.', example: 'Set the gizmo to on.', source },
     ],
+    course: [
+      {
+        id: 'section-1', number: 1, title: 'Foundations', summary: 'Section one summary',
+        modules: [{ title: 'Alpha module', lessonId: 'l-alpha' }],
+        takeaways: [{ title: 'Takeaway title', body: 'Takeaway body' }],
+      },
+    ],
     domains: [
       { id: 'alpha', name: 'Alpha Domain', shortName: 'Alpha', weight: 60, order: 0, subSkills: [{ id: 'a1', name: 'Alpha One', weight: 60, official: true }] },
       { id: 'beta', name: 'Beta Domain', shortName: 'Beta', weight: 40, order: 1, subSkills: [{ id: 'b1', name: 'Beta One', official: false }] },
@@ -72,7 +79,7 @@ export function fixtureRaw(): RawContent {
           title: 'Alpha lesson',
           summary: 'Alpha summary',
           keyPoints: ['Point one', 'Point two'],
-          sections: [{ heading: 'First section', body: 'Body with **bold** and `code`.\n\nSecond paragraph.' }],
+          sections: [{ heading: 'First section', body: 'Body with **bold** and `code`.\n\nSecond paragraph.', example: 'Turn the gizmo on.' }],
           checkQuestionIds: ['q-alpha-1', 'q-alpha-2', 'q-alpha-3'],
           sources: [source],
         },

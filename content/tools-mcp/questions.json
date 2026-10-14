@@ -2286,5 +2286,2056 @@
       "c-agent-skill"
     ],
     "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-loop-stop-reason-tool-use",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Your first tool-using app sends a request with a `get_weather` tool. The response has `stop_reason: \"tool_use\"`, a `text` block saying \"I'll check the weather for you.\" and a `tool_use` block. Your code shows the text to the user and stops. What should it do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Show the text as the final answer; the tool_use block is only a log of what Claude already ran",
+        "reason": "For a client tool, Claude never executes anything itself: the `tool_use` block is a request your code must run and answer."
+      },
+      {
+        "id": "b",
+        "text": "Run `get_weather`, send its output back in a `tool_result`, and repeat while `stop_reason` is `tool_use`",
+        "reason": "Correct: the agentic loop keys on `stop_reason`. While it's `\"tool_use\"`, execute the tools, send `tool_result` blocks, and continue."
+      },
+      {
+        "id": "c",
+        "text": "Wait for a second response from the API, which will contain the tool's output",
+        "reason": "That's how server tools such as `web_search` behave. For your own tools the API waits for you; no result arrives until you send one."
+      },
+      {
+        "id": "d",
+        "text": "Resend the same request with a higher `max_tokens` so Claude can finish the answer",
+        "reason": "The response didn't stop on `max_tokens`. It stopped because Claude wants a tool run; more tokens won't change that."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "`stop_reason: \"tool_use\"` means \"your turn\": run the tool, return a `tool_result`, and loop until another stop reason.",
+    "explanation": "Client tools need a round trip: Claude asks, your code executes, you report back, Claude continues. The deciding detail is `stop_reason: \"tool_use\"` on a client tool. The `text` block is only Claude's comment before the call. Choice c is tempting because server tools do finish on Anthropic's side, but `get_weather` is your own tool.",
+    "mnemonic": "tool_use = your move.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-block-ownership",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Claude's response to your app contains a `text` block followed by a `tool_use` block with `id: \"toolu_01A\"` for your `lookup_order` tool. Which statements about these blocks and your reply are correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude produced both the `text` and the `tool_use` block; both belong to the assistant message",
+        "reason": "Correct: assistant messages contain AI-generated content and `tool_use`; the docs' example shows Claude's `text` block before its `tool_use`."
+      },
+      {
+        "id": "b",
+        "text": "Your `tool_result` goes in an assistant message placed right after the `tool_use` block",
+        "reason": "Results go in a **user** message: user messages carry client content and `tool_result`, assistant messages carry `tool_use`."
+      },
+      {
+        "id": "c",
+        "text": "Your reply may open with a text block explaining the result, as long as the `tool_result` follows it",
+        "reason": "Text before a `tool_result` causes a 400 error: tool_result blocks must come first, and any text comes after them."
+      },
+      {
+        "id": "d",
+        "text": "Your `tool_result` carries `tool_use_id: \"toolu_01A\"` and goes in the next user message",
+        "reason": "Correct: `tool_use_id` matches the result to its call, and the result goes in a user message right after the assistant turn."
+      },
+      {
+        "id": "e",
+        "text": "The order lookup runs on Anthropic's side, and its output arrives as a `tool_result` in Claude's next response",
+        "reason": "`lookup_order` is a client tool: you extract the input, run the tool in your codebase and send the result yourself."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Claude writes `text` and `tool_use` in the assistant turn; you answer with `tool_result` blocks, first, in the next user message.",
+    "explanation": "The Claude API has no special tool role: tools live inside ordinary user and assistant messages. Claude produced both blocks in its response, and your reply is a user message whose `tool_result` echoes `toolu_01A`. Choice c is the tempting one, since a lead-in sentence seems harmless, but text before a `tool_result` returns a 400 error.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-is-error"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-thinking-blocks-returned",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Thinking with tool use",
+    "stem": "Your agent runs with thinking on. A response contains a `thinking` block and a `tool_use` block. To save input tokens, your code sends back only the `tool_use` block in the assistant message, plus the `tool_result`. What does Anthropic's thinking guide say to do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep dropping it: thinking only affects the first response, and the tool result has what Claude needs",
+        "reason": "Claude continues building the **same** response after the result, so the reasoning that led to the call must still be present."
+      },
+      {
+        "id": "b",
+        "text": "Copy the thinking text into the `tool_result` content so Claude sees its reasoning next to the result",
+        "reason": "Thinking blocks go back in the assistant message next to their `tool_use` block. They can't be rearranged or edited."
+      },
+      {
+        "id": "c",
+        "text": "Pass the `thinking` block back complete and unmodified, alongside the `tool_use` block it came with",
+        "reason": "Correct: within a tool-use turn, passing thinking blocks back unchanged is required, for reasoning continuity and context."
+      },
+      {
+        "id": "d",
+        "text": "Turn thinking off for the follow-up request, so the missing block no longer matters",
+        "reason": "A tool-use loop is one assistant turn in one thinking mode. Toggling mid-turn silently disables thinking for that request."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Within a tool-use turn, `thinking` blocks go back to the API unchanged, next to their `tool_use` blocks.",
+    "explanation": "When Claude calls a tool it pauses its response, and your `tool_result` lets it resume that same response, so its earlier reasoning must travel with it. The detail that decides it is that the blocks are dropped inside an unfinished tool-use turn. Choice d looks like a clean workaround, but switching thinking mid-turn just silently disables thinking for that request.",
+    "mnemonic": "Mid-turn, the thinking rides along.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-claude-sees-schema-only",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Your `get_order_total` tool's code converts every amount to EUR, but its description doesn't say so. Claude keeps telling customers their totals are in USD. Where did Claude's knowledge of this tool come from?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "From the tool's source code, which the API reads when it builds the tool-use system prompt",
+        "reason": "The page says Claude never sees your implementation, so the source code is not where its picture of the tool came from."
+      },
+      {
+        "id": "b",
+        "text": "From the `tool_use` block, which carries the currency the tool will return",
+        "reason": "A `tool_use` block carries the tool name and a JSON object of arguments. It says nothing about what the tool returns."
+      },
+      {
+        "id": "c",
+        "text": "From earlier customer conversations, which teach Claude the tool's behavior over time",
+        "reason": "Per the page, Claude sees only the schema you provided and the result you returned; past traffic isn't part of that."
+      },
+      {
+        "id": "d",
+        "text": "Only from the schema you wrote and the results you send back in `tool_result` blocks",
+        "reason": "Correct: Claude never sees your implementation, only the schema you provided and the result you returned."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude knows a tool only through its schema and its results, so a behavior they don't mention is invisible to it.",
+    "explanation": "Tool use is a contract: Claude sees the schema you provided and the results you returned, never the code. Here the EUR conversion appears in neither: the description is silent and the results evidently don't make it clear. Choice a is the tempting misconception, but Claude never sees your implementation. Say what the tool returns in its description.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-next-request-contents",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Claude asked for `get_weather` and your code has the result: \"15 degrees\". What should the next request to the Messages API contain?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The original messages, Claude's assistant response, and a user message holding the `tool_result`",
+        "reason": "Correct: step 4 of the loop sends the original messages, the assistant's response, and a user message with the `tool_result` blocks."
+      },
+      {
+        "id": "b",
+        "text": "Only a user message with the `tool_result`, since the API keeps the rest of the conversation for you",
+        "reason": "Each request carries the conversation: the loop's new request includes the original messages and the assistant's response."
+      },
+      {
+        "id": "c",
+        "text": "The original messages, with \"15 degrees\" appended to the system prompt as tool output",
+        "reason": "Step 4 puts results in `tool_result` blocks inside a user message, not in the system prompt."
+      },
+      {
+        "id": "d",
+        "text": "An assistant message holding the result, so Claude continues as if it had produced the answer",
+        "reason": "The result is your application's report, sent as a `tool_result` in a **user** message, not an assistant message."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "After running a tool, resend the whole conversation: the original messages, Claude's response, then a user message with the `tool_result`.",
+    "explanation": "The loop's fourth step resends the conversation, now including Claude's `tool_use` turn and your answer to it. The deciding detail is that the API needs both the call and its result in history. Choice b is tempting because it seems efficient, but a new request containing only the result loses the original question and the call it answers.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Step 4 of the loop: what the next request carries.",
+      "steps": [
+        {
+          "label": "Original messages"
+        },
+        {
+          "label": "Claude's response",
+          "sublabel": "with tool_use"
+        },
+        {
+          "label": "User message",
+          "sublabel": "tool_result"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-runner"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-schema-overlapping-search-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "Your agent spans GitHub and Slack. It has tools `list_items` (description: \"Lists items.\") and `search` (description: \"Searches.\"), one for each service. Claude often calls the Slack tool for GitHub questions. Which changes does Anthropic's Define tools guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `strict: true` on both tools so Claude's calls follow the schema exactly",
+        "reason": "Strict tool use guarantees inputs match the schema; it doesn't help Claude choose between two tools."
+      },
+      {
+        "id": "b",
+        "text": "Prefix each tool's name with its service, such as `github_list_prs` and `slack_send_message`",
+        "reason": "Correct: namespacing by service makes tool selection unambiguous as your tool library grows."
+      },
+      {
+        "id": "c",
+        "text": "Set `tool_choice` to `any` so Claude must pick one of the tools on every turn",
+        "reason": "`any` forces some tool call but not the right one, and some current models reject it with a 400 error."
+      },
+      {
+        "id": "d",
+        "text": "Rewrite each description: what the tool does, when to use it and when not, and what each parameter means",
+        "reason": "Correct: detailed descriptions are by far the most important factor in tool performance."
+      },
+      {
+        "id": "e",
+        "text": "Cut each description to a few words so the tool definitions cost fewer input tokens",
+        "reason": "The guide asks for at least 3–4 sentences per description; cutting them makes selection worse."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "When Claude mixes up tools, fix the schema: detailed descriptions first, then service-prefixed names.",
+    "explanation": "Claude chooses tools from their names and descriptions, and here both are too vague to tell the services apart. Rich descriptions are the biggest lever, and service prefixes make the choice unambiguous. Choice a is tempting because strict mode sounds like tighter control, but it governs inputs, not which tool gets picked.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-tool-choice"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-missing-required-location",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Required parameters",
+    "stem": "Your `get_weather` tool lists `location` in `required`. A user asks only \"What's the weather?\". On Claude Sonnet, Claude calls the tool with `{\"location\": \"New York, NY\"}`, a city the user never mentioned. What does Anthropic's tool use overview say about this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's a schema error: required fields are filled only from the user's words, so `required` must be malformed",
+        "reason": "The overview shows this kind of call as expected behavior: Claude, particularly Sonnet, might guess values you didn't supply."
+      },
+      {
+        "id": "b",
+        "text": "The API rejects tool calls with inferred values, so this call fails before it reaches your code",
+        "reason": "The overview shows the guessed call arriving as an ordinary `tool_use` block, not as an error."
+      },
+      {
+        "id": "c",
+        "text": "Sonnet might infer a reasonable value; Opus is much more likely to notice the gap and ask, though neither is guaranteed",
+        "reason": "Correct: this is the documented behavior when required parameters are missing, and it isn't guaranteed either way."
+      },
+      {
+        "id": "d",
+        "text": "Moving `location` out of `required` would make Claude ask the user for the city before calling",
+        "reason": "Optional means Claude may omit the field, not that it will ask. The overview gives no such effect."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A missing required value may be asked for or guessed, depending on the model; it isn't guaranteed either way.",
+    "explanation": "Claude must fill every field in `required`. When the prompt lacks the information, Claude Opus is much more likely to ask, while Claude Sonnet might ask, especially when prompted to think first, but might also infer a value. The detail that decides it is the Sonnet model plus the missing city. Choice d is tempting, but making a field optional only lets Claude leave it out.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "title": "Tool use with Claude",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-ambiguous-user-param",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parameter naming",
+    "stem": "Your `get_account` tool takes a parameter named `user`, and the code expects a numeric account ID. Claude keeps passing a person's name or email address instead. What does Anthropic's post on writing tools for agents suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Name the parameter unambiguously, such as `user_id` instead of `user`",
+        "reason": "Correct: the post says inputs should be unambiguously named, for example `user_id` rather than `user`."
+      },
+      {
+        "id": "b",
+        "text": "Leave the name and have your code try the value as an ID, then a name, then an email",
+        "reason": "That hides the ambiguity instead of removing it. The post fixes it in the tool spec, which Claude reads."
+      },
+      {
+        "id": "c",
+        "text": "Split it into `get_account_by_id`, `get_account_by_name` and `get_account_by_email` tools",
+        "reason": "The post warns that more tools and overlapping tools can distract agents. The problem is the vague name."
+      },
+      {
+        "id": "d",
+        "text": "Shorten the description so Claude focuses on the parameter list rather than the prose",
+        "reason": "The post says descriptions and specs should make implicit context explicit, as you would for a new hire."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A parameter name is part of the spec Claude reads: `user_id` says what `user` only implies.",
+    "explanation": "Claude fills inputs from what the tool spec tells it, and `user` could mean a name, an email or an ID. Renaming it `user_id` makes the expected value explicit. Choice c is tempting because each tool would be narrower, but it adds overlapping tools, which the post warns can distract agents.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-chained-scheduling-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool consolidation",
+    "stem": "Your agent books meetings with three tools: `list_users`, `list_events` and `create_event`. Every booking chains all three, and the agent burns context on intermediate output. What does Anthropic's post on writing tools for agents suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a fourth tool, `check_availability`, so each step of the chain is smaller and easier to call",
+        "reason": "More tools don't always lead to better outcomes, and too many or overlapping tools can distract agents."
+      },
+      {
+        "id": "b",
+        "text": "Replace them with a `schedule_event` tool that finds availability and schedules the event",
+        "reason": "Correct: the post suggests exactly this, consolidating frequently chained, multi-step tasks into a single tool call."
+      },
+      {
+        "id": "c",
+        "text": "Return the full output of every call, so Claude has complete data for the next step",
+        "reason": "The post says agents' context is limited and recommends tools that return only relevant information."
+      },
+      {
+        "id": "d",
+        "text": "Keep the tools, but have each one wrap its API endpoint exactly as it is",
+        "reason": "The post names tools that merely wrap existing API endpoints as a common error, since agents have different affordances."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Steps that always run together can be one tool: build for the workflow (`schedule_event`), not for each API endpoint.",
+    "explanation": "When subtasks always depend on each other, splitting them across tools costs round trips and the context of intermediate outputs. The post's own example replaces `list_users`, `list_events` and `create_event` with `schedule_event`. Choice a is tempting because smaller steps feel simpler, but it adds tools and makes the chain longer.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Three always-chained calls, consolidated into one.",
+      "steps": [
+        {
+          "label": "list_users"
+        },
+        {
+          "label": "list_events"
+        },
+        {
+          "label": "create_event"
+        },
+        {
+          "label": "schedule_event",
+          "sublabel": "does all three"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-minimal-tool-set"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-description-length",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "In code review, a teammate asks you to cut every tool description to one short line, because the `tools` array counts toward input tokens. What does Anthropic's Define tools guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "One line per tool, with the detail moved into `input_examples` instead",
+        "reason": "Descriptions are what matter most; `input_examples` is an extra for complex inputs, not a replacement for them."
+      },
+      {
+        "id": "b",
+        "text": "One line per tool; Claude picks tools from their names, so long descriptions add cost without effect",
+        "reason": "The guide calls detailed descriptions by far the most important factor in tool performance."
+      },
+      {
+        "id": "c",
+        "text": "Move the tool details into the system prompt and keep each description to a few words",
+        "reason": "The guide asks for the detail in each tool's description: what it does, when to use it, parameters and caveats."
+      },
+      {
+        "id": "d",
+        "text": "Aim for at least 3–4 sentences per description, more if the tool is complex",
+        "reason": "Correct: the guide sets this target, because detailed descriptions are by far the most important factor."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Tool descriptions are the biggest lever on tool performance: aim for 3–4+ sentences each.",
+    "explanation": "Tool definitions do cost input tokens, but the guide ranks detailed descriptions as by far the most important factor in how well Claude uses tools. The decisive detail is that the trade-off goes against brevity. Choice a sounds like a compromise, but examples supplement descriptions for complex inputs; they don't replace them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-mcp-loop-routes-tool-call",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP in the tool loop",
+    "stem": "Your AI application runs its own MCP client connected to a weather MCP server. You passed the server's tools to the model, and the model now calls `weather_current`. According to the MCP architecture docs, what happens next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The model connects to the MCP server itself and runs `weather_current` directly",
+        "reason": "The model only emits the call. The application intercepts it and does the routing and execution."
+      },
+      {
+        "id": "b",
+        "text": "Your app routes the call to that server with `tools/call` and returns the result to the model",
+        "reason": "Correct: the application intercepts the tool call, routes it to the right MCP server, and returns the result to the model."
+      },
+      {
+        "id": "c",
+        "text": "The server pushes the result into the model's context with a `notifications/tools/list_changed` message",
+        "reason": "That notification signals that the server's tool list changed. Tool results come back as the response to `tools/call`."
+      },
+      {
+        "id": "d",
+        "text": "Your app first re-sends `tools/list`, because the model can only call tools listed in the same request",
+        "reason": "Discovery already happened; tools are listed up front. Executing a discovered tool uses `tools/call`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "MCP keeps the loop: your app routes each tool call to its server with `tools/call` and hands the result back to the model.",
+    "explanation": "MCP changes who writes and runs the tools, not the loop. The app discovered the tools with `tools/list`; when the model calls one, the app routes it to the owning server with `tools/call` and adds the result to the conversation. Choice a is tempting because the tool lives on the server, but the model never executes anything itself.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "tools/list",
+          "sublabel": "discover"
+        },
+        {
+          "label": "Model calls tool"
+        },
+        {
+          "label": "tools/call",
+          "sublabel": "app routes it"
+        },
+        {
+          "label": "Result to model"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-server-supplies-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "Instead of hand-writing tool schemas for a vendor's API, your application connects to the vendor's MCP server. Which parts of the tool work does the server now supply?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Each tool's `name`, `description` and `inputSchema`, returned by `tools/list`",
+        "reason": "Correct: each tool object from `tools/list` has a name, a description of what it does and when to use it, and an `inputSchema`."
+      },
+      {
+        "id": "b",
+        "text": "The choice of which tool to call for each user request",
+        "reason": "The language model decides when to use a tool; the server only lists and runs tools."
+      },
+      {
+        "id": "c",
+        "text": "Routing each tool call to the right server and adding the result to the conversation",
+        "reason": "That's the AI application's job: it intercepts the call, routes it to the right server and returns the result to the model."
+      },
+      {
+        "id": "d",
+        "text": "Running the tool's logic when it receives a `tools/call` request",
+        "reason": "Correct: the client invokes a discovered tool with `tools/call`, and the server executes it and returns the content."
+      },
+      {
+        "id": "e",
+        "text": "Tool-change notifications to every client, whether or not it subscribed",
+        "reason": "Change notifications are opt-in: a client gets them only after asking with `subscriptions/listen`."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "An MCP server supplies the tool schemas (`tools/list`) and runs the calls (`tools/call`); the app and the model keep their roles.",
+    "explanation": "With MCP, the server takes over what you'd otherwise write yourself: the schema (name, description, `inputSchema`) and the implementation. The model still decides which tool to call, and the application still routes calls and feeds results back. Choice c is tempting because the server seems to handle everything, but routing and returning results are the host application's job.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-internal-logic-own-schema",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "Your Messages API app needs Claude to use your company's proprietary pricing engine, a function in your own backend. No MCP server exists for it and no other app needs it. Which approach does Anthropic's How tool use works page fit to this case?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write a user-defined tool: your own name, description and `input_schema`, run by your code",
+        "reason": "Correct: user-defined client tools fit custom business logic, internal APIs and proprietary data; you write the schema and run the code."
+      },
+      {
+        "id": "b",
+        "text": "Enable a server tool such as `code_execution` so Anthropic runs the pricing logic",
+        "reason": "Server tools such as `code_execution` run on Anthropic's infrastructure; your pricing function lives in your own backend."
+      },
+      {
+        "id": "c",
+        "text": "Describe the pricing rules in the system prompt, then parse the final price out of Claude's text reply",
+        "reason": "The page warns that if you're writing a regex to pull a decision out of model output, that decision should have been a tool call."
+      },
+      {
+        "id": "d",
+        "text": "Use Anthropic's `bash` tool, which Claude calls more reliably than any tool you define",
+        "reason": "Anthropic-schema tools fit standard operations like shell commands, not your application's own business logic."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Custom business logic, internal APIs and proprietary data are the job of user-defined tools you write and run yourself.",
+    "explanation": "Writing schemas yourself is the right call when the tool is your own logic and no one else has built it. Here the pricing engine is proprietary, lives in your backend and has no MCP server. Choice d is tempting because the page says trained-in schemas are called more reliably, but that applies to standard operations such as shell commands, not your pricing logic.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-sdk-mix-server-and-custom",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "Your Agent SDK support agent must list GitHub issues and run your in-house `issue_refund` logic. You want no hand-written GitHub tools, and only the GitHub tool you need allowed to run without a prompt. Which setup fits the Agent SDK's MCP docs?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Hand-write a GitHub tool, then expose both tools from one stdio MCP server you build for the agent",
+        "reason": "The docs say MCP lets agents integrate with APIs like GitHub without writing custom tool implementations."
+      },
+      {
+        "id": "b",
+        "text": "Connect the GitHub MCP server, and set `permissionMode: \"acceptEdits\"` to auto-approve its tools",
+        "reason": "`acceptEdits` doesn't auto-approve MCP tools, and this setup leaves the refund logic without a tool."
+      },
+      {
+        "id": "c",
+        "text": "Connect the GitHub MCP server, put `issue_refund` in an SDK MCP server, and allow `mcp__github__list_issues`",
+        "reason": "Correct: external servers and your own in-process SDK MCP server sit side by side, and `allowedTools` grants exactly the tool you name."
+      },
+      {
+        "id": "d",
+        "text": "Connect the GitHub MCP server and describe the refund rules in the prompt so Claude applies them",
+        "reason": "The refund logic should run as a tool in your code; SDK MCP servers exist to define custom tools directly in application code."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Mix freely: a ready-made MCP server for third-party services, your own SDK MCP server for in-house logic, and `allowedTools` for approval.",
+    "explanation": "This is the use-both case: GitHub already has an MCP server, while the refund logic is yours. The SDK lets you pass external servers and an in-process SDK MCP server together, and an `allowedTools` entry like `mcp__github__list_issues` auto-approves just that tool. Choice b is tempting because a permission mode looks simpler, but `acceptEdits` doesn't cover MCP tools.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
+      "title": "Connect to external tools with MCP",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-sdk-custom-tool",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-vague-server-description",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool descriptions",
+    "stem": "Your team owns an MCP server whose `find` tool is described only as \"Finds things.\" Connected through the MCP connector next to other servers, Claude often uses another server's tool for questions `find` should answer. A teammate says descriptions don't matter for MCP tools. What's right?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Your teammate is right: the MCP server, not Claude, chooses which tool handles each request",
+        "reason": "Claude calls an MCP tool when the user's request maps to the tool's described capability; the server doesn't choose."
+      },
+      {
+        "id": "b",
+        "text": "Add your own description for `find` in the `mcp_servers` entry, which overrides the server's version",
+        "reason": "An `mcp_servers` entry holds connection details such as the URL and authorization, not tool descriptions."
+      },
+      {
+        "id": "c",
+        "text": "Set `defer_loading: true` on `find` so Claude reads its description only when it's needed",
+        "reason": "Deferred loading keeps a description out of the initial context; it doesn't make a vague description clearer."
+      },
+      {
+        "id": "d",
+        "text": "Claude picks MCP tools by name and description too, so rewrite `find`'s description on your server",
+        "reason": "Correct: with many tools, Claude selects based on names and descriptions, and clear, specific descriptions improve accuracy."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "MCP tool descriptions steer Claude's choice just like your own; if you own the server, fix them there.",
+    "explanation": "An MCP server's tools reach Claude as names and descriptions, and Claude selects among them exactly as it does for tools you define. The connector page notes that clear, specific descriptions improve selection accuracy. Choice c is tempting because it's a connector setting, but deferred loading decides when a description is loaded, not whether it's any good.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector",
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-loop-condition-other-stop-reasons",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Your loop is written as `while stop_reason != \"end_turn\"`: run the tools, send the results, repeat. One response comes back with `stop_reason: \"max_tokens\"` and no `tool_use` block, and the loop keeps resending the conversation. What should the loop condition be?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the condition but cap the loop at a fixed number of iterations, so it always stops eventually",
+        "reason": "A cap only limits the damage. The loop should continue only while `stop_reason` is `\"tool_use\"`; `max_tokens` is a stop your app should handle."
+      },
+      {
+        "id": "b",
+        "text": "Loop while `stop_reason` is `\"end_turn\"` or `\"tool_use\"`, so both cases reach your tool-running code",
+        "reason": "`end_turn` means Claude has produced a final answer. It is an exit condition, not a reason to run tools again."
+      },
+      {
+        "id": "c",
+        "text": "Loop only while `stop_reason` is `\"tool_use\"`, and handle every other stop reason after exiting",
+        "reason": "Correct: the canonical loop is keyed on `stop_reason == \"tool_use\"` and exits on `end_turn`, `max_tokens`, `stop_sequence` or `refusal`."
+      },
+      {
+        "id": "d",
+        "text": "Loop while the response contains a `text` block, since text means Claude still has more to say",
+        "reason": "The loop is keyed on `stop_reason`, not on block types; a final answer is text too, so this test would never exit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Continue only on `stop_reason: \"tool_use\"`; any other stop reason ends the loop for your app to handle.",
+    "explanation": "The tool-use loop is a while loop keyed on one value: `tool_use` means run the tools and continue, and anything else exits. The deciding detail is the `max_tokens` response with no tool call, which a `!= \"end_turn\"` test wrongly treats as more tool work. Choice a is tempting as a safety net, but a cap only limits the damage; the condition itself is wrong.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stop-reason",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-no-tool-role",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "You're porting an agent from an API that sends tool output in a message with a dedicated `tool` role. On the Claude API, how should your code send back the output of Claude's `get_weather` call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In a `system` message added after Claude's response, holding the raw tool output",
+        "reason": "Tool output goes in `tool_result` blocks inside a `user` message, not in a system message."
+      },
+      {
+        "id": "b",
+        "text": "In an `assistant` message, since the output continues Claude's own turn",
+        "reason": "`assistant` messages hold AI-generated content and `tool_use`; client content and `tool_result` go in `user` messages."
+      },
+      {
+        "id": "c",
+        "text": "In a message with the `function` role, which the Claude API uses in place of the `tool` role",
+        "reason": "Unlike APIs with special `tool` or `function` roles, the Claude API builds tools into the `user` and `assistant` messages."
+      },
+      {
+        "id": "d",
+        "text": "As a `tool_result` block carrying the call's `tool_use_id`, in the next `user` message",
+        "reason": "Correct: `user` messages carry client content and `tool_result` blocks, and each result names its call with `tool_use_id`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The Claude API has no `tool` role: results travel as `tool_result` blocks in a `user` message.",
+    "explanation": "The Claude API keeps tool traffic inside the ordinary roles: Claude's calls are `tool_use` blocks in the assistant message, and your outputs are `tool_result` blocks in the next user message. The deciding detail is the ported `tool` role, which this API doesn't have. Choice c is tempting because some APIs use a `function` role, but the Claude API uses neither special role.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-instructive-tool-error",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool errors",
+    "stem": "Your `book_flight` tool hits a rate limit, and your code returns a `tool_result` with `\"is_error\": true` and the content `\"failed\"`. Claude tells the user the booking is impossible instead of suggesting a retry. What does Anthropic's Handle tool calls page suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Say what went wrong and what to try next, such as \"Rate limit exceeded. Retry after 60 seconds.\"",
+        "reason": "Correct: instead of generic errors like \"failed\", include what went wrong and what Claude should try next, so it can recover or adapt without guessing."
+      },
+      {
+        "id": "b",
+        "text": "Drop `is_error` and send an empty `tool_result`, so Claude doesn't treat the call as a failure at all",
+        "reason": "That hides the failure. For a tool execution error, the page says to return the message in `content` with `\"is_error\": true`."
+      },
+      {
+        "id": "c",
+        "text": "Skip the `tool_result` for this call and send a plain user text message that explains the rate limit instead",
+        "reason": "Each `tool_use` needs its `tool_result` immediately after it; the error message belongs in that result's `content`."
+      },
+      {
+        "id": "d",
+        "text": "Return an HTTP error from your server so the Messages API retries the tool call on its own",
+        "reason": "The API doesn't run client tools. Your code reports the failure in a `tool_result`, and Claude incorporates the error into its response."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Tool errors should teach: say what failed and what Claude should try next, not just \"failed\".",
+    "explanation": "An `is_error` result lets Claude recover only if its content says how. The deciding detail is the bare \"failed\": Claude can't tell a temporary rate limit from a permanent failure, so it gives up. Choice b is tempting because it avoids the error path, but it hides the very failure the page says to report with `is_error: true`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-is-error"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-text-before-tool-call",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Claude's responses often open with a `text` block such as \"I'll check the weather for you.\" before a `tool_use` block. Your dispatcher matches that sentence with a regex to decide which tool to run, and it breaks whenever the wording changes. Which two statements match Anthropic's Define tools guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pin the wording with a template in the system prompt, then keep the regex as the dispatcher",
+        "reason": "Claude may use various phrasings when explaining its actions, so your code shouldn't rely on formatting in that text."
+      },
+      {
+        "id": "b",
+        "text": "Treat that text like any other assistant-generated text, without relying on its exact wording",
+        "reason": "Correct: the guide says to treat these responses like any other assistant text and not rely on specific formatting conventions."
+      },
+      {
+        "id": "c",
+        "text": "Every `tool_use` block comes after a `text` block, so the text is a reliable delimiter for calls",
+        "reason": "Claude often comments first, not always: with `tool_choice` `any` or `tool`, no natural-language text comes before `tool_use`."
+      },
+      {
+        "id": "d",
+        "text": "Set `tool_choice` to `any` so that Claude explains each call in more detail before making it",
+        "reason": "The reverse: with `any` or `tool`, the API prefills the turn and Claude won't write an explanation before `tool_use`, even if asked."
+      },
+      {
+        "id": "e",
+        "text": "Dispatch on the `tool_use` block: its `name` picks the tool and its `input` holds the arguments",
+        "reason": "Correct: a `tool_use` block carries the tool `name` and an `input` object, as in the guide's example response."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Run tools from the `tool_use` block's `name` and `input`; treat the text before it as ordinary prose.",
+    "explanation": "The structured call lives in the `tool_use` block, while the text before it is commentary whose wording varies. The deciding detail is a regex that breaks when the wording changes: the guide says not to rely on that text's formatting. Choice c is tempting because the comment usually appears, but forced tool use removes it entirely, so it can't serve as a delimiter.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-tool-choice"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-request-count",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "A user asks \"What's the weather where I am?\". Claude calls your `get_location` tool, then, after seeing that result, calls your `get_weather` tool, then answers. Your app drives the loop on the Messages API. How many requests does it send for this one question?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "One: Claude runs both tools inside the request and returns the finished answer",
+        "reason": "That describes server tools, which run in a server-side loop. Client tools need a round trip per call: Claude asks, you execute, you report back."
+      },
+      {
+        "id": "b",
+        "text": "Three: the question, then one more request that returns each tool's result",
+        "reason": "Correct: request 1 gets the `get_location` call, request 2 returns its result and gets `get_weather`, request 3 returns that result and gets the answer."
+      },
+      {
+        "id": "c",
+        "text": "Two: the question, then one request that carries both tools' results together",
+        "reason": "Results share a request only when Claude asked for them in one response; here `get_weather` comes after Claude sees the location."
+      },
+      {
+        "id": "d",
+        "text": "Four: each tool needs a request to call it and another to return its result",
+        "reason": "Claude's `tool_use` arrives in the response to your previous request, so each call adds only the request that carries its result."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Each client tool round trip costs a request: one to start, then one per response of tool calls you answer.",
+    "explanation": "Client tools run in your code, so every `tool_use` response needs a new request carrying its `tool_result`. The deciding detail is that `get_weather` depends on the location, so the two calls arrive in separate responses. Choice a is tempting, but only server tools such as `web_search` run inside Anthropic's server-side loop within one request.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "What Claude does for this question. Count the round trips.",
+      "steps": [
+        {
+          "label": "User question"
+        },
+        {
+          "label": "tool_use",
+          "sublabel": "get_location"
+        },
+        {
+          "label": "tool_use",
+          "sublabel": "get_weather"
+        },
+        {
+          "label": "Final answer",
+          "sublabel": "end_turn"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-thinking-toggle-mid-turn",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Thinking with tool use",
+    "stem": "Your agent sends each user question with thinking off, then turns thinking on for the follow-up requests that carry `tool_result` blocks, so Claude reasons about the results. Nothing errors, but those responses never contain `thinking` blocks. Which two statements match Anthropic's thinking guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API should reject this with a 400 error, so no error means the thinking setting was ignored",
+        "reason": "Mid-turn conflicts degrade gracefully: the API doesn't error, it silently disables thinking for that request."
+      },
+      {
+        "id": "b",
+        "text": "Passing every `thinking` block back in the history makes it safe to toggle thinking during the loop",
+        "reason": "Passing blocks back is required, but it doesn't permit toggling: the whole turn, tool-use loop included, runs in one thinking mode."
+      },
+      {
+        "id": "c",
+        "text": "A tool-use loop is one assistant turn, so switching before the results arrive is mid-turn",
+        "reason": "Correct: an assistant turn doesn't complete until Claude finishes its full response, tool calls and results included."
+      },
+      {
+        "id": "d",
+        "text": "Toggling thinking mid-turn leaves the prompt cache intact, so the only cost is the missing reasoning",
+        "reason": "Toggling thinking modes also invalidates prompt caching, so the cache is affected too."
+      },
+      {
+        "id": "e",
+        "text": "Pick the thinking setting at the turn's start and keep it for the loop; change it only between turns",
+        "reason": "Correct: toggle between turns, not within them. Complete the assistant turn, then change the thinking configuration for the next one."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "The whole tool-use loop is one assistant turn in one thinking mode; switch thinking only between turns.",
+    "explanation": "From the model's view, a turn isn't over until Claude finishes its full response, tool calls and results included. The deciding detail is that thinking is switched on for the `tool_result` requests, inside that turn, so the API silently disables it instead of erroring. Choice a is tempting because a mismatch sounds like an error, but the guide says mid-turn conflicts degrade gracefully.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-message-between-call-and-result",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool result formatting",
+    "stem": "When Claude calls a tool, your app appends two user messages: one with the text \"Reminder: keep answers short\", then one with the `tool_result`. The API returns an error saying tool_use ids were found without tool_result blocks immediately after. What fixes it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send one user message right after Claude's turn: the `tool_result` first, the reminder after it",
+        "reason": "Correct: tool results must immediately follow their tool use blocks with no messages in between, and text may come after all results."
+      },
+      {
+        "id": "b",
+        "text": "Merge the two into one user message, with the reminder text first and the `tool_result` after it",
+        "reason": "In the user message holding tool results, `tool_result` blocks must come first; text before them causes a 400 error."
+      },
+      {
+        "id": "c",
+        "text": "Send the `tool_result` in an assistant message instead, so nothing can separate it from the call",
+        "reason": "`assistant` messages hold AI-generated content and `tool_use`; `tool_result` blocks go in a `user` message."
+      },
+      {
+        "id": "d",
+        "text": "Add `\"is_error\": true` to the `tool_result` so the API accepts it after the other user message",
+        "reason": "`is_error` marks a failed tool execution. It doesn't relax the rule that results immediately follow their tool use blocks."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Nothing may sit between a `tool_use` turn and its results; extra text goes after the results in the same user message.",
+    "explanation": "The API expects each `tool_use` to be answered by a `tool_result` in the very next message. The deciding detail is the separate reminder message wedged between the call and its result. Choice b is tempting because it removes the extra message, but placing text before the `tool_result` in that message is its own 400 error.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-is-error"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-model-never-executes",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "A security reviewer looks at your plan to give Claude a user-defined `issue_refund` tool. They worry that once the tool is defined, Claude can issue refunds on its own. What does Anthropic's description of the tool-use contract say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude runs the tool's code inside the API once its schema is valid, so the definition is the only control",
+        "reason": "The model never executes anything on its own. For user-defined tools, your application runs the operation."
+      },
+      {
+        "id": "b",
+        "text": "Anthropic's servers run every tool you define and return its result in the same response",
+        "reason": "Only server tools such as `web_search` and `code_execution` run on Anthropic's side; you execute the tools you define."
+      },
+      {
+        "id": "c",
+        "text": "Claude only emits a structured `tool_use` request; your application's code is what runs the refund",
+        "reason": "Correct: Claude emits a structured request, your code runs the operation, and the result flows back into the conversation."
+      },
+      {
+        "id": "d",
+        "text": "Claude calls your refund API directly, using the arguments described in `input_schema`",
+        "reason": "Claude never sees your implementation; it only sees the schema you provided and the result you returned."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Claude asks, your code acts: a user-defined tool runs only when your application executes the `tool_use` request.",
+    "explanation": "Tool use is a contract: Claude decides when to call a tool and with what input, but the model never executes anything itself. The deciding detail is that `issue_refund` is user-defined, so it runs in your code, where you control it. Choice b is tempting because some tools do run on Anthropic's servers, but that applies only to server tools such as `web_search`.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-vs-server-tools",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-empty-tool-result",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool result formatting",
+    "stem": "Claude calls your `archive_thread` tool. It succeeds but produces no output, so a teammate's code sends nothing back for that call. What should the next user message contain?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A text block saying \"done\", since a `tool_result` is only needed when a tool returns data",
+        "reason": "Every client tool call is answered with a `tool_result`; the page even shows a valid result with no content."
+      },
+      {
+        "id": "b",
+        "text": "A `tool_result` with the call's `tool_use_id`, leaving out the optional `content` field",
+        "reason": "Correct: `content` is optional. The page's empty-result example has only the type and `tool_use_id`."
+      },
+      {
+        "id": "c",
+        "text": "A `tool_result` with `\"is_error\": true`, because a call with no output counts as a failure",
+        "reason": "`is_error` is for when the tool execution resulted in an error; a successful call with no output is not one."
+      },
+      {
+        "id": "d",
+        "text": "Nothing: Claude continues once the next request includes its own `tool_use` turn again",
+        "reason": "A `tool_use` must be followed by its `tool_result`; otherwise the API reports tool_use ids found without tool_result blocks."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Every client tool call gets a `tool_result`, even an empty one: `content` is optional, `tool_use_id` is not.",
+    "explanation": "Each `tool_use` block must be answered by a `tool_result` that names it with `tool_use_id`, whether or not the tool produced output. The deciding detail is that the call succeeded, so the result simply has no content. Choice c is tempting because an empty output feels like a problem, but `is_error` is for failed executions, not silent successes.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-is-error",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-loop-untrusted-result-placement",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool result formatting",
+    "stem": "Your `read_inbox` tool returns the bodies of emails from outside senders. A teammate wants to move each body out of the `tool_result` and into a plain `text` block after the results, so Claude treats the email as part of the user's request. What does Anthropic's Handle tool calls page advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move them: text is allowed after the results, so each email reads as part of the user's request",
+        "reason": "Text may follow the results, but the page lists plain user `text` blocks among the places to keep untrusted content out of."
+      },
+      {
+        "id": "b",
+        "text": "Move them into the `system` prompt instead, so Claude reads each email more carefully",
+        "reason": "The page says to keep untrusted content inside `tool_result` blocks rather than in `system` prompts."
+      },
+      {
+        "id": "c",
+        "text": "Put each body into the `tool_use` block's `input`, so the content stays attached to the call",
+        "reason": "`tool_use` blocks are Claude's calls in the assistant message; your app returns tool output in `tool_result` blocks."
+      },
+      {
+        "id": "d",
+        "text": "Keep them in `tool_result` blocks, since outside content is untrusted and may carry prompt injection",
+        "reason": "Correct: an attacker who influences that content may embed instructions (indirect prompt injection), so keep it inside `tool_result` blocks."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Keep content from outside sources inside `tool_result` blocks, not in `system` prompts or plain user `text` blocks.",
+    "explanation": "Tool results often carry content you don't control, such as inbound email, and an attacker who can influence it may embed instructions meant to redirect Claude. The deciding detail is the move into a plain user `text` block, which presents an outsider's words as the user's own request. Choice a is tempting because text after the results is valid formatting, but valid formatting isn't the same as safe placement for untrusted content.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-tool-output-screen"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-schema-tool-name-regex",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool definitions",
+    "stem": "You define a tool named `orders.lookup v2`, and the API rejects the request because of the name. Which rename follows the naming rule for user-defined tools?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`orders.lookup.v2`, replacing only the space with a dot",
+        "reason": "Dots aren't allowed either: a name must match `^[a-zA-Z0-9_-]{1,128}$`."
+      },
+      {
+        "id": "b",
+        "text": "`orders_lookup-v2`, using only letters, digits, `_` and `-`",
+        "reason": "Correct: the name matches `^[a-zA-Z0-9_-]{1,128}$`, which allows only letters, digits, underscores and hyphens."
+      },
+      {
+        "id": "c",
+        "text": "`orders lookup v2`, removing only the dot but keeping spaces",
+        "reason": "Spaces aren't in the allowed set; a name must match `^[a-zA-Z0-9_-]{1,128}$`."
+      },
+      {
+        "id": "d",
+        "text": "`orders/lookup/v2`, since slashes namespace a tool by service",
+        "reason": "Slashes aren't allowed. The guide namespaces with prefixes such as `github_list_prs`, which fit the pattern."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Tool names may use letters, digits, underscores and hyphens, 1 to 128 characters: no dots, spaces or slashes.",
+    "explanation": "A user-defined tool's `name` must match `^[a-zA-Z0-9_-]{1,128}$`. The deciding detail is that the original name has both a dot and a space, so a fix must remove both. Choice a is tempting because dotted names look like namespaces, but dots fail the pattern; namespace with an underscore prefix instead.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-tools-system-prompt",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool definitions",
+    "stem": "A teammate copies every tool's description into your system prompt as well as the `tools` array, \"so Claude can see the tools\". What does Anthropic's Define tools guide say happens when you send `tools`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API builds a special system prompt from the tool definitions, so Claude already sees them",
+        "reason": "Correct: with `tools`, the API constructs a special system prompt from the tool definitions, tool configuration and your system prompt."
+      },
+      {
+        "id": "b",
+        "text": "The definitions only validate Claude's calls, so they must be repeated in the system prompt",
+        "reason": "The constructed system prompt includes the tool definitions in JSON Schema format, so Claude does see them."
+      },
+      {
+        "id": "c",
+        "text": "Claude reads only the tool names from `tools`; the descriptions reach the model only through the system prompt",
+        "reason": "The constructed prompt carries the full tool definitions in JSON Schema, descriptions included."
+      },
+      {
+        "id": "d",
+        "text": "The `tools` array replaces your own system prompt, so all of your guidance has to move into the descriptions",
+        "reason": "The constructed prompt keeps your system prompt: its template includes the user system prompt next to the tool definitions."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Sending `tools` already puts your definitions in front of Claude, inside a system prompt the API builds for you.",
+    "explanation": "When a request includes `tools`, the API assembles a tool-use system prompt containing the definitions, the tool configuration and your own system prompt. The deciding detail is the teammate's belief that Claude can't see the `tools` array. Choice d is tempting because the API does build a new prompt, but your system prompt is kept inside it, not replaced.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-input-examples-invalid",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool definitions",
+    "stem": "To show Claude when to include optional fields, you add `input_examples` to your `create_event` tool. One example leaves out `start_time`, which is listed in `required`. Every request that includes the tool now returns a 400 error. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`input_examples` isn't supported on user-defined tools, only on Anthropic's server tools",
+        "reason": "It's the reverse: examples work on user-defined and most Anthropic-schema client tools, but not on server tools such as web search."
+      },
+      {
+        "id": "b",
+        "text": "The examples add prompt tokens, and this one pushed the tool definition over a size limit",
+        "reason": "Examples do add prompt tokens (~20–50 for simple ones, ~100–200 for complex ones), but that is a cost; invalid examples are what return 400."
+      },
+      {
+        "id": "c",
+        "text": "An example may show only optional fields, because required fields already belong in the description",
+        "reason": "The guide's own examples include the required `location` in every entry; each one must be valid against `input_schema`."
+      },
+      {
+        "id": "d",
+        "text": "Each example must validate against the tool's `input_schema`, and this one lacks a required field",
+        "reason": "Correct: each example must be valid according to the tool's `input_schema`, and invalid examples return a 400 error."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Every `input_examples` entry must validate against `input_schema`; one invalid example makes the request fail with a 400.",
+    "explanation": "Input examples are schema-validated: the API checks each one against the tool's `input_schema` before using it. The deciding detail is the example without `start_time`, a required field. Choice c is tempting because the goal was to illustrate optional fields, but every example must still be a complete, valid input.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-mixed-batch-execution",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "In one response, Claude returns three `tool_use` blocks: `get_invoice` and `get_customer`, which only read data, and `send_reminder`, which emails the customer. You decide how to run them. Which two choices fit Anthropic's Parallel tool use guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the two read-only lookups concurrently; independent reads are usually safe in parallel",
+        "reason": "Correct: independent, read-only operations are usually safe to run in parallel for lower latency."
+      },
+      {
+        "id": "b",
+        "text": "Run all three strictly in the order they appear, because the API requires sequential execution",
+        "reason": "The API doesn't prescribe an order: you can run calls concurrently, sequentially or in any combination."
+      },
+      {
+        "id": "c",
+        "text": "Send each tool's result in its own user message as soon as that particular tool finishes",
+        "reason": "Return every `tool_result` together in the next user message; separate messages teach Claude to avoid parallel calls."
+      },
+      {
+        "id": "d",
+        "text": "Consider running `send_reminder` separately: side-effect calls may be better sequential",
+        "reason": "Correct: tools with side effects, shared state or ordering requirements might be better run sequentially."
+      },
+      {
+        "id": "e",
+        "text": "Put a short text block before the three results that says which calls ran in parallel",
+        "reason": "Every `tool_result` block must come before any text content in that user message."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "You choose how a batch runs: parallel for independent reads, sequential for side effects; results always return together.",
+    "explanation": "Claude can request several tools at once, but execution strategy is yours, based on what each tool does. The deciding detail is the mix: two harmless reads and one call that sends an email. Choice b is tempting because order feels safer, but the API prescribes no execution order; the guide ties the choice to side effects and dependencies.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-optional-parameter",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Required parameters",
+    "stem": "Your `get_weather` tool needs a `location` on every call, while `unit` (celsius or fahrenheit) is optional. How should its `input_schema` express this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "List both fields in `required`, and say in the description of `unit` that it can be left empty",
+        "reason": "Fields in `required` must be supplied. An optional field is defined in `properties` but left out of `required`."
+      },
+      {
+        "id": "b",
+        "text": "Define only `location` in `properties` and mention `unit` in the tool description instead",
+        "reason": "Then `unit` has no type or allowed values; the guide's example defines it in `properties` with an `enum`."
+      },
+      {
+        "id": "c",
+        "text": "Define both in `properties`, list only `location` in `required`, and give `unit` an `enum`",
+        "reason": "Correct: this is the guide's own example, a required `location` string and an optional `unit` limited to \"celsius\" or \"fahrenheit\"."
+      },
+      {
+        "id": "d",
+        "text": "Create two separate tools, `get_weather_c` and `get_weather_f`, so neither one needs an optional field",
+        "reason": "The guide favors fewer, more capable tools; near-duplicate tools add selection ambiguity."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Optional means defined in `properties` but left out of `required`; an `enum` pins down its allowed values.",
+    "explanation": "Required and optional fields are both declared in `properties`; the `required` array is what separates them. The deciding detail is that `unit` has a fixed set of values, which an `enum` captures. Choice a is tempting because the description seems to explain the field is optional, but listing it in `required` tells Claude it must always be supplied.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-dependent-calls-batched",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "Claude sometimes requests `create_order` and `charge_order` in the same response, even though `charge_order` needs the order ID that `create_order` returns. Run in parallel, the charge fails. What does the Parallel tool use guide suggest to reduce dependent calls appearing together?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add \"Only batch tool calls that are independent of each other.\" to your system prompt",
+        "reason": "Correct: the guide suggests exactly this system-prompt line to reduce dependent calls appearing together."
+      },
+      {
+        "id": "b",
+        "text": "Set `disable_parallel_tool_use: true` as a top-level parameter of the request",
+        "reason": "It isn't a top-level request parameter; it goes inside the `tool_choice` object, and it limits every call, not just dependent ones."
+      },
+      {
+        "id": "c",
+        "text": "Return the two results in separate user messages so Claude learns the calls belong to different steps",
+        "reason": "Separate messages per result is the most common formatting mistake, and it teaches Claude to avoid parallel calls in general."
+      },
+      {
+        "id": "d",
+        "text": "Keep running the batch in parallel, and leave out the `tool_result` for the charge that failed",
+        "reason": "Return `is_error: true` with the natural error message for the failed call; Claude will reissue it on the next turn."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To keep dependent calls out of one batch, say so in the system prompt: only batch calls that are independent.",
+    "explanation": "Claude may batch calls that look independent but aren't, and the guide's targeted fix is a system-prompt instruction. The deciding detail is that the goal is fewer dependent calls together, not fewer parallel calls overall. Choice b is tempting because it stops batching, but it isn't a top-level parameter and it would also block the independent calls you want in parallel.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "`charge_order` depends on the output of `create_order`.",
+      "steps": [
+        {
+          "label": "create_order",
+          "sublabel": "returns order ID"
+        },
+        {
+          "label": "charge_order",
+          "sublabel": "needs that ID"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-description-fixes-query-habit",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "Your `search_news` tool works, but Claude keeps adding the current year to every query, which skews results toward that year's articles. According to Anthropic's post on writing tools for agents, how did Anthropic fix the same habit in Claude's web search tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "By post-processing each query to strip out the year before the search runs",
+        "reason": "The post says Anthropic steered Claude in the right direction by improving the tool description, not by rewriting queries afterward."
+      },
+      {
+        "id": "b",
+        "text": "By improving the tool description, which steered Claude away from appending the year",
+        "reason": "Correct: Claude was needlessly appending 2025 to the query, and Anthropic steered it in the right direction by improving the tool description."
+      },
+      {
+        "id": "c",
+        "text": "By splitting the tool into one search tool per year so that Claude picks the right date range",
+        "reason": "More tools don't always lead to better outcomes, and overlapping tools can distract agents; the fix was the description."
+      },
+      {
+        "id": "d",
+        "text": "By moving the tool to a larger model, since parameter habits like this one come from model size",
+        "reason": "The post's fix was prompt-engineering the description, which it calls one of the most effective ways to improve tools."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When Claude misuses a parameter, refine the tool description: even small description changes can steer its behavior.",
+    "explanation": "Tool descriptions are loaded into the agent's context, so they steer how Claude fills each parameter. The deciding detail is that the tool works and only Claude's query habit is wrong. Choice a is tempting because it patches the symptom in code, but Anthropic fixed the cause by improving the description.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-prefix-vs-suffix",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool namespacing",
+    "stem": "Your team agrees to namespace tools across Asana and Jira but splits on the pattern: prefixes (`asana_search`, `jira_search`) or suffixes (`search_asana`, `search_jira`). What does Anthropic's post on writing tools for agents advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Always use prefixes, because prefixes are the format that MCP clients require for tool names",
+        "reason": "The post says MCP clients sometimes namespace by default, not that they require prefixes, and effects vary by LLM."
+      },
+      {
+        "id": "b",
+        "text": "Either pattern works the same, because Claude reads the descriptions before it reads the names",
+        "reason": "The post found that choosing between prefix- and suffix-based namespacing has non-trivial effects on tool-use evaluations."
+      },
+      {
+        "id": "c",
+        "text": "Skip namespacing, since detailed descriptions alone keep overlapping tools apart",
+        "reason": "The post recommends namespacing to delineate boundaries when tools overlap in function or have a vague purpose."
+      },
+      {
+        "id": "d",
+        "text": "Decide with your own evaluations, since the choice has non-trivial effects that vary by model",
+        "reason": "Correct: effects vary by LLM, and the post encourages choosing a naming scheme according to your own evaluations."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Namespacing helps; whether prefixes or suffixes work better varies by model, so let your own evals decide.",
+    "explanation": "Namespacing separates overlapping tools, but the post reports that prefix and suffix schemes score differently, and the effect depends on the model. The deciding detail is that the team already agrees to namespace and only disputes the pattern. Choice b is tempting because the names carry the same information either way, yet Anthropic measured non-trivial differences.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-minimal-tool-set"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-schema-when-claude-calls",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "When Claude uses tools",
+    "stem": "With the default `tool_choice`, Claude calls your `get_exchange_rate` tool for \"What's today's EUR to USD rate?\" but answers \"What is an exchange rate?\" directly. Your PM wants Claude to lean toward the tool more often. Which two statements match Anthropic's tool use overview?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The tool must be misconfigured, because under `auto` a defined tool gets called on every single turn",
+        "reason": "With `auto`, Claude decides on each turn whether to call a tool or respond directly."
+      },
+      {
+        "id": "b",
+        "text": "Expected: stable knowledge gets a direct answer; requests needing the tool's capability call it",
+        "reason": "Correct: Claude calls a tool when the request maps to its described capability and the answer isn't in context; it answers stable knowledge directly."
+      },
+      {
+        "id": "c",
+        "text": "Adding `strict: true` to the tool definition makes Claude call the tool more often",
+        "reason": "Strict tool use makes calls match your schema exactly; it doesn't change when Claude decides to call."
+      },
+      {
+        "id": "d",
+        "text": "Shortening the tool description to a few words makes Claude reach for the tool more readily",
+        "reason": "Claude calls a tool when the request maps to its described capability; a thinner description gives it less to match against, not more."
+      },
+      {
+        "id": "e",
+        "text": "A system-prompt line like \"Use the tools to investigate before responding.\" raises tool use",
+        "reason": "Correct: the boundary is steerable through the system prompt, and this light instruction increases tool use."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Claude calls a tool when a request needs its described capability; steer how readily it does so with the system prompt.",
+    "explanation": "Under `auto`, Claude weighs each request against each tool's described capability and answers general knowledge itself. The deciding detail is that only the live-data question triggered the tool, which is the documented behavior. Choice c is tempting because strict sounds like stricter tool use, but it governs input shape, not whether Claude calls the tool.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "title": "Tool use with Claude",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-choice",
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-mcp-call-by-name-not-title",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP in the tool loop",
+    "stem": "An MCP server's `tools/list` response includes a tool with `name: \"weather_current\"` and `title: \"Weather Information\"`. When your MCP client sends `tools/call` for it, which value identifies the tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`weather_current`, because the `name` must exactly match the name from discovery",
+        "reason": "Correct: in `tools/call`, the `name` must match exactly the tool name from the discovery response, so the server knows which tool to run."
+      },
+      {
+        "id": "b",
+        "text": "`Weather Information`, because the `title` is what clients use to call a tool",
+        "reason": "`title` is a human-readable display name that clients can show to users; `name` is the primary key for execution."
+      },
+      {
+        "id": "c",
+        "text": "Either value, because the server matches incoming calls against both fields",
+        "reason": "The call must use the exact `name` from the discovery response so the server can identify the tool to execute."
+      },
+      {
+        "id": "d",
+        "text": "A hash of the tool's `inputSchema`, which stays stable even if the tool is renamed",
+        "reason": "`inputSchema` defines the expected input parameters; it isn't an identifier. Calls name the tool by `name`."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "MCP calls use the tool's exact `name`; `title` is only a display name for people.",
+    "explanation": "Each tool in `tools/list` has a `name` that serves as its primary key for execution, plus an optional human-readable `title`. The deciding detail is that `tools/call` is a request to the server, which identifies tools by name. Choice b is tempting because the title looks like the tool's proper name, but it is only for display.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-unified-registry",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP in the tool loop",
+    "stem": "Your AI application is an MCP host connected to three MCP servers: GitHub, a database and Sentry. According to MCP's architecture overview, how do the tools of all three servers reach the language model?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The model connects to each server itself and sends `tools/list` whenever it needs a tool",
+        "reason": "The application, not the model, fetches tools through its MCP clients and later routes the model's calls to the right server."
+      },
+      {
+        "id": "b",
+        "text": "Only the first connected server's tools are offered, so that tool names can't clash",
+        "reason": "The application fetches available tools from all connected MCP servers, not only one of them."
+      },
+      {
+        "id": "c",
+        "text": "The app fetches tools from all connected servers and merges them into one tool registry",
+        "reason": "Correct: the application combines the tools from all connected servers into a unified tool registry that the model can access."
+      },
+      {
+        "id": "d",
+        "text": "Each server sends its tools to the model as resources, which the model reads before choosing one",
+        "reason": "Tools are discovered with `tools/list`; resources are a separate primitive for contextual data."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The host gathers every server's tools into one registry for the model, then routes each call back to the right server.",
+    "explanation": "In MCP the application sits between the model and the servers: its clients list each server's tools, and it hands the combined set to the model. The deciding detail is that three separate servers feed one model. Choice a is tempting because the model is the one choosing tools, but discovery and routing are the application's job.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "One MCP client per server inside the host.",
+      "steps": [
+        {
+          "label": "AI application",
+          "sublabel": "MCP host"
+        },
+        {
+          "label": "3 MCP clients"
+        },
+        {
+          "label": "GitHub · DB · Sentry",
+          "sublabel": "MCP servers"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-connector-response-blocks",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "You replace your own MCP client with the MCP connector on the Messages API. Responses now contain `mcp_tool_use` and `mcp_tool_result` blocks, which your loop (written for `tool_use`) ignores. What do these blocks represent?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude wants your app to run each MCP call and send back a `tool_result` for every `mcp_tool_use`",
+        "reason": "The connector connects to remote MCP servers without a separate MCP client; the result arrives in an `mcp_tool_result` block."
+      },
+      {
+        "id": "b",
+        "text": "The API called the remote server for you: one block is the call, the other its result",
+        "reason": "Correct: when Claude uses MCP tools through the connector, the response includes these two new content block types."
+      },
+      {
+        "id": "c",
+        "text": "The server failed to connect, so the call came back unexecuted for you to retry",
+        "reason": "These are the normal block types a response includes whenever Claude uses MCP tools, not error markers."
+      },
+      {
+        "id": "d",
+        "text": "They are web search `server_tool_use` blocks that get renamed whenever MCP servers are attached",
+        "reason": "They are the connector's own block types for MCP tool calls and results; `mcp_tool_use` even names the server."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With the MCP connector, the API makes the MCP call: `mcp_tool_use` shows the call and `mcp_tool_result` its result.",
+    "explanation": "The MCP connector moves the MCP client into the API, so connecting, calling and returning results happen without your code. The deciding detail is that you replaced your own client with the connector. Choice a is tempting because it matches how client tools work, but with the connector there's no MCP call for your app to run.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-connector-general-knowledge",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool descriptions",
+    "stem": "With a Notion MCP server attached through the MCP connector, users ask \"How do Notion databases work?\" and Claude answers without calling any tool. A teammate files a bug saying the connector is broken. What is actually going on?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The server's tools aren't enabled, because an `mcp_toolset` disables every tool by default",
+        "reason": "Every tool in a toolset is enabled by default (`enabled: true`); you opt into allowlisting with `default_config`."
+      },
+      {
+        "id": "b",
+        "text": "The connector only calls an MCP tool when the user names that tool explicitly in the request",
+        "reason": "Claude calls MCP tools explicitly or implicitly, such as \"what's blocking the release?\" with a Jira server attached."
+      },
+      {
+        "id": "c",
+        "text": "The question needs an MCP resource, and the connector only gives Claude MCP prompts",
+        "reason": "The connector currently supports only tool calls from the MCP feature set, not prompts or resources."
+      },
+      {
+        "id": "d",
+        "text": "Expected: general questions get direct answers; questions about your own data use tools",
+        "reason": "Correct: \"how do Notion databases work?\" is answered directly, while \"what's in my Projects database?\" triggers the tool."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Connected MCP tools are for requests that need the service, not general-knowledge questions about it.",
+    "explanation": "Claude calls an MCP tool when a request maps to the tool's described capability, which here means your Notion data. The deciding detail is that the question asks how Notion works in general. Choice a is tempting because no call looks like a configuration fault, but toolsets enable every tool by default.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-connector-unused-server",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "Your request lists two servers, `calendar` and `crm`, in `mcp_servers`, but `tools` holds an `mcp_toolset` only for `calendar`. That toolset's `configs` also names `old_sync`, a tool the server no longer has. Which problem makes the API reject the request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `crm` server, since each server in `mcp_servers` needs exactly one toolset",
+        "reason": "Correct: the validation rules say every MCP server defined in `mcp_servers` must be referenced by exactly one MCP toolset."
+      },
+      {
+        "id": "b",
+        "text": "The `old_sync` entry, because every tool named in `configs` must exist on the server",
+        "reason": "An unknown tool name in `configs` only logs a backend warning, since MCP servers may have dynamic tool availability."
+      },
+      {
+        "id": "c",
+        "text": "Neither: unused servers are skipped, and tool names the server lacks are ignored",
+        "reason": "The `crm` server breaks the rule that every server in `mcp_servers` must be referenced by exactly one toolset."
+      },
+      {
+        "id": "d",
+        "text": "Both: the connector rejects any mismatch in servers, toolsets or tool names",
+        "reason": "Only the unreferenced server is an error; an unknown tool name in `configs` logs a warning and returns no error."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every `mcp_servers` entry needs exactly one `mcp_toolset`; unknown tool names in `configs` only log a warning.",
+    "explanation": "The connector validates the link between servers and toolsets strictly but treats tool names leniently, because a server's tools can change. The deciding detail is that `crm` is defined but never referenced. Choice d is tempting because both look like mismatches, but a missing tool name is only logged as a warning.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-protocol-scope",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "A teammate is summarizing MCP for a design review. Which two of their statements match MCP's architecture overview?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "MCP dictates how the AI application prompts its model and manages the context it receives",
+        "reason": "MCP focuses solely on the protocol for context exchange; it doesn't dictate how AI applications use LLMs or manage the context."
+      },
+      {
+        "id": "b",
+        "text": "Besides tools, servers can also expose resources (context data) and prompts (templates)",
+        "reason": "Correct: MCP defines three core server primitives: tools, resources and prompts."
+      },
+      {
+        "id": "c",
+        "text": "One MCP client inside the host keeps connections open to all of the host's servers",
+        "reason": "The host creates one MCP client for each MCP server, and each client maintains a dedicated connection."
+      },
+      {
+        "id": "d",
+        "text": "A tool's `inputSchema` is optional, since the model infers arguments from the description",
+        "reason": "Each tool object includes an `inputSchema`, a JSON Schema defining the expected input parameters."
+      },
+      {
+        "id": "e",
+        "text": "Clients discover tools with `tools/list`, then execute them with the `tools/call` method",
+        "reason": "Correct: clients use `*/list` methods to discover primitives, and `tools/call` executes a tool."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "MCP standardizes how servers offer tools, resources and prompts; how the app uses its model is left to the app.",
+    "explanation": "MCP covers the exchange between clients and servers: discovering primitives with `*/list` and running tools with `tools/call`. The deciding detail in choice a is its claim about prompting and context management, which MCP explicitly leaves to the application. Choice c is tempting because one connection manager sounds simpler, but MCP uses one client per server.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-sdk-allowed-tools",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "Your Agent SDK agent connects to a GitHub MCP server named `github`, and the init message shows it as `connected`. Claude can see `mcp__github__list_issues` among its tools but never manages to use it. What is the likely fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rename the server so that its tools lose the `mcp__` prefix that is blocking the calls",
+        "reason": "`mcp__<server-name>__<tool-name>` is the normal naming pattern for MCP tools, not something that blocks them."
+      },
+      {
+        "id": "b",
+        "text": "Switch the server from HTTP to stdio, because only local servers' tools can be called",
+        "reason": "The SDK supports stdio, HTTP/SSE and SDK MCP servers alike; the transport isn't what stops a connected server's tools."
+      },
+      {
+        "id": "c",
+        "text": "Allow it in `allowedTools`, e.g. `mcp__github__list_issues` or `mcp__github__*`",
+        "reason": "Correct: MCP tools require explicit permission. Without it, Claude sees that the tools are available but can't call them."
+      },
+      {
+        "id": "d",
+        "text": "Raise `MCP_TIMEOUT`, because the server's tool calls are running out of time",
+        "reason": "`MCP_TIMEOUT` is the connection limit, and the server is already connected; seen-but-unused tools point to missing permission."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "In the Agent SDK, connected MCP tools still need permission: allow them in `allowedTools` by their `mcp__server__tool` names.",
+    "explanation": "Connecting a server makes its tools visible, but the SDK still requires explicit permission before Claude can use them. The deciding detail is that the server is `connected` and Claude can see the tool. Choice d is tempting because MCP problems often look like timeouts, but `MCP_TIMEOUT` governs connecting, which already succeeded.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
+      "title": "Connect to external tools with MCP",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-sdk-transport-pick",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "You're wiring three integrations into an Agent SDK agent: a server whose docs give a command (`npx @modelcontextprotocol/server-filesystem`), a vendor server whose docs give a URL, and tools you're writing in your own code. Which two pairings match the SDK's MCP guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A command to run in the docs means connecting that server over stdio",
+        "reason": "Correct: if the docs give you a command to run, use stdio, which suits local processes on the same machine."
+      },
+      {
+        "id": "b",
+        "text": "Your own in-code tools should run as a separate stdio server process",
+        "reason": "For tools you build in code, use an SDK MCP server, which runs within your application instead of a separate process."
+      },
+      {
+        "id": "c",
+        "text": "Wrap the vendor's URL in a local stdio command before connecting to it",
+        "reason": "When the docs give you a URL, use HTTP or SSE; stdio is for local processes that talk over stdin/stdout."
+      },
+      {
+        "id": "d",
+        "text": "A URL in the docs means an HTTP or SSE server config for the vendor",
+        "reason": "Correct: if the docs give you a URL, use HTTP or SSE, which suit cloud-hosted servers and remote APIs."
+      },
+      {
+        "id": "e",
+        "text": "Run the filesystem command as an SDK MCP server inside your application",
+        "reason": "SDK MCP servers are for custom tools you define in your own code; a command to run means a stdio server."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Command to run → stdio; URL → HTTP or SSE; tools in your own code → an SDK MCP server.",
+    "explanation": "The SDK guide picks a transport from what the server's docs give you. The deciding details are the command for the filesystem server and the URL for the vendor. Choice b is tempting because your own tools are local too, but tools defined in your code run as an in-process SDK MCP server, not a separate stdio process.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
+      "title": "Connect to external tools with MCP",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-sdk-custom-tool"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-build-once",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP vs manual schemas",
+    "stem": "Your company wants its internal CRM usable from Claude, VS Code and Cursor. One plan writes separate tool schemas and handlers inside each app; the other builds a single MCP server. What does MCP's introduction say favors the server?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "MCP servers run inside the model, so the tools need no execution code at all",
+        "reason": "MCP is a standard for connecting AI applications to external systems; the server is one of those systems, not part of the model."
+      },
+      {
+        "id": "b",
+        "text": "Each client needs its own version of the MCP server, so the effort is the same either way",
+        "reason": "MCP is an open protocol supported across a wide range of clients, which makes it easy to build once and integrate everywhere."
+      },
+      {
+        "id": "c",
+        "text": "MCP only works with Claude, so the other apps would still need their hand-written schemas",
+        "reason": "MCP is supported by assistants like Claude and ChatGPT and by tools like Visual Studio Code and Cursor."
+      },
+      {
+        "id": "d",
+        "text": "It's an open protocol that many clients support: build once, integrate everywhere",
+        "reason": "Correct: because a wide range of clients support MCP, it is easy to build once and integrate everywhere."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "One MCP server can serve every MCP-capable client: build it once, integrate it everywhere.",
+    "explanation": "MCP standardizes the connection between AI applications and external systems, so one server works with any client that speaks the protocol. The deciding detail is that the same CRM must reach three different apps. Choice b is tempting if you assume each app needs custom glue, but the shared protocol is what removes that work.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro",
+      "title": "What is the Model Context Protocol (MCP)?",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-mcp-overlap-not-owner",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool descriptions",
+    "stem": "Through the MCP connector, your sprint assistant uses a Jira server and an Asana server, each with a vaguely described `search` tool. You own neither server. The assistant uses Asana's other tools but never needs its `search`, yet Claude keeps choosing it. Which fix does the connector's configuration support?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rename Asana's tool to `asana_search` in that toolset's `configs` entry",
+        "reason": "Per-tool `configs` set fields such as `enabled` and `defer_loading`; the page offers no field for renaming a server's tool."
+      },
+      {
+        "id": "b",
+        "text": "Disable Asana's `search` with `\"enabled\": false` in that toolset's `configs`",
+        "reason": "Correct: a denylist entry turns off the unwanted tool, so Claude can't pick it, while Asana's other tools stay enabled."
+      },
+      {
+        "id": "c",
+        "text": "Set `defer_loading: true` on Jira's `search` so Claude examines it more closely",
+        "reason": "With `defer_loading`, a tool's description isn't sent to the model initially, so Claude would see less of Jira's tool, not more."
+      },
+      {
+        "id": "d",
+        "text": "Remove the Asana server's `mcp_toolset` while keeping the server listed in `mcp_servers`",
+        "reason": "Every server in `mcp_servers` must be referenced by exactly one toolset, so this fails validation and drops the other tools."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When a server you don't own exposes a tool you don't need, disable it in the toolset's `configs` so Claude can't pick it.",
+    "explanation": "Claude chooses among MCP tools by their names and descriptions, and you can't fix another vendor's description. The deciding detail is that you own neither server but control your own toolset configuration. Choice a is tempting because namespacing is the usual cure for overlap, but the connector's per-tool configs only enable, disable or defer tools.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-mcp-vs-manual"
   }
 ]

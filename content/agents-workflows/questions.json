@@ -3344,5 +3344,1286 @@
       "c-managed-agents"
     ],
     "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-raw-loop-continue-condition",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Custom agent loops",
+    "stem": "You're wiring an agent yourself on the Messages API with two client tools that your own code executes. After each response, which check decides whether your loop sends another request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Loop while `stop_reason` is `\"tool_use\"`, returning `tool_result` blocks each time",
+        "reason": "Correct: the canonical loop runs while `stop_reason` is `\"tool_use\"`: execute each tool, send the results as `tool_result` blocks, and repeat."
+      },
+      {
+        "id": "b",
+        "text": "Loop while `stop_reason` is `\"pause_turn\"`, re-sending the paused response each time",
+        "reason": "`pause_turn` comes from the **server-side** loop for server-executed tools hitting its iteration limit. Client tools come back with `\"tool_use\"`."
+      },
+      {
+        "id": "c",
+        "text": "Loop until Claude itself runs the tools and returns their output in a `tool_result`",
+        "reason": "The model never executes anything on its own. For client tools, your code runs the operation and builds the `tool_result` block."
+      },
+      {
+        "id": "d",
+        "text": "Loop while `stop_reason` is `\"end_turn\"`, since that means Claude wants one more turn",
+        "reason": "The reverse: the loop **exits** on `\"end_turn\"` (and on `\"max_tokens\"`, `\"stop_sequence\"` or `\"refusal\"`), meaning a final answer or another stop to handle."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "On the raw API **you** drive the loop: continue while `stop_reason` is `\"tool_use\"`, and exit on any other stop reason.",
+    "explanation": "With client-executed tools the model can't run your code, so every tool call is a round trip your application drives. The deciding detail is that these are **client** tools: the response says `\"tool_use\"`, you run them and send `tool_result` blocks back. Choice B is tempting because `pause_turn` also means \"continue\", but it belongs to the server-side loop for server tools, not to tools your code executes.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Repeat while stop_reason is tool_use; any other stop reason exits.",
+      "steps": [
+        {
+          "label": "Send request",
+          "sublabel": "tools + messages"
+        },
+        {
+          "label": "stop_reason: tool_use"
+        },
+        {
+          "label": "Run each tool",
+          "sublabel": "your code"
+        },
+        {
+          "label": "Send tool_result"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stop-reason",
+      "c-stopping-condition"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-agent-sdk-what-you-still-own",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "Your team moves a coding agent from a hand-written Messages API loop to the Claude Agent SDK, running it in a container you manage. Which responsibility does the team still keep?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Writing the loop that executes each tool call and feeds the result back",
+        "reason": "The SDK gives you the same agent loop that powers Claude Code. Writing the tool loop yourself is the Client SDK path."
+      },
+      {
+        "id": "b",
+        "text": "Operating the process and infrastructure the agent runs in",
+        "reason": "Correct: the Agent SDK embeds Claude Code's agent in your own application, in a process you operate. Having Anthropic host the agent is the Managed Agents path."
+      },
+      {
+        "id": "c",
+        "text": "Implementing file read, edit and shell tools for the agent to call",
+        "reason": "Built-in tools that read, write and edit files, run commands and search the web are among the SDK's capabilities."
+      },
+      {
+        "id": "d",
+        "text": "Building context management for when the conversation grows long",
+        "reason": "The SDK provides the same context management that powers Claude Code, so you don't build it yourself."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "The Agent SDK hands you the loop, built-in tools and context management, but it runs **in a process you operate**.",
+    "explanation": "Each wiring path differs in who runs the agent and what comes built in. The detail that decides it is \"a container you manage\": the Agent SDK is a library inside your own process, so hosting stays with you, while the loop, tools and context management come with it. Choice A is the tempting one, but writing the tool loop yourself is what the team is leaving behind with the Client SDK.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-managed-agents"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-sdk-human-approval-bash",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Human-in-the-loop",
+    "stem": "Your Agent SDK agent runs in `default` mode behind a web app. Before any `Bash` command runs, a person must see it in your UI and approve or reject it. Which setup does that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add `Bash` to `allowedTools` so each command is routed to your approval screen",
+        "reason": "An allow rule **auto-approves** the call, and the `canUseTool` callback never fires for auto-approved tools, so nobody would see the command."
+      },
+      {
+        "id": "b",
+        "text": "Include `AskUserQuestion` in `tools` so Claude asks the user before each command",
+        "reason": "Claude decides when to ask clarifying questions and writes them itself; you can't add your own questions to that flow, so it isn't an approval gate."
+      },
+      {
+        "id": "c",
+        "text": "Pass a `canUseTool` callback that shows the command and returns allow or deny",
+        "reason": "Correct: the callback fires when Claude wants a tool that isn't auto-approved and pauses execution until you return allow or deny; Claude sees a deny message."
+      },
+      {
+        "id": "d",
+        "text": "Switch to `acceptEdits` mode so commands wait for the user's confirmation",
+        "reason": "A mode like `acceptEdits` approves calls **before** `canUseTool` is consulted, so anything it approves never reaches a person to confirm."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A human approval checkpoint in the SDK is a **`canUseTool` callback**; anything auto-approved earlier never reaches it.",
+    "explanation": "The SDK pauses for a person through `canUseTool`, which receives the tool name and input and waits until you return allow or deny. The stem needs **every** `Bash` command shown to a human, so nothing may auto-approve it first. Choice A is the trap: listing `Bash` in `allowedTools` sounds like registering it for review, but an allow rule approves the call before the callback is ever consulted.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
+      "title": "Handle approvals and user input",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-sdk-loop-what-you-stop-writing",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "You're replacing your hand-written Messages API loop with the Claude Agent SDK. Which jobs does the SDK now do for you, so you can delete that code?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Running each tool Claude requests and collecting the results",
+        "reason": "Correct: in the SDK's loop, the SDK runs each requested tool and collects the results, which feed back to Claude for the next decision."
+      },
+      {
+        "id": "b",
+        "text": "Choosing which tools may run without anyone having to approve them",
+        "reason": "Still yours: `allowed_tools`, `disallowed_tools` and `permission_mode` decide what runs automatically and what needs approval."
+      },
+      {
+        "id": "c",
+        "text": "Sending results back and repeating until a reply has no tool calls",
+        "reason": "Correct: turns continue without yielding control back to your code, until Claude produces output with no tool calls."
+      },
+      {
+        "id": "d",
+        "text": "Capping how many turns or how many dollars a single run is allowed to use",
+        "reason": "Still yours: `max_turns` and `max_budget_usd` default to no limit, so you set them; a budget is a good default for production agents."
+      },
+      {
+        "id": "e",
+        "text": "Checking whether the run succeeded before reading its final text",
+        "reason": "Still yours: check the `ResultMessage` `subtype` first, because the `result` field is present only on `success`."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "The SDK runs the tools and the loop; **permissions, limits and result checks** stay in your code.",
+    "explanation": "Moving to the SDK removes the loop mechanics: executing each tool and feeding results back until Claude replies without tool calls. The words \"do for you\" rule out the configuration choices, which the SDK only enforces once you set them. Choice D is the most tempting, but turn and budget limits default to none, so leaving them out means an open-ended prompt can run long.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-max-turns-budget"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-sdk-budget-cap-overshoot",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Stopping conditions",
+    "stem": "Your SDK agent runs with `max_budget_usd=5.0` and some background subagents. A run ends with `error_max_budget_usd`, yet `total_cost_usd` reads 5.40. A teammate files it as an SDK bug. What explains it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Subagent spend isn't counted toward the cap, so their usage pushed the total past it",
+        "reason": "The budget cap covers subagents: their spend counts toward the total, and at the cap new subagents are refused."
+      },
+      {
+        "id": "b",
+        "text": "The cap is only a target for Claude to aim at, not a limit the SDK itself enforces",
+        "reason": "The SDK enforces it: at the cap it returns `error_max_budget_usd`, refuses new subagents and stops background ones still running."
+      },
+      {
+        "id": "c",
+        "text": "The cap applies to each turn separately, so a run of many turns can add up past it",
+        "reason": "`max_budget_usd` is the estimated spend at which the loop stops, counted across the whole query, not a per-turn allowance."
+      },
+      {
+        "id": "d",
+        "text": "Spend is checked after each response, so the one that reaches the cap completes",
+        "reason": "Correct: cost comes from usage returned with each response, so that response counts in full, plus what running subagents spend before they stop."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`max_budget_usd` is checked **after** each response, so spend can pass it slightly. Leave headroom when you set the cap.",
+    "explanation": "The SDK can only know a response's cost from the token usage returned with it, so the cap is compared after responses arrive. The run did stop at the cap, as the `error_max_budget_usd` subtype shows; the 0.40 is that last response plus background subagents finishing up. Choice A is the near miss: subagents are involved, but their spend **does** count, which is exactly why they're stopped at the cap.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-stopping-condition"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-memory-pattern-cross-session-preferences",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "Your support agent on the Messages API should recall each customer's stated preferences when they come back weeks later in a brand-new conversation. Which memory pattern fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "External storage: the memory tool, mapping `/memories` to a per-customer store",
+        "reason": "Correct: the memory tool stores and retrieves information across conversations, and your handler maps `/memories` onto real storage such as a per-user directory."
+      },
+      {
+        "id": "b",
+        "text": "In-context memory: keep the preferences in the conversation history you send",
+        "reason": "A brand-new conversation doesn't carry the old history. The memory tool exists to keep knowledge across conversations without keeping it all in context."
+      },
+      {
+        "id": "c",
+        "text": "Summarized memory: enable compaction so older turns become a short summary",
+        "reason": "Compaction summarizes older context **within** a conversation as it nears the window limit; it doesn't carry anything into a new one."
+      },
+      {
+        "id": "d",
+        "text": "No persistent memory: each conversation starts fresh, which suits returning users",
+        "reason": "Starting fresh means nothing carries over. Memory lives entirely in your application, so recall needs a store your handler serves."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Facts that must outlive a conversation need **external storage**, such as the memory tool backed by a store you control.",
+    "explanation": "The deciding phrase is \"weeks later in a brand-new conversation\": the memory has to survive the end of a session. Only external storage does that, and with the memory tool your handler maps `/memories` to storage you control. Choice C is tempting because compaction also \"remembers\" a summary, but it only shrinks history inside one conversation.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-memory-tool",
+      "c-compaction"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-skill-for-repeated-checklist",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Skills",
+    "stem": "Developers on your team paste the same 40-line incident-triage checklist into Claude Code several times a week. It's only needed during incidents. What does the skills documentation recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the checklist to CLAUDE.md so it's loaded into every session automatically",
+        "reason": "CLAUDE.md loads every session. The docs say to create a skill when a CLAUDE.md section has grown into a procedure, since a skill body costs almost nothing until used."
+      },
+      {
+        "id": "b",
+        "text": "Turn the checklist into a skill whose body loads only when it's used",
+        "reason": "Correct: create a skill when you keep pasting the same checklist or procedure into chat; its body loads only when it's used."
+      },
+      {
+        "id": "c",
+        "text": "Keep pasting it, since instructions given in chat only cost context when needed",
+        "reason": "Pasting the same checklist again and again is exactly the signal the docs give for creating a skill."
+      },
+      {
+        "id": "d",
+        "text": "Make it a skill, but put the full checklist in the skill's `description` field",
+        "reason": "Skill descriptions are always in context so Claude knows what's available, so a checklist written there would be paid for in every session."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A procedure you keep pasting belongs in a **skill**: its description is always in context, its body only when used.",
+    "explanation": "Skills exist for reusable instructions that shouldn't inflate every session. Two details decide it: the checklist is pasted repeatedly, and it's only needed sometimes. Choice A is tempting because CLAUDE.md also avoids re-pasting, but it loads in every session, which is exactly the cost a skill avoids.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Until the skill is invoked, only its description is in context.",
+      "segments": [
+        {
+          "label": "Description",
+          "sublabel": "always in context",
+          "weight": 1,
+          "tone": "accent"
+        },
+        {
+          "label": "Skill body",
+          "sublabel": "loads when invoked",
+          "weight": 4,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-subagent-skill-preload",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Subagents and Skills",
+    "stem": "In your main Claude Code session you invoked the `api-conventions` skill, then delegated endpoint work to a custom `api-developer` subagent (not a fork). Its code ignores the conventions. What makes sure the subagent starts with them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing extra: a subagent sees the skills already invoked in the main session",
+        "reason": "A subagent starts with a fresh context: it doesn't see your conversation history, the skills you've already invoked, or files Claude has read."
+      },
+      {
+        "id": "b",
+        "text": "Invoke `api-conventions` again in the main session just before delegating",
+        "reason": "That content lands in the main conversation, which the subagent never sees; it works from Claude's delegation message."
+      },
+      {
+        "id": "c",
+        "text": "List `api-conventions` in the subagent's `skills` frontmatter field",
+        "reason": "Correct: the `skills` field injects the full content of each listed skill into the subagent's context at startup."
+      },
+      {
+        "id": "d",
+        "text": "Rely on the Skill tool, which loads every project skill as a subagent starts",
+        "reason": "Without the field, the subagent can discover and invoke skills **during** execution through the Skill tool; nothing is preloaded at startup."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Subagents don't inherit the skills you invoked; **preload** them with the subagent's `skills` field.",
+    "explanation": "A non-fork subagent starts from a fresh context window, so whatever was invoked in the main session stays there. To guarantee it has the conventions from the start, preload them: the `skills` field injects each listed skill's full content at startup. Choice D is the near miss, because the subagent **can** still invoke the skill itself through the Skill tool, but that happens only if it decides to, not at startup.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-subagent-file",
+      "c-subagent-context"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-subagent-block-skills",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Subagents and Skills",
+    "stem": "Your security team wants a Claude Code `log-auditor` subagent that can't use any skills at all. A teammate says leaving the `skills` field out of its frontmatter is enough. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: with no `skills` field the subagent can't reach any skills",
+        "reason": "Without the field, the subagent can still discover and invoke project, user and plugin skills through the Skill tool."
+      },
+      {
+        "id": "b",
+        "text": "Set `skills: []` so the subagent's list of skills is explicitly empty",
+        "reason": "The `skills` field controls which skills are **preloaded**, not which skills the subagent can access."
+      },
+      {
+        "id": "c",
+        "text": "Set `omitClaudeMd: true` so no project skills or instructions load",
+        "reason": "`omitClaudeMd` leaves CLAUDE.md files out of the subagent's startup context; it doesn't take away the Skill tool."
+      },
+      {
+        "id": "d",
+        "text": "Leave `Skill` out of the subagent's `tools`, or add it to `disallowedTools`",
+        "reason": "Correct: the docs' way to stop a subagent invoking skills entirely is to omit `Skill` from `tools` or list it in `disallowedTools`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The `skills` field only **preloads**. To block skills in a subagent, remove the **`Skill` tool**.",
+    "explanation": "Two separate controls are involved: `skills` decides what is injected at startup, while access to skills goes through the Skill tool. Since the goal is \"can't use any skills\", the tool itself has to go. Choice B is the near miss: an empty list sounds like a hard block, but it only means nothing is preloaded, and the subagent can still invoke skills while it runs.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-subagent-file",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-sdk-compaction-keep-rules",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Summarized memory",
+    "stem": "Your Agent SDK agent runs long sessions. After automatic compaction it forgets a rule you gave only in the first prompt, and loses track of which files it had changed. Which changes address this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower `max_turns` so each run ends before compaction can trigger",
+        "reason": "`max_turns` caps tool-use round trips and ends the run with `error_max_turns`; it cuts the work short rather than keeping early context."
+      },
+      {
+        "id": "b",
+        "text": "Move the persistent rule out of the first prompt and into CLAUDE.md",
+        "reason": "Correct: compaction may not preserve instructions from early in the conversation, while CLAUDE.md content is re-injected on every request."
+      },
+      {
+        "id": "c",
+        "text": "Add a `PreCompact` hook that archives the full transcript to disk",
+        "reason": "Archiving keeps a copy for **you**; hooks run in your application, not in Claude's context, so Claude still works from the summary."
+      },
+      {
+        "id": "d",
+        "text": "Send `/compact` as a prompt more often so that each summary stays shorter",
+        "reason": "Manual compaction is still compaction: it also replaces older messages with a summary, so early details can still be lost."
+      },
+      {
+        "id": "e",
+        "text": "Add a CLAUDE.md section telling the compactor to keep modified file paths",
+        "reason": "Correct: the compactor reads CLAUDE.md, so a section saying what to preserve, such as file paths read or modified, shapes the summary."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Summarized memory can drop early details: keep **standing rules in CLAUDE.md** and tell the compactor what to preserve.",
+    "explanation": "Compaction replaces older messages with a summary, so a rule that lives only in the first prompt is at risk. CLAUDE.md fixes both symptoms: it's re-injected on every request, and the compactor reads it for instructions on what to keep. Choice C is the tempting distractor, because a `PreCompact` hook does preserve the transcript, but only for your application, not for Claude.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-compaction",
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-agent-tradeoff-cost-latency",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Workflows vs agents",
+    "stem": "Your team plans to replace a fixed workflow with an autonomous agent so it can handle open-ended requests. A finance stakeholder asks what the switch usually costs. Per Anthropic's guidance on building effective agents, what's the honest answer?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing extra: agents skip needless steps, so they run faster and cheaper",
+        "reason": "The guidance says the opposite: agentic systems often trade latency and cost for better performance, and autonomy means higher costs."
+      },
+      {
+        "id": "b",
+        "text": "Flexibility: agents give up the model-driven decisions that workflows allow",
+        "reason": "This reverses the roles. Workflows follow predefined paths; agents are the option when flexibility and model-driven decision-making are needed."
+      },
+      {
+        "id": "c",
+        "text": "Accuracy: open-ended tasks are always solved better by a fixed workflow",
+        "reason": "Workflows suit well-defined tasks. Open-ended problems with an unpredictable number of steps are where agents fit."
+      },
+      {
+        "id": "d",
+        "text": "Often more latency and cost, in exchange for better task performance",
+        "reason": "Correct: agentic systems often trade latency and cost for better task performance, so weigh when that tradeoff makes sense."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Agents often buy better task performance with **more latency and cost**; decide whether the task needs it.",
+    "explanation": "The principle is a tradeoff: agentic systems often trade latency and cost for better task performance, and their autonomy brings higher costs and the potential for compounding errors. The stakeholder asked about cost, so the answer names that price. Choice A is the tempting myth that agents are cheaper because they skip steps; the guidance says the opposite.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-workflow-vs-agent",
+      "c-simplest-solution-first"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-managed-session-history-server-side",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Managed Agents",
+    "stem": "You're moving a support assistant from your own Messages API loop, where you resend the whole history on every turn, to a Claude Managed Agents session. The user replies to the agent mid-task. How should your app pass that reply on?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Resend the full conversation history along with the reply in each new event you send",
+        "reason": "Managed Agents is stateful by design: sessions store conversation history server-side, so you don't rebuild and resend it."
+      },
+      {
+        "id": "b",
+        "text": "Start a new session for each reply, passing a summary of the earlier turns",
+        "reason": "Sessions are long-running and resume cleanly after pauses; one session is meant to span many interactions."
+      },
+      {
+        "id": "c",
+        "text": "Send it as a new user event to the same session; history is kept server-side",
+        "reason": "Correct: you send user messages as events, and event history is persisted server-side and can be fetched in full."
+      },
+      {
+        "id": "d",
+        "text": "Write the reply into the agent's system prompt and update the agent definition",
+        "reason": "The agent definition (model, system prompt, tools, MCP servers, skills) is created once and reused across sessions, not edited per turn."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Managed Agents sessions are **stateful**: send just the new user event; history lives server-side.",
+    "explanation": "The wiring path decides who keeps state. On your own loop you hold the history; Managed Agents stores conversation history, sandbox state and outputs server-side, so a reply is just another user event on the same session. Choice A is tempting because it's the habit carried over from the raw loop, but the harness already has the history.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-sdk-posttooluse-audit-log",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK hooks",
+    "stem": "Compliance needs every tool result your Agent SDK agent receives written to an audit log. In your old hand-written loop you logged each result before sending it back. Now the SDK runs the loop. Where does the logging go?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In your loop code, between receiving each tool call and returning that call's result",
+        "reason": "The SDK executes tools and feeds results back to Claude without yielding control to your code, so there's no such spot in your code."
+      },
+      {
+        "id": "b",
+        "text": "In a `PostToolUse` hook, which fires after each tool returns in your process",
+        "reason": "Correct: `PostToolUse` fires after a tool returns and is meant for auditing outputs. Hooks run in your application process, not in context."
+      },
+      {
+        "id": "c",
+        "text": "In the system prompt, asking Claude to repeat each tool result in its reply",
+        "reason": "That puts the record in Claude's hands and costs context. Hooks run in your app process and don't consume context."
+      },
+      {
+        "id": "d",
+        "text": "In a `PreCompact` hook, which receives each tool result before it's stored",
+        "reason": "`PreCompact` runs before context compaction, for example to archive the transcript. It doesn't fire for each tool call."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When the SDK runs the loop, intercept tool calls with **hooks**: `PostToolUse` to audit outputs.",
+    "explanation": "Handling the tool-use loop moves to the SDK: it runs each tool and feeds the result back without returning control to your code. So per-call logic goes in hooks, and `PostToolUse` fires after each tool returns, which is the audit point. Choice A is the tempting carry-over from a raw loop, but that code no longer exists.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-pretooluse-hook"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-sdk-max-turns-counts-round-trips",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Stopping conditions",
+    "stem": "A run of your SDK agent goes: turn 1 runs `npm test` with `Bash`; turn 2 calls `Read` twice; turn 3 would call `Edit`, then `Bash`; then a final text reply. A teammate set `max_turns=2`, thinking it allows two tool calls. What happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It stops after the first `Read`, because that is the second tool call",
+        "reason": "`max_turns` counts turns, not calls. A turn is one round trip, and both `Read` calls belong to turn 2."
+      },
+      {
+        "id": "b",
+        "text": "It finishes normally, since the final text reply doesn't count as a turn",
+        "reason": "The final reply would come after turn 3, and turn 3 is a third tool-use turn, past the limit of 2."
+      },
+      {
+        "id": "c",
+        "text": "It allows one extra wrap-up turn past the limit, then returns `success` with a summary",
+        "reason": "Hitting the limit ends the run with a `ResultMessage` whose subtype is `error_max_turns`, not `success`."
+      },
+      {
+        "id": "d",
+        "text": "It stops before the edit step and returns `error_max_turns` with no `result`",
+        "reason": "Correct: `max_turns` counts tool-use round trips, so the limit of 2 stops it before turn 3. The `result` field is present only on `success`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`max_turns` counts **tool-use round trips**, not individual tool calls.",
+    "explanation": "A turn is one full cycle: Claude requests tools (possibly several), the SDK runs them, results go back. `max_turns` counts these tool-use turns, so a limit of 2 stops the run before the edit in turn 3, with subtype `error_max_turns` and no `result` field. Choice A is the tempting misreading that each tool call is a turn.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "With max_turns=2, the loop stops before turn 3.",
+      "steps": [
+        {
+          "label": "Turn 1",
+          "sublabel": "Bash"
+        },
+        {
+          "label": "Turn 2",
+          "sublabel": "Read × 2"
+        },
+        {
+          "label": "Limit reached",
+          "sublabel": "error_max_turns"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-stopping-condition"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-sdk-bound-open-ended-runs",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Stopping conditions",
+    "stem": "Your production Agent SDK agent takes open-ended prompts like \"improve this codebase\", and some runs go on far longer and cost far more than expected. Which options set a limit that ends a run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `max_turns` to cap how many tool-use round trips a run can take",
+        "reason": "Correct: `max_turns` caps tool-use round trips. It defaults to no limit, so without it the loop runs until Claude finishes."
+      },
+      {
+        "id": "b",
+        "text": "Set `effort` to `\"low\"` so each response uses fewer reasoning tokens",
+        "reason": "`effort` trades reasoning depth for cost within each response. It lowers per-turn spend but doesn't stop the loop."
+      },
+      {
+        "id": "c",
+        "text": "Add a `PreCompact` hook so the run ends when its context fills up",
+        "reason": "`PreCompact` runs custom logic before compaction, such as archiving the transcript. It doesn't end the run."
+      },
+      {
+        "id": "d",
+        "text": "Set `max_budget_usd` to stop the loop once estimated spend reaches a cap",
+        "reason": "Correct: the budget cap stops the loop at a spend threshold (it also defaults to no limit). A budget is a good default for production agents."
+      },
+      {
+        "id": "e",
+        "text": "Add a `Stop` hook so the agent can't keep calling tools past a set time",
+        "reason": "A `Stop` hook fires when the agent finishes, for checking the result or saving state; it doesn't cut a run short."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Bound SDK runs with `max_turns` and `max_budget_usd`; both default to **no limit**.",
+    "explanation": "Without limits the loop runs until Claude finishes on its own, which can run long on open-ended prompts. The two documented caps are `max_turns` (tool-use round trips) and `max_budget_usd` (estimated spend), and hitting either ends the run with an error subtype. Choice B is tempting because lower effort cuts cost, but it only trims each response.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-stopping-condition"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-canusetool-skipped-allowed-tool",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Human-in-the-loop",
+    "stem": "Your SDK app's `canUseTool` callback logs and approves every `Bash` command. To stop prompting users, a teammate adds `Bash` to `allowed_tools`. Now `Bash` commands run, but none appear in the log. You need every call checked again. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to `bypassPermissions` so every call passes through `canUseTool`",
+        "reason": "`bypassPermissions` is another auto-approval; like an allow rule, it resolves calls before `canUseTool` is consulted."
+      },
+      {
+        "id": "b",
+        "text": "Add `AskUserQuestion` to `tools` so Bash calls are routed to the callback",
+        "reason": "`AskUserQuestion` is how Claude asks clarifying questions; adding it doesn't send auto-approved `Bash` calls to the callback."
+      },
+      {
+        "id": "c",
+        "text": "Move the check into a `PreToolUse` hook, which runs before permission rules",
+        "reason": "Correct: `canUseTool` never fires for auto-approved tools. A `PreToolUse` hook executes before the rest of the flow, for every call."
+      },
+      {
+        "id": "d",
+        "text": "Keep the callback; it still runs for allowed tools, but only in debug mode",
+        "reason": "The callback never fires for auto-approved tools, whatever the logging mode. An allow rule resolves the call first."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`canUseTool` sees only calls nothing approved first; for **every** call, use a `PreToolUse` hook.",
+    "explanation": "Adding `Bash` to `allowed_tools` auto-approves it, and the docs warn that the callback never fires for auto-approved tools. Logic that must apply to every tool call belongs in a `PreToolUse` hook, which runs before the rest of the permission flow and can allow, deny or modify. Choice A is tempting, but `bypassPermissions` is just a broader auto-approval.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
+      "title": "Handle approvals and user input",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-pretooluse-hook",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-askuserquestion-restricted-tools",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Human-in-the-loop",
+    "stem": "Your read-only SDK agent sets `tools: [\"Read\", \"Glob\", \"Grep\"]`. Its `canUseTool` callback has a branch for `AskUserQuestion`, so users can answer Claude's clarifying questions. Claude never asks any and just guesses. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add `AskUserQuestion` to the `tools` array alongside the read-only tools",
+        "reason": "Correct: when you specify a `tools` array, include `AskUserQuestion`; otherwise Claude can't ask clarifying questions."
+      },
+      {
+        "id": "b",
+        "text": "Switch the agent to `bypassPermissions` mode so its questions are let through",
+        "reason": "The tool isn't in the agent's tool set at all, so no permission mode can make Claude call it."
+      },
+      {
+        "id": "c",
+        "text": "Return deny for each `Read` call, so Claude has to ask the user instead",
+        "reason": "A denial sends Claude a rejection message and it may try another approach, but it still has no tool for asking questions."
+      },
+      {
+        "id": "d",
+        "text": "Write the questions yourself into the `AskUserQuestion` input before it runs",
+        "reason": "You can't add your own questions to this flow; Claude generates the questions and options, and you return the user's answers."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Restricting `tools` also removes `AskUserQuestion`; list it again if Claude should ask the user.",
+    "explanation": "`AskUserQuestion` is available by default, but a `tools` array restricts Claude to the tools it lists, so it can't call one that isn't there. Adding it back lets Claude's questions reach the `canUseTool` branch you built. Choice B is tempting because it sounds like loosening permissions, but the problem is availability, not approval.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
+      "title": "Handle approvals and user input",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-sdk-subagent-benefits",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK subagents",
+    "stem": "Your main SDK agent reviews pull requests. You split style, security and test-coverage checks into three subagents. Which benefits does that delegation actually give you?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Each subagent inherits the main conversation, so its prompt can stay short",
+        "reason": "A non-fork subagent starts fresh with no parent conversation; the only content passed in is the Agent tool's prompt string."
+      },
+      {
+        "id": "b",
+        "text": "Each subagent's tool calls stay inside it; only its final message returns",
+        "reason": "Correct: context isolation. Intermediate tool calls and results stay in the subagent, so the parent gets a concise summary."
+      },
+      {
+        "id": "c",
+        "text": "Subagent spend falls outside `max_budget_usd`, so the cap counts less of it",
+        "reason": "The spend cap counts the query's own spend, subagent requests included."
+      },
+      {
+        "id": "d",
+        "text": "All subagents share the main context window, so tokens are only paid once",
+        "reason": "Each subagent runs in its own conversation and makes its own API requests, which count toward the total cost."
+      },
+      {
+        "id": "e",
+        "text": "Independent checks can run at the same time, so they finish sooner overall",
+        "reason": "Correct: parallelization. Independent subtasks finish in the time of the slowest one rather than the sum of all of them."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Subagents buy **context isolation** and **parallelism**, not free tokens or shared history.",
+    "explanation": "Each subagent runs in its own conversation and returns only its final message, which keeps the parent's context small, and independent subagents can run at the same time. They don't see the parent's history, and their spend counts toward the budget cap. Choice A is the most tempting mistake: a non-fork subagent sees only the prompt string it's given.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-subagent-context",
+      "c-lead-agent-subagents"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-course-claude-md-repeated-correction",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "Each morning a developer opens a new Claude Code session and has to tell Claude again: \"run tests with `make test`, not `pytest`\". Yesterday's correction is gone every time. What does the Claude Code memory documentation recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the rule to the project CLAUDE.md, which Claude reads at each session start",
+        "reason": "Correct: CLAUDE.md is for facts Claude should hold in every session, and typing the same correction you typed last session is a signal to add one."
+      },
+      {
+        "id": "b",
+        "text": "Repeat it once with more emphasis, so Claude carries the rule into the next session",
+        "reason": "Each Claude Code session begins with a fresh context window; chat from one session doesn't carry into the next."
+      },
+      {
+        "id": "c",
+        "text": "Run `/compact` before closing, so the summary carries into tomorrow's session",
+        "reason": "Compaction summarizes the current session. Knowledge crosses sessions through CLAUDE.md files and auto memory."
+      },
+      {
+        "id": "d",
+        "text": "Write a skill holding the rule, so its body loads into every session",
+        "reason": "A skill's body loads only when it's used. A one-line \"always do X\" fact belongs in CLAUDE.md; skills are for multi-step procedures."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Typing the same correction every session? Put it in **CLAUDE.md**, which loads at every session start.",
+    "explanation": "Each Claude Code session begins with a fresh context window, so a correction given only in chat disappears. CLAUDE.md is read at the start of every session, and the docs list \"you type the same correction you typed last session\" as a reason to add to it. Choice D is tempting, but a skill's body loads only on use and suits procedures, not one-line facts.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-sdk-context-accumulates-tool-output",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "In one Agent SDK session, turn 2 reads a 40,000-token log file. By turn 12, context use is far higher than your team estimated, because a teammate assumed each turn starts with a clean window. What's actually happening?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The SDK re-reads the log file from disk on every turn to keep it current",
+        "reason": "Nothing re-reads the file. The output from turn 2 is simply still part of the conversation history."
+      },
+      {
+        "id": "b",
+        "text": "Only CLAUDE.md accumulates; tool outputs are dropped once a turn completes",
+        "reason": "CLAUDE.md is in every request, but tool inputs and outputs accumulate in the history too, turn after turn."
+      },
+      {
+        "id": "c",
+        "text": "Turns reset the window, but compaction adds older tool output back in later",
+        "reason": "Compaction replaces older history with a summary; it doesn't re-add old output. And turns don't reset the window."
+      },
+      {
+        "id": "d",
+        "text": "The window doesn't reset between turns, so the log stays in the history",
+        "reason": "Correct: within a session everything accumulates (prompt, tools, history, tool inputs and outputs), and large outputs use significant context."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Within an SDK session, **tool outputs stay in context** and accumulate turn after turn.",
+    "explanation": "In-context memory grows with every turn: the context window doesn't reset between turns within a session, so the big log read in turn 2 is still there in turn 12. Large tool outputs are a main reason long sessions build up context. Choice B is tempting because CLAUDE.md is the thing people know is \"always loaded\", but tool output accumulates too.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-memory-tool-setup",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "You're adding Claude's memory tool to your Messages API agent. A teammate starts writing a custom `input_schema` for it and assumes Anthropic will store the memory files. What does the setup actually involve?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Define your own `input_schema` for the commands; Anthropic stores the files",
+        "reason": "You don't define an input schema for an Anthropic-provided tool, and the tool is client-side: storage is yours."
+      },
+      {
+        "id": "b",
+        "text": "Add `{\"type\": \"memory_20250818\", \"name\": \"memory\"}` to `tools` and handle each command",
+        "reason": "Correct: that `tools` entry is the entire configuration, and your client-side handler executes each file operation against your storage."
+      },
+      {
+        "id": "c",
+        "text": "Add a beta header to the request; Anthropic's servers then run the operations",
+        "reason": "The memory tool itself doesn't require a beta header, and it's client-side: Claude requests operations and your app executes them."
+      },
+      {
+        "id": "d",
+        "text": "Name the tool anything, such as `notes`, as long as its type is the memory type",
+        "reason": "The `name` must be `memory`. Only the storage behind it is up to you."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "The memory tool is one `tools` entry plus **your own handler**; the files live in your storage.",
+    "explanation": "The memory tool is an Anthropic-schema, client-side tool: the `tools` entry `{\"type\": \"memory_20250818\", \"name\": \"memory\"}` is all the configuration, and your handler runs each command against storage you control. Choice A combines two mistakes, writing a schema the model already knows and expecting Anthropic to hold the data.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-memory-tool"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-memory-view-first-expected",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "Your agent has the memory tool enabled. Logs show that nearly every task starts with Claude calling `view` on `/memories` before it looks at the user's request. A teammate calls this a wasted round trip and wants to strip it out. What's the right reading?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's expected: with the tool on, Claude checks its memory directory first",
+        "reason": "Correct: when the memory tool is enabled, Claude automatically checks its memory directory before starting a task, to pick up earlier progress."
+      },
+      {
+        "id": "b",
+        "text": "Your system prompt must ask for it; delete that line and the check stops",
+        "reason": "You don't send that instruction. The API adds the memory protocol to the system prompt itself when the tool is in `tools`."
+      },
+      {
+        "id": "c",
+        "text": "It signals an error on an empty store; pre-create files so Claude skips it",
+        "reason": "The first `view` of `/memories` on an empty store is not an error. Claude checks the directory whether or not it holds files."
+      },
+      {
+        "id": "d",
+        "text": "It's a path-traversal probe; reject every `view` of the `/memories` root",
+        "reason": "Your handler must reject paths **outside** `/memories`. Viewing the root itself is the normal first step."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "With the memory tool on, Claude **views `/memories` first** to restore earlier progress; that's by design.",
+    "explanation": "External memory only helps if the agent reads it, so the protocol starts every task with a `view` of the memory directory. The API adds that instruction itself when the tool is present, and an empty store is fine. Choice D is tempting because path validation is a real duty, but the rule is to reject paths outside `/memories`, not the root.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-memory-tool",
+      "c-agentic-memory"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-long-horizon-technique-pairings",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Long-horizon context",
+    "stem": "You're choosing long-horizon context techniques for several agents. Anthropic's context engineering post says the choice depends on task characteristics. Which pairings match its guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Iterative development with clear milestones → compaction",
+        "reason": "The post pairs iterative development with clear milestones with structured note-taking, not compaction."
+      },
+      {
+        "id": "b",
+        "text": "Extensive back-and-forth conversation → multi-agent subagents",
+        "reason": "The post matches multi-agent architectures to complex research and analysis, not to conversational back-and-forth."
+      },
+      {
+        "id": "c",
+        "text": "Extensive back-and-forth conversation → compaction",
+        "reason": "Correct: compaction suits tasks requiring extensive back-and-forth, because it keeps the conversation flowing."
+      },
+      {
+        "id": "d",
+        "text": "Milestone-driven development → subagents returning short summaries",
+        "reason": "Milestone-driven work is matched to structured note-taking, where notes persist outside the context window."
+      },
+      {
+        "id": "e",
+        "text": "Complex parallel research and analysis → multi-agent architecture",
+        "reason": "Correct: multi-agent architectures handle complex research and analysis where parallel exploration pays dividends."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "Back-and-forth → **compaction**; milestones → **note-taking**; parallel research → **multi-agent**.",
+    "explanation": "The post ties each technique to a kind of task: compaction for extensive back-and-forth, structured note-taking for iterative development with clear milestones, and multi-agent architectures for complex research where parallel exploration pays off. Choice A is the tempting swap, because milestone work also runs long, but its match is note-taking.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+      "title": "Effective context engineering for AI agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-compaction",
+      "c-agentic-memory",
+      "c-lead-agent-subagents"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-skill-content-after-invocation",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Skills",
+    "stem": "Early in a long Claude Code session you invoke your `release-checklist` skill. Later you invoke many other skills, and the session auto-compacts. Which statements about `release-checklist` are accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Its content entered the conversation as one message and stayed there",
+        "reason": "Correct: the rendered `SKILL.md` content enters the conversation as a single message and stays there across later turns."
+      },
+      {
+        "id": "b",
+        "text": "Claude Code re-reads its `SKILL.md` from disk on each turn, so edits apply",
+        "reason": "Claude Code doesn't re-read the skill file on later turns; the content from the invocation is what stays in context."
+      },
+      {
+        "id": "c",
+        "text": "The `allowed-tools` grant it carries lasts for the rest of the session",
+        "reason": "Persistence applies to the instructions, not the permissions: an `allowed-tools` grant clears when you send your next message."
+      },
+      {
+        "id": "d",
+        "text": "After compaction it can be dropped if newer skills fill the shared budget",
+        "reason": "Correct: re-attached skills share a 25,000-token budget filled from the most recently invoked skill, so older ones can be dropped."
+      },
+      {
+        "id": "e",
+        "text": "Its content is re-sent only on turns where Claude decides it is relevant",
+        "reason": "After invocation the content stays in context on every turn, which is why every line of a skill body is a recurring token cost."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "An invoked skill **stays in context**; after compaction, newer skills get the re-attach budget first.",
+    "explanation": "Invoking a skill adds its content as one message that stays across later turns; Claude Code doesn't re-read the file, and tool grants don't persist. At compaction, each skill's latest invocation is re-attached (first 5,000 tokens) within a shared 25,000-token budget filled newest first. Choice B is tempting because skills live on disk, but nothing reloads them per turn.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-subagent-preload-model-invocation-off",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Subagents and Skills",
+    "stem": "Your `deploy` skill sets `disable-model-invocation: true` so only people can run it. You list `deploy` in a `release-helper` subagent's `skills` field, yet the subagent starts without the skill's content. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `skills` field preloads only descriptions; bodies load when invoked",
+        "reason": "Listed skills are injected in full at startup, not only their descriptions."
+      },
+      {
+        "id": "b",
+        "text": "A subagent can preload only skills already invoked in the main session",
+        "reason": "A subagent doesn't see the skills you've already invoked. The `skills` field is how listed skills get injected."
+      },
+      {
+        "id": "c",
+        "text": "Preloading draws on the skills Claude can invoke, so this one is excluded",
+        "reason": "Correct: you can't preload skills that set `disable-model-invocation: true`, since preloading draws from the same set of skills Claude can invoke."
+      },
+      {
+        "id": "d",
+        "text": "The `skills` field preloads just one skill per subagent: the first one listed",
+        "reason": "The full content of each listed skill is injected, up to the first 32 distinct names in the list."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A skill Claude can't invoke on its own (`disable-model-invocation: true`) **can't be preloaded** either.",
+    "explanation": "The `skills` field normally injects each listed skill's full content at startup. But it draws from the same set of skills Claude can invoke, and `disable-model-invocation: true` takes `deploy` out of that set, so it's skipped. Choice A is tempting because descriptions are what a regular session loads up front, but preloading injects the full body.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-cc-subagent-file",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-memory-handler-per-user-store",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent memory",
+    "stem": "Your multi-tenant support app uses the memory tool. Your handler maps `/memories` to one shared directory for every customer, and Claude starts quoting one customer's notes to another. What's the right fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give each customer its own tool name, such as `memory_acme`, in `tools`",
+        "reason": "The tool's `name` must be `memory`. Separation comes from what storage your handler serves, not the tool name."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude in the system prompt to ignore files about other customers",
+        "reason": "That leaves every customer's files in reach. Memory lives entirely in your application, so isolation belongs in the handler."
+      },
+      {
+        "id": "c",
+        "text": "Ask Anthropic to partition the memory store separately for each API key",
+        "reason": "Anthropic doesn't hold the files. The tool is client-side, and your application executes every operation."
+      },
+      {
+        "id": "d",
+        "text": "Map the `/memories` prefix to per-customer storage, like one directory each",
+        "reason": "Correct: `/memories` is a prefix your handler maps onto real storage, such as a per-user directory or keys in a database."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Your handler decides what `/memories` means; map it to **per-user storage** to keep memories apart.",
+    "explanation": "With the memory tool, Claude only requests operations; your handler decides which real storage `/memories` refers to. A later conversation sees whatever store your handler serves, so a single shared directory mixes customers. Choice B is tempting because prompts steer behaviour, but the files would still be served to every customer's conversation.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Claude asks; your handler picks the store.",
+      "steps": [
+        {
+          "label": "view /memories",
+          "sublabel": "Claude's request"
+        },
+        {
+          "label": "Your handler"
+        },
+        {
+          "label": "Per-customer store"
+        },
+        {
+          "label": "tool_result"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+      "title": "Memory tool",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-memory-tool"
+    ],
+    "lessonId": "l-course-agent-memory"
+  },
+  {
+    "id": "q-course-skill-description-truncated",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Skills",
+    "stem": "Your Claude Code skill's `description` plus `when_to_use` runs to about 2,000 characters, and the trigger (\"use when a user uploads an invoice PDF\") is the last sentence. Claude rarely loads the skill on its own. What's the likely cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Descriptions load only after a skill is invoked, so Claude can't see it",
+        "reason": "In a regular session, skill descriptions are loaded into context so Claude knows what's available; only the full content waits."
+      },
+      {
+        "id": "b",
+        "text": "The listing truncates that text at 1,536 characters, so the trigger is cut",
+        "reason": "Correct: the combined `description` and `when_to_use` text is truncated at 1,536 characters in the listing. Put the key use case first."
+      },
+      {
+        "id": "c",
+        "text": "Claude matches requests against the body, so the trigger belongs in there",
+        "reason": "The body loads only when the skill is invoked, so it can't help Claude decide to invoke it."
+      },
+      {
+        "id": "d",
+        "text": "Long descriptions turn on `disable-model-invocation` until you set it false",
+        "reason": "Length doesn't change that setting, and `disable-model-invocation` already defaults to `false`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Skill descriptions are always in context but **truncated at 1,536 characters**; lead with the trigger.",
+    "explanation": "Progressive disclosure keeps only each skill's description in context until it's used, so the description is what Claude decides from. The listing cuts the combined `description` and `when_to_use` at 1,536 characters, which drops a trigger placed at the end. Choice C is tempting, but the body isn't in context until after the skill is invoked.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-skill-progressive-disclosure",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-agent-memory"
   }
 ]

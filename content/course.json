@@ -1,0 +1,89 @@
+[
+  {
+    "id": "section-1",
+    "number": 1,
+    "title": "How Claude behaves and how you reach it",
+    "summary": "The foundations: what tokens and the context window are, why the same prompt can give different answers, how model choice and reasoning modes trade quality against speed and cost, how much to show Claude by example, and the ways your code talks to the API.",
+    "modules": [
+      { "title": "How LLMs behave", "lessonId": "l-course-how-llms-behave" },
+      { "title": "Model options and reasoning modes", "lessonId": "l-course-models-reasoning" },
+      { "title": "Zero-, one- and multi-shot prompting", "lessonId": "l-course-prompting-shots" },
+      { "title": "SDKs, REST, streaming and async", "lessonId": "l-course-api-substrate" }
+    ],
+    "takeaways": [
+      {
+        "title": "Tokens are the unit of input, output and cost.",
+        "body": "Think and budget in tokens rather than words, since that is what the API meters and what the context window measures."
+      },
+      {
+        "title": "The context window is a fixed token budget that holds the whole request at once.",
+        "body": "An oversized input errors before generation, while hitting the ceiling mid-generation returns truncated output with a `model_context_window_exceeded` stop reason, so managing history is the application's job."
+      },
+      {
+        "title": "Sampling makes generation non-deterministic.",
+        "body": "The same prompt can return different wording on each run, so testing on exact text is unreliable. This is what evals are built for."
+      },
+      {
+        "title": "Model choice and reasoning mode are separate, composable levers.",
+        "body": "Pick the smallest model and the simplest reasoning and prompting that meet your eval, and add capability only where the eval says you need it."
+      },
+      {
+        "title": "A developer reaches Claude over a REST API, usually through an SDK.",
+        "body": "Choose between synchronous, streaming, async/await or batch based on whether a user is waiting and whether the workload is real-time or bulk offline."
+      }
+    ]
+  },
+  {
+    "id": "section-2",
+    "number": 2,
+    "title": "Building with Claude",
+    "summary": "The craft of a production app: getting reliable structured output, deciding when Claude should think, designing tools Claude picks correctly (or borrowing them over MCP), handling streams safely, keeping context in budget, wiring an agent and its memory, and choosing the right API for bulk and multimodal work.",
+    "modules": [
+      { "title": "Prompting craft: structured outputs", "lessonId": "l-course-structured-outputs" },
+      { "title": "Extended thinking", "lessonId": "l-course-extended-thinking" },
+      { "title": "The tool-use loop", "lessonId": "l-course-tool-use-loop" },
+      { "title": "Tool schemas Claude selects correctly", "lessonId": "l-course-tool-schemas" },
+      { "title": "MCP vs writing schemas yourself", "lessonId": "l-course-mcp-vs-manual" },
+      { "title": "Streaming without corrupting state", "lessonId": "l-course-streaming-events" },
+      { "title": "Context engineering: staying in budget", "lessonId": "l-course-context-budget" },
+      { "title": "The three places a RAG path breaks", "lessonId": "l-course-rag-breakpoints" },
+      { "title": "Building a production agent", "lessonId": "l-course-agent-construction" },
+      { "title": "Agent memory and Skills", "lessonId": "l-course-agent-memory" },
+      { "title": "Multimodal and batch ingestion", "lessonId": "l-course-batch-multimodal" }
+    ],
+    "takeaways": [
+      {
+        "title": "When a prompt fails, the failure type tells you which technique is missing.",
+        "body": "Unparseable or malformed output points to structured outputs; inconsistent format points to examples; weak multi-step reasoning points to thinking. Diagnose the failure before rewriting the prompt."
+      },
+      {
+        "title": "Match the reasoning depth to the task before you tune the prompt.",
+        "body": "Set thinking and effort to fit the task first, then add prompt guidance only where results still fall short. And when thinking blocks are in the conversation, send them back unchanged."
+      },
+      {
+        "title": "A stream ending is not a message completing.",
+        "body": "Act on a block only after its `content_block_stop`, read the final `stop_reason` from `message_delta`, and if the stream is cut off, never save the partial assistant turn as if it were a finished reply."
+      },
+      {
+        "title": "Every wrong-tool selection traces back to the schema, and most of the time to the description.",
+        "body": "Claude chooses tools from their name, description and `input_schema`. When it picks the wrong one, check for vague or overlapping descriptions first."
+      },
+      {
+        "title": "Context is a fixed budget, and tool outputs spend it faster than anything else in the loop.",
+        "body": "Keep low-signal output out at the source, clear or compact what is no longer needed, hand big searches to subagents, and use prompt caching and token counting to control cost and headroom."
+      },
+      {
+        "title": "The workflow-or-agent decision sets the cost of everything that follows, and human checkpoints belong in the design.",
+        "body": "Use a predefined workflow when the steps are known and an agent only when the path can't be scripted. Plan where a human approves risky actions up front, not as an afterthought."
+      },
+      {
+        "title": "Memory scope is decided by the shape of the session, not by what is easiest to implement.",
+        "body": "Single-session tasks can live in context; work that spans sessions needs external storage or summaries; reusable know-how belongs in Skills that load only when needed."
+      },
+      {
+        "title": "Calculate the cost of a multimodal input before you write the ingestion code, and match the API to the workload.",
+        "body": "Estimate image and PDF tokens up front. Bulk jobs nobody is waiting on belong in the Message Batches API; looping over the synchronous API is not batching."
+      }
+    ]
+  }
+]

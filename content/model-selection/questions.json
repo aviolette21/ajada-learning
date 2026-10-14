@@ -3865,5 +3865,2784 @@
       "c-message-delta-usage"
     ],
     "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-course-tokens-recount-on-switch",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Tokens",
+    "stem": "Your team budgets prompts by word count and is moving a workload from Claude Sonnet 4.6 to Claude Sonnet 5.5. A teammate says the token budget can stay exactly as it is. What does Anthropic's glossary say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Recount on Sonnet 5.5: its newer tokenizer turns the same text into about 30% more tokens",
+        "reason": "Correct: Claude 4.7 and later models use a newer tokenizer that produces approximately 30 percent more tokens for the same text; for exact counts, use token counting with the model you plan to use."
+      },
+      {
+        "id": "b",
+        "text": "Keep the word count, because one token equals one word on every Claude model",
+        "reason": "A token can be a word, a subword, a character or even a byte, and how many characters it represents depends on the model and the language."
+      },
+      {
+        "id": "c",
+        "text": "Keep the old budget, because the 3.5-characters-per-token ratio holds on all models",
+        "reason": "About 3.5 English characters per token applies to models before the newer tokenizer; Claude 4.7 and later models produce about 30% more tokens."
+      },
+      {
+        "id": "d",
+        "text": "Switch to counting characters, since tokens only matter when inspecting raw input",
+        "reason": "Tokens are the smallest units the model works in; the characters-per-token ratio varies by model and language, so a character count doesn't give you the token count."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Budget in **tokens**, and recount with the target model: Claude 4.7 and later tokenize the same text into about 30% more tokens.",
+    "explanation": "Tokens, not words, are the model's unit, and the ratio depends on the model and language. The detail that decides it is the move from Sonnet 4.6 to Sonnet 5.5: Claude 4.7 and later models use a newer tokenizer that yields about 30% more tokens for the same text, so recount with the target model (A). Option C is the tempting trap: 3.5 characters per token describes earlier models only. B and D assume a fixed word or character ratio that doesn't exist.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-token"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-window-exceeded-handling",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "Your summarizer sends 960k input tokens to Claude Opus 5.5 (1M-token window) with `max_tokens` set to 128,000. The reply comes back with HTTP 200 and `stop_reason: \"model_context_window_exceeded\"`. How should your code treat it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As a failed request, and retry the identical call with exponential backoff",
+        "reason": "Stop reasons are part of successful responses; failures come back as 4xx or 5xx status codes. This reply arrived with 200 and valid content."
+      },
+      {
+        "id": "b",
+        "text": "As a complete answer, since only 4xx and 5xx responses signal a problem",
+        "reason": "The stop reasons guide says to treat this stop reason as truncated: generation stopped because the output reached the context window limit."
+      },
+      {
+        "id": "c",
+        "text": "As valid but truncated output, flagged to the reader as incomplete",
+        "reason": "Correct: the response is still valid but was limited by the context window. Treat it as truncated and append a notice so the reader knows the output is incomplete."
+      },
+      {
+        "id": "d",
+        "text": "As a rejected prompt that came back with no content at all",
+        "reason": "A stop reason comes with a successful response that contains valid content; it tells you why generation stopped, not that the request was refused."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`model_context_window_exceeded` is a **successful but truncated** response: keep the content and mark it incomplete.",
+    "explanation": "A stop reason is part of a successful response, so the content is valid, but this one says generation ran into the context window before finishing. The stem's 960k input plus a 128k `max_tokens` on a 1M window is the setup for exactly that, so the output is truncated and should be flagged (C). Option B is the tempting one, since HTTP 200 looks like success, but the guide says to treat this stop reason as truncated. A and D treat a successful response as an error.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Input filled most of the window, so output hit the 1M ceiling before max_tokens.",
+      "segments": [
+        {
+          "label": "Input · 960k",
+          "weight": 24,
+          "tone": "neutral"
+        },
+        {
+          "label": "Output",
+          "sublabel": "stopped at ceiling",
+          "weight": 2,
+          "tone": "error"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-context-window-exceeded",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-unbounded-history-overflow",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "Your chat app on Claude Sonnet 5.5 (1M-token window) resends the whole conversation every turn and never trims it. Some conversations are now approaching the window. Which two outcomes should the team plan for?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Once the history alone exceeds the window, requests fail with a 400 \"prompt is too long\" error",
+        "reason": "Correct: if the input alone already exceeds the model's context window, the API returns a 400 `invalid_request_error` (\"prompt is too long\") on every model."
+      },
+      {
+        "id": "b",
+        "text": "Any request whose input plus `max_tokens` exceeds the window is rejected outright",
+        "reason": "On Claude 4.5 models and newer, the API accepts a request whose input plus `max_tokens` exceeds the window; only input that alone exceeds it is rejected."
+      },
+      {
+        "id": "c",
+        "text": "The API quietly drops the oldest turns to make room for the new ones",
+        "reason": "In API requests, previous turns are preserved completely. Rolling first-in, first-out handling is something chat interfaces such as claude.ai can do."
+      },
+      {
+        "id": "d",
+        "text": "A reply can stop at the window limit with `stop_reason: \"model_context_window_exceeded\"`",
+        "reason": "Correct: on Claude 4.5 models and newer, if generation reaches the context window limit, it stops with this stop reason."
+      },
+      {
+        "id": "e",
+        "text": "Thinking tokens are excluded, so only the visible text fills the window",
+        "reason": "The output Claude generates for the turn, including its extended thinking, counts toward the context window."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "By default the API keeps every turn: input over the window is a **400**, and output that hits the ceiling stops with `model_context_window_exceeded`.",
+    "explanation": "Two different limits apply. Input that alone exceeds the window is rejected with a 400 before anything is generated (A), and on Claude 4.5 and newer, a reply that reaches the ceiling mid-generation stops with `model_context_window_exceeded` (D). Option C is the tempting assumption, but the API preserves previous turns completely; trimming is the app's job. B describes the older validation behavior, and E is wrong because thinking counts toward the window.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-context-window-exceeded",
+      "c-stateless-api"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-eval-not-exact-match",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "A CI test asserts that Claude's summary of a fixed article matches a saved string exactly, and it fails now and then with nothing changed. You need a scalable check of whether the summaries are good, which is a nuanced judgment. What fits Anthropic's eval guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have an engineer read and grade every summary on each CI run",
+        "reason": "Human grading is the most flexible but slow and expensive; the guide says to avoid it if possible."
+      },
+      {
+        "id": "b",
+        "text": "Keep exact matching, but save several accepted strings to compare against",
+        "reason": "Exact match is code-based grading: fastest and most reliable, but it lacks nuance for complex judgments such as summary quality."
+      },
+      {
+        "id": "c",
+        "text": "Ask a grader model for free-form comments on each summary's strengths",
+        "reason": "The guide says purely qualitative evaluations are hard to assess quickly and at scale; ask the grader for a specific result instead."
+      },
+      {
+        "id": "d",
+        "text": "Have an LLM grade each summary against a clear rubric as \"correct\" or \"incorrect\"",
+        "reason": "Correct: LLM-based grading is fast, flexible, scalable and suitable for complex judgment, and the tips call for detailed rubrics and a specific output."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Outputs vary, so grade **meaning**, not exact text: an LLM judge with a clear rubric and a specific output scales to nuanced checks.",
+    "explanation": "Because the same prompt can come back worded differently, an exact-string test is unreliable, and the stem adds that the real question, summary quality, is a nuanced judgment. LLM-based grading with a clear rubric and a correct/incorrect output fits that (D). Option B is the tempting fix because it keeps the test cheap, but exact matching is code-based grading, which lacks the nuance needed. Human grading (A) is slow and expensive, and free-form comments (C) can't be scored at scale.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods",
+      "c-non-determinism"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-judge-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "Your LLM grader for legal-summary quality uses a detailed rubric, outputs only \"correct\" or \"incorrect\", and runs on a different model from the one being graded. On hard cases it often disagrees with expert spot checks. What does Anthropic's eval guide suggest next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace it with expert human grading for every case in the set",
+        "reason": "Human grading is slow and expensive, and the guide says to avoid it if possible; LLM-based grading is suitable for complex judgment."
+      },
+      {
+        "id": "b",
+        "text": "Run the grader with thinking on, so it reasons before it scores",
+        "reason": "Correct: the guide's tip is to encourage reasoning by using a grader with thinking on, which increases evaluation performance, particularly for complex judgment."
+      },
+      {
+        "id": "c",
+        "text": "Drop the rubric so the grader can apply its own sense of quality",
+        "reason": "The first tip for LLM-based grading is to have detailed, clear rubrics; removing it makes the grades less consistent, not more."
+      },
+      {
+        "id": "d",
+        "text": "Grade with the same model that wrote the summaries being judged",
+        "reason": "The guide's example notes it is generally best practice to use a different model to evaluate than the one that generated the output."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A reliable model-graded judge has a clear rubric, a specific output, a different model, and **thinking on** for complex calls.",
+    "explanation": "The stem already covers three of the guide's tips: a detailed rubric, a specific output, and a separate grader model. What's left is encouraging reasoning: a grader with thinking on reasons before scoring, which helps most on complex judgments like these hard cases (B). Option A is tempting because experts are the benchmark, but human grading is slow and expensive and the guide says to avoid it where possible. C and D undo tips the stem already follows.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-fastest-model-fit",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "A service routes millions of short support messages into queues in real time. The task is simple, and the priority is the lowest latency in the current lineup. Which model does the models overview describe for this kind of work?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Fable 5.1",
+        "reason": "Fable 5.1 is for demanding reasoning and long-horizon agentic work, and its comparative latency is listed as slower."
+      },
+      {
+        "id": "b",
+        "text": "Claude Opus 5.5",
+        "reason": "Opus 5.5 is for long-running agentic coding and knowledge work, with moderate comparative latency."
+      },
+      {
+        "id": "c",
+        "text": "Claude Haiku 5.5",
+        "reason": "Correct: Haiku 5.5 is described as for high-volume, latency-sensitive tasks such as classification, extraction and routing, and it's the fastest."
+      },
+      {
+        "id": "d",
+        "text": "Claude Sonnet 5.5",
+        "reason": "Sonnet 5.5 is the best combination of speed and intelligence and is fast, but Haiku 5.5 is listed as the fastest."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Simple, high-volume, latency-sensitive work such as routing is what **Claude Haiku 5.5** is for.",
+    "explanation": "The models overview gives each current model a role: Haiku 5.5 is for high-volume, latency-sensitive tasks such as classification, extraction and routing, and it's the fastest (C). The stem's details (millions of short messages, routing, lowest latency) match that description. Sonnet 5.5 (D) is the tempting pick because it's fast too, but it's positioned as the balance of speed and intelligence, not the fastest. Fable 5.1 and Opus 5.5 are slower and aimed at harder work.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-lower-effort-first",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Effort",
+    "stem": "A feature on Claude Sonnet 5.5 passes its evals, but replies are slower and costlier than needed. A teammate proposes several changes. Which one matches the Thinking guide's advice for cutting cost or latency on a thinking-enabled workload?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower `effort`, which scales down the whole response, thinking included",
+        "reason": "Correct: to lower cost or latency on a thinking-enabled workload, the guide says lower `effort` first; it scales the whole response down, thinking included."
+      },
+      {
+        "id": "b",
+        "text": "Send `thinking: {\"type\": \"disabled\"}` to switch thinking off entirely",
+        "reason": "Claude Sonnet 5.5 rejects `\"disabled\"`; its lowest setting is `thinking: {type: \"between_tools\"}`, which turns off up-front thinking."
+      },
+      {
+        "id": "c",
+        "text": "Pass `effort: \"adaptive\"` so that Claude decides how hard to think",
+        "reason": "`adaptive` is a thinking mode, not an effort level; the guide says not to pass it as an `effort` value."
+      },
+      {
+        "id": "d",
+        "text": "Set `temperature` to 0.2 to get shorter, more focused replies",
+        "reason": "On Claude Sonnet 5.5, a non-default `temperature` returns a 400 error on every request, whether or not thinking is used."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To cut cost or latency on a thinking workload, **lower effort first**; `adaptive` is a thinking mode, not an effort value.",
+    "explanation": "The thinking and effort controls are separate, and the guide's rule for lowering cost or latency is to lower `effort` first, because it scales down every output token, thinking included (A). The stem's model matters: Sonnet 5.5 rejects `\"disabled\"` (B), so the tempting \"just turn thinking off\" fix fails with a 400. C confuses a thinking mode with an effort level, and D fails because Sonnet 5.5 rejects non-default `temperature` values.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-effort-composes",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Effort",
+    "stem": "Your team treats model choice and reasoning settings as separate levers. While planning a rollout across several models, which two statements about the `effort` parameter are accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It applies to every output token, so it works whether or not thinking is on",
+        "reason": "Correct: effort affects text, tool calls and thinking (when active); because it applies to every output token, it works whether or not thinking is enabled."
+      },
+      {
+        "id": "b",
+        "text": "On Claude Opus 5.5 you can turn thinking off with `\"disabled\"` at `low` effort",
+        "reason": "On Claude Opus 5.5, adaptive thinking is always on, and requests that set `thinking: {\"type\": \"disabled\"}` return a 400 error at every effort level."
+      },
+      {
+        "id": "c",
+        "text": "It's a strict token budget, so `low` guarantees a hard cap on spend",
+        "reason": "Effort is a behavioral signal, not a strict token budget; `max_tokens` is the hard limit on total output."
+      },
+      {
+        "id": "d",
+        "text": "Claude Haiku 5.5 supports all five levels, from `low` up to `max`",
+        "reason": "Correct: Claude Haiku 5.5 supports all five effort levels, with `medium` as its default."
+      },
+      {
+        "id": "e",
+        "text": "`adaptive` is a level above `max`, kept for the very hardest tasks",
+        "reason": "`adaptive` is a thinking mode, not an effort level; the levels are `low`, `medium`, `high`, `xhigh` and `max`."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Effort scales **all** output and composes with any model and thinking mode; it's a soft signal, so `max_tokens` is the hard cap.",
+    "explanation": "Effort is one lever and model choice another, and they combine. Effort applies to every output token, so it works with or without thinking (A), and even the fastest current model, Haiku 5.5, supports all five levels (D). Option C is the tempting misreading: effort is a behavioral signal, and only `max_tokens` is a hard limit. B is wrong because Opus 5.5 keeps thinking always on, and E confuses the `adaptive` thinking mode with an effort level.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-haiku-vision",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "A high-volume receipt classifier runs on Claude Haiku 5.5. A new requirement adds reading photos of the receipts, and a teammate says image input forces a move to a bigger model. What does the models overview say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move to Claude Fable 5.1, since only the most capable model reads images",
+        "reason": "All current models support text and image input, not only Fable 5.1."
+      },
+      {
+        "id": "b",
+        "text": "Haiku 5.5 can stay, since every current model supports image input",
+        "reason": "Correct: all current models support text and image input, text output, multilingual capabilities, vision and tool use."
+      },
+      {
+        "id": "c",
+        "text": "Move to Claude Opus 5.5, since Haiku 5.5's context window is too small",
+        "reason": "Claude Haiku 5.5 has the same 1M-token context window as Opus 5.5, Sonnet 5.5 and Fable 5.1."
+      },
+      {
+        "id": "d",
+        "text": "Move to Claude Sonnet 5.5, since Haiku 5.5 can't call tools on images",
+        "reason": "All current models support tool use, Haiku 5.5 included."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Vision, tool use and a 1M window are common to **every** current model; pick by capability, speed and cost, not by these.",
+    "explanation": "The models overview says all current models support text and image input, vision and tool use, and all four have a 1M-token window. So adding receipt photos doesn't force an upgrade: the classifier can stay on Haiku 5.5 (B) and be tested on the new input. Option A is the tempting assumption that vision is a premium feature, but it isn't. C and D cite limits that Haiku 5.5 doesn't have.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-raise-effort-before-switching",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "You started capability-first on Claude Opus 5.5, at its default effort, for a demanding research agent. Your evals fall a little short. According to Anthropic's model-choice guide, what should you try before changing models?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move straight to Claude Fable 5.1, the most capable model available to all",
+        "reason": "The guide says to move to Fable 5.1 if your evals at `xhigh` or `max` effort still fall short; you haven't raised effort yet."
+      },
+      {
+        "id": "b",
+        "text": "Drop to Claude Sonnet 5.5 at `max` effort to save cost while you tune",
+        "reason": "Downgrading models is the capability-first path's later efficiency step, once performance meets requirements, not the fix when evals fall short."
+      },
+      {
+        "id": "c",
+        "text": "Raise Opus 5.5's effort above its `medium` default and re-run the evals",
+        "reason": "Correct: tuning effort is often a better lever than switching models. On Opus 5.5 the default is `medium`; start there and adjust based on your evals."
+      },
+      {
+        "id": "d",
+        "text": "Turn thinking off so more of `max_tokens` is left for the final answer",
+        "reason": "Opus 5.5 runs with adaptive thinking always on; the guide lists turning thinking off among the breaking changes to check, not as a quality fix."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Model and effort are separate levers: **raise effort first**, and move to Fable 5.1 only if evals at `xhigh`/`max` still fall short.",
+    "explanation": "The guide treats effort as a lever within a model and says tuning it is often better than switching models. The stem says you're at Opus 5.5's default (`medium`) and only a little short, so raise effort and re-run the evals (C). Option A is the tempting jump, but the guide moves to Fable 5.1 only when evals at `xhigh` or `max` still fall short. Downgrading (B) is an efficiency step for later, and Opus 5.5 keeps thinking always on (D).",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Escalate effort first, then the model.",
+      "steps": [
+        {
+          "label": "Opus 5.5",
+          "sublabel": "default medium"
+        },
+        {
+          "label": "Raise effort",
+          "sublabel": "re-run evals"
+        },
+        {
+          "label": "Short at xhigh/max?"
+        },
+        {
+          "label": "Claude Fable 5.1"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-model-start-strategy",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-thinking-task-fit",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Extended thinking",
+    "stem": "Your app sends Claude two kinds of request: one-line FAQ lookups (\"What are your opening hours?\") and root-cause analysis of incident logs, which takes several dependent steps. Where is thinking most likely to improve answer quality?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The incident analysis, because the answer depends on intermediate steps",
+        "reason": "Correct: thinking helps on complex tasks like analysis and debugging, where quality depends on intermediate work."
+      },
+      {
+        "id": "b",
+        "text": "The FAQ lookups, because short answers leave the most room for thinking",
+        "reason": "Thinking pays off where the answer depends on intermediate work, and a one-line lookup has little of it. Spare room in `max_tokens` isn't the point."
+      },
+      {
+        "id": "c",
+        "text": "Both equally, since thinking improves every kind of request by about the same amount",
+        "reason": "Whether and how deeply Claude thinks depends on the complexity of the request, so the benefit isn't the same everywhere."
+      },
+      {
+        "id": "d",
+        "text": "Neither, because thinking only changes latency, not answer quality",
+        "reason": "The docs say thinking improves performance on complex tasks such as math, coding, analysis and long agentic work."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Spend thinking where the answer depends on **intermediate steps**; simple lookups gain little from it.",
+    "explanation": "Thinking lets Claude restate the problem, try approaches and check intermediate results before answering, which is what multistep work like incident analysis needs. The deciding detail is that the analysis has several dependent steps while the FAQ is a single fact. Option C is the tempting simplification, but the docs describe thinking as scaled to the request's complexity, not a flat boost.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-redacted-thinking-carry-back",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Preserving thinking blocks",
+    "stem": "Mid tool-use loop, Claude returns `[thinking, redacted_thinking, tool_use]`. Since `redacted_thinking` has no readable text, your code drops it before sending the assistant turn back with the `tool_result`. What should it do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Drop it; only `thinking` blocks with readable text must be returned",
+        "reason": "The rule includes `redacted_thinking` blocks: within the latest assistant message you can't partially drop the sequence."
+      },
+      {
+        "id": "b",
+        "text": "Convert it into a `thinking` block with an empty `thinking` field",
+        "reason": "That edits the block. Thinking blocks must go back exactly as generated, and its encrypted `data` would be lost."
+      },
+      {
+        "id": "c",
+        "text": "Move it after the `tool_use` block so the reasoning stays first",
+        "reason": "Rearranging is also forbidden: the sequence of thinking blocks must match what the model generated in the original request."
+      },
+      {
+        "id": "d",
+        "text": "Send the whole assistant turn back exactly as received",
+        "reason": "Correct: pass `redacted_thinking` back unchanged with the rest of the turn, alongside the `tool_use` it accompanied."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The carry-back rule covers **every** thinking block, `redacted_thinking` included: same blocks, same order, unmodified.",
+    "explanation": "When you return a tool result, Claude continues the same response, so the thinking blocks from that assistant message must come back complete and unmodified. The decisive detail is that the block is `redacted_thinking`: it looks empty to you, but its encrypted `data` carries reasoning, and the rule names it explicitly. Option A is the tempting shortcut, while B and C are edits and reorderings that the same rule forbids.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Return the assistant turn untouched, then the tool result.",
+      "steps": [
+        {
+          "label": "thinking"
+        },
+        {
+          "label": "redacted_thinking",
+          "sublabel": "keep it"
+        },
+        {
+          "label": "tool_use"
+        },
+        {
+          "label": "tool_result",
+          "sublabel": "your next user turn"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-effort-before-prompt",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Steering thinking",
+    "stem": "A chat app on Claude Sonnet 5.5 thinks at length on routine questions, and replies feel slow. The app sets no effort level. A teammate wants to add \"Don't think, just answer\" to the system prompt. What does Anthropic's guidance recommend trying first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower `max_tokens` so there's less room left for thinking",
+        "reason": "`max_tokens` is a hard cap on thinking and text combined. Cutting it risks truncated replies with `stop_reason: \"max_tokens\"`."
+      },
+      {
+        "id": "b",
+        "text": "Lower the effort level, then add prompt guidance only if needed",
+        "reason": "Correct: set the effort level first, then add prompt guidance only if thinking still doesn't trigger the way you need."
+      },
+      {
+        "id": "c",
+        "text": "Add the system-prompt instruction, since it's the most direct control",
+        "reason": "On Sonnet 5.5, asking in the system prompt to think less doesn't reliably reduce thinking. Effort is the calibrated lever."
+      },
+      {
+        "id": "d",
+        "text": "Append \"Answer directly without deliberating.\" to each user message",
+        "reason": "Per-message steering is still prompt-based. The guidance is to lower effort before reaching for prompt-based steering."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Match reasoning depth with **effort** first; reach for prompt steering only if thinking still triggers wrongly.",
+    "explanation": "The steering guidance gives an order: set the effort level for your workload first, then add prompt guidance only if triggering is still off. Effort is a calibrated control, while prompt wording is sensitive, and on Sonnet 5.5 a request in the system prompt to think less doesn't reliably reduce thinking. Options C and D are both prompt-based steering tried first. Option A only caps total output, so it risks truncated replies rather than less thinking.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+      "title": "Steering thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-carry-back-rules",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Preserving thinking blocks",
+    "stem": "You're writing your team's rules for handling thinking blocks in a multi-turn agent that uses tools. Which two rules match Anthropic's documentation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prune old turns' thinking blocks yourself, or you're billed for all of them",
+        "reason": "Not needed: the API filters prior thinking automatically and bills input only for the blocks actually shown to Claude."
+      },
+      {
+        "id": "b",
+        "text": "Within a tool-use turn, pass the thinking blocks back with the `tool_use` block",
+        "reason": "Correct: when you return tool results, the thinking blocks from that assistant message are required, complete and unmodified."
+      },
+      {
+        "id": "c",
+        "text": "Thinking blocks may be reordered as long as every one of them is returned",
+        "reason": "The sequence must match what the model generated: you can't rearrange, edit or partially drop them."
+      },
+      {
+        "id": "d",
+        "text": "Outside tool use, prior turns' thinking blocks may be omitted",
+        "reason": "Correct: sending them back is only strictly necessary with tools. Passing everything back is recommended but not required."
+      },
+      {
+        "id": "e",
+        "text": "Parse the `signature` to log Claude's full reasoning for audits",
+        "reason": "The `signature` is opaque and encrypted: don't interpret or parse it. Its job is to let the API verify the block."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "**Required** within a tool-use turn, **recommended** across turns, **allowed** to omit outside tool use. Never edit or reorder.",
+    "explanation": "The docs sum up the carry-back rule in three tiers: required within a tool-use turn, recommended across turns, and allowed to omit outside tool use. B and D state the first and last tiers. Option A is the tempting cost worry, but the API already filters old blocks and bills only what Claude sees. C breaks the same-order rule, and E misreads the signature, which is opaque.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-interleaved-adaptive",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Interleaved thinking",
+    "stem": "Your agent on Claude Opus 5.5 should reason about each tool result before choosing its next tool call. It uses the model's default adaptive thinking. What do you need to add to get thinking between tool calls?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `interleaved-thinking-2025-05-14` beta header on every request",
+        "reason": "With adaptive thinking no beta header is needed. That header is how interleaving is enabled in manual extended-thinking mode."
+      },
+      {
+        "id": "b",
+        "text": "`thinking: {\"type\": \"enabled\"}` with a `budget_tokens` above `max_tokens`",
+        "reason": "Claude Opus 5.5 rejects `type: \"enabled\"` with a 400 error. It uses adaptive thinking."
+      },
+      {
+        "id": "c",
+        "text": "Nothing; adaptive thinking interleaves between tool calls automatically",
+        "reason": "Correct: with adaptive thinking, interleaved thinking is automatic on every model that supports it, with no beta header."
+      },
+      {
+        "id": "d",
+        "text": "`tool_choice: {\"type\": \"any\"}` so Claude must think before each call",
+        "reason": "Opus 5.5 rejects forced tool use with a 400 error. Forcing a tool call doesn't add reasoning anyway."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On adaptive-thinking models, **interleaved thinking** is automatic: no beta header, no budget.",
+    "explanation": "Interleaved thinking lets Claude think between tool calls, and with adaptive thinking it happens automatically, with no beta header. The deciding detail is the model: Opus 5.5 uses adaptive thinking and rejects manual mode. Option A is the tempting carry-over from manual-mode setups, where the beta header enabled interleaving, but it isn't needed here.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-batch-loop-is-not-batching",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "A nightly job writes 40,000 product descriptions. Its code slices the list into groups of 100 and loops over the synchronous Messages API, firing each group concurrently. It pays full price, and nobody reads the output until morning. What fits this workload?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `stream: true` on every call so each response starts returning sooner",
+        "reason": "`stream: true` isn't supported in batches; each streamed call is still a synchronous request at standard price, and nobody is waiting on these responses anyway."
+      },
+      {
+        "id": "b",
+        "text": "Submit the requests as one Message Batch and match results by `custom_id`",
+        "reason": "Batches suit work with no need for immediate responses: usage is charged at 50% of standard prices, and results are matched by `custom_id`."
+      },
+      {
+        "id": "c",
+        "text": "Use fast mode (`speed`) so the loop finishes faster",
+        "reason": "Fast mode tunes synchronous latency, which this overnight job doesn't need; the calls are still synchronous requests at full price."
+      },
+      {
+        "id": "d",
+        "text": "Raise the group size to 1,000 requests per loop iteration",
+        "reason": "Bigger groups are still synchronous Messages calls at standard prices; grouping requests in your own code isn't a Message Batch."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Grouping synchronous calls in a loop is not batching; the Message Batches API is what halves the price.",
+    "explanation": "The workload is high-volume and nobody needs the answers until morning, which is the Message Batches API's exact use case. The stem's trap is that the code already \"batches\" in its own loop, but each call is still a synchronous request at standard price. Choice d repeats that mistake at a larger size.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-dry-run-request-shape",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "A 50,000-request Message Batch ends hours after submission with every request `errored`: a typo in `params` made each request invalid. What would have caught the mistake before the batch was submitted?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Polling `processing_status` every few seconds while the batch runs",
+        "reason": "Params are validated asynchronously, and validation errors are returned only when processing of the whole batch has ended."
+      },
+      {
+        "id": "b",
+        "text": "Setting `max_tokens: 0` on each request to validate without generating",
+        "reason": "`max_tokens: 0` isn't supported inside a batch; each batched request needs `max_tokens` of at least 1."
+      },
+      {
+        "id": "c",
+        "text": "Adding `stream: true` so errors appear as they happen",
+        "reason": "`stream: true` isn't supported in batch requests; including it returns a validation error."
+      },
+      {
+        "id": "d",
+        "text": "Dry-running one request with the same shape on the Messages API",
+        "reason": "The guide's best practice: dry run a single request shape with the Messages API to avoid batch validation errors."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Batch validation is asynchronous, so test one request on the Messages API before submitting thousands.",
+    "explanation": "A batch reports validation errors only after processing has ended, so the cheap check happens before submission. One synchronous call with the same `params` shape surfaces the typo in seconds. Choice a is tempting because polling feels proactive, but the errors aren't available until the batch ends. The errored requests at least aren't billed.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-multimodal-image-cost-estimate",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Image costs",
+    "stem": "Before writing ingestion code, you estimate the image-input cost for 10,000 product photos, each 1000×1000 px, on Claude Opus 5.5 at $4 per million input tokens. Using the Vision guide's patch formula, what's the estimate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "About $52: each image costs 1,296 visual tokens",
+        "reason": "⌈1000/28⌉ × ⌈1000/28⌉ = 36 × 36 = 1,296 tokens; × 10,000 images = 12.96M tokens; × $4 per million ≈ $52."
+      },
+      {
+        "id": "b",
+        "text": "About $5: each image costs 1,296 visual tokens",
+        "reason": "The guide's $5.18 figure is per thousand images; 10,000 images cost ten times that."
+      },
+      {
+        "id": "c",
+        "text": "About $13: 1,296 tokens at $1 per million",
+        "reason": "$1 per million is Claude Haiku 4.5's input price in the guide's example, not Claude Opus 5.5's $4."
+      },
+      {
+        "id": "d",
+        "text": "About $191: each image costs 4,784 visual tokens",
+        "reason": "4,784 is the high-resolution cap, reached by a 4K image; a 1000×1000 image isn't resized and costs 1,296."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Image cost = ⌈w/28⌉ × ⌈h/28⌉ tokens × price × image count; work it out before you build.",
+    "explanation": "Images are billed as visual tokens, one per 28×28-pixel patch, so cost is easy to estimate up front. The stem fixes the size, model and price, which gives 1,296 tokens per image and about $52 in total. Choice b uses the right token count but stops at the guide's per-thousand figure.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Estimate image cost before writing ingestion code.",
+      "steps": [
+        {
+          "label": "1000×1000 px"
+        },
+        {
+          "label": "36 × 36 patches",
+          "sublabel": "1,296 tokens"
+        },
+        {
+          "label": "× 10,000 images",
+          "sublabel": "12.96M tokens"
+        },
+        {
+          "label": "× $4 / MTok",
+          "sublabel": "≈ $52"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-multimodal-pdf-cost-estimate",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "PDF costs",
+    "stem": "You're pricing a feature that will ingest long PDF reports full of charts. Before writing the ingestion code, which estimating approach does the PDF support guide back?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Budget 1,500–3,000 text tokens per page, which covers the full cost of a PDF",
+        "reason": "That covers only the text. Each page is also converted into an image, and image-based cost calculations apply on top."
+      },
+      {
+        "id": "b",
+        "text": "Add a per-file PDF surcharge on top of the token costs",
+        "reason": "Standard API pricing applies with no additional PDF fees; the cost is all in tokens."
+      },
+      {
+        "id": "c",
+        "text": "Run sample PDFs through token counting; pages cost text plus image tokens",
+        "reason": "The guide says you can use token counting to estimate costs for your specific PDFs, which covers both text and page-image tokens."
+      },
+      {
+        "id": "d",
+        "text": "Estimate tokens from each file's size in megabytes",
+        "reason": "A PDF's token count depends on the text extracted and the number of pages, not on file size."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A PDF page costs its text tokens plus its image tokens; measure real samples with token counting.",
+    "explanation": "PDF support sends each page as both extracted text and an image, so an estimate has to include both. Token counting on real sample files captures that directly. Choice a is the classic underestimate: the per-page text figure is real, but it leaves out the image half of the bill.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
+      "title": "PDF support",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-token-counting"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-pdf-backlog-setup",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "An insurer must extract fields from a backlog of 200,000 claim PDFs by next week. Every request shares the same long extraction instructions. Which choices fit the Message Batches API?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put each PDF in a document block inside a batched request",
+        "reason": "Correct: almost any request you can make to the Messages API can be batched, and each request in the batch is processed independently."
+      },
+      {
+        "id": "b",
+        "text": "Submit all 200,000 requests as a single batch",
+        "reason": "A batch is limited to 100,000 requests or 256 MB, whichever comes first, so this backlog needs at least two batches."
+      },
+      {
+        "id": "c",
+        "text": "Cache the shared instructions using the 1-hour cache duration",
+        "reason": "Correct: batches can take longer than 5 minutes, so the guide suggests the 1-hour cache duration for shared context; the discounts stack."
+      },
+      {
+        "id": "d",
+        "text": "Add `max_tokens: 0` requests to pre-warm the cache inside the batch",
+        "reason": "`max_tokens: 0` isn't supported in a batch; an ephemeral cache entry written during processing would likely expire before the follow-up ran."
+      },
+      {
+        "id": "e",
+        "text": "Set `stream: true` so extracted fields arrive as they're generated",
+        "reason": "`stream: true` isn't supported: batch results come back as a single file, not a stream."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Batches take almost any Messages request; mind the 100,000-request cap and use the 1-hour cache for shared context.",
+    "explanation": "A week-long deadline with no one waiting is a batch workload, and the shared instructions are a caching opportunity. The size limit and the unsupported parameters rule out the rest. Choice b is the easiest trap: 200,000 requests is twice the per-batch cap.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-cache-control"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-course-sampling-params-accepted",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Temperature",
+    "stem": "Your gateway forwards sampling settings to a Claude model released after Claude Opus 4.6. Which two settings, each sent on its own, will the Messages API still accept?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`\"temperature\": 1.0`",
+        "reason": "Correct: on models released after Claude Opus 4.6, a `temperature` of 1.0 is accepted for backwards compatibility."
+      },
+      {
+        "id": "b",
+        "text": "`\"temperature\": 0.0`, for repeatable output",
+        "reason": "Any `temperature` other than 1.0 is rejected with a 400 error on these models, and even 0.0 is not fully deterministic."
+      },
+      {
+        "id": "c",
+        "text": "`\"top_k\": 40`",
+        "reason": "These models don't accept `top_k` at all: any value is rejected with a 400 error."
+      },
+      {
+        "id": "d",
+        "text": "`\"top_p\": 0.99`",
+        "reason": "Correct: a `top_p` of 0.99 or above is accepted for backwards compatibility."
+      },
+      {
+        "id": "e",
+        "text": "`\"top_p\": 0.9`",
+        "reason": "A `top_p` below 0.99 is rejected with a 400 error on models released after Claude Opus 4.6."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "After Claude Opus 4.6, only `temperature` 1.0 and `top_p` ≥ 0.99 pass; any `top_k` gets a 400.",
+    "explanation": "The API reference marks all three sampling parameters as deprecated for models released after Claude Opus 4.6, keeping only backwards-compatible values: `temperature` 1.0 and `top_p` of 0.99 or more. That makes A and D the two accepted settings. B is the tempting one, since lowering temperature used to be the way to get steadier output, but it now returns a 400. C and E fail the same way: any `top_k`, and any `top_p` under 0.99.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-temperature"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-temperature-older-model-task",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Temperature",
+    "stem": "A grading job runs on Claude Haiku 4.5, an older model that still accepts `temperature`, and answers multiple-choice questions. Per the Messages API reference, which `temperature` suits this task?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Closer to 1.0, the default, so the answers stay diverse",
+        "reason": "The reference suggests values closer to 1.0 for creative and generative tasks, not multiple choice."
+      },
+      {
+        "id": "b",
+        "text": "Closer to 0.0, as suggested for analytical and multiple-choice tasks",
+        "reason": "Correct: the reference says to use `temperature` closer to 0.0 for analytical or multiple-choice tasks."
+      },
+      {
+        "id": "c",
+        "text": "Above 1.0, so the model weighs each option more carefully",
+        "reason": "`temperature` ranges from 0.0 to 1.0, so a value above 1.0 isn't valid."
+      },
+      {
+        "id": "d",
+        "text": "Any value, since the API rejects every non-default `temperature`",
+        "reason": "That rule applies to models released after Claude Opus 4.6; on an older model the parameter still works."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Where `temperature` still works, go **closer to 0.0** for analytical work and closer to 1.0 for creative work.",
+    "explanation": "The Messages API reference gives a range of 0.0 to 1.0 (default 1.0) and recommends values closer to 0.0 for analytical and multiple-choice tasks, so B fits. A describes the advice for creative and generative tasks. D is the tempting trap: the 400 for non-default values applies only to models released after Claude Opus 4.6, and the stem says this older model still accepts `temperature`.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-temperature"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-history-growth-input",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "Turn 1 of your chat sends a 2k-token system prompt and a 1k-token user message, and Claude replies with 3k tokens. Turn 2 adds a 1k-token user message. Roughly how many input tokens does turn 2 send, ignoring tools and thinking?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "About 1k: only the new user message, since the API remembers the rest",
+        "reason": "Each turn's input phase contains all previous conversation history plus the current user message; nothing is remembered for you."
+      },
+      {
+        "id": "b",
+        "text": "About 3k: the system prompt plus the new user message",
+        "reason": "This drops turn 1. The input for each turn carries the previous history, not just the system prompt."
+      },
+      {
+        "id": "c",
+        "text": "About 7k: system prompt, both turn-1 messages and the new message",
+        "reason": "Correct: 2k system + 1k user + 3k reply + 1k new message. Claude's output becomes part of the input for the next turn."
+      },
+      {
+        "id": "d",
+        "text": "About 4k: system prompt and both user messages, but not Claude's reply",
+        "reason": "Claude's reply isn't dropped: each turn's output becomes part of the input for the next turn."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Each turn resends the **whole history**, Claude's replies included, so input grows every turn.",
+    "explanation": "The Context windows guide describes each turn as an input phase holding all previous history plus the new user message, and an output phase that becomes part of the next turn's input. So turn 2 sends 2k + 1k + 3k + 1k, about 7k tokens (C). D is the tempting slip: it forgets that Claude's 3k-token reply is carried forward too. A assumes the API keeps state, which it doesn't.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Turn 2's input: the whole history plus the new message.",
+      "segments": [
+        {
+          "label": "System · 2k",
+          "weight": 2,
+          "tone": "neutral"
+        },
+        {
+          "label": "User · 1k",
+          "weight": 1,
+          "tone": "neutral"
+        },
+        {
+          "label": "Reply · 3k",
+          "weight": 3,
+          "tone": "accent"
+        },
+        {
+          "label": "New · 1k",
+          "weight": 1,
+          "tone": "success"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stateless-api",
+      "c-context-window"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-window-vs-training-data",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "A product manager says that moving to a model with a larger context window means Claude will know more facts about the world. What does Anthropic's glossary say a context window is?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The text it can reference while generating: a working memory",
+        "reason": "Correct: the glossary calls it the amount of text the model can look back on and reference, a \"working memory\"."
+      },
+      {
+        "id": "b",
+        "text": "The large corpus of data the model was trained on before release",
+        "reason": "The glossary says the context window is different from the large corpus of data the model was trained on."
+      },
+      {
+        "id": "c",
+        "text": "The maximum length of a single response, separate from the prompt",
+        "reason": "The glossary ties the window to handling lengthy prompts: it's the text the model can look back on, not a reply-length cap."
+      },
+      {
+        "id": "d",
+        "text": "A setting that controls how creative and varied the replies are",
+        "reason": "That describes temperature, which controls the randomness of the model's predictions."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A bigger context window means more **working memory** for the request, not more trained knowledge.",
+    "explanation": "The glossary defines the context window as the text a model can look back on and reference while generating, its \"working memory\", and says this is different from the training corpus. So A is right, and a larger window lets Claude handle longer prompts rather than know more facts. B is the manager's misconception in choice form. D describes temperature.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-pretraining"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-count-before-sending",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "Users upload document bundles to your app on Claude Opus 5.5. Some requests fail at once with a 400 \"prompt is too long\" error because the input alone exceeds the window. You want to catch these before sending. What does the Context windows guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise `max_tokens` so the request has more room to fit the bundle",
+        "reason": "The 400 comes from the input alone exceeding the window; a larger output allowance does nothing to shrink the input."
+      },
+      {
+        "id": "b",
+        "text": "Cache the bundles, since cached prefixes no longer count toward the window",
+        "reason": "Cached prefixes still occupy the context window; caching changes what you pay for those tokens, not whether they count."
+      },
+      {
+        "id": "c",
+        "text": "Send anyway and handle `model_context_window_exceeded` in the reply",
+        "reason": "That stop reason is for generation reaching the limit; oversized input gets a 400 on every model instead."
+      },
+      {
+        "id": "d",
+        "text": "Estimate each request with the token counting API before sending it",
+        "reason": "Correct: the guide says to use the token counting API to estimate usage before sending, to stay within the limit."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Count tokens **before** sending to keep input inside the window; caching and `max_tokens` don't help.",
+    "explanation": "When the input alone is over the window, the API returns a 400 on every model, so the fix is to measure first: the guide points to the token counting API for estimating a request before sending (D). B is the tempting shortcut, but cached prefixes still count toward the window. C confuses this failure with `model_context_window_exceeded`, which only happens when generation hits the limit.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-token-counting",
+      "c-context-window"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-max-output-batch-300k",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Tokens",
+    "stem": "A nightly job on Claude Opus 5.5 must produce a single 200k-token technical manual in one turn, more output than a synchronous request can ask for. What does the Models overview describe for this case?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use the Message Batches API with the `output-300k-2026-03-24` beta header",
+        "reason": "Correct: on the Message Batches API, Claude Opus 5.5 supports up to 300k output tokens with that beta header."
+      },
+      {
+        "id": "b",
+        "text": "Set `max_tokens` to 200,000, since the 1M-token context window has room for it",
+        "reason": "Max output is a separate limit: 128K tokens on the synchronous Messages API, whatever the context window size."
+      },
+      {
+        "id": "c",
+        "text": "Switch to Claude Fable 5.1, which has a larger maximum output",
+        "reason": "Every current model, Claude Fable 5.1 included, lists 128K max output, and Fable 5.1 isn't among the 300k batch models."
+      },
+      {
+        "id": "d",
+        "text": "Stream the response, since streaming lifts the 128K synchronous output cap",
+        "reason": "The 128K figure is the Messages API limit; the overview lists the 300k option only for the Message Batches API."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Max output is **128K** on the Messages API; the Batches API reaches 300k on listed models with a beta header.",
+    "explanation": "The overview lists 128K max output for every current model as the synchronous Messages API limit, and notes that on the Message Batches API, Claude Opus 5.5 and several others can go to 300k with the `output-300k-2026-03-24` beta header (A). B is the tempting mistake of reading the 1M context window as an output allowance. C fails because Fable 5.1 also lists 128K and isn't in the 300k list.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-max-tokens",
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-eval-code-graded-labels",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "Your sentiment classifier must answer exactly `positive`, `negative` or `neutral`, and you have labeled test cases. Which grading method fits best, per Anthropic's eval guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An LLM judge with a 1–5 rubric, since it's flexible and handles nuance",
+        "reason": "LLM grading suits complex judgment; for clear-cut categorical answers the guide says to pick the fastest, most reliable method."
+      },
+      {
+        "id": "b",
+        "text": "Code-based exact match against each label, the fastest and most reliable",
+        "reason": "Correct: code-based grading is fastest and most reliable, and exact match suits clear-cut categorical answers like sentiment."
+      },
+      {
+        "id": "c",
+        "text": "Human grading of every output, since it gives the highest-quality verdicts",
+        "reason": "Human grading is flexible and high quality but slow and expensive; the guide says to avoid it if possible."
+      },
+      {
+        "id": "d",
+        "text": "Cosine similarity between each output and its label's embedding",
+        "reason": "The guide uses cosine similarity for consistency across varied wording; categorical labels are an exact-match case."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Pick the **fastest, most reliable** grader that works: categorical labels mean code-based exact match.",
+    "explanation": "The guide says to choose the fastest, most reliable, most scalable grading method, and gives exact match as the fit for tasks with clear-cut categorical answers such as sentiment analysis (B). A is the tempting choice because LLM judges are flexible, but that flexibility is for nuanced judgments. C is slow and expensive, and D measures semantic similarity, which isn't needed when the answer is one of three fixed words.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-eval-volume-over-quality",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "With the same budget, your team can either hand-grade 60 test cases in depth or auto-grade 1,500 cases with slightly noisier checks. Which does Anthropic's eval guide favor?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The 60 hand-graded cases, since high-quality human verdicts beat volume",
+        "reason": "The guide says to prioritize volume over quality: more automated questions beat fewer hand-graded ones."
+      },
+      {
+        "id": "b",
+        "text": "The 60 cases, but only typical inputs, leaving edge cases for later",
+        "reason": "The guide says evals should mirror your real task distribution and not forget edge cases."
+      },
+      {
+        "id": "c",
+        "text": "Human-grade all 1,500, since human grading is the most scalable method",
+        "reason": "Human grading is slow and expensive; code-based grading is the one the guide calls extremely scalable."
+      },
+      {
+        "id": "d",
+        "text": "The 1,500 auto-graded cases: more questions beat fewer hand-graded ones",
+        "reason": "Correct: the guide says more questions with slightly lower-signal automated grading beat fewer high-quality human-graded evals."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Prioritize **volume**: many auto-graded cases beat a few hand-graded ones.",
+    "explanation": "One of the guide's eval design principles is to prioritize volume over quality: more questions with slightly lower-signal automated grading are better than fewer high-quality, hand-graded evals. That makes D right. A is the intuitive pick, since in-depth human grading feels more trustworthy, but it's exactly what the guide trades away. C gets scalability backwards, because human grading is the slow, expensive method.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-judge-test-reliability-first",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "You've just written an LLM-based grader for answer quality. A manager wants it run on all 40,000 production transcripts tonight to report a quality score. Per Anthropic's eval guide, what should happen first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace it with exact string match, since LLM graders can't scale",
+        "reason": "The guide calls LLM-based grading fast, flexible and scalable; exact match lacks nuance for a quality judgment."
+      },
+      {
+        "id": "b",
+        "text": "Grade with the same model that wrote the answers, for consistency",
+        "reason": "The guide says it's generally best practice to grade with a different model from the one that produced the output."
+      },
+      {
+        "id": "c",
+        "text": "Check that the grader is reliable on a sample, then scale it up",
+        "reason": "Correct: for LLM-based grading the guide says to test that it's reliable first, then scale."
+      },
+      {
+        "id": "d",
+        "text": "Have it return free-form comments, which are richer than a score",
+        "reason": "The guide asks for specific output, such as correct/incorrect or 1–5; qualitative comments are hard to assess at scale."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "An LLM judge scales well, but **test its reliability first**, then run it at volume.",
+    "explanation": "The guide lists LLM-based grading as fast, flexible and scalable, with one condition: test to ensure reliability first, then scale (C). Running an unchecked grader on 40,000 transcripts would turn any grading error into a misleading score. A is the tempting overcorrection, but scale isn't the problem with LLM graders. B and D go against the guide's advice: grade with a different model, and ask for a specific result.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-eval-edge-case-set",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Evals",
+    "stem": "You're building a task-specific eval set for a customer-support summarizer. Beyond typical tickets, which two kinds of test case does Anthropic's guide list as edge cases to include?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only tickets the current prompt already handles well, for a stable baseline",
+        "reason": "The guide says evals should mirror your real-world task distribution, edge cases included, not just cases that already pass."
+      },
+      {
+        "id": "b",
+        "text": "Tickets with irrelevant or nonexistent input data",
+        "reason": "Correct: \"Irrelevant or nonexistent input data\" is one of the guide's example edge cases."
+      },
+      {
+        "id": "c",
+        "text": "Only short, well-formed tickets, since long inputs are out of scope",
+        "reason": "The guide lists overly long input data or user input as an edge case to include."
+      },
+      {
+        "id": "d",
+        "text": "Only tickets with a clear-cut answer, skipping ambiguous ones",
+        "reason": "The guide lists ambiguous cases, where even humans would struggle to agree, as edge cases."
+      },
+      {
+        "id": "e",
+        "text": "Overly long tickets or user input",
+        "reason": "Correct: overly long input data or user input is one of the guide's example edge cases."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "A good eval set mirrors **real traffic**, including irrelevant, overly long and ambiguous inputs.",
+    "explanation": "The guide's first principle is to be task-specific: mirror your real-world task distribution and don't forget edge cases. Its examples include irrelevant or nonexistent input data (B) and overly long input (E). A is the tempting option for a team that wants stable numbers, but a set of already-passing cases tells you nothing about failures. C and D exclude two of the guide's own edge-case examples.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-course-capability-first-fit",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "Your team serves several workloads. For which two does Anthropic's guide recommend a capability-first start on Claude Opus 5.5?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A scientific app solving multistep mathematical problems",
+        "reason": "Correct: scientific or mathematical applications are on the guide's list for capability-first."
+      },
+      {
+        "id": "b",
+        "text": "An early prototype built to test whether an idea works",
+        "reason": "Initial prototyping and development is listed under efficiency-first, starting on Claude Haiku 5.5."
+      },
+      {
+        "id": "c",
+        "text": "A real-time autocomplete with tight latency requirements",
+        "reason": "Applications with tight latency requirements are listed under efficiency-first."
+      },
+      {
+        "id": "d",
+        "text": "A high-autonomy agent doing advanced coding work",
+        "reason": "Correct: advanced coding and high-autonomy agentic work are on the capability-first list."
+      },
+      {
+        "id": "e",
+        "text": "A high-volume, straightforward tagging pipeline",
+        "reason": "High-volume, straightforward tasks are an efficiency-first fit."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Start **capability-first** when accuracy matters most: complex reasoning, science and math, advanced agentic coding.",
+    "explanation": "Capability-first starts on Claude Opus 5.5 and later gains efficiency by lowering effort or downgrading models. The guide lists it for complex reasoning, scientific or mathematical applications, nuanced understanding, accuracy-over-cost work, and advanced coding with high autonomy, so A and D fit. B, C and E are the guide's own examples of efficiency-first workloads: prototyping, tight latency and high-volume, straightforward tasks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-everyday-sonnet",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "Your team wants speed and capability for everyday work: code generation, data analysis and content creation. Which model does that row of the guide's model selection matrix suggest starting with?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Sonnet 5.5",
+        "reason": "Correct: the matrix pairs speed and capability for everyday coding, agent and enterprise workloads with Claude Sonnet 5.5."
+      },
+      {
+        "id": "b",
+        "text": "Claude Haiku 5.5",
+        "reason": "Haiku 5.5 is the row for the lowest latency and price: real-time apps, high-volume processing and sub-agent tasks."
+      },
+      {
+        "id": "c",
+        "text": "Claude Fable 5.1",
+        "reason": "Fable 5.1 is the row for the highest capability, such as hours-long agent sessions and multistep deep research."
+      },
+      {
+        "id": "d",
+        "text": "Claude Opus 5.5",
+        "reason": "Opus 5.5 is the row for complex agentic coding and enterprise work, such as multihour autonomous coding agents."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Everyday coding, analysis and content work at good speed maps to **Sonnet 5.5** in the selection matrix.",
+    "explanation": "The guide's selection matrix has one row per need. \"Speed and capability for everyday coding, agent, and enterprise workloads\" points to Claude Sonnet 5.5, with code generation, data analysis and content creation as its examples (A). D is tempting because most workloads start on Opus 5.5, but its matrix row is complex agentic coding and enterprise work. B and C are the cheapest-and-fastest and the highest-capability rows.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-upgrade-decision-evals",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "Your team debates moving a feature from Claude Sonnet 5.5 to Claude Opus 5.5 because a public leaderboard ranks Opus higher. What does the guide call the most important step in deciding whether to change models?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Follow the leaderboard, since public rankings reflect your workload",
+        "reason": "The guide says to test with your actual prompts and data, not general rankings."
+      },
+      {
+        "id": "b",
+        "text": "Build benchmark tests for your use case, run on your real prompts and data",
+        "reason": "Correct: the guide says a good evaluation set specific to your use case is the most important step."
+      },
+      {
+        "id": "c",
+        "text": "Pick whichever model has the newest release date, since newer always wins",
+        "reason": "The guide decides by comparing accuracy, response quality and edge-case handling, then weighing cost."
+      },
+      {
+        "id": "d",
+        "text": "Switch, then check whether users complain over the next few weeks",
+        "reason": "The guide has you test and compare models before deciding, not after switching."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Decide model changes with **your own evals** on real prompts and data, then weigh performance against cost.",
+    "explanation": "To decide whether to upgrade or change models, the guide says to create benchmark tests specific to your use case, calling a good evaluation set the most important step, then test with your actual prompts and data (B). It then compares accuracy, quality and edge-case handling and weighs cost. A is the tempting shortcut, but a leaderboard doesn't measure your workload. D tests in production on users.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-effort-soft-signal",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Effort",
+    "stem": "A workload on Claude Opus 5.5 runs at `low` effort. On a few very hard problems, Claude still spends many tokens thinking. A teammate files a bug, expecting `low` to rule out thinking. What does the Effort page say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's a bug, because `low` effort should switch thinking off on every request",
+        "reason": "Effort doesn't switch thinking off, and on Claude Opus 5.5 thinking can't be disabled at any effort level."
+      },
+      {
+        "id": "b",
+        "text": "`low` is ignored on Claude Opus 5.5, which runs only at `medium`",
+        "reason": "Claude Opus 5.5 supports all five effort levels; `medium` is only its default."
+      },
+      {
+        "id": "c",
+        "text": "Set `effort` to `adaptive` so Claude skips thinking when it can",
+        "reason": "`adaptive` is a thinking mode, not an effort level, so it isn't a valid `effort` value."
+      },
+      {
+        "id": "d",
+        "text": "Expected: effort is a soft signal, so hard problems still get some thinking",
+        "reason": "Correct: effort is a behavioral signal, not a strict budget; at low levels Claude still thinks on hard problems, just less."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Effort is a **soft signal**: low effort means less thinking, not none. Use `max_tokens` for a hard cap.",
+    "explanation": "The Effort page says effort is a behavioral signal, not a strict token budget: at lower levels Claude still thinks on sufficiently difficult problems, but less than it would at higher levels (D). A is the tempting reading of `low` as an off switch, but effort only scales the work, and Opus 5.5 rejects disabling thinking anyway. C misuses `adaptive`, which is a thinking mode. For a hard limit, `max_tokens` is the control.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-thinking-config-accepted",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Adaptive thinking",
+    "stem": "A gateway routes requests across the current models. Which two of these request configurations will the API accept?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5 with `thinking: {\"type\": \"disabled\"}` at `low` effort",
+        "reason": "On Claude Opus 5.5, requests that set `\"disabled\"` return a 400 error at every effort level."
+      },
+      {
+        "id": "b",
+        "text": "Claude Haiku 5.5 with `thinking: {\"type\": \"disabled\"}` at `medium` effort",
+        "reason": "Correct: Haiku 5.5 accepts `\"disabled\"` at `high` effort or below."
+      },
+      {
+        "id": "c",
+        "text": "Claude Haiku 5.5 with `thinking: {\"type\": \"disabled\"}` at `max` effort",
+        "reason": "At `xhigh` or `max`, `\"disabled\"` returns a 400 error on Haiku 5.5; use adaptive thinking there."
+      },
+      {
+        "id": "d",
+        "text": "Claude Sonnet 5.5 with `output_config.effort` set to `\"adaptive\"`",
+        "reason": "`adaptive` is a thinking mode, not an effort level; the effort values run from `low` to `max`."
+      },
+      {
+        "id": "e",
+        "text": "Claude Sonnet 5.5 with `thinking: {\"type\": \"between_tools\"}` at `high` effort",
+        "reason": "Correct: `between_tools` is Sonnet 5.5's lowest thinking setting and works at `low`, `medium` and `high` effort."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Thinking-off rules differ by model: Haiku 5.5 `disabled` and Sonnet 5.5 `between_tools` work up to `high`; Opus 5.5 never.",
+    "explanation": "The Effort page gives each model its own rule. Claude Haiku 5.5 accepts `thinking: {\"type\": \"disabled\"}` at `high` effort or below (B), and Claude Sonnet 5.5 turns off up-front thinking with `between_tools` at `low`, `medium` or `high` (E). A is the tempting one, since `low` effort seems the natural place to switch thinking off, but Opus 5.5 rejects `\"disabled\"` at every level. C uses `max`, where Haiku rejects it, and D passes a thinking mode as an effort value.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-opus-vs-sonnet-saving",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Cost estimation",
+    "stem": "A synchronous workload uses 5M input and 1M output tokens a day, with no caching or batching. How much would moving it from Claude Opus 5.5 ($4 / $20 per MTok) to Claude Sonnet 5.5 ($2 / $10 per MTok) save per day?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "$10",
+        "reason": "That's only the input saving ($20 → $10). Output also drops, from $20 to $10."
+      },
+      {
+        "id": "b",
+        "text": "$40",
+        "reason": "$40 is the whole Opus 5.5 bill ($20 input + $20 output); Sonnet 5.5 still costs $20 a day."
+      },
+      {
+        "id": "c",
+        "text": "$12",
+        "reason": "That adds the per-MTok price gaps ($2 + $10) without multiplying by the token volumes."
+      },
+      {
+        "id": "d",
+        "text": "$20",
+        "reason": "Correct: Opus 5.5 costs 5 × $4 + 1 × $20 = $40 a day; Sonnet 5.5 costs 5 × $2 + 1 × $10 = $20. The saving is $20."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Price each side as tokens (MTok) × rate for input **and** output, then compare the totals.",
+    "explanation": "Per the models overview, Claude Opus 5.5 is $4 input and $20 output per MTok, and Claude Sonnet 5.5 is $2 and $10. Opus: 5 × $4 + 1 × $20 = $40. Sonnet: 5 × $2 + 1 × $10 = $20. The saving is $20 a day (D). A is the tempting slip of counting only input, and C adds the price differences without multiplying by volume.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Same tokens: Opus 5.5's $40 a day splits into Sonnet 5.5's bill and the saving.",
+      "segments": [
+        {
+          "label": "Sonnet 5.5 · $20",
+          "weight": 1,
+          "tone": "neutral"
+        },
+        {
+          "label": "Saved · $20",
+          "weight": 1,
+          "tone": "success"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-latency-relative",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "The models overview rates Claude Haiku 5.5's latency as \"Fastest\", yet your Haiku 5.5 requests with very long prompts, long outputs and high effort feel slow. How does the overview qualify its latency ratings?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "\"Fastest\" means Haiku 5.5 answers every request in under a second",
+        "reason": "The overview gives no absolute time; the ratings are comparative within the current lineup."
+      },
+      {
+        "id": "b",
+        "text": "They're relative; real latency depends on prompt, output and effort",
+        "reason": "Correct: latency is relative to the lineup, and actual latency depends on prompt length, output length and thinking effort."
+      },
+      {
+        "id": "c",
+        "text": "The ratings hold only for prompts shorter than 200k tokens",
+        "reason": "The overview sets no prompt-size cutoff; it says actual latency depends on prompt length, output length and effort."
+      },
+      {
+        "id": "d",
+        "text": "Haiku 5.5 is fastest only when thinking is off on every request",
+        "reason": "The overview ties actual latency to prompt length, output length and thinking effort, not to thinking being off."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Latency ratings are **relative**; prompt length, output length and effort drive what you actually see.",
+    "explanation": "The overview's note on comparative latency says the ratings are relative to the current lineup, and that actual latency depends on prompt length, output length and thinking effort (B). Long prompts, long outputs and high effort all push latency up, even on the fastest model. A reads \"Fastest\" as an absolute promise, which is the tempting mistake. D picks one factor the overview doesn't single out.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-sonnet55-fresh-effort-sweep",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "You're moving an agentic coding workload from Claude Sonnet 5 to Claude Sonnet 5.5. It ran well on Sonnet 5 at `medium` effort, so a teammate plans to keep `medium` unchanged. What does the Effort page advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep `medium`, because each effort level gives the same thinking on every model",
+        "reason": "Sonnet 5.5's levels are recalibrated, so a level doesn't produce the same amount of thinking as on Sonnet 5."
+      },
+      {
+        "id": "b",
+        "text": "Drop to `low`, since Sonnet 5.5 defaults to `medium` on the Claude API",
+        "reason": "Sonnet 5.5's default on the Claude API is `high`, not `medium`."
+      },
+      {
+        "id": "c",
+        "text": "Run a fresh effort sweep on your evals; Sonnet 5.5's levels are recalibrated",
+        "reason": "Correct: the page says to run a fresh sweep rather than carry over the setting you used on Claude Sonnet 5."
+      },
+      {
+        "id": "d",
+        "text": "Move to `max`, since agentic coding on Sonnet 5.5 should always use `max`",
+        "reason": "The page says to use `xhigh` or `max` only where your evals show a quality gain."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Effort levels can be **recalibrated** between models: re-run an effort sweep on your evals after a migration.",
+    "explanation": "The Effort page says Claude Sonnet 5.5's levels are recalibrated, so a level doesn't produce the same amount of thinking as the same level on Sonnet 5, and tells you to run a fresh effort sweep on your evals (C). A is the tempting assumption that `medium` means the same thing everywhere. B gets Sonnet 5.5's default wrong (it's `high`), and D ignores the advice to go to `xhigh` or `max` only where evals show a gain.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-xhigh-not-on-opus46",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Effort",
+    "stem": "A router sends `effort: \"xhigh\"` for long agentic tasks. That works on Claude Opus 5.5, but the team also routes some tasks to Claude Opus 4.6. What does the Effort page say about Opus 4.6?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It supports `max` but not `xhigh`; not every model with `max` has `xhigh`",
+        "reason": "Correct: Opus 4.6 is on the `max` list but not the `xhigh` list, and the page notes that not every `max` model supports `xhigh`."
+      },
+      {
+        "id": "b",
+        "text": "It supports `xhigh` but not `max`, which only the 5.x models offer",
+        "reason": "`max` is available on Claude Opus 4.6; it's `xhigh` that Opus 4.6 lacks."
+      },
+      {
+        "id": "c",
+        "text": "It supports every level, because all five effort levels exist on every model",
+        "reason": "Availability varies by model: the page lists which models support `max` and which support `xhigh`."
+      },
+      {
+        "id": "d",
+        "text": "It doesn't support effort at all; only the 5.x models accept `effort`",
+        "reason": "Claude Opus 4.6 is on the page's list of models that support the effort parameter."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "**Not every model with `max` has `xhigh`**: check the Effort page's per-model lists before routing a level.",
+    "explanation": "The Effort page lists the models for each level. Claude Opus 4.6 appears under `max` but not under `xhigh`, and the page states plainly that not every model that supports `max` supports `xhigh` (A). B swaps the two levels, which is the tempting confusion. C and D are both contradicted by the page's lists: effort support and level support vary by model, and Opus 4.6 does support effort.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-course-budget-minimum-and-room",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Extended thinking",
+    "stem": "On Claude Haiku 4.5, which supports only manual extended thinking, a short classifier with no tools sends `max_tokens: 1000` and `thinking: {\"type\": \"enabled\", \"budget_tokens\": 800}`. The API rejects it. Which change makes the request valid?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower `budget_tokens` to 500 so it leaves more room under `max_tokens`",
+        "reason": "The budget must be at least 1,024 tokens; the API rejects smaller values, and 500 is further below the minimum."
+      },
+      {
+        "id": "b",
+        "text": "Set `budget_tokens` to 1,024 and keep `max_tokens` at 1,000",
+        "reason": "The budget must be less than `max_tokens`, because thinking counts toward it. With no tools, the interleaved-thinking exception doesn't apply."
+      },
+      {
+        "id": "c",
+        "text": "Set `budget_tokens` to 1,024 and raise `max_tokens` above it, say to 2,000",
+        "reason": "Correct: the budget meets the 1,024-token minimum and stays below `max_tokens`, leaving room for the final response."
+      },
+      {
+        "id": "d",
+        "text": "Switch to `thinking: {\"type\": \"adaptive\"}`, which has no minimum token budget",
+        "reason": "Adaptive thinking isn't available on models that support only extended thinking, such as Claude Haiku 4.5; `type: \"adaptive\"` returns a 400 error there."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`budget_tokens` needs **at least 1,024** and must stay **below `max_tokens`** (interleaved thinking is the exception).",
+    "explanation": "Two budget rules apply at once: `budget_tokens` must be at least 1,024, and it must be less than `max_tokens`. The request in the stem breaks the first rule, and simply raising the budget to 1,024 would break the second, which is the trap in option B. Only C satisfies both. D fails because Claude Haiku 4.5 doesn't offer adaptive thinking.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-budget-is-target",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Extended thinking",
+    "stem": "A report job on Claude Sonnet 4.5 sets `budget_tokens: 10000`. Usage shows many requests spending only about 2,000 thinking tokens, and a teammate files a bug saying the budget is being ignored. What is the accurate reply?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's a target, not a strict cap: Claude may stop reasoning well before it",
+        "reason": "Correct: actual usage varies with the task, and Claude may stop reasoning well before the budget is used up."
+      },
+      {
+        "id": "b",
+        "text": "The budget applies only to streamed requests, so non-streamed ones use a default",
+        "reason": "The budget isn't tied to streaming. It sets a target for Claude's internal reasoning on each request."
+      },
+      {
+        "id": "c",
+        "text": "Thinking usage can't be measured, so the 2,000 figure is only an estimate",
+        "reason": "It can be measured: `usage.output_tokens_details.thinking_tokens` reports how many billed output tokens were internal reasoning."
+      },
+      {
+        "id": "d",
+        "text": "Claude always uses the whole budget, and the unused part is billed but hidden",
+        "reason": "Claude doesn't always use the whole budget. It's a target, and actual token usage varies with the task."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`budget_tokens` is a **target**: Claude may use far less. `max_tokens` is the hard ceiling on total output.",
+    "explanation": "The extended thinking guide calls `budget_tokens` a target rather than a strict cap: usage varies with the task, and Claude may stop reasoning well before the budget runs out. So 2,000 tokens against a 10,000 budget is normal behaviour, not a bug. Option D is the tempting misreading that treats the budget as a fixed spend. C is wrong because the usage field reports thinking tokens exactly.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-sonnet46-turn-on-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Adaptive thinking",
+    "stem": "Your app on Claude Sonnet 4.6 sends no `thinking` field. Its multistep financial reconciliations often skip checks, and you want Claude to reason first, deciding for itself how much on each request. What should you add?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing, because thinking is already on by default for every current model",
+        "reason": "On Claude Sonnet 4.6, a request with no `thinking` field runs with thinking off. Thinking is on by default only on some newer models."
+      },
+      {
+        "id": "b",
+        "text": "`thinking: {\"type\": \"enabled\", \"budget_tokens\": 16000}`, the mode recommended here",
+        "reason": "Manual extended thinking is deprecated on Claude Sonnet 4.6. The mode that lets Claude decide when and how deeply to think is `adaptive`."
+      },
+      {
+        "id": "c",
+        "text": "`output_config: {\"effort\": \"adaptive\"}`, which lets Claude choose how much to think",
+        "reason": "`adaptive` is a thinking mode, not an effort level, so don't pass it as an `effort` value."
+      },
+      {
+        "id": "d",
+        "text": "`thinking: {\"type\": \"adaptive\"}`, because thinking is off here until you set it",
+        "reason": "Correct: on Claude Sonnet 4.6, thinking is off until you set `thinking: {type: \"adaptive\"}`, which lets Claude decide when and how deeply to think."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "On Claude Sonnet 4.6, thinking stays off until you send `thinking: {\"type\": \"adaptive\"}`; `adaptive` is never an effort value.",
+    "explanation": "Whether thinking is on by default depends on the model: on Claude Sonnet 4.6, a request without a `thinking` field runs with thinking off. The stem wants Claude to choose its depth per request, which is what adaptive thinking does. Option B is tempting because it turns thinking on, but manual mode is deprecated on this model and fixes the budget. C puts a thinking mode in the effort field.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-budget-starting-point",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Extended thinking",
+    "stem": "You are adding manual extended thinking on Claude Opus 4.5 to a complex legal-analysis task and need a first `budget_tokens` value to tune from. What does the extended thinking guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Start at the 1,024 minimum for every task, and raise it only when answers fail",
+        "reason": "Starting near 1,024 and increasing step by step is the guidance for simple tasks, not complex ones."
+      },
+      {
+        "id": "b",
+        "text": "Start at 16,000 tokens or more, then adjust to your latency and quality needs",
+        "reason": "Correct: for complex tasks the guide suggests starting with a larger budget of 16,000 tokens or more, then adjusting."
+      },
+      {
+        "id": "c",
+        "text": "Start above 32,000 tokens so the model never runs short, and keep calls synchronous",
+        "reason": "Above 32k, the guide recommends batch processing: such long-running requests can hit system timeouts and open-connection limits."
+      },
+      {
+        "id": "d",
+        "text": "Set `budget_tokens` equal to `max_tokens` so that no output room is wasted",
+        "reason": "The budget must be less than `max_tokens`, because thinking counts toward that limit and the final response needs room too."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Size the first budget to the task: near **1,024** for simple work, **16,000+** for complex work. Above 32k, use batch processing.",
+    "explanation": "The tuning advice matches the starting budget to the task: start near the 1,024 minimum for simple tasks, and at 16,000 or more for complex ones, then adjust. Legal analysis in the stem is a complex task, so B fits. Option A is the tempting cautious choice, but it is the advice for simple tasks. C invites the timeouts the guide warns about above 32k, and D breaks the rule that the budget must be below `max_tokens`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-thinking-spend-controls",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Steering thinking",
+    "stem": "Finance wants a thinking-heavy workload on Claude Opus 5.5 kept in check: a firm ceiling on each request, plus lower average cost and latency. Which two moves match the thinking docs?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat `effort` as the hard per-request ceiling on output tokens, thinking included",
+        "reason": "Effort is soft guidance. For a hard ceiling on spend, the docs point to `max_tokens`, which is a strict limit."
+      },
+      {
+        "id": "b",
+        "text": "Use `max_tokens` as the hard ceiling, since it covers thinking plus response text",
+        "reason": "Correct: `max_tokens`, which includes all thinking generated in the turn, is enforced as a strict limit."
+      },
+      {
+        "id": "c",
+        "text": "Set `display: \"omitted\"` so the hidden thinking tokens aren't billed",
+        "reason": "You are still charged for the full thinking tokens. Omitting reduces latency, not cost."
+      },
+      {
+        "id": "d",
+        "text": "Send `thinking: {\"type\": \"disabled\"}` to drop reasoning on Opus 5.5",
+        "reason": "Claude Opus 5.5 rejects `thinking: {type: \"disabled\"}`; thinking can't be turned off on this model."
+      },
+      {
+        "id": "e",
+        "text": "Lower `effort` first, since it scales the whole response down, thinking included",
+        "reason": "Correct: to lower cost or latency on a thinking-enabled workload, lower `effort` first."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "**`max_tokens`** is the hard cap; **effort** is the soft lever for cost and latency. Hiding thinking doesn't make it cheaper.",
+    "explanation": "The docs split the two controls: `max_tokens` is a strict limit that covers thinking and text, while effort is soft guidance that scales the whole response. The stem asks for both a firm ceiling and lower averages, so B and E together cover it. Option C is the tempting saving, but omitted thinking is billed in full and only arrives faster. D fails because Opus 5.5 rejects `disabled`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-omitted-field-ignored",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Preserving thinking blocks",
+    "stem": "Thinking blocks from Claude Opus 5.5 come back with an empty `thinking` field. Before passing them back with each `tool_result`, your code writes its own notes into that field so that Claude can \"see\" them. What happens to those notes?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude reads them as part of its earlier reasoning, which is how notes are meant to be added",
+        "reason": "Claude doesn't read them. The server rebuilds the original thinking from the `signature`, and text placed in an omitted block's field is ignored."
+      },
+      {
+        "id": "b",
+        "text": "The API rejects each request with a 400, as it does for any modified thinking block",
+        "reason": "Modified thinking blocks are normally rejected, but the docs name one exception: text in the empty field of an omitted block is ignored."
+      },
+      {
+        "id": "c",
+        "text": "They are ignored, and the server rebuilds the reasoning from the encrypted `signature`",
+        "reason": "Correct: the server decrypts the `signature` to reconstruct the original thinking, and any text you place in an omitted block's `thinking` field is ignored."
+      },
+      {
+        "id": "d",
+        "text": "They replace the signature's contents, so Claude's original reasoning is lost",
+        "reason": "The `signature` still carries the encrypted full thinking, and the server uses it. Your notes don't change it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "With omitted thinking, the reasoning travels in `signature`; text you put into the empty `thinking` field is ignored.",
+    "explanation": "With `display: \"omitted\"`, the `thinking` field is empty but the `signature` still holds the full reasoning, which the server decrypts when the block comes back. The docs carve out one exception to the no-modification rule: text written into an omitted block's empty field is ignored, not rejected. Option B is the tempting answer, because edited thinking blocks usually cause a 400. A assumes Claude reads the field.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-interleaved-budget-exceeds",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Interleaved thinking",
+    "stem": "On Claude Sonnet 4.5 with the `interleaved-thinking-2025-05-14` beta header, an agent turn calls several tools and sets `max_tokens: 16000` with `budget_tokens: 24000`. A reviewer flags the budget as invalid because it exceeds `max_tokens`. Are they right?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Yes: `budget_tokens` must always be less than `max_tokens`, so the API rejects it",
+        "reason": "The less-than rule has one exception: with interleaved thinking, `budget_tokens` can exceed `max_tokens`."
+      },
+      {
+        "id": "b",
+        "text": "No: with interleaved thinking the budget spans the turn and can exceed it",
+        "reason": "Correct: the budget spans all thinking blocks within one assistant turn, so `budget_tokens` can exceed `max_tokens` here."
+      },
+      {
+        "id": "c",
+        "text": "No: `budget_tokens` and `max_tokens` are independent in every thinking mode",
+        "reason": "Without interleaving, the budget must be less than `max_tokens`, because thinking counts toward that limit."
+      },
+      {
+        "id": "d",
+        "text": "Yes: Claude Sonnet 4.5 ignores the beta header, so the usual rule still applies",
+        "reason": "On Claude Sonnet 4.5 the header enables interleaved thinking. Claude Haiku 4.5 is a model that doesn't support it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Normally `budget_tokens` < `max_tokens`. With **interleaved thinking**, the budget spans the whole turn and may exceed it.",
+    "explanation": "The budget rules require `budget_tokens` to be less than `max_tokens`, with one exception: interleaved thinking, where the budget covers every thinking block across the assistant turn. The stem describes a tool-calling turn on Claude Sonnet 4.5 with the interleaved beta header, so the exception applies. Option A is the tempting answer for anyone who knows only the general rule. D confuses Sonnet 4.5 with Haiku 4.5.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Interleaved thinking: Claude thinks between tool calls in one assistant turn.",
+      "steps": [
+        {
+          "label": "Thinking"
+        },
+        {
+          "label": "Tool call"
+        },
+        {
+          "label": "Tool result"
+        },
+        {
+          "label": "Thinking"
+        },
+        {
+          "label": "Tool call"
+        },
+        {
+          "label": "Tool result"
+        },
+        {
+          "label": "Thinking"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-toggle-thinking-mid-turn",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Preserving thinking blocks",
+    "stem": "To save cost, your agent turns thinking off in the request that returns a `tool_result`, in the middle of a tool-use loop, then turns it back on for the next user message. No error appears. What actually happens on that request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API returns a 400 error, because the thinking mode changed partway through the turn",
+        "reason": "Mid-turn conflicts degrade gracefully: the API doesn't return an error when you toggle thinking mid-turn."
+      },
+      {
+        "id": "b",
+        "text": "Claude keeps thinking anyway, since the earlier thinking blocks show it was on",
+        "reason": "The API doesn't keep thinking on for you. It silently disables thinking for that request."
+      },
+      {
+        "id": "c",
+        "text": "The modes switch cleanly, so you save cost with no other side effect",
+        "reason": "There is a side effect: the API may strip thinking blocks that would create an invalid turn structure. Plan the change for the next turn instead."
+      },
+      {
+        "id": "d",
+        "text": "The API silently disables thinking for that request and may strip thinking blocks",
+        "reason": "Correct: toggling thinking mid-turn doesn't error. The API silently disables thinking for that request and may strip blocks that would make the turn invalid."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A tool-use loop is one assistant turn: change thinking settings between turns, not mid-turn, or the API quietly turns thinking off.",
+    "explanation": "From the model's point of view, a tool-use loop is one assistant turn, and the whole turn runs in a single thinking mode. Toggling between a tool call and its result doesn't error; the API silently disables thinking for that request and may strip blocks. Option A is the tempting guess because other thinking mistakes return 400s. C misses the stripping, which is why the docs say to toggle between turns.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-redacted-vs-omitted",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Thinking output",
+    "stem": "In one Claude Opus 5.5 response, your logs show a `thinking` block with an empty `thinking` field and a `redacted_thinking` block that holds only a `data` field. A teammate says both come from the `display: \"omitted\"` setting. What is the accurate distinction?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`redacted_thinking` is safety-redacted; omitted display returns ordinary `thinking` blocks",
+        "reason": "Correct: `redacted_thinking` is a distinct block type for safety-redacted reasoning, separate from omitted display, which returns regular `thinking` blocks with an empty field."
+      },
+      {
+        "id": "b",
+        "text": "Both come from `display`: omitted empties the field, and redacted means summarizing failed",
+        "reason": "`redacted_thinking` doesn't come from `display` at all. It is returned when portions of Claude's reasoning are safety-redacted."
+      },
+      {
+        "id": "c",
+        "text": "`redacted_thinking` blocks are for logging only and should be dropped before the next tool call",
+        "reason": "They must be passed back to the API unchanged when continuing a conversation with tools, just like regular thinking blocks."
+      },
+      {
+        "id": "d",
+        "text": "The empty `thinking` block means Claude skipped thinking, so it can be dropped from history",
+        "reason": "An empty field reflects the omitted display. The `signature` still carries the full reasoning, and if adaptive thinking skips, no block is produced at all."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`redacted_thinking` = safety-redacted, encrypted `data`. Omitted display = an ordinary `thinking` block with an empty field. Pass both back unchanged.",
+    "explanation": "Two different mechanisms can leave you without readable thinking. `display: \"omitted\"` returns regular `thinking` blocks with an empty field, while `redacted_thinking` is a separate block type returned when reasoning is safety-redacted. Option B is the tempting merge of the two, which the docs explicitly separate. C and D would drop blocks that must go back unchanged with tool results.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-course-thinking-block-default-fields",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Thinking output",
+    "stem": "Your code reads the `thinking` blocks that Claude Opus 5.5 returns with default settings. Which two statements describe what it will find?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `thinking` field is empty, since `display` defaults to `\"omitted\"` here",
+        "reason": "Correct: on Claude Opus 5.5, `display` defaults to `\"omitted\"`, so thinking blocks come back with an empty `thinking` field."
+      },
+      {
+        "id": "b",
+        "text": "The `thinking` field holds Claude's raw chain of thought, unedited",
+        "reason": "No `display` setting returns the raw chain of thought. Even with `\"summarized\"`, the text is a summary."
+      },
+      {
+        "id": "c",
+        "text": "The thinking blocks come after the final `text` block",
+        "reason": "Thinking blocks arrive before the `text` blocks in the response."
+      },
+      {
+        "id": "d",
+        "text": "The `signature` field carries an encrypted copy of the full reasoning",
+        "reason": "Correct: each thinking block's `signature` is an encrypted copy of the full reasoning, which you pass back unchanged."
+      },
+      {
+        "id": "e",
+        "text": "A thinking block is billed only when its `thinking` field contains text",
+        "reason": "Omitted and summarized blocks are billed the same: you're charged for the full thinking tokens either way."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "On Opus 5.5 by default, the `thinking` field is empty, but `signature` holds the full reasoning, encrypted and billed either way.",
+    "explanation": "On Claude Opus 5.5, thinking is on and `display` defaults to `\"omitted\"`, so the `thinking` field is empty while the `signature` carries the full reasoning in encrypted form. A and D describe exactly that. Option E is the tempting inference from an empty field, but the block is billed the same whatever the display setting. B and C misplace what thinking blocks contain and where they appear.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-batch-tools-and-vision-ok",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "A nightly eval runs 5,000 prompts that use tool use, image inputs and multi-turn conversations. The team keeps it on the synchronous Messages API, believing batches take only plain text prompts. What does the batch guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tool use, images and multi-turn all batch fine; only a few parameters are excluded",
+        "reason": "Almost any Messages request can be batched; only `stream: true`, fast mode (`speed`) and `max_tokens: 0` are not supported."
+      },
+      {
+        "id": "b",
+        "text": "Tool use can be batched only if every request in the batch uses the same model and tools",
+        "reason": "Each request is processed independently, so you can mix different types of requests in a single batch."
+      },
+      {
+        "id": "c",
+        "text": "Images can be batched, but tool-use requests must stay on the synchronous Messages API",
+        "reason": "Tool use, including all server tools, is on the guide’s list of what can be batched."
+      },
+      {
+        "id": "d",
+        "text": "Multi-turn conversations can’t be batched, because each request must be a single message",
+        "reason": "Multi-turn conversations are explicitly on the list of what can be batched."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Batching isn’t limited to plain text: almost any Messages request qualifies; leave out `stream`, `speed` and `max_tokens: 0`.",
+    "explanation": "The Message Batches API takes ordinary Messages requests, so the features a request uses rarely matter. The guide lists vision, tool use, system messages, multi-turn conversations and extended thinking as batchable, with just three parameters excluded. Choice b sounds like a reasonable constraint, but each request is processed independently, so mixed request types are fine.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-results-29-days",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "An auditor asks for the raw outputs of a Message Batch your team ran six weeks ago. The batch still shows up when you list batches, but its results won’t download. What happened?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Results are deleted 24 hours after the batch ends unless your code downloads them first",
+        "reason": "The 24 hours is the processing window before a batch expires; results stay available for 29 days after creation."
+      },
+      {
+        "id": "b",
+        "text": "Results are kept for 29 days after the batch was created, then can’t be downloaded",
+        "reason": "After 29 days you may still view the batch, but its results are no longer available for download."
+      },
+      {
+        "id": "c",
+        "text": "Ended batches are archived after seven days, and archived results can’t be downloaded",
+        "reason": "There is no seven-day rule: batch results are available for 29 days after the batch is created."
+      },
+      {
+        "id": "d",
+        "text": "Results stay available only until the workspace’s monthly spend limit resets",
+        "reason": "Result availability depends on time since creation, 29 days, not on spend limits."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Download and store batch results within 29 days of creation; after that the batch is visible but its results are gone.",
+    "explanation": "Batch results have a fixed lifetime of 29 days, counted from the batch's creation, not from when processing ended. Six weeks is past that, so the batch record remains but the results file doesn't. Choice a mixes up the two windows: 24 hours is how long a batch may take to process before it expires.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-cancel-and-resubmit",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Ten minutes after submitting a 30,000-request Message Batch, you notice that every request’s system prompt asks for the wrong output format. How do you correct it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Update the batch’s `params` in place, so requests not yet processed pick up the fix",
+        "reason": "Once a batch has been submitted, it cannot be modified."
+      },
+      {
+        "id": "b",
+        "text": "Submit a second batch reusing the same `custom_id` values so its results overwrite the first",
+        "reason": "A `custom_id` identifies a request within its batch; the guide’s way to change a submitted batch is to cancel it and submit a new one."
+      },
+      {
+        "id": "c",
+        "text": "Cancel it and submit a corrected batch; work done before cancellation may return as partial results",
+        "reason": "The guide says a submitted batch can’t be modified, so cancel and resubmit; cancellation may not be immediate, and canceled batches may hold partial results."
+      },
+      {
+        "id": "d",
+        "text": "Let it finish, then resubmit only the `errored` requests, since the bad prompt makes each one invalid",
+        "reason": "`errored` covers failures such as invalid requests or server errors; a well-formed request with the wrong instructions isn’t one of those."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A submitted batch is immutable: cancel it (which may not be instant) and resubmit, then handle any partial results.",
+    "explanation": "Batches can't be edited after submission, so the only path is to cancel and send a corrected batch. Cancellation passes through a `canceling` status and may not take effect immediately, so some requests may already have run and come back as partial results. Choice d is tempting because it avoids a resubmission, but a wrong instruction produces well-formed requests, not errored ones.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-parallelization-workflow"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-own-rate-limits",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Your live chat calls the Messages API all day and runs close to its rate limits. Another team wants to start a large nightly Message Batch in the same organization, and support worries it will cause 429 errors for the chat. What does the batch guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Batch requests count against the Messages API limits, so run the batch off-peak",
+        "reason": "The guide says usage of the Batches API does not affect rate limits in the Messages API."
+      },
+      {
+        "id": "b",
+        "text": "The Batches API has no rate limits at all, so batch size is the only constraint",
+        "reason": "The Batches API has its own limits, on HTTP requests and on the number of requests waiting to be processed."
+      },
+      {
+        "id": "c",
+        "text": "Turn the batch into synchronous calls throttled to stay under the chat’s limits",
+        "reason": "That moves the work onto the Messages API limits the chat depends on and gives up the 50% batch discount."
+      },
+      {
+        "id": "d",
+        "text": "It has its own limits, and its usage doesn’t affect the Messages API limits",
+        "reason": "The guide says the Batches API has HTTP request limits plus limits on requests awaiting processing, and that its usage does not affect Messages API rate limits."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Batch traffic is rate-limited separately (HTTP requests and queued requests) and doesn’t eat into Messages API limits.",
+    "explanation": "The two APIs are rate-limited separately: the Batches API limits its own HTTP requests and its queue of requests awaiting processing, and its usage doesn't touch Messages API limits. The chat is safe from the batch. Choice b is the overcorrection, because separate doesn't mean unlimited, and choice c would create exactly the contention support fears.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-multimodal-4k-frame-cost",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Image costs",
+    "stem": "You will send 4K video frames (3840×2160 px) to Claude Opus 5.5 at $4 per million input tokens. A teammate applies the patch formula to the full size: 138 × 78 = 10,764 visual tokens per frame. What should the estimate use?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "4,784 per frame, the tier’s cap after downscaling: about $19 per thousand frames",
+        "reason": "Claude Opus 5.5 is on the high-resolution tier (2576 px long edge, 4784 visual tokens); a 4K image is downsized to 2576×1449, about $19.14 per thousand."
+      },
+      {
+        "id": "b",
+        "text": "10,764 per frame, about $43 per thousand, as the formula applies to the full size",
+        "reason": "Images larger than the model’s limits are downscaled before processing, which caps the token cost."
+      },
+      {
+        "id": "c",
+        "text": "1,560 per frame, because every model downsizes a 4K image to 1456×819 px first",
+        "reason": "That is the standard tier; Claude 4.7 and later models are high-resolution and downsize a 4K image to 2576×1449 for 4784 tokens."
+      },
+      {
+        "id": "d",
+        "text": "10,764 per frame plus a flat surcharge for each image above 8 megapixels",
+        "reason": "The guide estimates cost as token count times the model’s per-token price; larger images are downscaled, not surcharged."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Apply the patch formula after downscaling: on high-resolution models a large image caps at 4,784 visual tokens.",
+    "explanation": "The ⌈w/28⌉ × ⌈h/28⌉ formula is right, but it applies to the image Claude actually processes, and anything over the model's limits is downscaled first. Claude Opus 5.5 is on the high-resolution tier, so a 4K frame becomes 2576×1449 and costs the 4,784-token cap. Choice b is the trap: correct arithmetic on the wrong image size, more than double the real estimate.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-cost-calculation",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "An overnight job sends 20,000 requests to Claude Sonnet 5.5 through the Message Batches API, each with about 2,000 input and 500 output tokens. The batch prices for this model are $1 / $5 per million input / output tokens. About what will the job cost?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "$45, because the 50% batch discount applies again to the listed batch prices",
+        "reason": "The listed batch prices already include the 50% discount; 40M input tokens at $1 plus 10M output tokens at $5 is $90."
+      },
+      {
+        "id": "b",
+        "text": "$90: $40 for 40M input tokens plus $50 for 10M output tokens",
+        "reason": "20,000 × 2,000 = 40M input tokens at $1 per million, and 20,000 × 500 = 10M output tokens at $5 per million."
+      },
+      {
+        "id": "c",
+        "text": "$140, because the discount covers input only and output stays at $10 per million",
+        "reason": "The 50% batch discount applies to input tokens, output tokens and any special tokens."
+      },
+      {
+        "id": "d",
+        "text": "$250, because all 50M tokens are billed at the $5 output rate",
+        "reason": "Input and output are priced separately: 40M input tokens at $1 and 10M output tokens at $5."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Price a batch by multiplying input and output tokens by the listed batch rates, which already include the 50% discount.",
+    "explanation": "Work out the token totals first: 40M input and 10M output. Then apply the batch prices, which are already half the standard rates, giving $40 plus $50. Choice a is the classic double discount, and choice c misreads the discount, which covers input, output and any special tokens alike.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "The batch bill on Claude Sonnet 5.5.",
+      "segments": [
+        {
+          "label": "Input · 40M tokens",
+          "sublabel": "$40",
+          "weight": 40,
+          "tone": "neutral"
+        },
+        {
+          "label": "Output · 10M tokens",
+          "sublabel": "$50",
+          "weight": 50,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-pdf-dense-fills-window",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "PDF costs",
+    "stem": "A 450-page engineering manual, dense with small-font tables, goes to Claude Opus 5.5 as one PDF. The request is under 32 MB and 600 pages, yet it fails because the input exceeds the context window. What does the PDF support guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload it through the Files API, which keeps its pages out of the context window",
+        "reason": "The Files API keeps request payloads small, but the guide says large-PDF requests can still fail before the page limit when using it."
+      },
+      {
+        "id": "b",
+        "text": "Raise `max_tokens`, since the PDF pages are counted against the output budget",
+        "reason": "PDF pages are input: each one costs text tokens plus the page image’s tokens."
+      },
+      {
+        "id": "c",
+        "text": "Split the document into sections, and downsample its embedded images",
+        "reason": "The guide says dense PDFs can fill the context window before the page limit, and suggests splitting into sections and downsampling embedded images."
+      },
+      {
+        "id": "d",
+        "text": "Compress the PDF file, since its token count is calculated from megabytes",
+        "reason": "Tokens come from the extracted text (typically 1,500–3,000 per page) plus each page’s image tokens, not from file size."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Page and size limits aren’t the only ceiling: dense PDFs can fill the context window first, so split them into sections.",
+    "explanation": "Each PDF page costs text tokens plus image tokens, so a dense manual can run out of context long before it reaches 600 pages or 32 MB. The guide's remedy is to send smaller sections, and downsampling embedded images helps large files. Choice a is the tempting fix because the Files API helps with payload size, but the pages still enter the context window.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
+      "title": "PDF support",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-files-api"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-custom-id-rules",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Your batch builder must give each request a `custom_id` that later maps its result back to a database row. Which choices meet the batch guide’s rules?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`order-10432`, built from the row’s order number",
+        "reason": "Correct: 1–64 letters, digits, hyphens or underscores, and meaningful enough to match the result to its row, since order isn’t guaranteed."
+      },
+      {
+        "id": "b",
+        "text": "`user@example.com`, the customer’s email address",
+        "reason": "The `@` and `.` characters aren’t allowed; a `custom_id` must match `^[a-zA-Z0-9_-]{1,64}$`."
+      },
+      {
+        "id": "c",
+        "text": "The same `custom_id` on a request and on its retry within one batch",
+        "reason": "Each request in a batch must have a unique `custom_id`."
+      },
+      {
+        "id": "d",
+        "text": "`sku_10432-v2`, combining the SKU with a version suffix",
+        "reason": "Correct: letters, digits, an underscore and a hyphen, within 64 characters, and it identifies the row."
+      },
+      {
+        "id": "e",
+        "text": "No `custom_id` at all; match results by their position in the results file",
+        "reason": "Every request needs a `custom_id`, and results can come back in any order, so position can’t be trusted."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "`custom_id`: unique within the batch, 1–64 letters, digits, hyphens or underscores, and meaningful enough to map results back.",
+    "explanation": "A `custom_id` is how a result finds its way home, because batch results are not returned in request order. The guide fixes the format at 1–64 alphanumeric characters, hyphens and underscores, and requires each id to be unique in the batch. Choice b is the tempting one, since an email is a natural key, but its `@` and `.` fail the pattern.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-multimodal-cut-visual-tokens",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Image costs",
+    "stem": "A catalog pipeline sends 50,000 product photos a day, each 2000×1500 px, to Claude Opus 5.5, and the task doesn’t need fine detail. Which changes lower the visual-token cost of each image?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload the images through the Files API and reference them by `file_id`",
+        "reason": "The Files API keeps request payloads small; the token cost still follows the image’s dimensions, ⌈w/28⌉ × ⌈h/28⌉."
+      },
+      {
+        "id": "b",
+        "text": "Downsample each image before sending it",
+        "reason": "Correct: cost is ⌈width/28⌉ × ⌈height/28⌉ visual tokens, and the guide advises downsampling when you don’t need high-resolution fidelity."
+      },
+      {
+        "id": "c",
+        "text": "Apply heavy JPEG compression without changing the image dimensions",
+        "reason": "Compression shrinks requests and can cut latency, but can add artifacts; the token formula depends on pixel dimensions."
+      },
+      {
+        "id": "d",
+        "text": "Send each image by URL instead of as base64 data",
+        "reason": "The source type changes how the image reaches the API, not how many 28×28 patches it covers."
+      },
+      {
+        "id": "e",
+        "text": "Crop each photo to the region the task needs before sending it",
+        "reason": "Correct: a smaller image covers fewer 28×28 patches, so it costs fewer visual tokens; the guide suggests pre-resizing, cropping or both."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Visual tokens follow pixel dimensions: shrink or crop images to cut cost; transport and compression don’t change the count.",
+    "explanation": "An image's token cost is set by its width and height in 28-pixel patches, so only changes to pixel dimensions move it. Downsampling and cropping both shrink the image Claude sees. Choice c is the tempting one, because compression does shrink the file and the request, but a compressed image has the same dimensions and the same patch count.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-image-sources"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-batch-results-after-ended",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Right after creating a Message Batch, your code requests its results and gets nothing usable. The batch’s `processing_status` is `in_progress`. What should the code do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry the results request in a tight loop until lines start to arrive",
+        "reason": "Results are retrieved once processing has ended for all requests; the guide polls the batch status periodically instead."
+      },
+      {
+        "id": "b",
+        "text": "Recreate the batch with `stream: true` so results arrive as each request finishes",
+        "reason": "`stream: true` isn’t supported in batches, because results come back as a single file, not a stream."
+      },
+      {
+        "id": "c",
+        "text": "Treat the batch as failed and resubmit the requests to the synchronous API",
+        "reason": "`in_progress` is the normal starting status, and most batches finish in less than 1 hour."
+      },
+      {
+        "id": "d",
+        "text": "Poll the batch until `processing_status` is `ended`, then stream the results",
+        "reason": "The status starts as `in_progress` and becomes `ended` once all requests finish; then stream results from `results_url` rather than downloading them all at once."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Poll `processing_status` until `ended`, then stream results from `results_url`.",
+    "explanation": "A batch delivers its results together, once every request has finished or after 24 hours, so there is nothing to read while it is `in_progress`. The guide's pattern is a periodic polling loop, then streaming the results file. Choice b is tempting for an impatient client, but `stream: true` is one of the few parameters batches reject.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "Create batch"
+        },
+        {
+          "label": "in_progress",
+          "sublabel": "poll periodically"
+        },
+        {
+          "label": "ended"
+        },
+        {
+          "label": "Stream results",
+          "sublabel": "from results_url"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-batch-multimodal"
   }
 ]

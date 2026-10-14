@@ -40,15 +40,16 @@ describe('LessonPage', () => {
     expect(screen.getByText('bold').tagName).toBe('STRONG');
     expect(screen.getByRole('link', { name: /Example doc/ })).toHaveAttribute('href', 'https://example.com/docs');
     expect(screen.getByRole('link', { name: /Check yourself/ })).toHaveAttribute('href', '/learn/lesson/l-alpha/check');
+    expect(screen.getByRole('link', { name: /Check yourself/ })).toHaveTextContent('Check yourself · 3 questions');
   });
 });
 
 describe('LessonCheckPage', () => {
   it('runs the three check questions and marks the lesson done', async () => {
     const { db } = await renderWithApp(<LessonCheckPage />, { route: '/learn/lesson/l-alpha/check', path: '/learn/lesson/:lessonId/check' });
-    for (const id of ['q-alpha-1', 'q-alpha-2', 'q-alpha-3']) {
-      await userEvent.click(await screen.findByRole('button', { name: new RegExp(`Right answer ${id}`) }));
-      await userEvent.click(await screen.findByRole('button', { name: id === 'q-alpha-3' ? 'Finish' : 'Continue' }));
+    for (let i = 0; i < 3; i++) {
+      await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha/ }));
+      await userEvent.click(await screen.findByRole('button', { name: i === 2 ? 'Finish' : 'Continue' }));
     }
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();
     await waitFor(async () => expect(await db.getLessonsDone()).toMatchObject([{ lessonId: 'l-alpha' }]));
@@ -57,9 +58,9 @@ describe('LessonCheckPage', () => {
     const db = await openTestDb();
     vi.spyOn(db, 'markLessonDone').mockRejectedValue(new Error('quota exceeded'));
     await renderWithApp(<LessonCheckPage />, { db, route: '/learn/lesson/l-alpha/check', path: '/learn/lesson/:lessonId/check' });
-    for (const id of ['q-alpha-1', 'q-alpha-2', 'q-alpha-3']) {
-      await userEvent.click(await screen.findByRole('button', { name: new RegExp(`Right answer ${id}`) }));
-      await userEvent.click(await screen.findByRole('button', { name: id === 'q-alpha-3' ? 'Finish' : 'Continue' }));
+    for (let i = 0; i < 3; i++) {
+      await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha/ }));
+      await userEvent.click(await screen.findByRole('button', { name: i === 2 ? 'Finish' : 'Continue' }));
     }
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);

@@ -1,12 +1,14 @@
 import { z } from 'zod';
 import {
   CardSchema,
+  CourseFileSchema,
   DomainsFileSchema,
   GlossaryFileSchema,
   LessonSchema,
   QuestionSchema,
   type Card,
   type Content,
+  type CourseSection,
   type Domain,
   type GlossaryTerm,
   type Lesson,
@@ -17,6 +19,8 @@ export interface RawContent {
   domains: unknown;
   /** content/glossary.json; optional so fixtures and older callers can omit it. */
   glossary?: unknown;
+  /** content/course.json; optional like the glossary. */
+  course?: unknown;
   /** Keyed by "<domain-id>/<questions|cards|lessons>.json". */
   files: Record<string, unknown>;
 }
@@ -30,13 +34,16 @@ function zodErrors(file: string, error: z.ZodError): string[] {
   return error.issues.map((i) => `${file}: ${i.path.join('.') || '(root)'}: ${i.message}`);
 }
 
-export function buildContent(domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = []): Content {
+export function buildContent(
+  domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = [], course: CourseSection[] = [],
+): Content {
   return {
     domains,
     questions,
     cards,
     lessons,
     glossary,
+    course,
     domainById: new Map(domains.map((d) => [d.id, d])),
     questionById: new Map(questions.map((q) => [q.id, q])),
     cardById: new Map(cards.map((c) => [c.id, c])),
@@ -140,6 +147,21 @@ export function validateContent(raw: RawContent): ValidationResult {
     }
   }
 
+  let course: CourseSection[] = [];
+  if (raw.course !== undefined) {
+    const parsed = CourseFileSchema.safeParse(raw.course);
+    if (!parsed.success) errors.push(...zodErrors('course.json', parsed.error));
+    else {
+      course = parsed.data;
+      const sectionIds = new Set<string>();
+      for (const s of course) {
+        if (sectionIds.has(s.id)) errors.push(`course.json: duplicate section id "${s.id}"`);
+        sectionIds.add(s.id);
+        for (const m of s.modules) if (!lessonIds.has(m.lessonId)) errors.push(`course.json: ${s.id} links unknown lesson "${m.lessonId}"`);
+      }
+    }
+  }
+
   if (errors.length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -149,6 +171,7 @@ export function validateContent(raw: RawContent): ValidationResult {
       cards.map((c) => c.item),
       lessons.map((l) => l.item),
       glossary,
+      course,
     ),
   };
 }

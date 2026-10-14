@@ -29,7 +29,8 @@ export default defineConfig({
           { src: 'maskable-icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: { globPatterns: ['**/*.{js,css,html,png,svg,ico,json,woff2}'] },
+      // The study content is bundled into the app, so the main chunk outgrows workbox's 2 MiB default.
+      workbox: { globPatterns: ['**/*.{js,css,html,png,svg,ico,json,woff2}'], maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 },
     }),
   ],
   test: {

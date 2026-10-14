@@ -107,7 +107,13 @@ export const CardSchema = z.object({
   isVocab: z.boolean(),
 });
 
-export const LessonSectionSchema = z.object({ heading: upTo(60), body: upTo(1400), diagram: DiagramSchema.optional() });
+export const LessonSectionSchema = z.object({
+  heading: upTo(60),
+  body: upTo(1400),
+  /** A concrete worked example, shown as a callout under the body. */
+  example: upTo(700).optional(),
+  diagram: DiagramSchema.optional(),
+});
 
 export const LessonSchema = z.object({
   id: z.string().regex(/^l-[a-z0-9-]+$/),
@@ -138,6 +144,20 @@ export const GlossaryTermSchema = z.object({
 });
 export const GlossaryFileSchema = z.array(GlossaryTermSchema);
 
+/**
+ * The official course, section by section (content/course.json). Each module is taught by one lesson; the section quiz
+ * draws on every question linked to those lessons. Takeaways are the section's own recap.
+ */
+export const CourseSectionSchema = z.object({
+  id: slug,
+  number: z.number().int().positive(),
+  title: text,
+  summary: upTo(400),
+  modules: z.array(z.object({ title: upTo(80), lessonId: z.string() })).min(1),
+  takeaways: z.array(z.object({ title: upTo(160), body: upTo(400) })).min(1),
+});
+export const CourseFileSchema = z.array(CourseSectionSchema);
+
 export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
 export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
@@ -150,6 +170,7 @@ export type Card = z.infer<typeof CardSchema>;
 export type LessonSection = z.infer<typeof LessonSectionSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
 export type GlossaryTerm = z.infer<typeof GlossaryTermSchema>;
+export type CourseSection = z.infer<typeof CourseSectionSchema>;
 
 export interface Content {
   domains: Domain[];
@@ -157,6 +178,7 @@ export interface Content {
   cards: Card[];
   lessons: Lesson[];
   glossary: GlossaryTerm[];
+  course: CourseSection[];
   domainById: Map<string, Domain>;
   questionById: Map<string, Question>;
   cardById: Map<string, Card>;

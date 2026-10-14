@@ -206,5 +206,398 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-prompting-shots",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "title": "Zero-, one- and multi-shot prompting",
+    "summary": "A **zero-shot** prompt gives instructions only; a **one-shot** prompt adds a single example; a **multishot** (few-shot) prompt adds several. Examples are one of the most reliable ways to steer Claude's format, tone and structure, and the guide suggests 3–5 that are relevant, diverse and wrapped in tags.",
+    "keyPoints": [
+      "A **shot** is an example in the prompt: zero-shot has none, one-shot has one, multishot has several.",
+      "Start with clear, specific instructions. Golden rule: if a colleague with little context would be confused, Claude will be too.",
+      "Examples are one of the most reliable ways to steer **format, tone and structure**.",
+      "Good examples are **relevant**, **diverse** and **structured** in `<example>` tags; 3–5 give the best results.",
+      "Multishot examples work with thinking: show the problem, the method and the expected answer."
+    ],
+    "sections": [
+      {
+        "heading": "Zero-, one- and multi-shot",
+        "body": "In prompting, a **shot** is an example of the task included in the prompt.\n\n- **Zero-shot prompting:** instructions only, with no example. Claude works from your description of the task.\n- **One-shot prompting:** the prompt adds a single example of the task.\n- **Multishot (few-shot) prompting:** the prompt includes a few well-crafted examples, which Anthropic's guide says improves accuracy and consistency.\n\nAnthropic's own research uses the same terms. In one study, results were zero-shot unless noted, and adding a single example (one-shot) let one model do a task it couldn't do zero-shot.",
+        "example": "Zero-shot: `Classify this ticket as billing, bug or other.` One-shot: the same line plus one `<example>` showing a ticket and its label. Multishot: the same line plus an `<examples>` block holding 3–5 labeled tickets, including a tricky one.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Each step adds examples to the same instructions.",
+          "steps": [
+            {
+              "label": "Zero-shot",
+              "sublabel": "instructions only"
+            },
+            {
+              "label": "One-shot",
+              "sublabel": "+ 1 example"
+            },
+            {
+              "label": "Multishot",
+              "sublabel": "+ 3–5 examples"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "When each fits",
+        "body": "Start with zero-shot instructions that are clear and specific. Think of Claude as a brilliant but new employee who lacks context on your norms: say what output format and constraints you want, and explain why they matter. The golden rule is to show your prompt to a colleague with minimal context and ask them to follow it. If they'd be confused, Claude will be too.\n\nAdd examples when the output's format, tone or structure must be consistent, because examples are one of the most reliable ways to steer them. One example shows the target, but the guide asks for examples that vary enough that Claude doesn't pick up unintended patterns, and suggests 3–5 for the best results.",
+        "example": "Zero-shot fits \"Translate this sentence into French.\" Multishot fits release notes that must follow your team's exact house style: show 3–5 past notes that cover a bug fix, a new feature and a breaking change."
+      },
+      {
+        "heading": "Writing good examples",
+        "body": "Make your examples:\n\n- **Relevant:** mirror your actual use case closely.\n- **Diverse:** cover edge cases, and vary enough that Claude doesn't pick up unintended patterns.\n- **Structured:** wrap each example in `<example>` tags, and the set in `<examples>` tags, so Claude can tell them apart from instructions.\n\nYou can also ask Claude to evaluate your examples for relevance and diversity, or to generate more based on your initial set. If the prompt also holds long documents, put that longform data near the top, above the query, instructions and examples.",
+        "example": "Before: four examples, all short billing tickets in one style, so every summary comes out short and billing-flavored. After: an `<examples>` block holding a billing question, a long outage report, a feature request and an angry refund demand, each in its own `<example>` tag."
+      },
+      {
+        "heading": "Examples and thinking",
+        "body": "Multishot examples work with thinking too. Worked examples in your prompt shape how Claude approaches similar problems in its own thinking blocks, so present each example as a problem, the method to apply, and the expected answer.\n\nFor the reasoning itself, prefer general instructions over prescriptive steps: a prompt like \"think thoroughly\" often produces better reasoning than a hand-written step-by-step plan.",
+        "example": "A tutoring app that must use the school's method shows two worked problems, each in its own `<example>` tag with the problem, the method's steps and the answer, and then asks the new question."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-one-shot-to-multishot",
+      "q-course-examples-relevance",
+      "q-course-grow-example-set"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://alignment.anthropic.com/2025/automated-researchers-sandbag/",
+        "title": "Automated Researchers Can Subtly Sandbag",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-structured-outputs",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "title": "Prompting craft: structured outputs",
+    "summary": "Structured outputs constrain Claude's output to a schema you supply, so your code gets valid, parseable data instead of hoping a prompt was followed. JSON outputs shape what Claude says; strict tool use shapes how Claude calls your tools. When a prompt fails, the type of failure tells you which technique is missing.",
+    "keyPoints": [
+      "**JSON outputs** (`output_config.format`) control Claude's **response format**: the JSON arrives in the response's `text` block.",
+      "**Strict tool use** (`\"strict\": true` on a tool) guarantees the tool `input` follows its `input_schema` and the tool `name` is valid.",
+      "Even with careful prompting you can get parse errors, missing required fields and wrong types; structured outputs guarantee schema compliance in most cases.",
+      "A refusal or a `max_tokens` cut-off can still return output that **doesn't match** the schema (check `stop_reason`), and `enum` casing isn't guaranteed.",
+      "Diagnose before you fix: a **format** failure calls for structured outputs; a **reasoning** failure calls for thinking or worked examples."
+    ],
+    "sections": [
+      {
+        "heading": "Why a prompt alone can't guarantee format",
+        "body": "**Structured outputs** constrain Claude's responses to follow a specific schema, ensuring valid, parseable output for downstream processing. The feature comes in two complementary parts: JSON outputs and strict tool use.\n\nWithout structured outputs, Claude can generate malformed JSON or invalid tool inputs that break your application. Even with careful prompting, the docs list what you may still see:\n\n- Parsing errors from invalid JSON syntax\n- Missing required fields\n- Inconsistent data types\n- Schema violations that need error handling and retries\n\nStructured outputs guarantee schema-compliant responses in most cases, so you avoid `JSON.parse()` errors and retries for schema violations. The exceptions are in the next section.",
+        "example": "Before: the prompt says \"Reply only with JSON containing name and email\", and one reply in fifty starts with \"Sure! Here's the JSON:\", which breaks `JSON.parse()`. After: the same request sends a JSON schema in `output_config.format`, and every normal reply is JSON that matches it."
+      },
+      {
+        "heading": "JSON outputs: shaping what Claude says",
+        "body": "**JSON outputs** make Claude's response follow a JSON schema you pass in `output_config.format` with `\"type\": \"json_schema\"`. Use it to extract data from images or text, generate structured reports, or format API responses. The JSON comes back in the response's `text` content block, ready to parse.\n\nThe schema language is a supported subset of JSON Schema. Using an unsupported feature, such as numerical constraints like `minimum`, string constraints like `minLength`, or `additionalProperties` set to anything other than `false`, returns a 400 error with details.\n\nA few cases can still produce output that doesn't match the schema: a **refusal** (`stop_reason: \"refusal\"`, still a 200 status, and the refusal message takes precedence over the schema), a **`max_tokens` cut-off** (`stop_reason: \"max_tokens\"`; retry with a higher `max_tokens`), and **`enum` casing**: the capitalization of string `enum` and `const` values isn't guaranteed, so compare them case-insensitively.",
+        "example": "A lead-capture request sends `\"output_config\": {\"format\": {\"type\": \"json_schema\", \"schema\": {\"type\": \"object\", \"properties\": {\"name\": {\"type\": \"string\"}, \"demo_requested\": {\"type\": \"boolean\"}}, \"required\": [\"name\", \"demo_requested\"], \"additionalProperties\": false}}}`. Your code reads the `text` block and parses it, after checking that `stop_reason` isn't `refusal` or `max_tokens`."
+      },
+      {
+        "heading": "Strict tool use: shaping how Claude calls your tools",
+        "body": "**Strict tool use** guarantees that Claude's tool inputs match your tool's JSON Schema. You enable it by adding `\"strict\": true` as a top-level property of the tool definition, next to `name`, `description` and `input_schema`. It works by constraining the model's token sampling to schema-valid output (grammar-constrained sampling).\n\nWhat it guarantees:\n\n- The tool `input` strictly follows the `input_schema`\n- The tool `name` is always valid\n\nWithout strict mode, Claude might send an incompatible type (`\"2\"` instead of `2`) or omit a required field, which breaks your function at runtime. Strict tool use is meant for validating tool parameters, agentic workflows, type-safe function calls and complex tools with nested properties.",
+        "example": "A booking tool needs `passengers` as an integer. Without strict mode Claude might send `\"passengers\": \"two\"` or `\"passengers\": \"2\"`. With `\"strict\": true` on the tool, the `tool_use` block always contains `\"passengers\": 2`."
+      },
+      {
+        "heading": "Using both in one request",
+        "body": "The two features answer different questions. JSON outputs control **what Claude says** (the response format). Strict tool use validates **how Claude calls your functions** (the tool parameters). Turning on one doesn't constrain the other: `strict: true` on your tools does nothing to the shape of Claude's final text, and `output_config.format` doesn't validate tool inputs.\n\nCombined in one request, Claude calls tools with guaranteed-valid parameters and returns a structured JSON response. That suits agentic workflows that need both reliable tool calls and a structured final output.",
+        "example": "A travel agent marks `search_flights` and `search_hotels` as `\"strict\": true` so their dates and traveller counts are always valid, and sets `output_config.format` to an itinerary schema so the final answer can be parsed straight into your booking page."
+      },
+      {
+        "heading": "Read the failure, then pick the technique",
+        "body": "Prompt engineering assumes you have success criteria and a way to test against them. When a test fails, name the type of failure before you change anything, because each type points at a different fix:\n\n- **Format failure** (unparseable JSON, missing fields, wrong types): add structured outputs, which constrain the output instead of asking for it.\n- **Inconsistent format, tone or structure**: add examples. A few well-crafted examples (3 to 5 works best) are one of the most reliable ways to steer them.\n- **Wrong reasoning on complex, multistep problems**: give Claude thinking. Worked examples also shape how Claude approaches similar problems in its thinking.\n- **Too slow or too costly**: not every failing eval is best solved by prompting; a different model can sometimes fix latency and cost more easily.",
+        "example": "An invoice extractor fails two ways. In 5% of runs the reply isn't valid JSON: that's a format failure, so add a JSON schema in `output_config.format`. In 10% of runs the JSON is valid but the tax total is wrong on invoices with several discount lines: that's a reasoning failure, so a stricter schema won't help. Give it more thinking or a worked example instead.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Name the failure type first; it tells you which technique is missing.",
+          "steps": [
+            {
+              "label": "Eval fails"
+            },
+            {
+              "label": "Name the failure",
+              "sublabel": "format or reasoning?"
+            },
+            {
+              "label": "Add that technique",
+              "sublabel": "schema, examples, thinking"
+            },
+            {
+              "label": "Re-run the eval"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-format-failure-technique",
+      "q-course-strict-not-response-format",
+      "q-course-two-failures-two-fixes"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+        "title": "Structured outputs",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+        "title": "Strict tool use",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+        "title": "Prompt engineering overview",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-context-budget",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "title": "Context engineering: staying in budget",
+    "summary": "Context is a fixed budget, and tool definitions and accumulated tool results can exhaust it before a long task is finished. Every turn resends the history, so a long session stays in budget only if something keeps it small. This lesson covers choosing the model, four strategies (pruning, clearing, compaction, subagent handoffs) and two more levers: prompt caching and token counting.",
+    "keyPoints": [
+      "Everything in a request counts toward the **context window**: system prompt, messages, tool results, images, tool definitions and the output, thinking included.",
+      "**Tool outputs** pile up turn after turn. Prune them at the source with filtering, pagination and truncation, or with hooks that return only what matters.",
+      "**Clearing** drops old tool results (default trigger 100,000 input tokens, keep 3); **compaction** summarizes older turns and is the primary strategy for long sessions.",
+      "**Subagent handoffs** keep verbose work in the subagent's own window; the lead gets a condensed summary, often 1,000–2,000 tokens.",
+      "**Prompt caching** makes repeated tokens cheaper, but they still count; **token counting** is free and gives an estimate before you send.",
+      "Start efficiency-first (Claude Haiku 5.5) or capability-first (Claude Opus 5.5); tuning effort is often a better lever than switching models."
+    ],
+    "sections": [
+      {
+        "heading": "The budget, and the model that spends it",
+        "body": "The **context window** is all the text the model can reference when it generates a response, including the response itself. Everything in a request counts toward it: the system prompt, every message (including tool results, images and documents), your tool definitions, and the output Claude generates, thinking included. More context isn't automatically better: as token count grows, accuracy and recall degrade (**context rot**).\n\nIn a multi-turn session, each turn's input is all previous conversation history plus the new message, so the history keeps growing unless something trims it.\n\n**Model selection** sets the price of every token you spend. Weigh capabilities, speed, cost and effort:\n\n- **Efficiency-first**: start with Claude Haiku 5.5 for prototypes, tight latency, cost-sensitive work and high-volume straightforward tasks, and upgrade only for capability gaps.\n- **Capability-first**: start with Claude Opus 5.5 for complex reasoning and agentic work, then lower effort or downgrade models over time.\n\nTuning effort is often a better lever than switching models. Always check a change against your evals.",
+        "example": "A ticket router that labels thousands of short messages an hour fits Claude Haiku 5.5, built for high-volume, latency-sensitive tasks such as classification and routing. A multihour autonomous coding agent fits Claude Opus 5.5. All four current models (Fable 5.1, Opus 5.5, Sonnet 5.5, Haiku 5.5) have a 1M-token window, so the choice changes the price per token, not the size of the budget."
+      },
+      {
+        "heading": "Pruning: keep low-signal tokens out",
+        "body": "**Pruning** means keeping low-value tokens from entering context in the first place, so there is less to clear or summarize later. Tool outputs are a prime target: tool definitions and accumulated `tool_result` blocks consume the window, and in Claude Code each tool use sends another request carrying those results along with the full conversation.\n\nWays to prune at the source:\n\n- Design tools to return only high-signal information, with pagination, range selection, filtering or truncation and sensible defaults. Claude Code restricts tool responses to 25,000 tokens by default.\n- Offer a `response_format` choice: in Anthropic's example a concise response used 72 tokens against 206 for the detailed one, about a third.\n- Preprocess with hooks: instead of Claude reading a 10,000-line log file, a hook can grep for `ERROR` and return only matching lines, cutting tens of thousands of tokens to hundreds.\n- Keep base context small: CLAUDE.md loads at session start, while skills load on demand.",
+        "example": "A Claude Code `PreToolUse` hook rewrites `npm test` into `npm test 2>&1 | grep -A 5 -E '(FAIL|ERROR|error:)' | head -100`. Before: every run pours passing-test lines into context. After: only the failures arrive."
+      },
+      {
+        "heading": "Clearing: drop results that have served their purpose",
+        "body": "**Clearing** removes content that was useful once but is now dead weight, without summarizing it. Anthropic calls clearing old tool calls and results one of the safest, lightest-touch forms of compaction.\n\nOn the API, **tool result clearing** is a context editing strategy (`clear_tool_uses_20250919`, beta header `context-management-2025-06-27`). Once the prompt passes the `trigger` (default 100,000 input tokens), the API replaces the oldest tool results with placeholder text and keeps the most recent ones (`keep`, default 3 tool uses). It runs server-side: your client keeps the full, unmodified history.\n\nTwo cautions:\n\n- Clearing invalidates cached prompt prefixes, so use `clear_at_least` to clear enough tokens to make the cache invalidation worthwhile.\n- List tools whose results must never be cleared in `exclude_tools`.\n\nIn Claude Code, `/clear` starts fresh when you switch to unrelated work; stale context wastes tokens on every later message.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Tool result clearing runs server-side; your client history is unchanged.",
+          "steps": [
+            {
+              "label": "Prompt passes trigger",
+              "sublabel": "default 100k tokens"
+            },
+            {
+              "label": "Oldest results cleared",
+              "sublabel": "placeholder text"
+            },
+            {
+              "label": "Recent results kept",
+              "sublabel": "default 3"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Compaction: summarize, then continue",
+        "body": "**Compaction** replaces the older turns of a conversation with a summary, so a long conversation or agent task stays inside the window and the active context stays small. For long-running conversations and agentic workflows, server-side compaction is the primary strategy.\n\n- **On demand**: your code decides when, requests the summary and puts the returned block first in `messages` (beta header `compact-2026-09-04`).\n- **At a token threshold**: the API compacts inside an ordinary request when input tokens reach your trigger.\n- **Your own summarizer**: you write the summarization call and rewrite the history yourself.\n\nThe risk is losing detail: overly aggressive compaction can drop subtle context that only matters later. When you write a compaction prompt, maximize recall first, then improve precision.\n\nIn Claude Code, `/compact Focus on code samples and API usage` tells Claude what to preserve. `/compact` is itself a large request, because it reads the conversation it summarizes.",
+        "example": "Claude Code compacts by passing the message history to the model to summarize. The summary keeps architectural decisions, unresolved bugs and implementation details and drops redundant tool outputs; the agent continues with it plus the five most recently accessed files."
+      },
+      {
+        "heading": "Subagent handoffs: spend tokens somewhere else",
+        "body": "A **subagent handoff** sends a focused task to a subagent that runs in its own context window, with a custom system prompt and specific tool access, and returns only a summary. The exploration may use tens of thousands of tokens, but the lead receives a condensed, distilled result, often 1,000 to 2,000 tokens.\n\nUse a subagent when the task:\n\n- produces verbose output you don't need in your main context (test runs, documentation fetches, log files)\n- is self-contained and can return a summary\n- needs its own tool restrictions or permissions\n\nStay in the main conversation for frequent back-and-forth, phases that share significant context, quick targeted changes, or when latency matters.\n\nHandoffs aren't free: results return to the main conversation, so many subagents returning detailed results can consume significant context, and each subagent spends tokens of its own.",
+        "example": "Ask a subagent to run the full test suite and report what failed. The verbose output stays in the subagent's context; the main conversation receives only the relevant summary.",
+        "diagram": {
+          "kind": "flow",
+          "steps": [
+            {
+              "label": "Lead hands off task"
+            },
+            {
+              "label": "Subagent explores",
+              "sublabel": "own context window"
+            },
+            {
+              "label": "Summary returns",
+              "sublabel": "often 1–2k tokens"
+            },
+            {
+              "label": "Lead continues"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Two more levers: prompt caching and token counting",
+        "body": "**Prompt caching** reuses a repeated prompt prefix: `tools`, `system` and `messages`, in that order, up to the block marked with `cache_control`. It changes what you pay for those tokens, not whether they count: cached prefixes still occupy the context window. Cache reads cost 0.1× base input on most models (0.05× on Claude Opus 5.5 and Claude Sonnet 5.5, 0.025× on Claude Fable 5.1); 5-minute writes cost 1.25× and 1-hour writes 2×. The default lifetime is 5 minutes, refreshed at no cost each time the cache is used.\n\n**Token counting** (`POST /v1/messages/count_tokens`) tells you how many input tokens a request has before you send it. It accepts the same inputs as a message, including system prompts, tools, images and PDFs. It is free, with rate limits separate from message creation. The count is an estimate that can differ by a small amount, and it doesn't apply caching logic. Claude 4.7 and later models use a newer tokenizer that produces about 30 percent more tokens for the same text, so recount on the model you'll use.",
+        "example": "Before each turn, an agent harness calls `count_tokens` with the next request. If the estimate is close to its budget, it compacts first, leaving some headroom because the count is an estimate. The cached system prompt is cheap to resend, but it still counts in every check."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-budget-filter-test-output",
+      "q-budget-cache-still-counts",
+      "q-budget-subagents-and-clearing"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+        "title": "Context windows",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+        "title": "Choosing the right model",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "title": "Effective context engineering for AI agents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+        "title": "Writing effective tools for agents — with agents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/manage-tool-context",
+        "title": "Manage tool context",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/costs",
+        "title": "Manage costs effectively",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+        "title": "Context editing",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+        "title": "Compaction overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/sub-agents",
+        "title": "Create custom subagents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+        "title": "Prompt caching",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+        "title": "Token counting",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-rag-breakpoints",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "title": "The three places a RAG path breaks",
+    "summary": "A RAG path splits documents into chunks, matches them to the query with embeddings, and assembles the best matches into the prompt. Each step can fail on its own, so find the step that broke before changing anything: a passage that was never retrieved can't be rescued by better prompting.",
+    "keyPoints": [
+      "Three break points: **chunking** (how documents are split), the **embedding match** (what gets retrieved) and **assembly** (how chunks enter the prompt).",
+      "Chunks lose context; **contextual retrieval** prepends 50–100 tokens of chunk-specific context before embedding and BM25 indexing.",
+      "Embeddings can miss exact strings such as error codes; add **BM25**. Contextual embeddings plus BM25 cut top-20 retrieval failures by 49% (67% with reranking).",
+      "Anthropic offers no embedding model. With Voyage AI, set `input_type` to `document` for the corpus and `query` for questions.",
+      "Assemble with documents above the question, each in `<document>` tags with `<source>`; of 5, 10 and 20 chunks, 20 did best in Anthropic's tests.",
+      "Knowledge base under 200,000 tokens (about 500 pages)? You can put all of it in the prompt and skip RAG."
+    ],
+    "sections": [
+      {
+        "heading": "How a RAG path works",
+        "body": "**RAG** (retrieval augmented generation) retrieves relevant passages from a knowledge base at query time and adds them to the prompt. A typical path has three steps, and each is a place it can break:\n\n- **Chunking**: break the knowledge base into smaller chunks of text.\n- **The embedding match**: an embedding model converts each chunk into a vector that encodes meaning, and at query time the most similar chunks are retrieved. Retrieval can also use **BM25**, a ranking function that uses lexical matching to find precise word or phrase matches.\n- **Assembly**: the most relevant chunks are added to the prompt sent to the generative model.\n\nBefore building any of this, check the size of the knowledge base. If it's smaller than 200,000 tokens (about 500 pages of material), you can include the whole thing in the prompt and skip RAG.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Chunking, the match and assembly are the three break points.",
+          "steps": [
+            {
+              "label": "Chunk the corpus"
+            },
+            {
+              "label": "Embed & index"
+            },
+            {
+              "label": "Retrieve top chunks"
+            },
+            {
+              "label": "Assemble prompt"
+            },
+            {
+              "label": "Generate answer"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Break 1: chunking",
+        "body": "**Chunking** is how you split documents before indexing them. The choice of chunk size, chunk boundary and chunk overlap can affect retrieval performance.\n\nTwo symptoms point here:\n\n- **The passage is split**: a table or argument is cut across two chunks, so neither chunk holds the whole answer.\n- **The chunk lacks context**: the text survives intact but no longer says which company, product or period it's about.\n\nFix the first by revisiting size, boundaries and overlap. Fix the second with **contextual retrieval**: Claude writes a short context that situates each chunk within the overall document (usually 50–100 tokens), and you prepend it to the chunk before embedding. Build the BM25 index from the contextualized chunks too. With prompt caching, Anthropic put the one-time cost of generating these contexts at $1.02 per million document tokens (assuming 800-token chunks and 8k-token documents).",
+        "example": "Original chunk: \"The company's revenue grew by 3% over the previous quarter.\" It names neither the company nor the quarter. Contextualized chunk: \"This chunk is from an SEC filing on ACME corp's performance in Q2 2023; the previous quarter's revenue was $314 million. The company's revenue grew by 3% over the previous quarter.\""
+      },
+      {
+        "heading": "Break 2: the embedding match",
+        "body": "**Embeddings** are numerical representations of text that let you measure semantic similarity. Anthropic doesn't offer its own embedding model; its docs walk through Voyage AI and advise assessing several vendors.\n\nSymptoms and fixes:\n\n- **Weak matches overall**: for retrieval, set `input_type` to `\"document\"` for the corpus and `\"query\"` for questions, and don't omit it. A retrieval prompt is prepended to each, which can create better vectors.\n- **Exact identifiers missed**: an embedding model can find content about error codes in general yet miss the exact one. Add BM25 and combine both result lists.\n- **Too many weak chunks reach the model**: add **reranking**, a filter that passes only the most relevant chunks on. Reranking more chunks performs better; reranking fewer costs less latency and money.\n\nIn Anthropic's tests, contextual embeddings cut the top-20 retrieval failure rate by 35%, adding contextual BM25 cut it by 49%, and adding reranking cut it by 67%.",
+        "example": "Index with `vo.embed(chunks, model=\"voyage-4\", input_type=\"document\")`; at query time use `vo.embed([question], model=\"voyage-4\", input_type=\"query\")`. Voyage AI vectors are normalized to length 1, so dot product and cosine similarity rank the same; switching between them won't fix a bad match."
+      },
+      {
+        "heading": "Break 3: the assembly step",
+        "body": "**Assembly** is how retrieved chunks are put into the prompt. Retrieval can succeed and the answer still fail if the chunks arrive as an unlabelled wall of text.\n\n- **How many**: more chunks raise the chance of including the right one, but more information can distract the model. Of 5, 10 and 20 chunks, Anthropic found 20 the most performant.\n- **Where**: put long documents near the top of the prompt, above the query, instructions and examples. Queries at the end can improve response quality by up to 30 percent in tests, especially with complex, multidocument inputs.\n- **How labelled**: wrap each document in `<document>` tags with `<source>` and `<document_content>` subtags.\n- **How used**: ask Claude to quote the relevant parts first, then answer. If you pass contextualized chunks, generation may improve when you make clear which part is the added context and which is the chunk.",
+        "example": "Before: the question, then 20 chunks pasted together. After: `<documents><document index=\"1\"><source>acme_10q_q2_2023.pdf</source><document_content>…</document_content></document>…</documents>`, then \"Quote the passages that answer the question, then answer it: what was ACME's Q2 revenue growth?\""
+      },
+      {
+        "heading": "Diagnose before you fix",
+        "body": "Trace a bad answer back through the path and fix the first step that failed. A later step can't recover what an earlier one lost.\n\n- **The answer's passage was split and never retrieved**: chunking. Revisit chunk size, boundaries and overlap.\n- **Retrieved chunks are about the wrong company or period**: chunking context. Add contextual retrieval.\n- **Exact names or codes are missed**: the embedding match. Add BM25, check `input_type`, consider reranking.\n- **The right chunk is in the prompt but the answer is wrong or blends sources**: assembly. Put documents first, label sources and ask for quotes.\n\nWhatever you change, measure it: Anthropic's advice for this pipeline is to always run evals.",
+        "example": "A support bot answers \"How do I fix TS-999?\" with generic advice. The logs show no retrieved chunk mentions TS-999, so assembly is fine and the break is the match: add BM25 so the exact code is found."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-rag-contextual-chunks",
+      "q-rag-exact-match-bm25",
+      "q-rag-chunk-boundary-break"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/contextual-retrieval",
+        "title": "Introducing Contextual Retrieval",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings",
+        "title": "Embeddings",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-10-14"
+      }
+    ]
   }
 ]

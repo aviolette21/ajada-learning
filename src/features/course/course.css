@@ -1,0 +1,8 @@
+.section-num, .module-num { display: inline-flex; flex: none; align-items: center; justify-content: center; border-radius: 50%; font-weight: 800; background: #211d3a; color: var(--accent); }
+.section-num { width: 40px; height: 40px; font-size: 18px; }
+.module-num { width: 26px; height: 26px; font-size: 13px; }
+.module-row { display: flex; align-items: flex-start; gap: 10px; }
+.section-title { margin: 4px 0 0; font-size: 22px; letter-spacing: -0.3px; text-transform: none; color: var(--text); }
+.takeaways ol { margin: 0; padding-left: 20px; }
+.takeaways li { margin: 10px 0; }
+.takeaways li p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }

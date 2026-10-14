@@ -240,5 +240,302 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-tool-use-loop",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "title": "The tool-use loop",
+    "summary": "Tool use is a contract: you describe the tools, Claude decides when to call them, and your code runs each call. For client tools that means a loop of round trips keyed on `stop_reason`, built from four block types: `text`, `tool_use`, `tool_result` and `thinking`.",
+    "keyPoints": [
+      "Six steps: **define schema → send message → `tool_use` block → execute tool → return `tool_result` → Claude continues**.",
+      "Keep looping while `stop_reason` is **`\"tool_use\"`**; any other stop reason (`end_turn`, `max_tokens`, …) exits the loop.",
+      "Claude writes `text`, `tool_use` and `thinking` blocks in the **assistant** message; you write `tool_result` blocks in the next **user** message.",
+      "`tool_result` blocks go **first** in that user message and carry the matching `tool_use_id`; text before them is a 400 error.",
+      "With thinking on, pass every `thinking` block back **complete and unmodified** alongside its `tool_use` block."
+    ],
+    "sections": [
+      {
+        "heading": "The loop in six steps",
+        "body": "The **tool-use loop** is the round trip your application drives whenever Claude calls a client tool. The model never executes anything on its own: it emits a structured request, your code runs the operation, and the result flows back into the conversation.\n\n- **Define schema:** describe each tool (name, description, `input_schema`) in the `tools` array.\n- **Send message:** send the request with your tools and the user message.\n- **`tool_use` block:** Claude responds with `stop_reason: \"tool_use\"` and one or more `tool_use` blocks.\n- **Execute tool:** your code runs each call with the given input.\n- **Return result:** send a new request with the original messages, Claude's response, and a user message holding the `tool_result` blocks.\n- **Claude continues:** it uses the results to keep working, calling more tools or answering.",
+        "example": "A user asks \"What's the weather in San Francisco?\". Claude replies with a `tool_use` block: name `get_weather`, input `{\"location\": \"San Francisco, CA\"}`. Your code looks up the weather and sends back a `tool_result` with `\"15 degrees Celsius, partly cloudy\"`. Claude answers: \"The current weather in San Francisco is 15 degrees Celsius with partly cloudy skies.\"",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Steps 3 to 6 repeat until Claude stops asking for tools.",
+          "steps": [
+            {
+              "label": "Define schema"
+            },
+            {
+              "label": "Send message"
+            },
+            {
+              "label": "tool_use block",
+              "sublabel": "stop_reason: tool_use"
+            },
+            {
+              "label": "Execute tool",
+              "sublabel": "your code"
+            },
+            {
+              "label": "Return tool_result"
+            },
+            {
+              "label": "Claude continues"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "stop_reason drives the loop",
+        "body": "**`stop_reason`** tells you why Claude stopped. The canonical loop is a `while` loop keyed on it: while `stop_reason == \"tool_use\"`, execute the tools and continue the conversation.\n\nThe loop exits on any other stop reason (`\"end_turn\"`, `\"max_tokens\"`, `\"stop_sequence\"` or `\"refusal\"`), which means Claude has produced a final answer or stopped for another reason your application should handle.\n\nServer tools such as `web_search` are different: Anthropic runs them in a server-side loop, so you never build a `tool_result` for them. If that loop hits its iteration limit, the response comes back with `stop_reason: \"pause_turn\"`, and you re-send the conversation to let Claude continue.",
+        "example": "Turn 1: `stop_reason: \"tool_use\"` → run `get_weather`, send the result. Turn 2: `stop_reason: \"tool_use\"` again (Claude now wants `get_time`) → run it, send the result. Turn 3: `stop_reason: \"end_turn\"` → the loop exits and you show Claude's text answer."
+      },
+      {
+        "heading": "The four block types",
+        "body": "A **content block** is one typed piece of a message's `content` array. Tool use is built into the normal `user` and `assistant` messages rather than a special `tool` role:\n\n- **`text`** (Claude, assistant message): natural language, often a short comment on what Claude is about to do before it calls a tool. Treat it like any other assistant text; don't rely on its exact wording.\n- **`tool_use`** (Claude, assistant message): a tool call with an `id`, the tool `name` and an `input` object matching the tool's `input_schema`.\n- **`tool_result`** (your app, next user message): the output of one call, with `tool_use_id`, optional `content` and optional `is_error`.\n- **`thinking`** (Claude, assistant message, when thinking is on): Claude's reasoning, arriving before the text or tool call, with a `signature` field you pass back unchanged.",
+        "example": "Assistant: `[{\"type\": \"text\", \"text\": \"I'll check the weather.\"}, {\"type\": \"tool_use\", \"id\": \"toolu_01A\", \"name\": \"get_weather\", \"input\": {\"location\": \"San Francisco, CA\"}}]`\nUser: `[{\"type\": \"tool_result\", \"tool_use_id\": \"toolu_01A\", \"content\": \"15 degrees\"}]`"
+      },
+      {
+        "heading": "Returning results without a 400",
+        "body": "A **`tool_result`** answers one `tool_use` block. The formatting rules are strict:\n\n- Tool results must immediately follow their tool use blocks: no other messages in between.\n- In the user message, every `tool_result` block comes first; any text comes after all results.\n- Each result names its call with `tool_use_id`. If Claude made several calls, return one result per call, all together in the next user message.\n\nIf the tool fails, still return a `tool_result`: put an instructive error message in `content` and set `\"is_error\": true`, and Claude incorporates the error into its response or retries.",
+        "example": "Before (400 error): a user message with a text block \"Here are the results:\" followed by the `tool_result`. After (works): the `tool_result` first, then the text block \"What should I do next?\"."
+      },
+      {
+        "heading": "Thinking blocks ride along",
+        "body": "A **thinking block** holds Claude's reasoning when thinking is active. During tool use, Claude pauses its response to wait for your result, then continues building that same response, so its earlier reasoning must still be there.\n\nWhen you send tool results back, pass every `thinking` block from that assistant message back to the API complete and unmodified, alongside the `tool_use` block it accompanied. Inside the latest assistant message you can't rearrange, edit or partially drop them.\n\nA tool-use loop is one assistant turn, so the whole loop runs in a single thinking mode. Toggling thinking mid-turn doesn't error; the API silently disables thinking for that request. Change thinking settings between turns instead.",
+        "example": "Assistant: `[thinking] + [tool_use: get_weather]` → User: `[tool_result: \"20°C, sunny\"]` → Assistant: `[text: \"The weather in Paris is 20°C and sunny\"]`. The follow-up request must include the original `thinking` block, signature intact, in the assistant message."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-loop-stop-reason-tool-use",
+      "q-loop-thinking-blocks-returned",
+      "q-loop-claude-sees-schema-only"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+        "title": "Handle tool calls",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+        "title": "Tool use with Claude",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+        "title": "Define tools",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+        "title": "Parallel tool use",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+        "title": "Thinking",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-tool-schemas",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "title": "Tool schemas Claude selects correctly",
+    "summary": "Claude picks a tool and fills its inputs from three things you write: the name, the description and the `input_schema`. Of these, the description is by far the most important factor in tool performance, so when Claude picks the wrong tool, look at the schema, and above all the description, first.",
+    "keyPoints": [
+      "A tool definition is a **name** (`^[a-zA-Z0-9_-]{1,128}$`), a detailed **description** and an **`input_schema`** (JSON Schema).",
+      "Detailed descriptions are **by far the most important factor**: what the tool does, when to use it (and not), each parameter, caveats. Aim for **3–4+ sentences**.",
+      "Chained steps that always run together can become **one tool** (`schedule_event`); only independent calls belong in a parallel batch.",
+      "Fields in `required` must be filled; if the user didn't supply one, Claude may ask (Opus, much more likely) or guess (Sonnet, sometimes).",
+      "Overlapping tools and vague parameter names confuse selection: **namespace** names (`asana_search`, `jira_search`) and use `user_id`, not `user`."
+    ],
+    "sections": [
+      {
+        "heading": "Schema anatomy: what Claude reads",
+        "body": "A **tool definition** is what Claude reads to decide whether to call a tool and how. A user-defined tool has three core fields:\n\n- **`name`**: must match `^[a-zA-Z0-9_-]{1,128}$`.\n- **`description`**: a detailed plaintext description of what the tool does, when it should be used, and how it behaves.\n- **`input_schema`**: a JSON Schema object for the parameters: their types, their own descriptions, and which are `required`.\n\nWhen you send `tools`, the API builds a special system prompt from your tool definitions. Claude never sees your implementation; it only sees the schema you provided and the result you return. Claude determines when to call a tool based on the user's request and the tool's description.",
+        "example": "`{\"name\": \"get_weather\", \"description\": \"Get the current weather in a given location\", \"input_schema\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city and state, e.g. San Francisco, CA\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}`: `location` is required, `unit` is optional."
+      },
+      {
+        "heading": "Decision table: schema design choices",
+        "body": "Each schema design choice maps to a rule:\n\n- **Subtask dependency:** steps that are always chained can become one tool that does the whole job; separate calls that depend on each other should run in order.\n- **Required fields:** Claude must supply every field in `required`; if the user didn't give one, it may ask or infer a value.\n- **Optional fields:** leave them out of `required` and describe what each one means and how it affects the tool's behavior; `input_examples` can show when to include them.\n- **Description length:** at least 3–4 sentences per tool, more if it's complex. This is the biggest lever on selection.\n- **Overlapping parameter types or tools:** give each tool a distinct purpose, namespace names by service or resource, and name inputs unambiguously (`user_id`, not `user`)."
+      },
+      {
+        "heading": "Subtask dependency: one tool or several?",
+        "body": "**Subtask dependency** means one step needs another step's output. Anthropic recommends a few thoughtful tools for high-impact workflows rather than wrapping every API endpoint. A tool can consolidate several discrete operations and handle frequently chained, multi-step tasks in a single call, which also saves the context that intermediate outputs would have used.\n\nYou can also group related actions into one tool with an `action` parameter (`create_pr`, `review_pr`, `merge_pr` → one tool): fewer, more capable tools reduce selection ambiguity.\n\nWhen you do keep separate tools, Claude can call several in one response. Independent, read-only calls are usually safe to run in parallel; calls with side effects or ordering requirements might be better run sequentially. A system-prompt line such as \"Only batch tool calls that are independent of each other.\" reduces dependent calls appearing together.",
+        "example": "Instead of `list_users`, `list_events` and `create_event` (three chained calls), build `schedule_event`, which finds availability and schedules the event. Instead of `get_customer_by_id`, `list_transactions` and `list_notes`, build `get_customer_context`.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Three always-chained calls become one tool call.",
+          "steps": [
+            {
+              "label": "list_users"
+            },
+            {
+              "label": "list_events"
+            },
+            {
+              "label": "create_event"
+            },
+            {
+              "label": "schedule_event",
+              "sublabel": "one call does all three"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Required and optional fields",
+        "body": "**Required fields** are listed in the schema's `required` array; **optional fields** are defined in `properties` but left out of it.\n\nIf the user's prompt doesn't include enough information to fill every required parameter, Claude Opus is much more likely to recognise the gap and ask. Claude Sonnet might ask, especially when prompted to think first, but it might also infer a reasonable value. This isn't guaranteed either way.\n\nIf Claude's tool call is invalid (for example, a required parameter is missing), it usually means it lacked the information to use the tool correctly: try more detailed descriptions first. `strict: true` guarantees inputs match your schema exactly. For complex or format-sensitive inputs, `input_examples` shows Claude when to include optional parameters; each example must be valid against `input_schema`, or the request returns a 400.",
+        "example": "\"What's the weather?\" with no city: Claude Sonnet might call `get_weather` with `{\"location\": \"New York, NY\", \"unit\": \"fahrenheit\"}`, guessing values you never supplied."
+      },
+      {
+        "heading": "When Claude picks the wrong tool",
+        "body": "When Claude picks the wrong tool, check the schema first, and the description before anything else: Anthropic calls detailed descriptions by far the most important factor in tool performance. Write descriptions the way you'd explain the tool to a new hire, making implicit context explicit. Even small refinements to tool descriptions can yield dramatic improvements.\n\nTwo more schema problems cause wrong picks:\n\n- **Overlapping tools:** when tools overlap in function or have a vague purpose, agents can get confused about which one to use. Give each tool a distinct purpose and namespace names by service (`asana_search`, `jira_search`) or resource (`asana_projects_search`).\n- **Ambiguous parameters:** name inputs unambiguously, `user_id` rather than `user`.",
+        "example": "Before: `search_orders` and `search_tickets` both say \"Searches records.\" Asked \"Is my refund ticket resolved?\", Claude calls `search_orders`. After: `search_tickets` says it searches support tickets by customer or ticket ID, should be used for questions about support requests and refunds in progress, and does not return order or payment data. `search_orders` says the reverse, so Claude can now tell the two apart."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-schema-overlapping-search-tools",
+      "q-schema-missing-required-location",
+      "q-schema-chained-scheduling-tools"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+        "title": "Define tools",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+        "title": "Tool use with Claude",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+        "title": "Handle tool calls",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+        "title": "Parallel tool use",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+        "title": "Writing effective tools for agents — with agents",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-mcp-vs-manual",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "title": "MCP vs writing schemas yourself",
+    "summary": "When someone has already built the tools you need as an MCP server, you can connect to it instead of writing schemas and handlers yourself. The server supplies each tool's name, description and input schema, and runs the calls; the tool-use loop stays the same. Its descriptions steer Claude's choice just as much as yours do.",
+    "keyPoints": [
+      "**MCP** is an open standard for connecting AI applications to external systems; servers expose **tools**, resources and prompts.",
+      "The client discovers tools with **`tools/list`** (name, description, `inputSchema`) and runs them with **`tools/call`**.",
+      "In the loop, the app hands MCP tools to Claude as tool definitions, routes each call to the right server, and returns the result to Claude.",
+      "Use MCP for services that already have a server; write schemas for **custom business logic, internal APIs, proprietary data**; mix both when you need both.",
+      "Claude selects MCP tools by **names and descriptions**: a vague server description sends Claude to the wrong tool just like a vague one of yours."
+    ],
+    "sections": [
+      {
+        "heading": "MCP: tools someone else already wrote",
+        "body": "The **Model Context Protocol (MCP)** is an open-source standard for connecting AI applications to external systems. An **MCP server** exposes tools (executable functions), resources (data) and prompts (templates); the AI application, the **MCP host**, creates one **MCP client** per server it connects to.\n\nFor tool use this is the alternative to writing schemas by hand. A server's tool list already carries each tool's `name`, a `description` of what it does and when to use it, and an `inputSchema` (JSON Schema). With MCP, an agent can query databases and integrate with APIs like Slack and GitHub without writing custom tool implementations.",
+        "example": "A server's `tools/list` response includes `{\"name\": \"weather_current\", \"title\": \"Weather Information\", \"description\": \"Get current weather information for any location worldwide\", \"inputSchema\": {…, \"required\": [\"location\"]}}`: the same three things you'd otherwise write in a tool definition."
+      },
+      {
+        "heading": "How MCP fits into the tool-use loop",
+        "body": "MCP doesn't replace the tool-use loop; it changes who supplies the schemas and who runs the code:\n\n- **Discover:** each MCP client sends `tools/list`; the application combines the tools from all connected servers into one registry the model can access.\n- **Offer:** the application passes those tools to Claude as tool definitions.\n- **Call:** Claude decides to use one and returns a tool call.\n- **Route and run:** the application routes the call to the right server with `tools/call`.\n- **Return:** it sends the server's result back to Claude as part of the conversation, and Claude continues.\n\nOn the Messages API, the **MCP connector** does the client side for you: list servers in `mcp_servers`, enable them with an `mcp_toolset` in `tools`, and the response shows `mcp_tool_use` and `mcp_tool_result` blocks. It currently supports only tool calls, and the server must be publicly exposed over HTTP.",
+        "example": "Python SDK pattern from the MCP docs: `for client in app.mcp_clients(): available_tools.extend((await client.list_tools()).tools)`, then on each tool call: `client = app.find_mcp_client_for_tool(tool_name)`; `result = await client.call_tool(tool_name, arguments)`; `conversation.add_tool_result(result.content)`.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The loop is unchanged; the MCP server supplies the schemas and runs the calls.",
+          "steps": [
+            {
+              "label": "tools/list",
+              "sublabel": "client asks server"
+            },
+            {
+              "label": "Tool definitions",
+              "sublabel": "passed to Claude"
+            },
+            {
+              "label": "Claude calls a tool"
+            },
+            {
+              "label": "tools/call",
+              "sublabel": "routed to server"
+            },
+            {
+              "label": "Result to Claude"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Use MCP, write schemas, or use both",
+        "body": "- **Use MCP when** a server already exists for the service (GitHub, Slack, Sentry, a database). You skip writing tool implementations, and because many clients support MCP, an integration can be built once and used across them.\n- **Write schemas manually when** the tool is custom business logic, an internal API or proprietary data that lives in your application: you write the schema, run the code and return the result.\n- **Use both when** an agent needs third-party services and your own logic. In the Agent SDK, connect external servers in `mcpServers` and define your own tools in code as an in-process SDK MCP server.\n\nPick the integration path by what you need: the MCP connector for remote servers reachable by URL when you only need tools; your own MCP client with the SDK's client-side MCP helpers (which convert MCP tools to Claude API tools) for local stdio servers, prompts, resources or more control.",
+        "example": "A support agent connects the remote GitHub MCP server (`mcpServers: {github: {type: \"http\", url: …}}`) for issues, and adds an in-process SDK MCP server for its own `issue_refund` logic. `allowedTools: [\"mcp__github__list_issues\", …]` auto-approves just the tools it needs."
+      },
+      {
+        "heading": "The description that sent Claude to the wrong tool",
+        "body": "MCP tools are selected exactly like your own: Claude calls an MCP tool when the user's request maps to the tool's **described capability**. With many tools available, Claude selects based on tool names and descriptions, and clear, specific descriptions improve selection accuracy.\n\nSo a server's description can send Claude to the wrong tool. When you connect many servers, tools from different developers can overlap in function or have vague purposes, and agents get confused about which to use. If you own the server, fix the description and name there (namespacing by service, such as `asana_search` vs `jira_search`, helps). For large tool sets (dozens of tools across several servers), `defer_loading` with the tool search tool surfaces only the relevant tools per query.",
+        "example": "Two connected servers each expose a tool described as \"Search for items.\" Asked about a sprint task, Claude searches the wrong system. The fix: rename them `jira_search` and `asana_search`, and describe what each one searches and when to use it."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-mcp-loop-routes-tool-call",
+      "q-mcp-internal-logic-own-schema",
+      "q-mcp-vague-server-description"
+    ],
+    "sources": [
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro",
+        "title": "What is the Model Context Protocol (MCP)?",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+        "title": "Architecture overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+        "title": "MCP connector",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
+        "title": "Connect to external tools with MCP",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+        "title": "Writing effective tools for agents — with agents",
+        "checkedOn": "2026-10-14"
+      }
+    ]
   }
 ]

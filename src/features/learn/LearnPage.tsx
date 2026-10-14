@@ -7,11 +7,22 @@ import { Screen } from '../../ui/Screen';
 import './learn.css';
 
 export function LearnPage() {
-  const { domains, lessons } = useContent();
+  const { domains, lessons, course } = useContent();
   const { lessonsDone } = useProgress();
   const ordered = [...domains].sort((a, b) => b.weight - a.weight);
   return (
     <Screen title="Learn">
+      {course.length > 0 && (
+        <Link className="panel panel-link course-entry" to="/course">
+          <span className="grow">
+            <strong>📘 Course sections</strong>
+            <span className="muted d-block">
+              {[...course].sort((a, b) => a.number - b.number).map((s) => `Section ${s.number}`).join(' · ')}: definitions, examples and quizzes
+            </span>
+          </span>
+          <span className="chev"><IconChevron /></span>
+        </Link>
+      )}
       <p className="muted">Eight exam domains, biggest first. Each lesson ends with three check-yourself questions.</p>
       {ordered.map((d) => {
         const inDomain = lessons.filter((l) => l.domainId === d.id);

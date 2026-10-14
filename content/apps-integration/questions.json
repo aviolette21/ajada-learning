@@ -6940,5 +6940,1278 @@
       "c-claude-md"
     ],
     "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-course-client-sdk-role",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Client SDKs",
+    "stem": "A teammate expects that moving your Go service from raw HTTP calls to Anthropic's Go SDK will also give you an agent loop that runs your tools for you. What does the SDKs overview page say the client SDKs are?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "General-purpose Messages API clients: you still send each request yourself",
+        "reason": "Correct: the client SDKs are general-purpose Messages API clients; with them you send each request and handle each response."
+      },
+      {
+        "id": "b",
+        "text": "Agent runtimes that provide the agent loop and run your tools automatically",
+        "reason": "That's Claude Code, the Claude Agent SDK and Claude Managed Agents, which work at a higher level and provide the agent loop and tool execution."
+      },
+      {
+        "id": "c",
+        "text": "Python and TypeScript wrappers only, so Go services must stay on raw HTTP",
+        "reason": "Client SDKs exist for seven languages: Python, TypeScript, C#, Go, Java, PHP and Ruby."
+      },
+      {
+        "id": "d",
+        "text": "Compatibility layers that expose Claude through another framework's API",
+        "reason": "That describes libraries and integrations such as OpenAI SDK compatibility, which are not general-purpose Messages API clients."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A client SDK wraps the **Messages API**; the agent loop comes from the Agent SDK, Claude Code or Managed Agents.",
+    "explanation": "The SDKs page separates three layers: client SDKs (general-purpose Messages API clients), libraries that expose Claude through another framework, and higher-level agent products. The Go SDK is a client SDK, so you still send each request and handle each response (A). Option B is the tempting confusion of \"SDK\" with the Claude Agent SDK, which is what provides the agent loop. C is wrong because Go has an official SDK, and D describes libraries and integrations.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
+      "title": "SDKs, CLI, and libraries",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-async-client-streaming",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Async requests",
+    "stem": "Your asyncio web app is moving from the sync `Anthropic` client to `AsyncAnthropic`, and it must keep streaming replies. Per the Python SDK page, what changes in the streaming call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Streaming isn't available on the async client, so replies must come from batches",
+        "reason": "The Python SDK page shows streaming with the async client; it uses the exact same interface as the sync one."
+      },
+      {
+        "id": "b",
+        "text": "You `await` the `create(..., stream=True)` call, then read events with `async for`",
+        "reason": "Correct: the async client uses the same interface: `stream = await client.messages.create(..., stream=True)`, then `async for event in stream`."
+      },
+      {
+        "id": "c",
+        "text": "You must start setting the `anthropic-version` header yourself on every call",
+        "reason": "The SDK automatically sends the `anthropic-version` header (set to `2023-06-01`); switching clients doesn't change that."
+      },
+      {
+        "id": "d",
+        "text": "You poll for the finished message, the same way batch results are retrieved",
+        "reason": "Polling belongs to Message Batches, whose results you read with `batches.results()` once processing has ended; an async stream delivers events as you iterate."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "`AsyncAnthropic` has the **same interface**: `await` the call, and iterate a stream with `async for`.",
+    "explanation": "Async/await changes how your code waits, not what the API does: the Python SDK's async client has the same interface as the sync one. So the streaming call becomes `await client.messages.create(..., stream=True)` followed by `async for event in stream` (B). Option D is the tempting mix-up of async client code with the Message Batches API, which is asynchronous on Anthropic's side and polled. A is false, and C ignores that the SDK sends `anthropic-version` for you.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-async-client",
+      "c-streaming"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-stream-for-waiting-user",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming",
+    "stem": "Users of your chat app stare at an empty reply area until Claude Opus 5.5's whole answer arrives, and then it appears all at once. Total generation time is acceptable. What does Anthropic's latency guide recommend to make the app feel faster?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise `max_tokens` so the full answer can be delivered sooner",
+        "reason": "`max_tokens` is a hard limit on the response's length; it doesn't make the answer arrive any sooner."
+      },
+      {
+        "id": "b",
+        "text": "Lower `temperature` to 0.2 for shorter, more focused replies",
+        "reason": "Claude 4.7 and later models accept only the default `temperature` and return a 400 error for any other value."
+      },
+      {
+        "id": "c",
+        "text": "Ask for an exact word count so that every reply is shorter",
+        "reason": "The guide says word-count limits work less well than paragraph or sentence limits, and shorter replies still appear only when complete."
+      },
+      {
+        "id": "d",
+        "text": "Stream the response and render the text as it arrives",
+        "reason": "Correct: streaming lets the model start sending its response before the output is complete, which significantly improves perceived responsiveness."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "When a user is waiting, **stream**: text that appears as it's generated makes the app feel faster.",
+    "explanation": "The stem's key detail is that total time is fine; the problem is the blank wait before anything appears. Streaming sends the response before it's complete, so users see output in real time, which the guide says significantly improves perceived responsiveness (D). Option B is tempting from older advice, but Claude 4.7 and later models reject non-default `temperature`. Raising `max_tokens` (A) doesn't speed delivery, and word counts (C) still leave the reply arriving all at once.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-streaming",
+      "c-ttft"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-batch-fit",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "You're sorting workloads into the Message Batches API or real-time Messages calls. Which two are good fits for the Message Batches API?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A large-scale evaluation that runs thousands of test cases",
+        "reason": "Correct: the batch guide lists large-scale evaluations, processing thousands of test cases efficiently, among its use cases."
+      },
+      {
+        "id": "b",
+        "text": "A live chat reply that a customer is waiting on right now",
+        "reason": "Batches suit tasks that don't need immediate responses; most finish in under 1 hour, which is far too slow for a waiting customer."
+      },
+      {
+        "id": "c",
+        "text": "A support UI that renders tokens as they're generated",
+        "reason": "`stream: true` isn't supported in batch requests: batch results come back as a single file, not a stream."
+      },
+      {
+        "id": "d",
+        "text": "A moderation backlog of user posts that can wait a few hours",
+        "reason": "Correct: content moderation of large volumes of user-generated content is a listed batch use case, and nothing here needs an immediate response."
+      },
+      {
+        "id": "e",
+        "text": "A coding tool that sends `speed: \"fast\"` for low latency",
+        "reason": "Fast mode isn't supported in batches: it tunes synchronous latency, which doesn't apply to asynchronous batch processing."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Batch work **nobody is waiting on**: evals, moderation, analysis and bulk generation, at 50% of the price.",
+    "explanation": "The deciding question is whether anyone is waiting. Batches are processed asynchronously at half price, with most finishing in under an hour, so they fit bulk work such as large-scale evaluations (A) and a moderation backlog that can wait (D). Option B is the tempting cost-saving idea, but a waiting customer needs a real-time reply. Streaming (C) and fast mode (E) are both rejected inside batch requests.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-async-not-batch",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "Your web backend uses `AsyncAnthropic`, awaiting each Messages call while users wait for their replies. A teammate says the backend is \"already async\", so moving these calls to the Message Batches API would only lower the price. Why is that wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Batch requests are billed above standard Messages prices, so costs would rise",
+        "reason": "Batch usage is charged at 50% of standard API prices, so the price part of the claim is right."
+      },
+      {
+        "id": "b",
+        "text": "Batches can't carry system prompts or multi-turn history, so chats would break",
+        "reason": "System messages and multi-turn conversations can both be included in a batch."
+      },
+      {
+        "id": "c",
+        "text": "Batches stream each result back as soon as it finishes, so nothing changes",
+        "reason": "`stream: true` isn't supported in batches; results are available once all requests complete or after 24 hours."
+      },
+      {
+        "id": "d",
+        "text": "Batch results are polled for later, and most take under an hour: too slow here",
+        "reason": "Correct: a batch is processed asynchronously and you poll for results; most batches finish in under 1 hour, which suits work that doesn't need an immediate response."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An async **client** awaits a normal reply; the Batches API is async **processing** you poll later. Users waiting need the former.",
+    "explanation": "\"Async\" means two different things here. The backend's async client still gets each reply within the call; the Message Batches API processes requests in the background, and you poll for results, with most batches finishing in under an hour (D). That's fine for bulk work, not for users waiting on replies. Option A is the tempting rebuttal, but batches really do cost 50% less, so price isn't the problem. B and C misstate what batches support.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Batch processing is asynchronous: submit now, collect results later.",
+      "steps": [
+        {
+          "label": "Create batch"
+        },
+        {
+          "label": "Processed asynchronously"
+        },
+        {
+          "label": "Poll status"
+        },
+        {
+          "label": "Retrieve results"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-async-client"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-stream-tool-start-empty",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming events",
+    "stem": "Your streaming handler runs a tool as soon as it sees `content_block_start` with `\"type\": \"tool_use\"`, but the tool always receives an empty `input` (`{}`). When should it run the tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "At `message_start`, which already lists every tool call Claude is going to make",
+        "reason": "`message_start` carries a `Message` with empty `content`. The blocks arrive afterwards, one by one."
+      },
+      {
+        "id": "b",
+        "text": "After that block's `content_block_stop`, once its JSON deltas are joined",
+        "reason": "Correct: the input arrives as `input_json_delta` fragments. Accumulate them and parse once that block's `content_block_stop` arrives."
+      },
+      {
+        "id": "c",
+        "text": "On the first `input_json_delta`, which carries the whole input object",
+        "reason": "The deltas are partial JSON strings, such as `{\"location\":`. Only the joined string forms the full input."
+      },
+      {
+        "id": "d",
+        "text": "At `ping`, which signals that the tool input is ready",
+        "reason": "`ping` events can appear anywhere in a stream and carry no content. They don't mark a block as ready."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A `tool_use` block opens empty; act on it only after its **`content_block_stop`**.",
+    "explanation": "`content_block_start` only opens the block, and the tool input then streams as partial JSON strings. The rule is to collect the deltas and act only after `content_block_stop` for that block's index. Option C is the tempting misreading: a delta looks like JSON, but it's just a fragment that won't parse on its own.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-input-json-delta",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-dropped-mid-tool",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Interrupted streams",
+    "stem": "A connection drops after block 0 (text) reached `content_block_stop` but while block 1 (`tool_use`) was still receiving `input_json_delta` events. No `message_delta` or `message_stop` arrived. What should your handler do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parse the partial tool JSON as best it can and run the tool",
+        "reason": "Tool use blocks can't be partially recovered. Running a tool on half an argument is exactly the state corruption to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Save the turn to history with `stop_reason` set to `end_turn` and carry on",
+        "reason": "No `message_delta` arrived, so there's no `stop_reason` to record. Inventing one stores a partial turn as if it were complete."
+      },
+      {
+        "id": "c",
+        "text": "Treat it as incomplete: drop block 1, don't store the turn, and retry",
+        "reason": "Correct: without `message_stop` the message never completed, and tool use blocks can't be partially recovered."
+      },
+      {
+        "id": "d",
+        "text": "Wait for the next `ping`, which resumes the stream at block 1",
+        "reason": "`ping` events carry no content and don't resume anything. A dropped connection needs a new request."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On an interrupted stream, throw away the partial assistant turn; never run or store a half-built `tool_use` block.",
+    "explanation": "Completion has to be tracked on purpose: block 0 finished, but the message never got its `message_delta` or `message_stop`. The docs say tool use and thinking blocks can't be partially recovered, so the half-streamed tool call must be discarded, and the turn shouldn't enter history. Option A is the tempting \"salvage it\" move, and it's the one that corrupts state.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The stream broke before the message completed.",
+      "steps": [
+        {
+          "label": "message_start"
+        },
+        {
+          "label": "Block 0 text",
+          "sublabel": "stopped: complete"
+        },
+        {
+          "label": "Block 1 tool_use",
+          "sublabel": "deltas only"
+        },
+        {
+          "label": "Connection drops",
+          "sublabel": "no message_stop"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-error-recovery",
+      "c-input-json-delta"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-stop-not-complete",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Stop reasons",
+    "stem": "A stream ends cleanly: `message_delta` carries `\"stop_reason\": \"max_tokens\"`, then `message_stop` arrives. The last content block is a `tool_use` whose input JSON is cut off. What should your app do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry the request with a higher `max_tokens` to get the full tool call",
+        "reason": "Correct: when a truncated response contains an incomplete tool use block, the docs say to retry with a higher `max_tokens`."
+      },
+      {
+        "id": "b",
+        "text": "Run the tool, since `message_stop` confirms the message is complete",
+        "reason": "`max_tokens` means the response reached your limit. A cut-off tool use block is incomplete, whatever event closed the stream."
+      },
+      {
+        "id": "c",
+        "text": "Send a `tool_result` saying the input was invalid and let Claude retry",
+        "reason": "The tool call itself was cut off by your token limit. The documented fix for an incomplete tool use block is a higher `max_tokens`."
+      },
+      {
+        "id": "d",
+        "text": "Read `stop_reason` again from `message_start` to confirm the cause",
+        "reason": "In a stream, `stop_reason` is `null` in `message_start`. It's only provided in `message_delta`."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A stream ending isn't a message completing: check `stop_reason` from `message_delta` before acting on the content.",
+    "explanation": "This combines two facts. A clean `message_stop` says the stream closed, not that the content is usable, and `stop_reason: \"max_tokens\"` says the reply was truncated. For a truncated response with an incomplete tool use block, the documented fix is to retry with more `max_tokens`. Option B is the trap of treating stream end as success, and D looks for `stop_reason` where it's always null.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stop-reason",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-handler-actions",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming events",
+    "stem": "You're writing a raw SSE handler for streamed Messages responses and mapping each event type to an action. Which two mappings are correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`message_start`: read the final `stop_reason` and store it",
+        "reason": "`stop_reason` is `null` in `message_start`; it's provided in the `message_delta` event."
+      },
+      {
+        "id": "b",
+        "text": "`content_block_start`: open a new, empty block at the event's `index`",
+        "reason": "Correct: each block starts with `content_block_start`, and its `index` matches its position in the final `content` array."
+      },
+      {
+        "id": "c",
+        "text": "`message_delta`: add its `usage.output_tokens` to a running total",
+        "reason": "The token counts in `message_delta` usage are cumulative. Adding them double-counts, so replace your total instead."
+      },
+      {
+        "id": "d",
+        "text": "`ping`: treat it as an error and reconnect",
+        "reason": "Event streams may include any number of `ping` events. They're normal, not errors."
+      },
+      {
+        "id": "e",
+        "text": "`content_block_delta`: append the fragment to the block with the same `index`",
+        "reason": "Correct: each delta updates the content block at the given `index`, so fragments are routed by index."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Open blocks on start, append deltas **by index**, read `stop_reason` from `message_delta`, and treat its usage as cumulative.",
+    "explanation": "A handler opens a block at each `content_block_start` and appends each `content_block_delta` to the block with the same `index`, which is what B and E describe. Option C is the subtle trap: `message_delta` usage counts are cumulative, so summing them inflates the total. A reads `stop_reason` where it's still null, and D treats harmless `ping` events as failures.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-signature-timing",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming thinking",
+    "stem": "Your streaming agent saves each `thinking` block so it can pass it back with the next `tool_result`. Saved blocks have an empty `signature`. Where in the stream does a thinking block's signature arrive?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In the block's `content_block_start` event, before any thinking text",
+        "reason": "`content_block_start` opens the thinking block with an empty `signature` string. The value arrives later."
+      },
+      {
+        "id": "b",
+        "text": "In the `message_delta` event, together with the `stop_reason`",
+        "reason": "`message_delta` carries top-level changes such as `stop_reason` and usage, not block content."
+      },
+      {
+        "id": "c",
+        "text": "In a final `thinking_delta` that repeats the full thinking text",
+        "reason": "`thinking_delta` events carry the thinking text. The signature has its own delta type."
+      },
+      {
+        "id": "d",
+        "text": "In a `signature_delta` just before that block's `content_block_stop`",
+        "reason": "Correct: a single `signature_delta` arrives just before `content_block_stop`. Save the block only after that event."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A thinking block isn't complete until its **`signature_delta`** and `content_block_stop` arrive; save it only then.",
+    "explanation": "This is the don't-act-on-a-partial-block rule applied to thinking. The `signature` comes as a single `signature_delta` right before the block's `content_block_stop`, so a block saved earlier is missing it. Option A is tempting because `content_block_start` does contain a `signature` field, but it's an empty string there.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-event-flow",
+      "c-thinking-blocks-unchanged"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-batch-unsupported-params",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "You're converting synchronous Messages calls into Message Batches API requests. Which two request settings must you remove, because a batch rejects them with a validation error?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`stream: true`",
+        "reason": "Correct: `stream: true` isn't supported in batch requests, because batch results come back as a single file, not a stream."
+      },
+      {
+        "id": "b",
+        "text": "A `system` prompt on each request",
+        "reason": "System messages can be batched; almost any Messages request can go in a batch."
+      },
+      {
+        "id": "c",
+        "text": "`speed` set for fast mode",
+        "reason": "Correct: fast mode tunes synchronous latency, which doesn't apply to asynchronous batch processing, so batches reject it."
+      },
+      {
+        "id": "d",
+        "text": "Tool definitions, including server tools",
+        "reason": "Tool use, including all server tools such as web search and code execution, works in batch requests."
+      },
+      {
+        "id": "e",
+        "text": "Earlier turns of a multi-turn conversation",
+        "reason": "Multi-turn conversations are on the guide's list of what can be batched."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Almost any Messages request can be batched, but **`stream: true`**, fast mode's **`speed`** and `max_tokens: 0` are rejected.",
+    "explanation": "The batch guide says almost any Messages request can go in a batch, including vision, tool use with server tools, system messages and multi-turn conversations. A small set of parameters returns a validation error: `stream: true`, since results arrive as a single file (A), and fast mode's `speed`, since it tunes synchronous latency (C). D is the tempting wrong pick, because server tools seem like they need a live connection, but the guide lists all server tools as batchable.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-batch-results-29-days",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Batch results",
+    "stem": "A compliance job submits a Message Batch every Monday and plans to download all the results once a quarter, about 12 weeks later. What does the batch guide say will go wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Batches expire after 24 hours, so the batch itself is deleted",
+        "reason": "The 24-hour limit is for processing; you can still view a batch later, and its results stay available for 29 days."
+      },
+      {
+        "id": "b",
+        "text": "Results can only be downloaded for 29 days after the batch is created",
+        "reason": "Correct: batch results are available for 29 days after creation; after that you can view the batch but not download its results."
+      },
+      {
+        "id": "c",
+        "text": "Nothing: results stay downloadable for as long as the workspace exists",
+        "reason": "Results are only available for 29 days after the batch is created."
+      },
+      {
+        "id": "d",
+        "text": "Results move to the Files API after 7 days and need a new request",
+        "reason": "The guide gives one window: results are available for 29 days after creation, at the batch's `results_url`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Download batch results within **29 days of creation**; after that, only the batch record remains.",
+    "explanation": "The batch guide says results are available for 29 days after the batch is created; after that you may still view the batch, but its results can't be downloaded (B). A twelve-week cycle misses that window, so the job should fetch results soon after `processing_status` becomes `ended`. A is the tempting mix-up of the 24-hour processing window with result retention. C ignores the limit entirely.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-batch-cancel-partial",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "Midway through processing, you cancel a large Message Batch because its prompt had a mistake. A teammate assumes everything is discarded and nothing is billed. What does the batch guide say happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The batch is deleted at once, and no results of any kind remain",
+        "reason": "The batch moves to `canceling`, then `ended`, and may contain partial results for requests already processed."
+      },
+      {
+        "id": "b",
+        "text": "Every request still runs to completion, so the whole batch is billed in full",
+        "reason": "Requests canceled before they reach the model get the `canceled` result type and aren't billed."
+      },
+      {
+        "id": "c",
+        "text": "The batch ends with status `expired`, and every one of its requests is billed",
+        "reason": "`expired` is a per-request result for the 24-hour limit, and expired requests aren't billed either."
+      },
+      {
+        "id": "d",
+        "text": "It ends with partial results; requests canceled before running aren't billed",
+        "reason": "Correct: a canceled batch ends as `ended` with possible partial results, and canceled requests aren't billed."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Cancel → `canceling` → `ended`: finished requests keep their results; **canceled** ones aren't billed.",
+    "explanation": "After you cancel, the batch's `processing_status` is `canceling`, and it finishes as `ended`, possibly with partial results for requests processed before cancellation. Requests that never reached the model get the `canceled` result type, which isn't billed (D). So the teammate is half right: unprocessed work is free, but finished requests are kept and billed. A is the tempting \"all or nothing\" reading. C confuses cancellation with the 24-hour expiry.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Canceling keeps what already finished.",
+      "steps": [
+        {
+          "label": "in_progress"
+        },
+        {
+          "label": "canceling",
+          "sublabel": "after cancel"
+        },
+        {
+          "label": "ended",
+          "sublabel": "may hold partial results"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-batch-mixed-requests",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "One nightly job needs image captions, tool-using lookups and multi-turn follow-ups. A teammate plans three separate Message Batches, one per request type. What does the batch guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "That's required: each batch must hold only one type of request",
+        "reason": "The guide says you can mix different types of requests within a single batch."
+      },
+      {
+        "id": "b",
+        "text": "Only plain text requests can be batched; the rest must stay synchronous",
+        "reason": "Vision, tool use and multi-turn conversations are all on the guide's list of what can be batched."
+      },
+      {
+        "id": "c",
+        "text": "One batch can mix them, since each request is processed independently",
+        "reason": "Correct: because each request in a batch is processed independently, you can mix request types in one batch."
+      },
+      {
+        "id": "d",
+        "text": "Mixing is allowed, but the batch then runs at full price instead of 50%",
+        "reason": "All batch usage is charged at 50% of standard API prices; the guide sets no mixing surcharge."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Each batched request runs **independently**, so one batch can mix vision, tools and multi-turn requests.",
+    "explanation": "The batch guide lists vision, tool use, system messages, multi-turn conversations and most beta features as batchable, and says that because each request is processed independently, you can mix different types of requests within a single batch (C). A is the tempting assumption that a batch must be uniform. D invents a penalty: all batch usage is charged at 50% of standard prices.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-sdk-raw-event-stream",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming",
+    "stem": "Your Python proxy relays each streamed event to its clients as it arrives and never needs the assembled message. Memory is tight. Per the Python SDK page, which call fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`client.messages.create(..., stream=True)`, which yields only the events",
+        "reason": "Correct: it returns an iterable of the stream's events and uses less memory, because it doesn't build a final message."
+      },
+      {
+        "id": "b",
+        "text": "`client.messages.stream(...)`, so the SDK accumulates the final message",
+        "reason": "The helper accumulates text and the final message, which this proxy doesn't need and which costs memory."
+      },
+      {
+        "id": "c",
+        "text": "`client.messages.create(...)` without streaming, then split the reply",
+        "reason": "A non-streaming call returns only the finished message, so there are no events to relay as they arrive."
+      },
+      {
+        "id": "d",
+        "text": "`client.messages.batches.create(...)`, polling for each event",
+        "reason": "Batch results are read with `.batches.results()` once processing has ended; a batch doesn't stream events as they arrive."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`create(stream=True)` gives raw events and saves memory; `.stream()` adds helpers and builds the final message.",
+    "explanation": "The Python SDK page offers two ways to stream. `client.messages.stream(...)` gives helpers, including accumulated text and the final message. `client.messages.create(..., stream=True)` only returns an iterable of events and uses less memory, because it doesn't build a final message object (A). For a relay that never needs the assembled message, A fits. B is the tempting default, since the helper is the usual recommendation, but its accumulation is wasted here.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-sdk-final-message"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-sdk-aiohttp-backend",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Async requests",
+    "stem": "Your asyncio service already uses `AsyncAnthropic` and runs many concurrent Claude calls. You want better async concurrency from the SDK itself. What does the Python SDK page offer?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise `max_retries`, which lets concurrent calls run in parallel",
+        "reason": "Retries only re-send certain failed requests, such as connection errors, 429s and 5xx errors; they don't add concurrency."
+      },
+      {
+        "id": "b",
+        "text": "Use the `aiohttp` backend via `DefaultAioHttpClient` (`anthropic[aiohttp]`)",
+        "reason": "Correct: the page offers the `aiohttp` HTTP backend, installed with the `aiohttp` extra, for improved async performance."
+      },
+      {
+        "id": "c",
+        "text": "Set `stream=True` on every call, since streaming is what makes calls concurrent",
+        "reason": "Streaming returns events incrementally; the page's option for better async concurrency is the `aiohttp` backend."
+      },
+      {
+        "id": "d",
+        "text": "Pass a client from the separate `httpx` package as `http_client`",
+        "reason": "The `http_client` must be an `httpx2` client; passing one from the separate `httpx` package raises a `TypeError`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For better async concurrency, give `AsyncAnthropic` the **`aiohttp`** backend (`DefaultAioHttpClient`).",
+    "explanation": "The Python SDK page has a section on using `aiohttp` for better concurrency: install `anthropic[aiohttp]` and pass `http_client=DefaultAioHttpClient()` to `AsyncAnthropic`, replacing the default `httpx2` backend (B). C is tempting because streaming and async often appear together, but streaming changes how a reply arrives, not how many calls run at once. D fails outright, since the SDK requires an `httpx2` client.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-async-client"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-sdk-version-header",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Client SDKs",
+    "stem": "A teammate adds `default_headers={\"anthropic-version\": \"2023-06-01\"}` to every Python `Anthropic()` client \"to be safe\", and another wants to set a custom value. What does the Python SDK page say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The header is required and the SDK never sends it, so this is needed",
+        "reason": "The SDK sends the `anthropic-version` header automatically, set to `2023-06-01`."
+      },
+      {
+        "id": "b",
+        "text": "Custom values are encouraged; the SDK adapts its types to any version",
+        "reason": "The page warns that overriding default headers may result in incorrect types and other unexpected behavior."
+      },
+      {
+        "id": "c",
+        "text": "The SDK already sends `2023-06-01`; overriding it risks incorrect types",
+        "reason": "Correct: the SDK sends that version automatically, and the page warns that overriding default headers may cause incorrect types."
+      },
+      {
+        "id": "d",
+        "text": "Only `extra_headers` can set it; `default_headers` is ignored by the SDK",
+        "reason": "The page shows both: `default_headers` on the client and `extra_headers` per request."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The Python SDK sends **`anthropic-version: 2023-06-01`** for you; overriding it risks incorrect types.",
+    "explanation": "The Python SDK page says the SDK automatically sends `anthropic-version` set to `2023-06-01`. You can override it with `default_headers` or per-request `extra_headers`, but the page warns that doing so may result in incorrect types and other unexpected behavior (C). A is the tempting belief behind adding it \"to be safe\", but the header is already there. B gets the risk backwards.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-anthropic-version",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-rest-endpoints",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "REST endpoints",
+    "stem": "You're writing a raw HTTP client for a service that checks a prompt's size before sending it, and that also submits a nightly bulk job. Which two endpoint choices match the API overview?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`GET /v1/models` to count a prompt's tokens before sending it",
+        "reason": "The Models API lists available models and their details; it doesn't count tokens."
+      },
+      {
+        "id": "b",
+        "text": "`POST /v1/messages/count_tokens` to count tokens before sending",
+        "reason": "Correct: the Token Counting API counts tokens in a message before sending, to manage costs and rate limits."
+      },
+      {
+        "id": "c",
+        "text": "`POST /v1/files` to submit the nightly bulk job",
+        "reason": "The Files API uploads and manages files for use across API calls; it doesn't process requests."
+      },
+      {
+        "id": "d",
+        "text": "`POST /v1/messages` with a list of requests for the bulk job",
+        "reason": "The Messages API sends messages for conversational interactions; bulk asynchronous work has its own endpoint."
+      },
+      {
+        "id": "e",
+        "text": "`POST /v1/messages/batches` for the nightly bulk job",
+        "reason": "Correct: the Message Batches API processes large volumes of Messages requests asynchronously at a 50% cost reduction."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Count first with **`/v1/messages/count_tokens`**; send bulk work to **`/v1/messages/batches`**.",
+    "explanation": "The API overview lists each endpoint's job. The Token Counting API (`POST /v1/messages/count_tokens`) counts tokens before sending (B), and the Message Batches API (`POST /v1/messages/batches`) processes large volumes of Messages requests asynchronously with a 50% cost reduction (E). D is the tempting near-miss, since batches are Messages requests, but `POST /v1/messages` is the one-at-a-time conversational endpoint. A and C belong to the Models and Files APIs.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-token-counting",
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-course-stream-resume-older-model",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Interrupted streams",
+    "stem": "Your app streams long answers from Claude Haiku 4.5. A network error cuts one off partway through a text block. You want to finish the answer without re-processing the whole response. What does the streaming guide recommend for this model?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send a new request with the received text as the start of a new assistant message",
+        "reason": "Correct: for Claude 4.5 models and earlier, the continuation request includes the partial response as the beginning of a new assistant message."
+      },
+      {
+        "id": "b",
+        "text": "Send a new request whose user message holds the partial text and asks Claude to continue",
+        "reason": "That is the pattern for Claude 4.6 and later. For Claude 4.5 and earlier, the partial response goes at the start of an assistant message."
+      },
+      {
+        "id": "c",
+        "text": "Resend the original request unchanged and throw away the partial text you received",
+        "reason": "That works, but it re-processes the entire response. The recovery strategy captures what arrived so you can resume instead."
+      },
+      {
+        "id": "d",
+        "text": "Reconnect to the same stream and ask for the events after the last `index` you received",
+        "reason": "The guide's recovery strategy is a new continuation request built from the content you captured, not reconnecting to the old stream."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To resume a cut stream, capture what arrived. On Claude 4.5 and earlier it starts a new assistant message; on 4.6 and later it goes in a user message.",
+    "explanation": "The capture-and-resume strategy is the same for every model, but step 2 depends on the model generation. The stem names Claude Haiku 4.5, so the partial text goes at the start of a new assistant message. Option B is the tempting trap: it is the correct recipe for Claude 4.6 and later models, not for 4.5. C works but redoes the whole response.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The stream breaks partway through a text block.",
+      "steps": [
+        {
+          "label": "message_start"
+        },
+        {
+          "label": "Text deltas",
+          "sublabel": "arriving"
+        },
+        {
+          "label": "Network error"
+        },
+        {
+          "label": "Continuation request",
+          "sublabel": "which shape?"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-error-recovery"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-tool-input-bursts",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming tool use",
+    "stem": "Your UI shows a tool call's arguments as they stream in. Users notice that `input_json_delta` events arrive in bursts with pauses between them, and a teammate suspects the connection keeps stalling. What explains the pattern?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The SSE connection is buffering, so tool calls should switch to non-streaming requests",
+        "reason": "Nothing here points to a fault. The pauses are documented model behaviour, and a non-streaming request would hide all output until the end."
+      },
+      {
+        "id": "b",
+        "text": "Models emit one complete input key and value at a time, then send it as chunked deltas",
+        "reason": "Correct: current models emit one complete key and value from `input` at a time, so there may be delays between events while the model works."
+      },
+      {
+        "id": "c",
+        "text": "Each burst is a separate tool call, so every pause marks the start of a new `tool_use` block",
+        "reason": "A new block would open with its own `content_block_start` and `index`. These deltas all update the same block."
+      },
+      {
+        "id": "d",
+        "text": "`ping` events are replacing the deltas, so each pause means part of the input was lost",
+        "reason": "`ping` events can appear anywhere in a stream and don't replace deltas. Pauses between tool-input deltas are expected."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Tool-input deltas can arrive in bursts: current models emit one complete key and value at a time, so pauses are expected.",
+    "explanation": "The streaming guide notes that current models emit one complete key and value from a tool's `input` at a time, then send it as several chunked deltas. That produces exactly the bursts and pauses in the stem, with nothing wrong on the connection. Option A is the tempting fix, but it treats normal behaviour as a fault and gives up live output. C misreads the deltas, which all share one block `index`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-input-json-delta"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-sdk-parsed-input",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming tool use",
+    "stem": "Your TypeScript app streams tool calls and wants to show each argument in the UI while it is still arriving, without writing its own partial-JSON parser. What does the streaming guide point you to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run `JSON.parse` on each `input_json_delta` fragment as soon as it arrives",
+        "reason": "Each fragment is a partial JSON string, so parsing one on its own fails. The guide says to accumulate them or use the SDK helpers."
+      },
+      {
+        "id": "b",
+        "text": "Read the full arguments from `content_block_start`, which carries the `input` up front",
+        "reason": "The `tool_use` block opens with `\"input\": {}`. The arguments arrive afterwards as `input_json_delta` events."
+      },
+      {
+        "id": "c",
+        "text": "Use the SDK's streaming helpers, which can give you the parsed `input` incrementally",
+        "reason": "Correct: in the Python and TypeScript SDKs, the streaming helpers also give you access to the parsed `input` incrementally, as it streams."
+      },
+      {
+        "id": "d",
+        "text": "Wait for `message_delta`, which repeats the finished tool input as a single object",
+        "reason": "`message_delta` carries top-level changes to the message, such as `stop_reason`. Tool input arrives only in the block's own deltas."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "For live tool arguments without your own parser, use the SDK streaming helpers: in Python and TypeScript they parse `input` as it streams.",
+    "explanation": "Tool input streams as partial JSON strings, which you either accumulate and parse at `content_block_stop` or hand to a parser that understands partial JSON. The stem rules out writing your own parser and wants arguments while they arrive, so the SDK helpers fit. Option A is the tempting shortcut, but a lone fragment isn't valid JSON. B fails because the block opens with an empty `input`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-input-json-delta",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-drop-in-thinking",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Interrupted streams",
+    "stem": "A streamed response opens with a `thinking` block at index 0. The connection drops while `thinking_delta` events are still arriving, before any text block has started. What should your handler do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send the partial thinking back in the next request so Claude continues from it",
+        "reason": "Tool use and thinking blocks cannot be partially recovered, so a half-streamed thinking block can't be continued."
+      },
+      {
+        "id": "b",
+        "text": "Save the partial thinking block to history, then send the next user message",
+        "reason": "The block's `signature` arrives in a `signature_delta` just before `content_block_stop`, so this block has none. Don't store a half-built block."
+      },
+      {
+        "id": "c",
+        "text": "Keep listening, because `message_delta` will resend the thinking text that was missed",
+        "reason": "`message_delta` carries top-level changes to the message, not block content, and nothing more arrives on a dropped connection."
+      },
+      {
+        "id": "d",
+        "text": "Discard the partial block and retry, since there is no text block to resume from",
+        "reason": "Correct: thinking blocks cannot be partially recovered, and you can resume only from the most recent text block. With no text yet, retry the request."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Only text can be resumed. A half-streamed `thinking` or `tool_use` block is discarded, never stored or continued.",
+    "explanation": "The recovery guidance says tool use and thinking blocks cannot be partially recovered, and resuming starts from the most recent text block. Here the drop happened inside the first block, a thinking block, so there is nothing resumable and the request is retried. Option A is the tempting idea, because it seems to save work, but partial thinking can't be continued. B would store a block that never received its signature.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-error-recovery"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-server-tool-input",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming tool use",
+    "stem": "Your raw SSE handler assembles `input_json_delta` fragments only for blocks whose type is `tool_use`. After you enable the `web_search` server tool, the search queries your handler logs are always empty. What is the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Also collect `input_json_delta` for `server_tool_use` blocks, whose input streams the same way",
+        "reason": "Correct: in the guide's web search stream, the `server_tool_use` block opens with `\"input\": {}` and its query arrives as `input_json_delta` events."
+      },
+      {
+        "id": "b",
+        "text": "Read the query from deltas on the `web_search_tool_result` block that follows",
+        "reason": "In the guide's example, the result block opens with its content in `content_block_start` and then closes. The query streams in the `server_tool_use` block."
+      },
+      {
+        "id": "c",
+        "text": "Read the query from the `message_stop` event, which reports server tool inputs",
+        "reason": "`message_stop` is the final event and carries only its type. The query has already streamed in its own block by then."
+      },
+      {
+        "id": "d",
+        "text": "Set `display: \"summarized\"` so server tool inputs are included in the stream",
+        "reason": "`display` belongs to the thinking configuration and controls whether thinking text streams. It has nothing to do with tool input."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Route deltas by block, not by one assumed block type: a `server_tool_use` block streams its input as `input_json_delta` too.",
+    "explanation": "Every content block streams its own deltas at its own `index`, and a `server_tool_use` block fills its `input` with `input_json_delta` events just like a client `tool_use` block. The handler in the stem filters on `tool_use` alone, so it never collects the search query. Option B is the tempting guess, but the result block carries results, not the query. D confuses a thinking setting with tool input.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-input-json-delta",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-thinking-delta-types",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming thinking",
+    "stem": "Your raw SSE handler rebuilds each `thinking` block from the stream so it can pass the block back with tool results. Which two delta types update a thinking block?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`text_delta`",
+        "reason": "`text_delta` fragments update `text` blocks, which stream after the thinking block."
+      },
+      {
+        "id": "b",
+        "text": "`thinking_delta`",
+        "reason": "Correct: thinking content arrives as `thinking_delta` events, which correspond to the block's `thinking` field."
+      },
+      {
+        "id": "c",
+        "text": "`input_json_delta`",
+        "reason": "`input_json_delta` fragments are partial JSON for a `tool_use` block's `input`, not thinking content."
+      },
+      {
+        "id": "d",
+        "text": "`signature_delta`",
+        "reason": "Correct: a single `signature_delta` is sent just before the thinking block's `content_block_stop`."
+      },
+      {
+        "id": "e",
+        "text": "`message_delta`",
+        "reason": "`message_delta` is a separate event for top-level changes to the message. It isn't a delta inside a content block."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "A thinking block is built from `thinking_delta` fragments plus one `signature_delta` that arrives just before its `content_block_stop`.",
+    "explanation": "Each `content_block_delta` carries a delta type that matches the block it updates. A thinking block receives `thinking_delta` events for its text and one `signature_delta` at the end, which your handler needs before passing the block back. The tempting extra is E, `message_delta`, but that event updates the whole message, not a block. A and C belong to text and tool-use blocks.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-usage-overcount",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming events",
+    "stem": "Your billing dashboard adds up `usage.output_tokens` from every `message_delta` event in each stream. For responses that send more than one `message_delta`, the totals come out too high. What is wrong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`message_delta` usage leaves out thinking tokens, so the dashboard double-counts them",
+        "reason": "The problem is the summing, not a missing category: the token counts in `message_delta` are already cumulative."
+      },
+      {
+        "id": "b",
+        "text": "`ping` events also carry usage, and the dashboard should subtract them",
+        "reason": "`ping` events carry no usage. They can appear anywhere in a stream and contain only their type."
+      },
+      {
+        "id": "c",
+        "text": "The counts in `message_delta` are cumulative, so take the latest value rather than a sum",
+        "reason": "Correct: the guide warns that the `usage` token counts in `message_delta` are cumulative, so adding them up counts the same tokens again."
+      },
+      {
+        "id": "d",
+        "text": "Output tokens are only final in `message_start`, so read the total there",
+        "reason": "`message_start` comes first, before any content. In the guide's example it shows `output_tokens: 1`, and the full count arrives in `message_delta`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`message_delta` usage is **cumulative**: replace your running total with each new value; never add them up.",
+    "explanation": "The streaming guide warns that the token counts in a `message_delta` event's `usage` field are cumulative. A dashboard that adds every `message_delta` counts earlier tokens again, which is why only multi-delta responses come out too high. Option D is the tempting alternative, but `message_start` arrives before any content and holds a starting count, not the total. A and B invent causes the stream doesn't have.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-message-delta-usage"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-error-path-rules",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming errors",
+    "stem": "You are writing the error-handling path for a raw streaming client of the Messages API. Which two rules match the streaming guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Expect `error` events inside a stream that started with HTTP 200",
+        "reason": "Correct: the API may send errors in the event stream, for example an `overloaded_error` during periods of high usage."
+      },
+      {
+        "id": "b",
+        "text": "Check for HTTP 529, since that's how an `overloaded_error` arrives mid-stream",
+        "reason": "Mid-stream, the error arrives as an `error` event. HTTP 529 is what it would normally correspond to in a non-streaming context."
+      },
+      {
+        "id": "c",
+        "text": "Resume an interrupted `tool_use` block from its last `input_json_delta`",
+        "reason": "Tool use blocks cannot be partially recovered. You can resume only from the most recent text block."
+      },
+      {
+        "id": "d",
+        "text": "Prefer the SDK's built-in message accumulation and error handling",
+        "reason": "Correct: using SDK features, with their built-in message accumulation and error handling, is the first error-recovery best practice."
+      },
+      {
+        "id": "e",
+        "text": "Treat any event type your parser doesn't recognize as a fatal error",
+        "reason": "New event types may be added under the versioning policy, so code should handle unknown event types gracefully."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "A 200 stream can still carry an `error` event. Lean on SDK accumulation, and never resume half a `tool_use` block.",
+    "explanation": "Streaming moves some failures inside a successful response: the HTTP status is already 200 when an `error` event such as `overloaded_error` arrives. The guide's first recovery best practice is to use the SDK's accumulation and error handling. Option B is the tempting rule, but mid-stream the overload arrives as an `error` event; HTTP 529 is its non-streaming equivalent. C and E break the guidance on partial tool blocks and unknown events.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-stream-error-events",
+      "c-stream-error-recovery"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-course-stream-text-stream-helper",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming",
+    "stem": "Your Python command-line tool only needs to print Claude's reply text as it is generated, and it never uses tools. What is the simplest approach the streaming guide shows?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call `client.messages.create()` and print `content[0].text` in chunks",
+        "reason": "`create()` returns the complete `Message` only after generation finishes, so nothing reaches the user as it is generated."
+      },
+      {
+        "id": "b",
+        "text": "Send `\"stream\": true` and parse every raw server-sent event in your own code",
+        "reason": "That works, but the guide recommends the client SDKs for streaming. Handling raw events yourself is for direct API integrations."
+      },
+      {
+        "id": "c",
+        "text": "Call `stream.get_final_message()` and print its text blocks as they arrive",
+        "reason": "`get_final_message()` returns the complete `Message` once the stream ends. It's for when you don't need text as it arrives."
+      },
+      {
+        "id": "d",
+        "text": "Open `client.messages.stream()` and print each piece from `stream.text_stream`",
+        "reason": "Correct: the guide's Python example opens `client.messages.stream()` and prints each piece of `stream.text_stream` as it arrives."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "For live text in Python, iterate `stream.text_stream`; use `get_final_message()` only when you want the finished `Message`.",
+    "explanation": "The Python SDK's `client.messages.stream()` exposes `text_stream`, which yields text as it is generated, so a CLI can print it directly. The stem needs live output and no tool handling, so this is the simplest fit. Option C is the tempting neighbour, but `get_final_message()` waits for the whole message. B works too, yet the guide reserves raw event handling for direct API integrations.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-sdk-final-message"
+    ],
+    "lessonId": "l-course-streaming-events"
   }
 ]

@@ -299,5 +299,427 @@
         "checkedOn": "2026-10-13"
       }
     ]
+  },
+  {
+    "id": "l-course-how-llms-behave",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "title": "How LLMs behave",
+    "summary": "An LLM reads and writes **tokens**, and everything in one request must fit in its **context window**. Generation samples each next token, so the same prompt can come back worded differently. That's why you test with evals, such as a model-graded judge, rather than exact-text matches.",
+    "keyPoints": [
+      "**Tokens** are what the API meters: input, output, cost and the context window are all counted in tokens. Count them with the model you plan to use.",
+      "The **context window** holds the whole request at once: system prompt, messages, tool definitions and the output, thinking included.",
+      "Input alone over the window → **400** \"prompt is too long\". Hitting the ceiling mid-generation → truncated output with `model_context_window_exceeded`.",
+      "The Messages API is **stateless**: your app resends and manages the conversation history.",
+      "**Temperature** sets randomness, and even at 0 output isn't fully deterministic. Models after Claude Opus 4.6 accept only the default.",
+      "Grade with **evals**: an LLM judge with a clear rubric, a specific output and, ideally, a different model."
+    ],
+    "sections": [
+      {
+        "heading": "Tokens: the unit of input, output and cost",
+        "body": "**Tokens** are the smallest units a language model works in. A token can be a word, a subword, a character or even a byte. Text you send is encoded into tokens before the model processes it.\n\nThe API bills and rate-limits by token counts, and the context window is measured in tokens, so think and budget in tokens rather than words. The ratio depends on the model and the language. On earlier models a token is about 3.5 English characters; Claude 4.7 and later models use a newer tokenizer that produces about 30% more tokens for the same text. For exact counts, use token counting with the model you plan to use.\n\nEvery response reports what it used in `usage`, for example `input_tokens` and `output_tokens`.",
+        "example": "A 70,000-character English document is roughly 20,000 tokens at 3.5 characters per token on an earlier model. On Claude Sonnet 5.5, with the newer tokenizer, expect about 30% more: roughly 26,000. Don't guess for a real budget: call the Token Counting API (`POST /v1/messages/count_tokens`) with `\"model\": \"claude-sonnet-5-5\"` first."
+      },
+      {
+        "heading": "The context window",
+        "body": "The **context window** is all the text a model can reference when generating a response, including the response itself. It is the model's \"working memory\", not its training data, and it is a fixed token budget: 1M tokens on every current Claude model.\n\nEverything in the request counts toward it at once:\n\n- the system prompt\n- every message, including tool results, images and documents\n- your tool definitions\n- the output for the turn, including thinking\n\nThe Messages API is stateless, so you always send the full conversation history: each turn's input is the whole history plus the new message. More context isn't automatically better, either. As token count grows, accuracy and recall degrade, which is called context rot.",
+        "example": "Turn 1 sends a 2k-token system prompt and a 500-token question, and Claude replies with 1k tokens. Turn 2 must resend all 3.5k tokens plus the new question. The history grows every turn until your app trims, summarizes or compacts it.",
+        "diagram": {
+          "kind": "segmented-bar",
+          "caption": "One request, one budget: every part shares the window.",
+          "segments": [
+            {
+              "label": "System prompt",
+              "weight": 1,
+              "tone": "neutral"
+            },
+            {
+              "label": "Tools",
+              "weight": 1,
+              "tone": "neutral"
+            },
+            {
+              "label": "History + new message",
+              "weight": 4,
+              "tone": "accent"
+            },
+            {
+              "label": "Output",
+              "sublabel": "thinking + text",
+              "weight": 2,
+              "tone": "success"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "When a request outgrows the window",
+        "body": "Two different things can happen at the limit:\n\n- **Oversized input:** if the input alone exceeds the window, the API returns a 400 `invalid_request_error` (\"prompt is too long\") on every model, and nothing is generated.\n- **Ceiling hit mid-generation:** on Claude 4.5 models and newer, input plus `max_tokens` may exceed the window. If generation then reaches the limit, it stops with `stop_reason: \"model_context_window_exceeded\"`. The response is valid but truncated, so treat it as incomplete.\n\nBy default the API keeps every previous turn and won't trim your history; managing it is the application's job. Estimate a request with the Token Counting API before sending it, and for long conversations use server-side compaction (in beta) or context editing, such as clearing old tool results.",
+        "example": "Claude Opus 5.5 has a 1M-token window. A request carrying 1.2M input tokens fails at once with a 400. A request with 960k input tokens and `max_tokens: 128000` is accepted; if the output reaches the 1M ceiling, the reply ends with `model_context_window_exceeded`, and your code should add a note such as \"[Response truncated due to context window limit]\"."
+      },
+      {
+        "heading": "Sampling and temperature",
+        "body": "**Sampling** is how the model picks each next token from its options, rather than only ever selecting the most likely one. The sampling parameters shape that choice:\n\n- `temperature`: the amount of randomness injected, from 0.0 to 1.0 (default 1.0). Lower values give conservative output that sticks to the most probable phrasing; higher values give more creative, diverse output.\n- `top_k`: sample only from the top K options for each next token.\n- `top_p`: nucleus sampling, which cuts off the options once their cumulative probability reaches `top_p`.\n\nOn current models these are effectively fixed. Models released after Claude Opus 4.6 accept only the default `temperature` (1.0), accept `top_p` only at 0.99 or above, and reject any `top_k`, each with a 400 error. Use prompting to guide the model's behavior instead.",
+        "example": "On an older model that still accepts it, such as Claude Sonnet 4.5, the API reference suggests a `temperature` closer to 0.0 for analytical or multiple-choice tasks and closer to 1.0 for creative ones. Send `\"temperature\": 0.2` to Claude Opus 5.5 and the request fails with a 400 error, so remove the field and steer with instructions."
+      },
+      {
+        "heading": "Non-determinism: same prompt, different words",
+        "body": "**Non-determinism** means identical inputs may produce different outputs across API calls. Even with temperature set to 0, results are not fully deterministic, both on Anthropic's own service and through third-party cloud providers.\n\nSo don't test an LLM feature by comparing its reply with a saved string: the same prompt can come back worded differently on each run. Test what matters instead, whether the output meets your success criteria across many cases. That is what evals are built for.",
+        "example": "Before: `assert reply == \"Your order ships Tuesday.\"` fails whenever Claude writes \"Your order will ship on Tuesday.\" After: check the fact with a code-based string match (`\"Tuesday\" in reply`), or have a grader model judge the reply against a rubric."
+      },
+      {
+        "heading": "Evals with a model-graded judge",
+        "body": "An **eval** runs your prompt over a set of test cases and grades the outputs. Pick the fastest, most reliable, most scalable grading method that works:\n\n- **Code-based:** exact or string match. Fastest and most reliable, but lacks nuance.\n- **Human:** most flexible, but slow and expensive. Avoid it if possible.\n- **LLM-based (LLM-as-judge):** a model grades the output. Fast, flexible, scalable and suited to complex judgment. Test its reliability first, then scale.\n\nTo make a judge reliable, give it a detailed, clear rubric; ask for a specific result, such as \"correct\"/\"incorrect\" or a 1–5 score, rather than free-form comments; and use a grader with thinking on, so it reasons before it scores. It's generally best practice to grade with a different model from the one that produced the output.",
+        "example": "Grader prompt: `Grade this answer based on the rubric: <rubric>{rubric}</rubric> <answer>{answer}</answer> Output 'correct' or 'incorrect' in <result> tags.` Your code counts the replies that contain `<result>correct</result>`, giving a score such as 184 of 200 (92%).",
+        "diagram": {
+          "kind": "flow",
+          "caption": "A model-graded eval in four steps.",
+          "steps": [
+            {
+              "label": "Run test cases",
+              "sublabel": "your prompt"
+            },
+            {
+              "label": "Judge grades",
+              "sublabel": "against a rubric"
+            },
+            {
+              "label": "Count \"correct\""
+            },
+            {
+              "label": "Score"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-window-exceeded-handling",
+      "q-course-unbounded-history-overflow",
+      "q-course-eval-not-exact-match"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+        "title": "Glossary",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+        "title": "Context windows",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+        "title": "Stop reasons and fallback",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/messages/create",
+        "title": "Create a Message",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/overview",
+        "title": "API overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-models-reasoning",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "title": "Model options and reasoning modes",
+    "summary": "Claude comes as a family of models that trade capability against speed and cost, and each can reason in **thinking** blocks steered by **effort**. Model choice and reasoning mode are separate, composable levers: measure with evals, tune effort before switching models, and add capability only where the eval says you need it.",
+    "keyPoints": [
+      "Current lineup: **Fable 5.1** (demanding reasoning), **Opus 5.5** (long-running agentic coding), **Sonnet 5.5** (speed + intelligence), **Haiku 5.5** (fastest).",
+      "All four have a **1M-token** window, 128K max output, vision and tool use. Prices run from $10 / $50 per MTok (Fable 5.1) down to from $0.10 / $0.50 (Haiku 5.5).",
+      "**Adaptive thinking** lets Claude decide when and how deeply to think; manual extended thinking (`budget_tokens`) isn't accepted on the latest models.",
+      "**Effort** (`low` → `max`) scales every output token, thinking included. Defaults: `medium` on Opus 5.5 and Haiku 5.5, `high` on most others.",
+      "Effort is a soft signal; `max_tokens` is the hard ceiling on output.",
+      "Measure with evals, then raise effort before moving up a model."
+    ],
+    "sections": [
+      {
+        "heading": "The current model family",
+        "body": "Anthropic's current lineup has four models, each with a different trade-off:\n\n- **Claude Fable 5.1** (`claude-fable-5-1`): demanding reasoning and long-horizon agentic work. Slower; $10 input / $50 output per MTok.\n- **Claude Opus 5.5** (`claude-opus-5-5`): long-running agentic coding and knowledge work. Moderate latency; $4 / $20.\n- **Claude Sonnet 5.5** (`claude-sonnet-5-5`): the best combination of speed and intelligence. Fast; $2 / $10.\n- **Claude Haiku 5.5** (`claude-haiku-5-5`): high-volume, latency-sensitive tasks such as classification, extraction and routing. Fastest; from $0.10 / $0.50.\n\nAll four support text and image input, vision and tool use, with a 1M-token context window and 128K max output. If you're unsure, the docs say to start with Claude Opus 5.5 for most workloads.",
+        "example": "A workload of 10M input and 2M output tokens a day costs $40 + $40 = $80 on Claude Opus 5.5, and $20 + $20 = $40 on Claude Sonnet 5.5, before any caching or batch discount."
+      },
+      {
+        "heading": "Choosing where to start",
+        "body": "Choosing a model means balancing **capabilities**, **speed** and **cost**, plus **effort** on models that support it. The guide describes two starting points:\n\n- **Efficiency-first:** begin with a fast, cost-effective model such as Claude Haiku 5.5, test thoroughly, and upgrade only for specific capability gaps. Best for prototyping, tight latency requirements, cost-sensitive work and high-volume, straightforward tasks.\n- **Capability-first:** begin with Claude Opus 5.5 and optimize your prompts, then gain efficiency by lowering effort or downgrading models over time. If your evals at `xhigh` or `max` effort still fall short on demanding reasoning or long-horizon agentic work, move to Claude Fable 5.1.\n\nEither way, a good evaluation set built from your actual prompts and data is the most important step.",
+        "example": "A support-ticket router handling millions of short, simple requests starts efficiency-first on Claude Haiku 5.5. A multihour autonomous refactoring agent starts capability-first on Claude Opus 5.5."
+      },
+      {
+        "heading": "Reasoning modes: thinking",
+        "body": "**Thinking** lets Claude work through a problem before answering: it restates the task, tries approaches, checks intermediate results and drops paths that don't hold up. That work arrives in `thinking` blocks ahead of the answer, and it improves performance on complex tasks like math, coding, analysis and long-running agentic work.\n\nThere are two modes:\n\n- **Adaptive thinking** (`thinking: {type: \"adaptive\"}`): Claude decides when and how deeply to think. It's always on for Claude Opus 5.5 and Claude Fable 5.1, and on by default for Claude Sonnet 5.5 and Claude Haiku 5.5.\n- **Extended thinking** (`type: \"enabled\"` with `budget_tokens`): the older manual mode. It's deprecated on Claude Opus 4.6 and Claude Sonnet 4.6, and the latest models return a 400 error for it.\n\nThinking tokens are billed as output tokens, even when the thinking text isn't returned, and they count toward `max_tokens`.",
+        "example": "Claude Haiku 5.5 can turn thinking off with `thinking: {\"type\": \"disabled\"}` at `high` effort or below. Claude Sonnet 5.5 rejects `\"disabled\"`; its lowest setting is `{\"type\": \"between_tools\"}`. Claude Opus 5.5 can't turn thinking off at all."
+      },
+      {
+        "heading": "Effort: how much work goes into a reply",
+        "body": "**Effort** (`output_config.effort`) controls how many tokens Claude spends on a response, trading thoroughness against speed and cost within a single model. It affects **all** output tokens: text, tool calls and, when active, thinking. So it works with or without thinking, and lower effort also means fewer, terser tool calls.\n\nThe levels are `low`, `medium`, `high`, `xhigh` and `max`, though not every model that supports `max` supports `xhigh`. Most models default to `high`; Claude Opus 5.5 and Claude Haiku 5.5 default to `medium`.\n\nEffort is a behavioral signal, not a strict budget: at lower levels Claude still thinks on hard problems, just less. For a hard ceiling, use `max_tokens`. And `adaptive` is a thinking mode, never an effort value.",
+        "example": "`\"output_config\": {\"effort\": \"low\"}` for a simple, high-volume subtask; `\"effort\": \"xhigh\"` with a large `max_tokens` for an agentic coding task that runs for over 30 minutes."
+      },
+      {
+        "heading": "Two separate, composable levers",
+        "body": "Model choice and reasoning mode are separate controls. The model sets capability, latency and price; the `thinking` parameter controls whether Claude thinks in thinking blocks; `effort` controls how much work goes into the whole response. You can combine them freely, for example Haiku 5.5 at `low` or Opus 5.5 at `xhigh`.\n\nWhichever starting point you pick, the loop is the same: measure with your evals, and add capability only where the eval says you need it. Tuning effort is often a better lever than switching models, so when quality falls short, raise effort first, and move up a model only if evals at the higher levels still fall short. To cut cost or latency on a thinking workload, lower effort first.",
+        "example": "A classifier on Claude Haiku 5.5 at `medium` passes its eval, so it ships. A research agent on Claude Opus 5.5 falls short at `medium`, so the team re-runs the eval at `high` and `xhigh`, and moves to Claude Fable 5.1 only if `xhigh` and `max` still fall short.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Add capability only where the eval says you need it.",
+          "steps": [
+            {
+              "label": "Starting model",
+              "sublabel": "default effort"
+            },
+            {
+              "label": "Run your evals"
+            },
+            {
+              "label": "Short? Raise effort"
+            },
+            {
+              "label": "Still short? Bigger model"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-lower-effort-first",
+      "q-course-effort-composes",
+      "q-course-raise-effort-before-switching"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+        "title": "Choosing the right model",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+        "title": "Thinking",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+        "title": "Effort",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-extended-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "title": "Extended thinking",
+    "summary": "With thinking, Claude works through a problem in `thinking` blocks before it writes the answer, which helps most on math, coding, analysis and long agentic tasks. Thinking is billed as output and counts toward `max_tokens`. The rule to remember: during tool use, pass every thinking block back to the API complete and unmodified.",
+    "keyPoints": [
+      "Thinking arrives in `thinking` blocks **before** the `text` block; each carries an opaque, encrypted `signature`.",
+      "Thinking tokens are billed as **output** and count toward `max_tokens`, even when the thinking text isn't returned.",
+      "Manual extended thinking uses `budget_tokens` (**minimum 1,024**, less than `max_tokens`); Claude 4.7 and later reject it with a 400.",
+      "Match depth to the task: set the **effort** level first, and add prompt guidance only if thinking still triggers wrongly.",
+      "Within a tool-use turn, pass thinking blocks back **complete and unmodified**; you can't rearrange, edit or partially drop them."
+    ],
+    "sections": [
+      {
+        "heading": "What thinking is",
+        "body": "**Thinking** (called **extended thinking** in its manual, fixed-budget mode) lets Claude work through a problem in its own words before answering: it restates what is being asked, tries approaches, checks intermediate results and abandons paths that don't hold up. Claude then draws on that work to write the final answer.\n\nThat's why thinking improves performance on complex tasks like math, coding, analysis and long-running agentic work, where the answer depends on intermediate steps that would otherwise be compressed or skipped.\n\nIt has a cost: the tokens Claude spends reasoning are billed as output tokens, even when the thinking text isn't returned to you, and they count toward `max_tokens` alongside the response text. Leave room in `max_tokens` for both.",
+        "example": "Asked for the GCD of 1071 and 462, Claude first thinks through the Euclidean algorithm (1071 = 2 × 462 + 147, then 462 = 3 × 147 + 21, then 147 = 7 × 21), and only then writes the answer, 21, in a `text` block."
+      },
+      {
+        "heading": "The thinking block",
+        "body": "A **thinking block** is a content block with `\"type\": \"thinking\"` that arrives before the `text` blocks. It has two fields:\n\n- `thinking`: a **summary** of Claude's reasoning, never the raw chain of thought. With `display: \"omitted\"` (the default on many newer models) this field is empty.\n- `signature`: an encrypted copy of the full reasoning. It's opaque, so don't parse it; the API uses it to verify the block was generated by Claude when you send it back.\n\nThe API may also return a **`redacted_thinking`** block when part of the reasoning is safety-redacted. It holds encrypted content in a `data` field with no readable text.\n\nWith adaptive thinking, Claude decides per request whether to think, so a simple request may produce no thinking block at all. Select blocks by `type`, not by position.",
+        "example": "A response's `content` might be `[{\"type\": \"thinking\", \"thinking\": \"\", \"signature\": \"EosnCkYI...\"}, {\"type\": \"text\", \"text\": \"The GCD is 21.\"}]`. The empty `thinking` field means `display` was `\"omitted\"`; the full reasoning still travels in `signature`, and you're billed for all of it."
+      },
+      {
+        "heading": "When to use it, and how much",
+        "body": "Thinking is most helpful for tasks that involve complex multistep reasoning or reflecting on tool results. A simple factual question may get a direct answer with no thinking block; a multistep math problem or a tricky debugging task triggers deeper reasoning.\n\n**Match the reasoning depth to the task before you tune the prompt.** On models with adaptive thinking, the primary lever is the **effort** level (`output_config.effort`), a calibrated control. The documented order is:\n\n- First, set the effort level that matches your workload's balance of quality and latency.\n- Only then, add prompt guidance if Claude's thinking still triggers too often or too rarely at that level.\n\nPrompt-based steering is sensitive to exact wording, so measure it on real traffic before you ship.",
+        "example": "A support bot on Claude Opus 5.5 thinks at length on simple order-status questions. Instead of adding \"Don't overthink\" to the system prompt, first try a lower effort level such as `\"output_config\": {\"effort\": \"low\"}`, at which Claude skips thinking for simple tasks. Add a prompt instruction only if the triggering is still wrong.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Set depth with effort first; reach for prompt steering second.",
+          "steps": [
+            {
+              "label": "Set effort level",
+              "sublabel": "calibrated lever"
+            },
+            {
+              "label": "Measure on your traffic"
+            },
+            {
+              "label": "Add prompt guidance",
+              "sublabel": "only if still off"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Budget tokens and effort",
+        "body": "In manual **extended thinking** you send `thinking: {\"type\": \"enabled\", \"budget_tokens\": N}`. The budget must be at least 1,024 tokens and less than `max_tokens` (interleaved thinking is the exception). It's a target, not a strict cap: Claude may stop well before it, and `max_tokens` stays the hard ceiling.\n\nManual mode is deprecated on the Claude 4.6 models, and Claude 4.7 and later models reject it with a 400 error. Those models use **adaptive thinking**: send `thinking: {\"type\": \"adaptive\"}` (on some newer models it's already on by default) and control depth with `output_config.effort` instead of a token budget.\n\nTwo controls bound cost: `max_tokens` is a hard cap on thinking plus text, and effort is soft guidance.",
+        "example": "Migrating from `\"thinking\": {\"type\": \"enabled\", \"budget_tokens\": 10000}` on Claude Sonnet 4.6: remove `budget_tokens`, send `\"thinking\": {\"type\": \"adaptive\"}`, and set `\"output_config\": {\"effort\": \"high\"}`. Expect a behavioural change too: with a fixed budget Claude thinks on every request, while adaptive thinking may skip it on easy inputs."
+      },
+      {
+        "heading": "The carry-back rule",
+        "body": "When Claude calls a tool, it pauses its response to wait for the result. When you return the `tool_result`, Claude continues building **that same response**, so its earlier reasoning must still be there. Pass every `thinking` block back to the API **complete and unmodified**, alongside the `tool_use` block it accompanied.\n\n- **Required:** within a tool-use turn, pass thinking blocks back.\n- **Recommended:** across turns, pass everything back.\n- **Allowed:** outside tool use, omit prior turns' thinking.\n\nWithin the latest assistant message, the sequence of thinking blocks must match what the model generated: you can't rearrange, edit or partially drop them, including `redacted_thinking` blocks. You don't need to prune old thinking yourself: the API filters it and bills only the blocks actually shown to Claude.",
+        "example": "Claude replies `[thinking, tool_use: get_weather]`. Your next request appends that assistant message exactly as received, then a user message with the `tool_result` (\"20°C, sunny\"). Claude continues from its reasoning and answers. Dropping or editing the thinking block in between breaks the rule."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-course-thinking-task-fit",
+      "q-course-redacted-thinking-carry-back",
+      "q-course-effort-before-prompt"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+        "title": "Thinking",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+        "title": "Extended thinking",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+        "title": "Steering thinking",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+        "title": "Prompting best practices",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-batch-multimodal",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "title": "Multimodal and batch ingestion",
+    "summary": "Match the API to the workload: the Message Batches API halves the price of large jobs nobody is waiting on, and a loop of synchronous calls is not a batch. Before writing ingestion code for images or PDFs, calculate what they cost, because images are billed as visual tokens and every PDF page costs text plus image tokens.",
+    "keyPoints": [
+      "**Message Batches API**: asynchronous, 50% of standard prices, most batches done in under 1 hour, expiry at 24 hours. Use it when no one is waiting.",
+      "Slicing a list and looping over the synchronous API isn't batching: full price, Messages API rate limits, and retries you write yourself.",
+      "Match results by **`custom_id`**, since order isn't guaranteed. Errored, canceled and expired requests aren't billed; results last 29 days.",
+      "Image cost is `⌈w/28⌉ × ⌈h/28⌉` **visual tokens**, capped at 4,784 on Claude 4.7 and later (high-res) and 1,568 on standard-tier models.",
+      "PDF cost is 1,500–3,000 text tokens per page **plus** each page's image tokens. Check real samples with token counting before you build."
+    ],
+    "sections": [
+      {
+        "heading": "Match the API to the workload",
+        "body": "The **Message Batches API** processes large volumes of Messages requests asynchronously. Each request is handled independently, most batches finish in less than 1 hour, and all usage is charged at 50% of standard API prices.\n\nIt fits work that doesn't need an immediate response:\n\n- large-scale evaluations\n- content moderation of large volumes of user content\n- data analysis and summaries over large datasets\n- bulk content generation, such as product descriptions\n\nIt doesn't fit anything a user is waiting on. Results are available when every request has finished or after 24 hours, whichever comes first, and a batch expires if processing doesn't complete within 24 hours.\n\nAlmost any Messages request can be batched: vision, tool use, system messages, multi-turn conversations, extended thinking and most beta features. Not supported: `stream: true`, fast mode (`speed`) and `max_tokens: 0`.",
+        "example": "Overnight: product descriptions on Claude Sonnet 5.5 cost $1 / $5 per million input / output tokens in a batch, against $2 / $10 on the synchronous API. In the app: a chat assistant whose user is waiting for a reply stays on the synchronous Messages API."
+      },
+      {
+        "heading": "How a batch runs, and how to read the results",
+        "body": "Each request in a batch has a unique `custom_id` (1–64 letters, digits, hyphens or underscores) and a `params` object with standard Messages parameters. A batch holds up to 100,000 requests or 256 MB, whichever comes first.\n\nA new batch has `processing_status` `in_progress`, which changes to `ended` once every request has finished. Then stream the results from `results_url` rather than downloading them all at once. Each result has one type:\n\n- `succeeded`: includes the message\n- `errored`: invalid request or server error; not billed\n- `canceled`: you canceled before it was sent; not billed\n- `expired`: hit the 24-hour limit first; not billed\n\nResults can come back in any order, so match them by `custom_id`, never by position. They stay available for 29 days after creation. Params are validated asynchronously and errors appear only when the whole batch has ended, so dry-run one request shape on the Messages API first.",
+        "diagram": {
+          "kind": "flow",
+          "steps": [
+            {
+              "label": "Create batch"
+            },
+            {
+              "label": "in_progress"
+            },
+            {
+              "label": "ended"
+            },
+            {
+              "label": "Stream results"
+            },
+            {
+              "label": "Match by custom_id"
+            }
+          ]
+        },
+        "example": "A request sent with `\"custom_id\": \"sku-10432\"` comes back as a result line carrying `\"custom_id\": \"sku-10432\"` and a result type. Your code writes the description to item sku-10432, whatever position the line arrived in."
+      },
+      {
+        "heading": "Looping over slices is not batching",
+        "body": "A common mistake is to split a list into groups of, say, 100 and loop over the synchronous Messages API, firing each group concurrently. That is still one synchronous request per item:\n\n- Every call is billed at standard prices; the 50% discount applies to the Message Batches API.\n- Every call counts against the Messages API rate limits (requests, input tokens and output tokens per minute), so heavy concurrency can trigger 429 errors.\n- Your code owns pacing, retries and tracking which result belongs to which item.\n\nThe Message Batches API has its own rate limits, shared across all models: a requests-per-minute limit on its endpoints and a cap on batch requests waiting in the processing queue (200,000 on the Start tier). A single batch can hold up to 100,000 requests.\n\nFor very large datasets, Anthropic suggests splitting the work into multiple batches for manageability. That is still batching; the loop of synchronous calls is not.",
+        "example": "Before: `for (const group of groupsOf(items, 100)) await Promise.all(group.map(i => client.messages.create(...)))`, 40,000 synchronous calls at full price. After: one `client.messages.batches.create({ requests })` with 40,000 entries, each with its own `custom_id`, then poll until `processing_status` is `ended`."
+      },
+      {
+        "heading": "Stacking batches with prompt caching",
+        "body": "Batches support prompt caching, and the two discounts stack. Because batch requests run asynchronously and concurrently, cache hits are best-effort: users typically see hit rates from 30% to 98%, depending on their traffic patterns.\n\nTo raise the hit rate:\n\n- include identical `cache_control` blocks in every request in the batch\n- keep a steady stream of requests so cache entries don't expire after their 5-minute lifetime\n- structure requests to share as much cached content as possible\n- since batches can take longer than 5 minutes, consider the 1-hour cache duration for shared context",
+        "example": "A batch of 50,000 extraction requests all begin with the same long instructions marked with `cache_control` and `\"ttl\": \"1h\"`. Each request then sends only its own document after that shared prefix."
+      },
+      {
+        "heading": "What an image costs",
+        "body": "Claude views images in patches. Each **visual token** is a 28×28-pixel block, so an image costs `⌈width / 28⌉ × ⌈height / 28⌉` tokens. Each model has a maximum native resolution, and larger images are downscaled first, which caps the cost:\n\n- **High-resolution tier** (Claude 4.7 and later models): long edge up to 2576 px, at most 4784 visual tokens.\n- **Standard tier** (all other models): long edge up to 1568 px, at most 1568 visual tokens.\n\nTo estimate cost, multiply the token count by the model's input price and by the number of images. A high-resolution image can use up to roughly three times more visual tokens than on a standard-tier model, so downsample first if you don't need that fidelity.\n\nRequest limits matter too: up to 600 images per API request (100 on models with a 200k-token window), a stricter per-image dimension limit once a request has more than 20 images, and a 32 MB request size limit. For images you reuse, upload once with the Files API and reference the `file_id`.",
+        "example": "10,000 product photos at 1000×1000 px: ⌈1000/28⌉ = 36, so each costs 36 × 36 = 1,296 visual tokens, 12.96M tokens in all. On Claude Opus 5.5 at $4 per million input tokens that's about $52 (the Vision guide quotes $5.18 per thousand). Through the Message Batches API at $2 per million, about $26."
+      },
+      {
+        "heading": "What a PDF costs",
+        "body": "With **PDF support**, each page is converted into an image and the page's text is extracted and provided alongside it, so Claude can read charts, tables and layout. Each page therefore costs:\n\n- **Text tokens**: typically 1,500–3,000 per page, depending on content density.\n- **Image tokens**: the page image follows the same image cost calculation.\n\nStandard API pricing applies, with no additional PDF fees. Limits cover the whole request: 32 MB, and 600 pages (100 when the request's context window is under 1M tokens). Dense PDFs can fill the context window before reaching the page limit.\n\nEstimate before you build: run sample PDFs through token counting (`count_tokens` takes base64 PDFs, not `url` or `file` sources), scale by your page volume, and pick the API to match. A high-volume backlog that no one is waiting on belongs in the Message Batches API.",
+        "example": "On Amazon Bedrock's Converse API, a 3-page PDF uses about 1,000 tokens in text-only mode and about 7,000 in full visual mode, where each page goes in as both text and image. A text-only estimate misses that difference."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-batch-loop-is-not-batching",
+      "q-multimodal-image-cost-estimate",
+      "q-multimodal-pdf-cost-estimate"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+        "title": "Batch processing",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/rate-limits",
+        "title": "Rate limits",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+        "title": "Vision",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
+        "title": "PDF support",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+        "title": "Token counting",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+        "title": "Prompt caching",
+        "checkedOn": "2026-10-14"
+      }
+    ]
   }
 ]

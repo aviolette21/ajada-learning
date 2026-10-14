@@ -227,5 +227,234 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-agent-construction",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "title": "Building a production agent",
+    "summary": "Decide workflow or agent before you write code: agentic systems often trade latency and cost for better task performance. An agent is a pattern, Claude using tools in a loop, and the wiring path (a raw Messages API loop, the Agent SDK or Claude Managed Agents) only decides who runs that loop. On every path you register tools, set a system prompt, handle the loop and define exit conditions.",
+    "keyPoints": [
+      "**Workflows** follow predefined code paths; **agents** direct their own process. Agentic systems often trade **latency and cost** for better task performance.",
+      "The agent is the **pattern**; the wiring path is an implementation choice about who runs the loop and what you build yourself.",
+      "Raw loop: continue while `stop_reason` is `\"tool_use\"`. Agent SDK: built-in loop in a **process you operate**. Managed Agents: Anthropic hosts the harness.",
+      "Four steps on every path: **register tools**, **set the system prompt**, **handle the tool-use loop**, **define exit conditions**.",
+      "SDK limits `max_turns` and `max_budget_usd` default to **no limit**; a budget is a good default for production agents.",
+      "Human checkpoints belong in the design: in the SDK, `canUseTool` **pauses execution** until your app returns allow or deny."
+    ],
+    "sections": [
+      {
+        "heading": "Workflow or agent: decide first",
+        "body": "A **workflow** is a system where LLMs and tools are orchestrated through predefined code paths. An **agent** is a system where the LLM dynamically directs its own process and tool usage. Agents are typically just LLMs using tools based on environmental feedback in a loop.\n\nMake this call before the first line of code: agentic systems often trade latency and cost for better task performance, and you should consider when that tradeoff makes sense. Anthropic recommends finding the simplest solution possible and only increasing complexity when needed:\n\n- Workflows offer predictability and consistency for well-defined tasks.\n- Agents are the better option when flexibility and model-driven decision-making are needed at scale.",
+        "example": "Invoice intake where every document goes extract → validate → save is a **workflow**: the steps never change, so fixed code paths are cheaper and predictable. A bug-fixing assistant that can't know in advance which files it must read or how many attempts it needs is an **agent**: it needs to decide its own next step from what each tool returns."
+      },
+      {
+        "heading": "Three wiring paths: who runs the loop",
+        "body": "The agent is the pattern; the **wiring path** is an implementation choice about who runs the loop and what you take on.\n\n- **Raw Messages API loop**: you call the API from a client SDK and write the tool loop yourself (or let the SDK's beta tool runner drive it). You get direct model access and fine-grained control, and you own tool execution, history and every exit check.\n- **Claude Agent SDK**: a Python or TypeScript library that gives you the same tools, agent loop and context management that power Claude Code, with permissions, sessions and hooks. It runs in a process you operate.\n- **Claude Managed Agents**: a hosted agent harness that runs the loop, with sessions in an Anthropic-managed cloud sandbox or a self-hosted sandbox. Best for long-running tasks and asynchronous work; it's in beta and needs the `managed-agents-2026-04-01` header (the SDK sets it).",
+        "example": "A team wants exact control over when each tool runs and how results are fed back, and is happy to build the loop: **raw Messages API**. A team wants Claude Code's file, shell and web tools inside its own Python service: **Agent SDK**. A team wants hour-long jobs in a cloud sandbox with no loop or sandbox of its own to run: **Managed Agents**."
+      },
+      {
+        "heading": "The four steps that hold on every path",
+        "body": "Whichever path you choose, the same four steps define the agent:\n\n- **Register tools**: the `tools` array on the raw API; built-in tools plus custom tools and MCP servers in the SDK; the tools listed in a Managed Agents agent definition.\n- **Set the system prompt**: the `system` parameter on the raw API. In the SDK, leaving `systemPrompt` unset gives a minimal prompt covering tool calling only; the `claude_code` preset (optionally with `append`) gives Claude Code's prompt; a custom string replaces it entirely.\n- **Handle the tool-use loop**: on the raw API, run each `tool_use` request and send back `tool_result` blocks. In the SDK, the SDK runs each tool and feeds results back without returning control to your code.\n- **Define exit conditions**: decide what ends a run, both on success and when a limit is hit.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The raw-API loop: repeat while stop_reason is tool_use.",
+          "steps": [
+            {
+              "label": "Send request",
+              "sublabel": "tools + messages"
+            },
+            {
+              "label": "stop_reason: tool_use"
+            },
+            {
+              "label": "Run each tool"
+            },
+            {
+              "label": "Return tool_result"
+            },
+            {
+              "label": "Other stop reason",
+              "sublabel": "exit loop"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Exit conditions",
+        "body": "A **stopping condition** ends the loop even if the task isn't finished, such as a maximum number of iterations. It's common to include them to maintain control.\n\n- **Raw API**: the loop exits on any stop reason other than `\"tool_use\"` (`\"end_turn\"`, `\"max_tokens\"`, `\"stop_sequence\"` or `\"refusal\"`), and your code adds any iteration cap.\n- **Agent SDK**: the loop ends when Claude replies with no tool calls. `max_turns` caps tool-use round trips and `max_budget_usd` caps estimated spend; both default to no limit. Hitting one returns a `ResultMessage` with `error_max_turns` or `error_max_budget_usd`, and `result` is only present on `success`.\n\nSpend is compared with the cap after each response arrives, so the response that reaches it still completes. Leave headroom when you set the cap.",
+        "example": "`max_turns=30` stops a runaway refactor. Your code then checks `message.subtype`: on `\"success\"` it reads `message.result`; on `\"error_max_turns\"` it saves `session_id` so the session can be resumed with a higher limit."
+      },
+      {
+        "heading": "Orchestration and human checkpoints",
+        "body": "**Orchestration** in the SDK means a main agent delegating to **subagents**. Each runs in its own conversation, and only its final message returns to the parent, so subtasks don't flood the main context and independent ones can run in parallel. Unless the subagent is a fork, the only content passed in is the Agent tool's prompt string.\n\nA **human-in-the-loop checkpoint** is a point where the agent pauses for a person. Agents can pause for human feedback at checkpoints or when encountering blockers, so decide where those checkpoints go while you design the agent. In the SDK:\n\n- A `canUseTool` callback fires when a tool isn't auto-approved and pauses execution until you return allow or deny.\n- Auto-approved calls (an allow rule, `acceptEdits`, `bypassPermissions`) never reach it; for a check on every call, use a `PreToolUse` hook.\n- Claude's own clarifying questions arrive through `AskUserQuestion`.\n\nIn Managed Agents you can send events to steer a session or interrupt it.",
+        "example": "A cleanup agent may run `Read` and `Grep` freely, but every `Bash` call must reach `canUseTool`, which shows the command in your UI. If the user rejects `rm -rf build/`, you return deny with the message \"User wants files archived, not deleted\", and Claude reads it and adjusts."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-raw-loop-continue-condition",
+      "q-agent-sdk-what-you-still-own",
+      "q-sdk-human-approval-bash"
+    ],
+    "sources": [
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building Effective AI Agents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+        "title": "Agent SDK overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+        "title": "How the agent loop works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+        "title": "How tool use works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+        "title": "Claude Managed Agents overview",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
+        "title": "Modifying system prompts",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
+        "title": "Handle approvals and user input",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+        "title": "Subagents in the SDK",
+        "checkedOn": "2026-10-14"
+      }
+    ]
+  },
+  {
+    "id": "l-course-agent-memory",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "title": "Agent memory and Skills",
+    "summary": "An agent can remember in four ways: in the context window, in external storage such as the memory tool, as a compacted summary, or not at all. The right choice depends on task characteristics: how long the work lasts and what must survive it. Skills add reusable instructions that load only when used, and a subagent gets a skill's content at startup only if its `skills` field lists it.",
+    "keyPoints": [
+      "**In-context** memory is the history you send; the Messages API is stateless, so you always send the full conversation.",
+      "**External storage**: the memory tool keeps files under `/memories` across conversations, on storage **your application** controls.",
+      "**Summarized** memory (compaction) frees space but may drop early instructions; standing rules belong in CLAUDE.md, re-injected every request.",
+      "Skills: the **description** is always in context; the **full body** loads only when invoked.",
+      "CLAUDE.md is for every-session facts (target under **200 lines**); a repeated multi-step procedure belongs in a skill.",
+      "A subagent doesn't see skills you invoked; list them in its **`skills`** field to preload. Removing the **`Skill`** tool blocks skills."
+    ],
+    "sections": [
+      {
+        "heading": "In-context memory and stateless agents",
+        "body": "**In-context memory** is whatever sits in the context window: the conversation history plus tool inputs and outputs. The Messages API is **stateless**: it keeps nothing between calls, so you always send the full conversational history. In the Agent SDK the context window doesn't reset between turns within a session; everything accumulates, including large tool outputs.\n\nIn-context memory ends with the conversation, and it grows with every turn.\n\n**No persistent memory (stateless)** means each request or session starts fresh with nothing carried over. Each Claude Code session, for example, begins with a fresh context window. This is the right choice when every request stands alone.",
+        "example": "A classifier that labels each incoming email on its own needs no memory: each request holds one email and nothing else. A chatbot that sends only the newest user message each turn has the opposite bug: the API is stateless, so it must resend every earlier turn in `messages`."
+      },
+      {
+        "heading": "External storage and summarized memory",
+        "body": "**External storage** keeps memory outside the context window. With the **memory tool**, Claude creates, reads, updates and deletes files under `/memories` that persist between sessions. It's client-side: Claude requests each operation and your handler executes it against storage you control, such as files, a database or cloud storage. When the tool is enabled, Claude checks its memory directory before starting a task. Your handler must reject paths outside `/memories`.\n\n**Summarized memory** means **compaction**: when the context window nears its limit, older history is replaced with a summary. It keeps a long conversation going, but specific instructions from early in the conversation may not be preserved.\n\nThe memory tool docs suggest using both for long-running agents: compaction keeps the active context small, and memory preserves what must survive summarization.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Memory tool: each session resumes from what the last one recorded.",
+          "steps": [
+            {
+              "label": "View /memories"
+            },
+            {
+              "label": "Work on the task"
+            },
+            {
+              "label": "Record progress",
+              "sublabel": "memory files"
+            },
+            {
+              "label": "Next session",
+              "sublabel": "reads them back"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Choosing a memory scope at design time",
+        "body": "The choice depends on task characteristics. Ask how long the work lasts and what must survive it:\n\n- One self-contained request: no persistent memory.\n- One conversation that fits the window: in-context memory.\n- Tasks requiring extensive back-and-forth: compaction, which preserves conversational flow.\n- Iterative development with clear milestones: structured note-taking, notes persisted outside the context window and reloaded later.\n- Knowledge that must last across conversations: external storage such as the memory tool.\n\nIn an SDK agent, put standing rules in CLAUDE.md rather than the initial prompt, because CLAUDE.md content is re-injected on every request. You can also add a CLAUDE.md section telling the compactor what to preserve.",
+        "example": "A multi-day coding project: the first session sets up a progress log and feature checklist in memory files; each later session opens by reading them, and before ending it records what was completed and what remains. A single long debugging chat instead relies on compaction."
+      },
+      {
+        "heading": "Skills: reusable instructions loaded on demand",
+        "body": "A **skill** is a `SKILL.md` file of instructions that Claude adds to its toolkit. Claude uses a skill when it's relevant, or you invoke it directly with `/skill-name`.\n\nSkills don't inflate every session. In a regular session, skill **descriptions** are loaded into context so Claude knows what's available, but the **full content** loads only when the skill is invoked. This staged loading is called **progressive disclosure**, so long reference material costs almost nothing until you need it.\n\nOnce invoked, the skill's content enters the conversation as a single message and stays there across later turns. After compaction, Claude Code re-attaches the most recent invocation of each skill, keeping its first 5,000 tokens, within a combined 25,000-token budget.",
+        "example": "An `incident-triage` skill holds a 40-line checklist. Every session carries only its one-line description, so it costs almost nothing. When someone reports an outage, Claude invokes it (or a developer types `/incident-triage`) and only then does the full checklist enter the conversation."
+      },
+      {
+        "heading": "Skills vs CLAUDE.md vs in-context instructions",
+        "body": "Each kind of instruction has its own place:\n\n- **CLAUDE.md**: facts Claude should hold in **every** session, such as build commands, conventions, project layout and \"always do X\" rules. It loads every session; target under 200 lines.\n- **Skill**: create one when you keep pasting the same instructions, checklist or multi-step procedure into chat, or when a CLAUDE.md section has grown into a procedure rather than a fact.\n- **In-context instructions**: prompts are conversation-level instructions for one-off tasks. They apply only in this conversation and, in a long session, may not survive compaction. Skills load on demand, so you don't repeat the same guidance across conversations.\n\n**Subagents and Skills.** A subagent starts with a fresh context: it doesn't see your conversation history or the skills you've already invoked. To give it a skill's content from the start, list the skill in the subagent's `skills` field, and the full content is injected at startup. That field controls preloading, not access: without it, a subagent can still invoke project, user and plugin skills through the Skill tool. To block skills entirely, omit `Skill` from its `tools` or add it to `disallowedTools`.",
+        "example": "Main session: you ran `/api-conventions`, then delegated to `api-developer`, which ignored them. Fix: add `skills: [api-conventions]` to `.claude/agents/api-developer.md`. In the Agent SDK, the same idea is `AgentDefinition.skills`, and unlisted skills remain invocable through the Skill tool."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-memory-pattern-cross-session-preferences",
+      "q-skill-for-repeated-checklist",
+      "q-subagent-skill-preload"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+        "title": "How the agent loop works",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/memory-tool",
+        "title": "Memory tool",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "title": "Effective context engineering for AI agents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/memory",
+        "title": "How Claude remembers your project",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/skills",
+        "title": "Extend Claude with skills",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/sub-agents",
+        "title": "Create custom subagents",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+        "title": "Subagents in the SDK",
+        "checkedOn": "2026-10-14"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+        "title": "Agent Skills",
+        "checkedOn": "2026-10-14"
+      }
+    ]
   }
 ]
