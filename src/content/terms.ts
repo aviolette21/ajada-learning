@@ -21,6 +21,20 @@ function alternation(names: string[], flags: string): RegExp | null {
   return new RegExp(`(?<![\\w-])(?:${alts})(?:s|es)?(?![\\w-])`, flags);
 }
 
+/** Every glossary term mentioned in the texts (plain or as an exact code span), in order of first mention. */
+export function termsIn(texts: string[], matcher: TermMatcher): string[] {
+  const seen = new Set<string>();
+  for (const text of texts) {
+    for (const part of text.split(/(`[^`]+`)/)) {
+      if (part.length > 2 && part.startsWith('`') && part.endsWith('`')) {
+        const id = matcher.codeTerm(part.slice(1, -1));
+        if (id) seen.add(id);
+      } else matcher.split(part, seen);
+    }
+  }
+  return [...seen];
+}
+
 export function buildTermMatcher(glossary: GlossaryTerm[]): TermMatcher {
   const exact = new Map<string, string>();
   const folded = new Map<string, string>();

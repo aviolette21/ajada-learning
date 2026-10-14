@@ -55,6 +55,7 @@ export function fixtureRaw(): RawContent {
           relatedCardIds: ['c-alpha-one'],
           lessonId: 'l-alpha',
           mnemonic: 'Remember alpha',
+          explanation: 'Why alpha: the gizmo detail in the stem decides it.',
           diagram: { kind: 'flow', caption: 'Alpha flow', steps: [{ label: 'Step one' }, { label: 'Step two' }] },
         }),
         question('q-alpha-2', 'alpha', 'a1', { relatedCardIds: ['c-alpha-one'], lessonId: 'l-alpha' }),

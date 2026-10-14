@@ -2,15 +2,14 @@ import { useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
-import { useTermLinks } from '../../app/Terms';
 import { isCorrect } from '../../content/answers';
 import type { Question } from '../../content/schema';
 import { scoreMock } from '../../study/mockExam';
 import { PASS_SCORE } from '../../study/readiness';
 import { Meter } from '../../ui/Meter';
-import { renderInline } from '../../ui/inline';
 import { Screen } from '../../ui/Screen';
 import '../practice/practice.css';
+import { Explanation } from '../practice/Explanation';
 import { QuestionView } from '../practice/QuestionView';
 import './mock.css';
 
@@ -19,7 +18,6 @@ export function MockResultsPage() {
   const { questionById, domains, domainById } = useContent();
   const { mockSessions } = useProgress();
   const [wrongOnly, setWrongOnly] = useState(false);
-  const newLinks = useTermLinks();
   const session = mockSessions.find((s) => s.id === sessionId);
   if (!session?.submittedAt) return <Navigate to="/practice/mock" replace />;
 
@@ -53,7 +51,7 @@ export function MockResultsPage() {
       {review.map((q) => (
         <div key={q.id} className="panel">
           <QuestionView question={q} chosen={session.answers[q.id] ?? null} mode="review" />
-          <div className="takeaway" style={{ marginTop: 10 }}><strong>💡 In one line:</strong> {renderInline(q.takeaway, newLinks())}</div>
+          <div style={{ marginTop: 10 }}><Explanation question={q} /></div>
           <a className="source" href={q.source.url} target="_blank" rel="noreferrer">📎 Source: {q.source.title}</a>
         </div>
       ))}

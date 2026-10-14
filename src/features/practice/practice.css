@@ -41,3 +41,9 @@
 .summary { display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin: 0 auto; padding: calc(var(--safe-top) + 64px) 24px calc(var(--safe-bottom) + 24px); text-align: center; }
 .summary .score { font-size: 44px; font-weight: 800; color: var(--accent-text); }
 .flag.on { color: var(--warning); }
+.why { margin-bottom: 8px; padding: 11px 12px; border-radius: 10px; background: var(--surface); font-size: 14px; line-height: 1.5; }
+.terms-list { margin: 0 0 8px; }
+.terms-list > div { padding: 6px 0; border-bottom: 1px solid var(--border-soft); }
+.terms-list > div:last-child { border-bottom: 0; }
+.terms-list dt { font-weight: 700; color: var(--text); }
+.terms-list dd { margin: 2px 0 0; }

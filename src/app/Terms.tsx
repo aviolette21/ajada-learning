@@ -8,6 +8,11 @@ import { useContent } from './ContentContext';
 
 const TermsContext = createContext<TermMatcher | null>(null);
 
+/** The glossary matcher, or null when there is no glossary. */
+export function useTermMatcher(): TermMatcher | null {
+  return useContext(TermsContext);
+}
+
 /**
  * Glossary linking for one block of related text. Call it once per question or lesson render and pass the result to
  * every renderInline call in that block, so each term is underlined at its first mention only.

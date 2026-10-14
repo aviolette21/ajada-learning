@@ -49,16 +49,17 @@ describe('QuestionView', () => {
 });
 
 describe('VerdictSheet', () => {
-  it('explains a wrong answer with takeaway, diagram, memory tip, related cards, lesson and source', async () => {
+  it('explains a wrong answer with why, takeaway, terms, diagram, memory tip, lesson and source', async () => {
     const onContinue = vi.fn();
     await renderWithApp(<VerdictSheet question={q1} chosen="b" open onContinue={onContinue} />);
     expect(await screen.findByText(/Not quite\. The answer is A\./)).toBeInTheDocument();
+    expect(screen.getByText(/Why alpha: the/)).toBeInTheDocument();
     expect(screen.getByText('Takeaway q-alpha-1')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: /Terms: gizmo/ }));
+    expect(screen.getByText('A gizmo is a test term.')).toBeInTheDocument();
     expect(screen.getByText('Step one')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Remember it/ }));
     expect(screen.getByText('Remember alpha')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /1 related flashcard/ }));
-    expect(screen.getByText('Alpha term')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Read the lesson/ })).toHaveAttribute('href', '/learn/lesson/l-alpha');
     expect(screen.getByRole('link', { name: /Source: Example doc/ })).toHaveAttribute('href', 'https://example.com/docs');
     await userEvent.click(screen.getByRole('button', { name: 'Continue' }));

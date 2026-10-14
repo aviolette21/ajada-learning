@@ -62,6 +62,8 @@ export const QuestionSchema = z.object({
     .refine((cs) => cs.every((c, i) => c.id === CHOICE_IDS[i]), { message: 'choices must have ids a, b, c, … in order' }),
   answer: z.union([ChoiceIdSchema, z.array(ChoiceIdSchema).min(2).max(3)]),
   takeaway: upTo(170),
+  /** The reasoning in a few sentences: the principle, the detail in the stem that decides it, and the tempting trap. */
+  explanation: upTo(600).optional(),
   mnemonic: upTo(100).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   diagram: DiagramSchema.optional(),

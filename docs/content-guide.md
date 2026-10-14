@@ -428,3 +428,7 @@ Some skills are general software engineering rather than Claude-specific: REST, 
 - Agent frameworks the blueprint names, for questions about those frameworks: strandsagents.com, langchain-ai.github.io/langgraph (or docs.langchain.com), ai.pydantic.dev (now redirecting to pydantic.dev/docs/ai)
 
 Prefer an Anthropic page whenever one covers the point. The other rules are unchanged: one source per question, fetched this session, nothing the source doesn't support.
+
+### The `explanation` field
+
+Every question has an `explanation` (≤ 600 characters, 2–4 sentences) shown as "Why" after the learner answers, above the takeaway. It states the principle being tested, points at the detail in the stem that decides the answer, and names the most tempting wrong choice by letter and why it fails. It uses only facts already in the item (stem, choices, reasons, takeaway), so it needs no extra source. The answer sheet also lists every glossary term the question mentions, with its definition, so don't define terms inside the explanation.
