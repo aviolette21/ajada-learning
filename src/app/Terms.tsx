@@ -75,7 +75,10 @@ export function TermsProvider({ children }: { children: ReactNode }) {
         )}
         {term && (
           <motion.section key="term-sheet" className="sheet term-sheet" role="dialog" aria-label={`Definition: ${term.term}`}
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={sheetSpring}>
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={sheetSpring}
+            // Swipe down to dismiss, like the grip suggests; a short or slow pull springs back.
+            drag="y" dragConstraints={{ top: 0, bottom: 0 }} dragElastic={{ top: 0, bottom: 1 }}
+            onDragEnd={(_, info) => { if (info.offset.y > 80 || info.velocity.y > 500) setOpenId(null); }}>
             <div className="sheet-grip" aria-hidden="true" />
             <h3 className="term-title">{term.term}</h3>
             {term.aliases.length > 0 && <div className="muted term-aka">Also: {term.aliases.join(', ')}</div>}

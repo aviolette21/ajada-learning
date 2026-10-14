@@ -36,6 +36,8 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { height: 100%; margin: 0; }
+/* No pull-to-refresh: a downward swipe on a sheet must never reload the app. */
+html { overscroll-behavior-y: none; }
 body {
   background: var(--bg);
   color: var(--text);

@@ -133,7 +133,7 @@ button.panel-link { padding: 0; border: 0; background: none; font: inherit; }
 }
 .term:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .term-backdrop { position: fixed; inset: 0; z-index: 45; background: rgba(0, 0, 0, 0.45); }
-.sheet.term-sheet { z-index: 50; }
+.sheet.term-sheet { z-index: 50; touch-action: none; }
 .term-title { margin: 0 0 4px; font-size: 19px; }
 .term-aka { margin-bottom: 8px; font-size: 13px; }
 .term-def { margin: 0 0 10px; font-size: 15px; line-height: 1.5; }
