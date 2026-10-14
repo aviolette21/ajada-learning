@@ -182,7 +182,7 @@
     "checkQuestionIds": [
       "q-hook-exit-1-not-blocking",
       "q-hook-format-vs-claude-md",
-      "q-hook-headless-untrusted-repo"
+      "q-hook-posttooluse-too-late"
     ],
     "sources": [
       {

@@ -305,7 +305,7 @@
     "answer": "b",
     "takeaway": "Guard against early victory with a **feature list** that starts all-failing and flips to passing only after careful testing.",
     "explanation": "The problem is a fresh session judging \"done\" from what exists. The harness counters this with a **JSON feature list** where every feature starts as failing and agents may only flip its `passes` field, so the full scope stays visible (Option B). Option A is the closest trap, but the harness picks JSON because the model is less likely to inappropriately rewrite it than Markdown. Option C invites missing or buggy functionality, and D fails because unit tests or curl checks alone missed features that didn't work end-to-end.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
       "title": "Effective harnesses for long-running agents",
@@ -485,48 +485,6 @@
     "relatedCardIds": [
       "c-max-turns-budget",
       "c-stopping-condition"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-bypass-permissions-allowlist",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK permissions",
-    "stem": "Your CI agent must run in `bypassPermissions` mode. You set `allowed_tools=[\"Read\", \"Grep\"]`, expecting a read-only agent, but it still ran `Bash` commands. How do you block Bash while keeping the mode?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add a `canUseTool` callback that denies Bash",
-        "reason": "Calls auto-approved by `bypassPermissions` skip `canUseTool`, so permission checks placed there are silently bypassed."
-      },
-      {
-        "id": "b",
-        "text": "Add only safe commands, like `Bash(ls *)`, to `allowed_tools`",
-        "reason": "Allow rules only pre-approve. Other calls still fall through to the permission mode, where `bypassPermissions` approves them."
-      },
-      {
-        "id": "c",
-        "text": "Nothing works, because bypassPermissions ignores deny rules too",
-        "reason": "Deny rules are checked before the permission mode; a matching deny rule blocks the tool even in `bypassPermissions` mode."
-      },
-      {
-        "id": "d",
-        "text": "Add `Bash` to `disallowed_tools`",
-        "reason": "Correct: `allowed_tools` does not constrain `bypassPermissions`, but a bare `disallowed_tools` entry removes Bash from the request."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "`allowed_tools` **pre-approves**; it does not restrict. To block a tool under `bypassPermissions`, use `disallowed_tools`.",
-    "explanation": "The principle: `allowed_tools` only **pre-approves**; it does not restrict. Under `bypassPermissions`, unlisted calls fall through to the mode, which approves them, so Bash still ran. Deny rules are checked **before** the permission mode, so adding `Bash` to `disallowed_tools` blocks it while keeping the mode (Option D). Option A is the tempting trap, because calls auto-approved by `bypassPermissions` skip `canUseTool` entirely. Option B is another allow rule with the same fall-through problem, and C is false since deny rules still apply.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
-      "title": "Configure permissions",
-      "checkedOn": "2026-09-27"
-    },
-    "relatedCardIds": [
-      "c-allowed-vs-disallowed-tools"
     ],
     "lessonId": "l-agent-construction"
   },
@@ -848,7 +806,7 @@
     "answer": "d",
     "takeaway": "Same task, several runs → **voting**; different independent subtasks → **sectioning**. Both aggregate outputs programmatically.",
     "explanation": "Parallelization has two variations: **sectioning** splits a task into different independent subtasks, while **voting** runs the same task several times for diverse outputs. Here several prompts each review the **same code** for the same goal, flagging problems, which is voting (Option D). Option A is the closest trap since it is also parallelization, but sectioning would give each prompt a different subtask. Orchestrator-workers (B) decides subtasks dynamically, and chaining (C) runs calls in sequence rather than independently.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -890,7 +848,7 @@
     "answer": "b",
     "takeaway": "Can't predict the subtasks? An **orchestrator** decides them per input; parallelization needs them defined in advance.",
     "explanation": "The deciding detail is that the number of files and the change in each **depend on the request**, so subtasks can't be listed in advance. Orchestrator-workers handles that: a central LLM breaks the task down per input, delegates to workers and synthesizes results (Option B). Option A is the tempting look-alike, but sectioning requires predefined subtasks. Routing (C) sends an input to one follow-up path rather than splitting it, and chaining (D) needs a task that decomposes cleanly into fixed steps.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "Orchestrator-workers: subtasks are decided per input.",
@@ -1002,132 +960,6 @@
     "lessonId": "l-agent-patterns"
   },
   {
-    "id": "q-sdk-dontask-locked-down",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK permissions",
-    "stem": "A headless CI agent built on the Agent SDK should run `Read`, `Glob` and `Grep` without prompting, and any call that would need approval must be denied outright rather than relying on there being no `canUseTool` callback. Which configuration fits?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Those three in `allowedTools`, with `permissionMode: \"bypassPermissions\"`",
-        "reason": "`allowed_tools` does not constrain `bypassPermissions`: unlisted tools fall through to the mode, which approves them, Bash and Write included."
-      },
-      {
-        "id": "b",
-        "text": "Those three in `allowedTools`, with `permissionMode: \"acceptEdits\"`",
-        "reason": "`acceptEdits` auto-approves file edits and filesystem commands such as `mkdir`, `rm` and `mv` in the working directory, so the surface grows."
-      },
-      {
-        "id": "c",
-        "text": "Those three in `allowedTools` only, leaving the mode at `default`",
-        "reason": "In `default` mode, unlisted calls that need approval fall through to `canUseTool`; the docs suggest `dontAsk` for a hard deny instead."
-      },
-      {
-        "id": "d",
-        "text": "Those three in `allowedTools`, with `permissionMode: \"dontAsk\"`",
-        "reason": "Correct: listed tools are approved, and every other call that would prompt is denied without calling `canUseTool`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "For a fixed, locked-down tool surface, pair `allowedTools` with **`dontAsk`**: anything that would prompt is denied instead.",
-    "explanation": "The stem wants two things: listed read tools approved without prompts, and **every other call that would prompt denied outright**, without depending on a missing `canUseTool`. `allowedTools` plus `permissionMode: \"dontAsk\"` does exactly that (Option D). Option C is the tempting trap, since leaving `default` looks restrictive, but unlisted calls then fall through to `canUseTool` instead of a hard deny. Option A lets `bypassPermissions` approve everything unlisted, and B's `acceptEdits` widens the surface with file edits and commands.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
-      "title": "Configure permissions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-allowed-vs-disallowed-tools"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-switch-mode-midsession",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK permissions",
-    "stem": "Your Python app drives an agent with `ClaudeSDKClient` in `default` mode. Once the user has reviewed Claude's first proposed changes and approved the approach, later file edits in the same session should run without prompts. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "End the session and start a new query with `permission_mode=\"acceptEdits\"`",
-        "reason": "Not needed: the mode can change during a streaming session, and the new mode takes effect immediately for all subsequent tool requests."
-      },
-      {
-        "id": "b",
-        "text": "Add `Edit` and `Write` to `disallowed_tools` for the rest of the session",
-        "reason": "A bare `disallowed_tools` entry removes the tool from the request, so Claude could no longer edit files at all."
-      },
-      {
-        "id": "c",
-        "text": "Call `set_permission_mode(\"acceptEdits\")` on the client",
-        "reason": "Correct: the new mode takes effect immediately for all subsequent tool requests, so you can loosen permissions after reviewing Claude's approach."
-      },
-      {
-        "id": "d",
-        "text": "Call `set_permission_mode(\"plan\")` so edits follow the approved plan",
-        "reason": "Plan mode is the opposite: file edits are never auto-approved there and prompt through your `canUseTool` callback."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Start restrictive and loosen as trust builds: **`set_permission_mode()`** changes the mode mid-session for every later tool request.",
-    "explanation": "Permission modes can change **during a streaming session**, and the new mode applies immediately to every later tool request. So once the user approves the approach, calling `set_permission_mode(\"acceptEdits\")` on the client loosens edits for the rest of the session (Option C). Option A is the tempting trap, but restarting is unnecessary and throws away the session. Option B would remove Edit and Write from the request entirely, and D is the opposite of the goal, since plan mode never auto-approves edits.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
-      "title": "Configure permissions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-subagent-inherits-bypass",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK permissions",
-    "stem": "Your main SDK session runs in `bypassPermissions` inside a container. A reviewer subagent's `AgentDefinition` sets `permissionMode: \"default\"`, so you expect its risky tool calls to still need approval. What actually happens?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "It runs in `default`, because a subagent's own definition always wins over its parent",
-        "reason": "A subagent runs in the parent's mode unless its `permissionMode` is set **and** the parent is in `default`, `dontAsk` or `plan` mode."
-      },
-      {
-        "id": "b",
-        "text": "It runs in `bypassPermissions`; its own mode applies only under some parent modes",
-        "reason": "Correct: its `permissionMode` counts only when the parent is in `default`, `dontAsk` or `plan`; inheriting `bypassPermissions` grants full system access."
-      },
-      {
-        "id": "c",
-        "text": "It runs in `dontAsk`, so anything that would prompt is denied in the subagent",
-        "reason": "Nothing switches the subagent to `dontAsk`; with a `bypassPermissions` parent it simply runs in the parent's mode."
-      },
-      {
-        "id": "d",
-        "text": "It runs in `plan`, since review subagents are kept from editing by default",
-        "reason": "There is no such default; a subagent runs in the parent session's permission mode unless an allowed override applies."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A subagent's own `permissionMode` applies only under a `default`, `dontAsk` or `plan` parent; under **`bypassPermissions`** it inherits full access.",
-    "explanation": "A subagent's own `permissionMode` counts **only when the parent is in `default`, `dontAsk` or `plan`**; otherwise it runs in the parent's mode. The key detail is the parent's `bypassPermissions`, so the reviewer inherits it and gets full system access despite its `default` setting (Option B). Option A is the trap, assuming the subagent's definition always wins. Option C invents a switch to `dontAsk`, and D invents a default plan mode for review subagents; neither exists.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
-      "title": "Configure permissions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-subagent-context"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
     "id": "q-sdk-resume-per-customer",
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
@@ -1159,48 +991,6 @@
     "takeaway": "Many sessions in one place → store each **`session_id`** and pass it to `resume`; `continue` only finds the most recent one.",
     "explanation": "When many sessions live in one working directory, you need to name the exact one: store each customer's `session_id` from the result message and pass it to `resume` (Option B). Option A is the tempting shortcut, but `continue` resumes the **most recent** session in the directory, which may belong to another customer; it suits one conversation at a time. Option C keeps the session only in memory for the call, so nothing survives to the next day, and D creates a new forked session, leaving the original conversation untouched.",
     "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
-      "title": "Work with sessions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-fork-not-filesystem",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK sessions",
-    "stem": "You fork an SDK session so the agent can try an OAuth2 rewrite while you keep the original JWT thread. The forked agent edits `auth.ts`. When you resume the original session, `auth.ts` already contains the OAuth2 edits. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The fork reused the original's session ID, so both threads wrote to one history",
-        "reason": "A fork gets its own session ID, and the original's ID and history stay unchanged; the histories were separate."
-      },
-      {
-        "id": "b",
-        "text": "Resuming replays the fork's tool calls into the original conversation",
-        "reason": "Resuming the original continues its own history; the fork did not modify it. The edits came from the shared directory."
-      },
-      {
-        "id": "c",
-        "text": "Resume restores files from the fork's latest snapshot of the working directory",
-        "reason": "Sessions persist the conversation, not the filesystem; nothing is restored on resume."
-      },
-      {
-        "id": "d",
-        "text": "Forks branch the conversation, not the files; file checkpointing can revert them",
-        "reason": "Correct: a forked agent's file edits are real and visible to any session in the same directory; use file checkpointing to snapshot and revert them."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Sessions and forks branch the **conversation**, not the files; use file checkpointing to snapshot and revert file changes.",
-    "explanation": "Sessions and forks branch the **conversation**, not the files. The forked agent's edits to `auth.ts` were real and landed in the shared directory, so any session there sees them; file checkpointing is the tool for snapshotting and reverting (Option D). Option A is the tempting explanation, but a fork gets its own session ID and the histories stayed separate. Option B is wrong because resuming continues the original's own history, and C fails because sessions persist the conversation and restore no files.",
-    "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/sessions",
       "title": "Work with sessions",
@@ -1296,141 +1086,6 @@
     "lessonId": "l-agent-construction"
   },
   {
-    "id": "q-sdk-prompt-change-on-resume",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK system prompts",
-    "stem": "Midway through a long session in your production SDK app, your user switches the agent to read-only. You resume the session with a new `append` saying the workspace is read-only, but Claude keeps proposing edits. How should you get the instruction to Claude on the next turn?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Send it in your next user message, or as hook `additionalContext`",
-        "reason": "Correct: the recorded prompt is reused until compaction, so send changes in the conversation, e.g. via a `UserPromptSubmit` hook's `additionalContext`."
-      },
-      {
-        "id": "b",
-        "text": "Pass the new `append` again on each resume until Claude picks it up",
-        "reason": "A different `append` on a resumed session isn't seen: the prompt recorded on the first request is reused until the session is compacted."
-      },
-      {
-        "id": "c",
-        "text": "Turn prompt recording off with `snapshot: false` in production",
-        "reason": "The docs say to keep recording on in production: with it off, the changed prompt can't reuse the session's prompt cache."
-      },
-      {
-        "id": "d",
-        "text": "Replace `append` with a custom prompt string, which is never recorded",
-        "reason": "Custom strings are recorded too: a different `append` or custom prompt on resume isn't seen until compaction or a new session."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "A session reuses its recorded system prompt until compaction; send mid-session changes **in the conversation** (next message or hook `additionalContext`).",
-    "explanation": "A session reuses the system prompt **recorded on its first request** until compaction, so a new `append` on resume is never seen. Mid-session changes must travel **in the conversation**: your next user message, or `additionalContext` from a hook such as `UserPromptSubmit` (Option A). Option B is the tempting retry, but repeating `append` hits the same recorded prompt. Option D fails because custom strings are recorded too, and C is discouraged in production because turning recording off stops the changed prompt from reusing the prompt cache.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
-      "title": "Modifying system prompts",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-setting-sources-claude-md",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK configuration",
-    "stem": "Your SDK agent should follow the repo's CLAUDE.md, the same file developers use interactively. A teammate set `settingSources: []` to keep host settings out, and now the agent ignores the project conventions. What's the fix?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Pass `skills: \"all\"`, so the CLAUDE.md conventions load on demand",
-        "reason": "The `skills` option picks which discovered skills are enabled; CLAUDE.md loads through setting sources, and with `[]` the project isn't read."
-      },
-      {
-        "id": "b",
-        "text": "Set `settingSources: [\"local\"]`, which loads instructions for this checkout",
-        "reason": "`local` loads `CLAUDE.local.md` and `settings.local.json`, not the project's shared CLAUDE.md."
-      },
-      {
-        "id": "c",
-        "text": "Re-enable auto memory with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=0` in `env`",
-        "reason": "Auto memory is a separate input read regardless of `settingSources`; it isn't where the project CLAUDE.md comes from."
-      },
-      {
-        "id": "d",
-        "text": "Set `settingSources: [\"project\"]` to load the project CLAUDE.md and rules",
-        "reason": "Correct: the `project` source loads project CLAUDE.md and `.claude/rules/*.md`, sharing context between interactive sessions and the SDK."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "CLAUDE.md and `.claude/rules/` load through **`settingSources`**; `[]` turns off user, project and local settings, including them.",
-    "explanation": "CLAUDE.md and `.claude/rules/*.md` load through **setting sources**, and `settingSources: []` turns off user, project and local settings, which is why the conventions vanished. Adding back only the `project` source restores the shared CLAUDE.md while still keeping host settings out (Option D). Option B is the closest trap, but `local` loads `CLAUDE.local.md` and `settings.local.json`, not the project's shared file. Option A only picks enabled skills, and C's auto memory is a separate input, not where the project CLAUDE.md comes from.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
-      "title": "Use Claude Code features in the SDK",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-md",
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-multi-tenant-isolation",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK configuration",
-    "stem": "You host an Agent SDK service where each request runs for a different customer tenant. One tenant's agent must not pick up host-level configuration or another tenant's per-directory memory. Which steps does the documentation recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Keep default `query()` options, which already isolate each tenant's settings",
-        "reason": "The docs warn not to rely on default options for multi-tenant isolation: some inputs are read regardless of `settingSources`."
-      },
-      {
-        "id": "b",
-        "text": "Run each tenant in its own filesystem",
-        "reason": "Correct: the docs say to run each tenant in its own filesystem, because an SDK process can otherwise pick up per-directory memory."
-      },
-      {
-        "id": "c",
-        "text": "Set `settingSources: []` and `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` in `env`",
-        "reason": "Correct: `[]` turns off user, project and local settings, and the variable turns off auto memory, which `settingSources` doesn't control."
-      },
-      {
-        "id": "d",
-        "text": "Pass `mcpServers: {}` so no claude.ai connectors can load for a tenant",
-        "reason": "Passing `mcpServers: {}` does not suppress claude.ai connectors; that takes `strictMcpConfig` or another documented switch."
-      },
-      {
-        "id": "e",
-        "text": "Leave `\"user\"` out of `settingSources` so `~/.claude.json` is skipped",
-        "reason": "The global `~/.claude.json` config is always read; it can only be relocated with `CLAUDE_CONFIG_DIR`."
-      }
-    ],
-    "answer": [
-      "b",
-      "c"
-    ],
-    "takeaway": "Defaults are not tenant isolation: give each tenant **its own filesystem**, and set `settingSources: []` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`.",
-    "explanation": "Defaults do not isolate tenants, because some inputs are read regardless of `settingSources`. So the docs recommend **its own filesystem** per tenant (B), since an SDK process can otherwise pick up per-directory memory, plus `settingSources: []` with `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` (C) to turn off settings and the auto memory that settings sources don't control. Option E is the most tempting wrong pick: `~/.claude.json` is always read and can only be relocated with `CLAUDE_CONFIG_DIR`. Option D does not suppress claude.ai connectors, and A relies on defaults.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/claude-code-features",
-      "title": "Use Claude Code features in the SDK",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
     "id": "q-sdk-hook-matcher-tool-name",
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
@@ -1461,48 +1116,6 @@
     "answer": "b",
     "takeaway": "Hook matchers test the **tool name**; filter on paths or other arguments inside the callback via `tool_input`.",
     "explanation": "Tool-based hook matchers are tested against the **tool name** only, never file paths or other arguments, so `\"\\.env$\"` matches nothing. Match `Write|Edit` and check `tool_input.file_path` inside the callback (Option B). Option A is the tempting fix, but `PostToolUse` matches tool names too, and it runs after the write already happened. Option C has it backwards (no matcher means the hook runs for every event of that type), and D's async output cannot block anything because the agent has already moved on.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
-      "title": "Intercept and control agent behavior with hooks",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-pretooluse-hook"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-sdk-hook-redirect-input",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "SDK hooks",
-    "stem": "Your SDK agent should only ever write files under `./sandbox`. Instead of blocking writes elsewhere, you want them redirected there automatically. What should your `PreToolUse` hook for `Write` return?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A top-level `updatedInput` carrying the rewritten `file_path`",
-        "reason": "`updatedInput` must sit inside `hookSpecificOutput`, not at the top level, or the modified input isn't applied."
-      },
-      {
-        "id": "b",
-        "text": "A `systemMessage` telling Claude to write under `./sandbox` instead",
-        "reason": "`systemMessage` shows a message to the user; it doesn't change the tool call's input."
-      },
-      {
-        "id": "c",
-        "text": "`updatedInput` with the new path in `hookSpecificOutput`, plus `allow`",
-        "reason": "Correct: `updatedInput` rewrites the call, and pairing it with `permissionDecision: \"allow\"` auto-approves the rewritten operation."
-      },
-      {
-        "id": "d",
-        "text": "`updatedInput` with the new path and `permissionDecision: \"defer\"`",
-        "reason": "With `defer`, `updatedInput` is ignored, and the turn ends with `stop_reason` `\"tool_deferred\"`."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "To change what a tool does, return **`updatedInput`** inside `hookSpecificOutput`, with `allow` to auto-approve it; `defer` drops it.",
-    "explanation": "To **rewrite** a tool call rather than block it, return `updatedInput` inside `hookSpecificOutput`, and pair it with `permissionDecision: \"allow\"` so the rewritten write is auto-approved (Option C). Option A is the subtle trap: the right field in the wrong place, since a top-level `updatedInput` is not applied. Option D fails because with `defer` the `updatedInput` is ignored and the turn ends with `stop_reason` `\"tool_deferred\"`. Option B's `systemMessage` only shows the user a message and changes nothing about the call.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
@@ -1618,73 +1231,6 @@
     "lessonId": "l-agent-construction"
   },
   {
-    "id": "q-managed-self-hosted-data-flow",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "Managed Agents",
-    "stem": "A bank adopts Claude Managed Agents with a self-hosted sandbox so its agent can reach internal services that aren't publicly routable. Which statements about this setup are accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Your environment worker runs each tool call locally and posts the result back",
-        "reason": "Correct: Claude requests tool calls and your worker, a process on your infrastructure, runs each one locally and posts the result back."
-      },
-      {
-        "id": "b",
-        "text": "Claude itself runs on the worker host, so no prompt leaves the bank's network",
-        "reason": "Claude runs on Anthropic's side; self-hosting moves tool execution, not the model, into your infrastructure."
-      },
-      {
-        "id": "c",
-        "text": "The model is configured on the self-hosted environment, not on the agent",
-        "reason": "The model is configured on the agent, not the environment; self-hosted sandboxes support every model available in Managed Agents."
-      },
-      {
-        "id": "d",
-        "text": "The worker must accept inbound HTTPS from Anthropic to receive new work",
-        "reason": "The worker claims work items from a queue and needs only outbound HTTPS."
-      },
-      {
-        "id": "e",
-        "text": "Tool inputs and outputs still flow to Anthropic's control plane",
-        "reason": "Correct: tool inputs and outputs still flow to Anthropic's control plane, so the model can see results and decide what to do next."
-      }
-    ],
-    "answer": [
-      "a",
-      "e"
-    ],
-    "takeaway": "Self-hosted sandboxes move **tool execution** to your worker; orchestration and the model stay on Anthropic's side, and tool I/O still flows there.",
-    "explanation": "A self-hosted sandbox moves **tool execution** into the bank's network, nothing more. Claude requests tool calls, the worker runs each one locally and posts the result back (A), and those tool inputs and outputs still flow to Anthropic's control plane so the model can decide its next step (E). Option B is the most tempting wrong pick: Claude itself still runs on Anthropic's side. Option C misplaces the model setting (it lives on the agent), and D is wrong because the worker claims work from a queue with only outbound HTTPS.",
-    "difficulty": "medium",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Orchestration stays with Anthropic; tools run on your worker.",
-      "steps": [
-        {
-          "label": "Claude requests a tool",
-          "sublabel": "Anthropic side"
-        },
-        {
-          "label": "Worker runs it",
-          "sublabel": "your infrastructure"
-        },
-        {
-          "label": "Result posted back"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/managed-agents/self-hosted-sandboxes",
-      "title": "Self-hosted sandboxes",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
     "id": "q-managed-steer-session",
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
@@ -1719,48 +1265,6 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/managed-agents/overview",
       "title": "Claude Managed Agents overview",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
-    ],
-    "lessonId": "l-agent-construction"
-  },
-  {
-    "id": "q-managed-override-replaces",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-construction",
-    "topic": "Managed Agents",
-    "stem": "For one experiment, you give a Managed Agents session one extra tool without versioning the agent: you pass `agent_with_overrides` with `tools` listing only the new tool. The session can no longer use the agent's other tools. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Overrides create a new agent version, and that version dropped the tools",
-        "reason": "Overrides don't modify the agent resource or create a new version; they apply only to the session you create."
-      },
-      {
-        "id": "b",
-        "text": "The override applied to every session that references this agent",
-        "reason": "Overrides apply only to the session you create, so other sessions referencing the same agent are unaffected."
-      },
-      {
-        "id": "c",
-        "text": "A `tools` override replaces the agent's list in full rather than merging",
-        "reason": "Correct: a set value replaces the agent's value in full; overrides never merge, so a `tools` override must list every tool the session needs."
-      },
-      {
-        "id": "d",
-        "text": "Only `model` and `system` can be overridden; the `tools` field was discarded",
-        "reason": "`tools`, `mcp_servers` and `skills` can be overridden too, alongside `model` and `system`."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Session overrides **replace** a field in full and never merge; list every tool the session should have.",
-    "explanation": "Session overrides **replace** a field in full and never merge, so a `tools` override listing only the new tool leaves the session with only that tool (Option C). The fix is to list every tool the session needs. Option D is the tempting explanation, but `tools`, `mcp_servers` and `skills` can be overridden alongside `model` and `system`, so the override was applied, not discarded. Options A and B misread the scope: overrides create no new agent version and affect only the session you create.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/managed-agents/sessions",
-      "title": "Start a session",
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
@@ -2229,7 +1733,7 @@
     "answer": "c",
     "takeaway": "Let subagents **write outputs to a filesystem** and return references, avoiding a lossy game of telephone through the coordinator.",
     "explanation": "Copying every long output through the coordinator is a lossy **game of telephone** that also burns tokens. The post's pattern is for subagents to save work to external systems such as files and return **lightweight references** (Option C). Option D is the tempting fix since it seems to stop the truncation, but relaying complete outputs through conversation history is exactly the token overhead the pattern avoids. Option A is the telephone game itself, and B gives up separate context windows, a core benefit of multi-agent.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
       "title": "How we built our multi-agent research system",
@@ -2503,48 +2007,6 @@
     "lessonId": "l-agent-architecture"
   },
   {
-    "id": "q-arch-nested-subagent-readonly",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-architecture",
-    "topic": "Subagent hierarchies",
-    "stem": "Your Claude Code reviewer subagent dispatches a verifier subagent for each finding, so nesting must stay on. The verifier must stay read-only and never spawn subagents of its own. What is the recommended setup?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to 1 for the whole project",
-        "reason": "A value of 1 turns nesting off entirely, so the reviewer could no longer dispatch its verifiers either."
-      },
-      {
-        "id": "b",
-        "text": "Nothing: subagents can never spawn subagents of their own in Claude Code",
-        "reason": "By default a subagent can spawn subagents of its own, up to three layers below the main conversation."
-      },
-      {
-        "id": "c",
-        "text": "Omit Agent from the verifier's tools list, or add it to disallowedTools",
-        "reason": "Correct: to keep one subagent from spawning while nesting is on, omit Agent from its tools or add it to disallowedTools."
-      },
-      {
-        "id": "d",
-        "text": "Tell the verifier in its system prompt that it must never delegate work",
-        "reason": "A prompt instruction isn't the documented control; removing the Agent tool is what keeps one subagent from spawning."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Nesting is on by default (up to three layers); stop **one** subagent from delegating by removing the **Agent** tool from it.",
-    "explanation": "Nesting must stay on for the reviewer, so you need a **per-subagent** control. Removing the Agent tool from the verifier, by omitting it from its tools list or adding it to `disallowedTools`, stops just that subagent from spawning (Option C). Option A is the tempting global switch, but a value of 1 turns nesting off entirely, so the reviewer couldn't dispatch verifiers either. Option B is false (subagents can nest up to three layers by default), and D's prompt instruction isn't the documented control.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/sub-agents",
-      "title": "Create custom subagents",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-subagent-context"
-    ],
-    "lessonId": "l-agent-architecture"
-  },
-  {
     "id": "q-strands-agent-loop",
     "domainId": "agents-workflows",
     "subSkillId": "agent-patterns",
@@ -2643,49 +2105,6 @@
     },
     "relatedCardIds": [
       "c-frameworks-advice"
-    ],
-    "lessonId": "l-agent-patterns"
-  },
-  {
-    "id": "q-strands-limit-stop-reason",
-    "domainId": "agents-workflows",
-    "subSkillId": "agent-patterns",
-    "topic": "Strands Agents",
-    "stem": "One Strands run on a big task ends with stop reason `limit_turns`; another ends with `max_tokens`. Which statement about these two outcomes matches the Strands docs?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Both are unrecoverable errors, so the conversation history must be discarded and restarted",
-        "reason": "Limit stop reasons are graceful budget exhaustion with valid history; only max_tokens is unrecoverable within the loop."
-      },
-      {
-        "id": "b",
-        "text": "`limit_turns` leaves valid history to reinvoke; `max_tokens` cannot continue in the loop",
-        "reason": "Correct: after a limit stop you can reinvoke with a higher budget; a max_tokens truncation can't be continued and ends with an error."
-      },
-      {
-        "id": "c",
-        "text": "`max_tokens` means the turn budget ran out, so raising the turn limit and retrying will fix it",
-        "reason": "max_tokens means the model's response was truncated at the token limit; limit_turns is the turn budget."
-      },
-      {
-        "id": "d",
-        "text": "`limit_turns` means a guardrail policy stopped generation for safety reasons",
-        "reason": "A guardrail stop is guardrail_intervened; limit_turns means the per-invocation turn budget was exhausted."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Strands **limit** stops are graceful (history stays valid); a **max_tokens** truncation cannot be continued within the loop.",
-    "explanation": "Strands separates **graceful budget exhaustion** from truncation. `limit_turns` means the per-invocation turn budget ran out with valid history, so you can reinvoke with a higher budget; `max_tokens` means the response was truncated at the token limit and cannot be continued in the loop (Option B). Option A is the tempting overreaction, treating both as unrecoverable. Option C swaps the meanings of the two reasons, and D confuses `limit_turns` with `guardrail_intervened`, the guardrail stop.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://strandsagents.com/docs/user-guide/sdk/agents/agent-loop/",
-      "title": "Agent Loop",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-frameworks-advice",
-      "c-stopping-condition"
     ],
     "lessonId": "l-agent-patterns"
   },
@@ -3030,7 +2449,7 @@
     "answer": "a",
     "takeaway": "Each LangGraph state key has a **reducer**; with none, the latest update **overwrites**. Use one like `operator.add` to accumulate.",
     "explanation": "Each LangGraph state key has a **reducer** that decides how updates combine, and with no reducer the latest update **overwrites** the key. So B's `[\"review\"]` replaced A's entry; annotating the key with a reducer like `operator.add` accumulates the lists (Option A). Option B is the tempting workaround, but nodes return partial updates and needn't return the whole state. Option C confuses persistence with merging, and D blames the schema type, when the reducer, not TypedDict versus Pydantic, decides how updates apply.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://docs.langchain.com/oss/python/langgraph/graph-api",
       "title": "Graph API overview",
@@ -3864,33 +3283,33 @@
     "domainId": "agents-workflows",
     "subSkillId": "agent-construction",
     "topic": "Human-in-the-loop",
-    "stem": "Your SDK app's `canUseTool` callback logs and approves every `Bash` command. To stop prompting users, a teammate adds `Bash` to `allowed_tools`. Now `Bash` commands run, but none appear in the log. You need every call checked again. What should you change?",
+    "stem": "Your Agent SDK app must log every `Bash` command before it runs, including commands auto-approved through `allowed_tools`. Where should the logging go?",
     "choices": [
       {
         "id": "a",
-        "text": "Switch to `bypassPermissions` so every call passes through `canUseTool`",
-        "reason": "`bypassPermissions` is another auto-approval; like an allow rule, it resolves calls before `canUseTool` is consulted."
+        "text": "In the system prompt, asking Claude to announce each command first",
+        "reason": "An instruction depends on Claude choosing to follow it; it isn't a check that runs in your code."
       },
       {
         "id": "b",
-        "text": "Add `AskUserQuestion` to `tools` so Bash calls are routed to the callback",
-        "reason": "`AskUserQuestion` is how Claude asks clarifying questions; adding it doesn't send auto-approved `Bash` calls to the callback."
+        "text": "In a `Stop` hook, which runs when the agent finishes",
+        "reason": "That runs after the commands have already executed, not before each one."
       },
       {
         "id": "c",
-        "text": "Move the check into a `PreToolUse` hook, which runs before permission rules",
-        "reason": "Correct: `canUseTool` never fires for auto-approved tools. A `PreToolUse` hook executes before the rest of the flow, for every call."
+        "text": "In a `PreToolUse` hook, which runs before every tool call",
+        "reason": "Correct: a `PreToolUse` hook executes before the rest of the permission flow, for every call, auto-approved ones included."
       },
       {
         "id": "d",
-        "text": "Keep the callback; it still runs for allowed tools, but only in debug mode",
-        "reason": "The callback never fires for auto-approved tools, whatever the logging mode. An allow rule resolves the call first."
+        "text": "In the `canUseTool` callback, which runs for every tool call",
+        "reason": "The callback never fires for auto-approved tools, such as those listed in `allowed_tools`."
       }
     ],
     "answer": "c",
     "takeaway": "`canUseTool` sees only calls nothing approved first; for **every** call, use a `PreToolUse` hook.",
-    "explanation": "Adding `Bash` to `allowed_tools` auto-approves it, and the docs warn that the callback never fires for auto-approved tools. Logic that must apply to every tool call belongs in a `PreToolUse` hook, which runs before the rest of the permission flow and can allow, deny or modify. Choice A is tempting, but `bypassPermissions` is just a broader auto-approval.",
-    "difficulty": "hard",
+    "explanation": "Tools listed in `allowed_tools` are auto-approved, and the docs note that the `canUseTool` callback never fires for auto-approved tools, so D misses them. Logic that must apply to every tool call belongs in a `PreToolUse` hook, which runs before the rest of the permission flow (C). A depends on Claude choosing to comply, and B runs only after the commands have executed.",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
       "title": "Handle approvals and user input",

@@ -123,8 +123,8 @@
       },
       {
         "id": "c",
-        "text": "A skill in a plugin, so everyone runs it as `/fix-issue` with the number",
-        "reason": "Plugin skills are namespaced: they run as `/plugin-name:skill-name`, and only where the plugin is enabled."
+        "text": "Paste the steps into chat each time, editing the issue number by hand",
+        "reason": "That isn't a reusable command. A skill turns a repeated procedure into a `/name` command that takes arguments."
       },
       {
         "id": "d",
@@ -134,7 +134,7 @@
     ],
     "answer": "d",
     "takeaway": "A committed **`.claude/skills/<name>/SKILL.md`** becomes a team `/name` command; `$ARGUMENTS` receives what you type after it.",
-    "explanation": "The command must reach **anyone who clones the repo** and run as plain `/fix-issue`, with the number inserted. A committed project skill in `.claude/skills/fix-issue/SKILL.md` loads in that repository, and `$ARGUMENTS` receives what follows the name (D). Option C is the tempting trap: plugins share skills, but they run namespaced as `/plugin-name:skill-name`. Option A is a personal skill teammates don't get, and B puts a procedure in CLAUDE.md, which doesn't create a command.",
+    "explanation": "The command must reach **anyone who clones the repo** and run as `/fix-issue`, with the number inserted. A committed project skill in `.claude/skills/fix-issue/SKILL.md` loads in that repository, and `$ARGUMENTS` receives what follows the name (D). A personal skill (A) stays on your machine, CLAUDE.md (B) doesn't create a command, and pasting steps by hand (C) isn't reusable.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/skills",
@@ -170,13 +170,13 @@
       },
       {
         "id": "d",
-        "text": "`claude -p \"...\" --output-format json`, then parse the `result` field against the schema",
-        "reason": "Without `--json-schema`, `json` returns the text result in the `result` field with metadata; that text isn't held to a schema."
+        "text": "Run `claude` interactively and copy the test names into a JSON file by hand",
+        "reason": "A CI step needs non-interactive `-p` mode; copying output by hand isn't automated and nothing checks the schema."
       }
     ],
     "answer": "b",
     "takeaway": "In scripts, use `-p` with `--output-format json`, and add **`--json-schema`** when the output must follow a schema.",
-    "explanation": "The later CI step needs JSON that follows a **fixed schema**, so something must hold the output to that schema. `--json-schema` does, putting conforming output in `structured_output` (B). Option D is the tempting near-miss: `--output-format json` gives JSON metadata, but the `result` field is just text that nobody checks against your schema. Option A asks for JSON only in the prompt, and C streams newline-delimited events for real time, which doesn't enforce a schema either.",
+    "explanation": "The later CI step needs JSON that follows a **fixed schema**, so something must hold the output to that schema. `--json-schema` does, putting conforming output in `structured_output` (B). Asking for JSON in the prompt (A) isn't checked, `stream-json` (C) streams events for real time without enforcing a schema, and an interactive session (D) doesn't fit CI.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
@@ -231,91 +231,6 @@
     "lessonId": "l-cc-operation"
   },
   {
-    "id": "q-cc-continue-skips-print",
-    "domainId": "claude-code",
-    "subSkillId": "cc-operation",
-    "topic": "Sessions",
-    "stem": "This morning a script ran `claude -p \"Review the auth module\"` in your repo and logged the run's session ID. Now you run `claude --continue` in the same directory to follow up interactively, but it opens an older conversation. What explains this, and what should you run?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`-p` runs aren't saved as sessions; rerun the review interactively",
-        "reason": "They are saved: Claude Code leaves `-p` sessions out of `--continue` and the picker, but you can still resume one by its session ID."
-      },
-      {
-        "id": "b",
-        "text": "Run `claude --continue --fork-session` to branch from the morning run instead",
-        "reason": "Forking only gives the conversation you continue its own session ID; `--continue` still skips the `-p` session, so you'd branch the older one."
-      },
-      {
-        "id": "c",
-        "text": "Run `claude --resume` and pick the morning run from the session picker",
-        "reason": "The session picker also leaves out sessions created with `claude -p` or the Agent SDK, so it won't be listed there."
-      },
-      {
-        "id": "d",
-        "text": "`--continue` skips `-p` sessions; run `claude --resume <session-id>`",
-        "reason": "Correct: `claude -p` and Agent SDK sessions are left out of `--continue` and the picker; pass the session ID to `claude --resume` to reopen it."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "`--continue` reopens the latest interactive conversation here; for a `-p` or SDK session, use **`--resume <session-id>`**.",
-    "explanation": "`claude -p` sessions are saved, but they are left out of `--continue` and the session picker, which is why `--continue` opened an older interactive conversation. Since the session ID was logged, `claude --resume <session-id>` reopens it (D). Option C is the tempting trap, because the picker also leaves out `-p` sessions, so the morning run won't be listed. Option A wrongly says the run wasn't saved, and B forks whatever `--continue` picks, which is still the older conversation.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/sessions",
-      "title": "Manage sessions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-continue-resume",
-      "c-cc-print-mode"
-    ],
-    "lessonId": "l-cc-operation"
-  },
-  {
-    "id": "q-cc-auto-mode-default-scope",
-    "domainId": "claude-code",
-    "subSkillId": "cc-operation",
-    "topic": "Auto mode",
-    "stem": "You add `\"permissions\": {\"defaultMode\": \"auto\"}` to your repo's `.claude/settings.json`. Auto mode is available on your account, yet terminal sessions in the repo still start in Manual mode, with no error. What should you change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move the setting into `.claude/settings.local.json`, which overrides the project file",
-        "reason": "`auto` doesn't take effect from `.claude/settings.json` or `.claude/settings.local.json`; the local file has the same problem."
-      },
-      {
-        "id": "b",
-        "text": "Set `CLAUDE_CODE_ENABLE_AUTO_MODE=1` in the `env` block of the same settings file",
-        "reason": "The variable is still accepted for compatibility but has no effect from v2.1.207 onward."
-      },
-      {
-        "id": "c",
-        "text": "Add a `Bash(*)` allow rule, so that auto mode has actions it is allowed to approve",
-        "reason": "Entering auto mode drops broad allow rules such as blanket `Bash(*)`; they don't make auto mode start."
-      },
-      {
-        "id": "d",
-        "text": "Move the setting into your user settings file, `~/.claude/settings.json`",
-        "reason": "Correct: `auto` doesn't take effect from `.claude/settings.json` or `.claude/settings.local.json`; the docs say to move it to `~/.claude/settings.json`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "`defaultMode: \"auto\"` is ignored in project and local settings files; set it in **`~/.claude/settings.json`**.",
-    "explanation": "The silent failure is the clue: `defaultMode: \"auto\"` doesn't take effect from `.claude/settings.json` or `.claude/settings.local.json`, and the docs say to move it to your user file, `~/.claude/settings.json` (D). Option A is the tempting trap, since the local file feels like an override, but it has the same problem as the project file. Option B relies on a variable with no effect from v2.1.207 onward, and C adds a broad `Bash(*)` rule that auto mode drops on entry anyway.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/permission-modes",
-      "title": "Choose a permission mode",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-scopes"
-    ],
-    "lessonId": "l-cc-operation"
-  },
-  {
     "id": "q-cc-auto-mode-boundary-lost",
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
@@ -354,56 +269,6 @@
     },
     "relatedCardIds": [
       "c-cc-settings-scopes"
-    ],
-    "lessonId": "l-cc-operation"
-  },
-  {
-    "id": "q-cc-auto-mode-behavior",
-    "domainId": "claude-code",
-    "subSkillId": "cc-operation",
-    "topic": "Auto mode",
-    "stem": "Your team is moving its long-running Claude Code sessions to auto mode. Which statements about how auto mode behaves are accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Entering it drops broad allow rules like `Bash(*)`; narrow ones such as `Bash(npm test)` stay",
-        "reason": "Correct: broad rules that grant arbitrary code execution are dropped on entering auto mode, and restored when you leave it; narrow rules stay."
-      },
-      {
-        "id": "b",
-        "text": "After 3 blocks in a row or 20 in total, it pauses and Claude Code resumes prompting",
-        "reason": "Correct: when the classifier blocks an action 3 times in a row or 20 times total, auto mode pauses and prompting resumes."
-      },
-      {
-        "id": "c",
-        "text": "The classifier reads full tool results, so it can catch instructions injected into files",
-        "reason": "Tool results are stripped from the classifier's requests, so hostile content in a file or web page can't manipulate it directly."
-      },
-      {
-        "id": "d",
-        "text": "A subagent's `permissionMode` frontmatter overrides auto mode for that subagent's actions",
-        "reason": "In auto mode, each subagent action goes through the same decision order, and any `permissionMode` in its frontmatter is ignored."
-      },
-      {
-        "id": "e",
-        "text": "Its classifier guarantees safety, so sensitive operations no longer need any human review",
-        "reason": "The docs warn that auto mode reduces prompts but does not guarantee safety; it's not a replacement for review on sensitive operations."
-      }
-    ],
-    "answer": [
-      "a",
-      "b"
-    ],
-    "takeaway": "Auto mode drops **broad allow rules**, pauses after **3 blocks in a row or 20 total**, and never replaces review of sensitive operations.",
-    "explanation": "Two statements match the docs. On entering auto mode, broad allow rules like `Bash(*)` are dropped while narrow ones stay (A), and after 3 blocks in a row or 20 in total, auto mode pauses and prompting resumes (B). Option C is the most tempting wrong pick, but tool results are **stripped** from the classifier's requests, so it can't read injected file content. Option D is wrong because a subagent's `permissionMode` is ignored in auto mode, and E overstates it: auto mode doesn't guarantee safety.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/permission-modes",
-      "title": "Choose a permission mode",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-plan-mode"
     ],
     "lessonId": "l-cc-operation"
   },
@@ -496,32 +361,32 @@
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
     "topic": "Non-interactive mode",
-    "stem": "Your CI dashboard should show Claude Code's response token by token while a `claude -p` job runs, rather than all at once at the end. Which flags give you that?",
+    "stem": "Your CI dashboard should show Claude Code's response token by token while a `claude -p` job runs, rather than all at once at the end. Which output option gives you that?",
     "choices": [
       {
         "id": "a",
-        "text": "`--output-format json`, which emits each event as soon as it is generated",
-        "reason": "`json` returns one structured result with session ID and metadata, not a live stream of tokens."
+        "text": "The default `text` output, printed when the run finishes",
+        "reason": "`text` returns plain text output at the end of the run, not a live stream."
       },
       {
         "id": "b",
-        "text": "`--output-format json --json-schema '<schema>'` to get typed events",
-        "reason": "`--json-schema` puts schema-conforming output in `structured_output`; it doesn't stream tokens."
+        "text": "`--output-format json`, which returns one structured result",
+        "reason": "`json` returns one structured result with session ID and metadata, not a live stream of tokens."
       },
       {
         "id": "c",
-        "text": "`--output-format stream-json` on its own, with no other flags added",
-        "reason": "To receive tokens as they're generated, the docs pair `stream-json` with `--verbose` and `--include-partial-messages`."
+        "text": "`--output-format json --json-schema '<schema>'`",
+        "reason": "`--json-schema` puts schema-conforming output in `structured_output`; it doesn't stream tokens."
       },
       {
         "id": "d",
-        "text": "`--output-format stream-json --verbose --include-partial-messages`",
+        "text": "`--output-format stream-json`, with `--verbose` and `--include-partial-messages`",
         "reason": "Correct: this combination streams newline-delimited JSON events, so you receive tokens as they're generated."
       }
     ],
     "answer": "d",
-    "takeaway": "Live tokens from `claude -p` need **`--output-format stream-json --verbose --include-partial-messages`**.",
-    "explanation": "Getting tokens as they're generated needs `stream-json` plus two more flags: `--verbose` and `--include-partial-messages` (D). Option C is the tempting near-miss: `stream-json` alone is the right format, but the docs pair it with those flags to receive tokens live. Option A returns one structured result at the end, not a stream, and B adds `--json-schema`, which shapes the final output into `structured_output` rather than streaming anything.",
+    "takeaway": "For live output from `claude -p`, use **`stream-json`** (with `--verbose --include-partial-messages` for tokens).",
+    "explanation": "Only `stream-json` streams events while the run is going, and the docs pair it with `--verbose` and `--include-partial-messages` to receive tokens as they're generated (D). `text` (A) and `json` (B) both arrive at the end, and `--json-schema` (C) shapes the final output rather than streaming it.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
@@ -664,41 +529,33 @@
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
     "topic": "CLAUDE.md",
-    "stem": "You start Claude Code in `repo/services/billing/`. CLAUDE.md files exist at `repo/`, `repo/services/billing/` and `repo/services/billing/legacy/`. Which statements about how they load are accurate?",
+    "stem": "You start Claude Code in `repo/services/billing/`. CLAUDE.md files exist at `repo/` and at `repo/services/billing/`. Which load at launch?",
     "choices": [
       {
         "id": "a",
-        "text": "`billing/CLAUDE.md` overrides `repo/CLAUDE.md`, so only the closer file is used",
+        "text": "Only `billing/CLAUDE.md`, because the closer file overrides the other",
         "reason": "Discovered files are concatenated rather than overriding each other; instructions closer to where you launched are read last."
       },
       {
         "id": "b",
-        "text": "`repo/CLAUDE.md` is skipped because it sits above the working directory",
-        "reason": "Claude Code loads CLAUDE.md from the working directory and every directory above it, so `repo/CLAUDE.md` loads."
+        "text": "Only `repo/CLAUDE.md`, because the root file wins",
+        "reason": "Claude Code loads CLAUDE.md from the working directory and every directory above it, so both load."
       },
       {
         "id": "c",
-        "text": "`repo/` and `billing/` CLAUDE.md files both load at launch, concatenated",
+        "text": "Both, concatenated, with the root file first",
         "reason": "Correct: files in the working directory and every directory above it load at launch and are concatenated, root first."
       },
       {
         "id": "d",
-        "text": "`legacy/CLAUDE.md` loads once Claude reads, writes or edits a file in `legacy/`",
-        "reason": "Correct: CLAUDE.md files in subdirectories load on demand, once Claude reads, writes or edits another file there."
-      },
-      {
-        "id": "e",
-        "text": "All three load at launch, `legacy/CLAUDE.md` included, then stay in context",
-        "reason": "Subdirectory files aren't loaded at launch; each loads once Claude works with a file in that subdirectory."
+        "text": "Neither, until you run `/init` in that directory",
+        "reason": "`/init` creates or improves a CLAUDE.md; existing files load at launch without it."
       }
     ],
-    "answer": [
-      "c",
-      "d"
-    ],
-    "takeaway": "CLAUDE.md files **above** the working directory load at launch and are concatenated; files **below** load on demand.",
-    "explanation": "Loading depends on where each file sits relative to the working directory. Files in the working directory and every directory above it load at launch and are **concatenated**, root first, so `repo/` and `billing/` both load (C). Files in subdirectories load **on demand**, once Claude reads, writes or edits a file there, so `legacy/` waits (D). Option A is the most tempting wrong pick, but closer files don't override; they are read last. Option B skips a parent that does load, and E loads `legacy/` too early.",
-    "difficulty": "medium",
+    "answer": "c",
+    "takeaway": "CLAUDE.md files in the working directory **and above** all load at launch and are concatenated, root first.",
+    "explanation": "Claude Code loads CLAUDE.md from the working directory and every directory above it, and **concatenates** them root first, so both files load (C). Closer files don't override (A); they are read last. The parent isn't the only one used (B), and `/init` isn't needed for files that already exist (D).",
+    "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/memory",
       "title": "How Claude remembers your project",

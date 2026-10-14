@@ -129,49 +129,6 @@
     "lessonId": "l-tool-implementation"
   },
   {
-    "id": "q-forced-tool-use-400",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "tool_choice",
-    "stem": "You move an extraction job to Claude Opus 5.5. Requests that set `tool_choice` to `{\"type\": \"tool\", \"name\": \"extract\"}` now return a 400 error. You still need schema-valid tool inputs. What does the documentation recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Switch to `{\"type\": \"any\"}`, which Opus 5.5 still accepts for forced calls",
-        "reason": "On Claude Opus 5.5, both `any` and `tool` return a 400 error; `auto` and `none` still work."
-      },
-      {
-        "id": "b",
-        "text": "Turn on manual extended thinking, which allows forced tool use on this model",
-        "reason": "Manual extended thinking itself doesn't support `any` or `tool`, so it can't bring forced tool use back."
-      },
-      {
-        "id": "c",
-        "text": "Retry the same request with exponential backoff until the 400 error clears",
-        "reason": "The 400 isn't transient: on this model, `any` and `tool` return a 400 error, so the same request fails again."
-      },
-      {
-        "id": "d",
-        "text": "Use `auto` with `strict: true` on the tool, and prompt Claude to call it",
-        "reason": "Correct: the docs point to `auto` with strict tool use for schema-valid inputs, and prompting still influences which tool `auto` picks."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Opus 5.5, Sonnet 5.5, Fable 5.1 and Mythos 5.1 reject forced tool use: use **`auto` plus strict tool use**, or structured outputs for a fixed JSON shape.",
-    "explanation": "On Claude Opus 5.5, both `any` and `tool` return a 400 error, so forced tool use isn't available; `auto` and `none` still work. To keep schema-valid inputs, the docs point to `auto` with `strict: true` on the tool, plus prompting Claude to call it, since prompting still influences which tool `auto` picks (Option D). A is the tempting trap because `any` seems like a softer form of forcing, but it is rejected too. B fails because manual extended thinking doesn't support `any` or `tool`, and C retries an error that isn't transient.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-      "title": "Define tools",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-choice",
-      "c-strict-tool-use"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
     "id": "q-parallel-tool-results",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -420,18 +377,18 @@
       },
       {
         "id": "c",
-        "text": "Expose it over HTTP at a public https URL, and expect only its tools to work",
-        "reason": "Correct: the server must be publicly exposed through HTTP, and of MCP's features only tool calls are currently supported."
+        "text": "Expose it over HTTP at a publicly reachable https URL",
+        "reason": "Correct: the connector reaches servers over HTTP at a public URL; local stdio servers can't be connected directly."
       },
       {
         "id": "d",
         "text": "List its resources in the `mcp_toolset` so Claude can read them as context",
-        "reason": "The connector currently supports only MCP tool calls; an MCP toolset configures which of the server's tools are enabled."
+        "reason": "An MCP toolset configures which of the server's tools are enabled; it doesn't make a local server reachable."
       }
     ],
     "answer": "c",
-    "takeaway": "The MCP connector needs a **public HTTP** server and uses only its **tools**; stdio servers stay local.",
-    "explanation": "The MCP connector has two limits to notice: the server must be **publicly exposed over HTTP** (`type: \"url\"` with an https URL), and of MCP's features only **tool calls** are currently supported. So the local stdio server must be exposed at a public https URL, and its resources won't be usable, which is Option C. A is the tempting trap because it hopes the launch command works as-is, but local stdio servers can't be connected directly. B's `authorization_token` is for OAuth, and D's toolset configures only tools.",
+    "takeaway": "The MCP connector needs a **public HTTP** server; local stdio servers can't connect directly.",
+    "explanation": "The MCP connector calls remote servers for you, so the server must be **publicly exposed over HTTP** (`type: \"url\"` with an https URL). A local stdio server therefore has to be exposed at a public https URL (C). A hopes the launch command works as-is, but local stdio servers can't be connected directly. B's `authorization_token` is for OAuth, and D's toolset only configures which tools are enabled.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
@@ -722,7 +679,7 @@
     "answer": "b",
     "takeaway": "A plugin runs code **as you**: permission rules cover Claude's tool calls, not its hooks or MCP server processes.",
     "explanation": "Permission rules and the sandbox cover **Claude's tool calls**, not a plugin's own code. Claude Code runs hooks and MCP servers outside the sandbox, and command hooks execute with your full user permissions, so you still need to review `hooks/hooks.json`, `.mcp.json` and `bin/` (Option B). C is the tempting trap because a coworker's marketplace feels trusted, but it is still third-party and its name says who publishes the catalog, not what a plugin does. A is factually wrong, and D reviews only skills.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/plugins/security",
       "title": "Plugin security and trust",
@@ -829,68 +786,6 @@
     "lessonId": "l-tool-implementation"
   },
   {
-    "id": "q-server-client-mixed-turn",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Server tools",
-    "stem": "Claude calls `web_fetch` and your `run_command` tool in the same turn. The response has `stop_reason: \"tool_use\"`, a `server_tool_use` block with no result block, and a `tool_use` block. You run the command. What should the next request contain?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The `run_command` tool_result, followed by a text block asking Claude to finish the fetch",
-        "reason": "Text after the results tells the API the assistant turn is over, leaving an unresolved server tool call: the request fails with a 400 `invalid_request_error`."
-      },
-      {
-        "id": "b",
-        "text": "A user message with `tool_result` blocks for both the `run_command` and the `web_fetch` calls",
-        "reason": "You don't run server tools: the API runs the deferred `web_fetch` after you return the client results, and the next response starts with its result block."
-      },
-      {
-        "id": "c",
-        "text": "The `run_command` tool_result, with `web_fetch` removed from `tools` since it was already called",
-        "reason": "A resume request that no longer defines the waiting server tool fails with a 400 saying no `web_fetch` tool was provided."
-      },
-      {
-        "id": "d",
-        "text": "A user message holding only the `run_command` tool_result, with the same `tools` as before",
-        "reason": "Correct: send only `tool_result` blocks for the client calls and keep the same `tools`; the API then runs the deferred server tool and Claude continues."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Mixed server and client turn: return **only** the client `tool_result` blocks, keep the same `tools`, and let the API run the server tool.",
-    "explanation": "In a mixed turn, the server tool call waits on your client results. Send a user message holding **only** the `run_command` `tool_result` and keep the same `tools`; the API then runs the deferred `web_fetch` and Claude continues (Option D). B is the tempting trap because every call seems to need a result, but you don't run server tools. A adds text that ends the assistant turn with an unresolved server call, causing a 400, and C removes the tool the server call is waiting on, which also fails.",
-    "difficulty": "hard",
-    "diagram": {
-      "kind": "flow",
-      "steps": [
-        {
-          "label": "tool_use + server_tool_use",
-          "sublabel": "stop_reason: tool_use"
-        },
-        {
-          "label": "You send",
-          "sublabel": "only tool_result blocks"
-        },
-        {
-          "label": "API runs web_fetch"
-        },
-        {
-          "label": "Claude continues"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/server-tools",
-      "title": "Server tools",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-client-vs-server-tools",
-      "c-parallel-tool-use"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
     "id": "q-server-tool-errors-no-is-error",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -930,48 +825,6 @@
     "relatedCardIds": [
       "c-client-vs-server-tools",
       "c-is-error"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
-    "id": "q-web-fetch-prior-context-url",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Web fetch",
-    "stem": "Your agent has the web fetch tool. Claude builds status-page URLs itself from region names it knows, and every fetch comes back with a `url_not_in_prior_context` error. None of those URLs appear in user messages or tool results. What's going on?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The status domain has to be added to `allowed_domains` before web fetch will reach it",
-        "reason": "A URL blocked by domain filtering returns `url_not_allowed`. This error means the URL didn't appear earlier in the conversation."
-      },
-      {
-        "id": "b",
-        "text": "Claude can fetch only URLs already in the conversation, not ones it wrote itself",
-        "reason": "Correct: to limit exfiltration, Claude can't fetch URLs that appear only in its own output; pass them in a user message or a client tool result."
-      },
-      {
-        "id": "c",
-        "text": "Web fetch can't load these status pages because they are rendered with JavaScript",
-        "reason": "JavaScript-rendered pages are a real limit of web fetch, but `url_not_in_prior_context` says the URL didn't appear earlier in the conversation."
-      },
-      {
-        "id": "d",
-        "text": "Web fetch is serving cached copies, so set `use_cache: false` to reach the live pages",
-        "reason": "`use_cache: false` only bypasses cached content to get fresh pages; it doesn't change which URLs Claude is allowed to fetch."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Web fetch reaches only URLs **already in the conversation**: user messages, client tool results, or earlier search and fetch results.",
-    "explanation": "To limit exfiltration, web fetch only reaches URLs **already in the conversation**, such as user messages or client tool results; Claude can't fetch URLs that appear only in its own output. That is exactly what `url_not_in_prior_context` reports here, since Claude built the URLs itself (Option B). A is the tempting trap because domain filtering is another fetch restriction, but a blocked domain returns `url_not_allowed` instead. C names a real limit with a different cause, and D's `use_cache` doesn't change which URLs are allowed.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/web-fetch-tool",
-      "title": "Web fetch tool",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-client-vs-server-tools"
     ],
     "lessonId": "l-tool-implementation"
   },
@@ -1023,91 +876,6 @@
     "relatedCardIds": [
       "c-client-vs-server-tools",
       "c-prompt-injection"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
-    "id": "q-disable-parallel-in-tool-choice",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Parallel tool use",
-    "stem": "Your order system can't process two writes at once, so you want Claude to call at most one tool per response while still being free to answer in plain text. How should the request be configured?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add `disable_parallel_tool_use: true` as a top-level request parameter next to `tools`",
-        "reason": "It isn't a top-level request parameter: `disable_parallel_tool_use` goes inside the `tool_choice` object."
-      },
-      {
-        "id": "b",
-        "text": "Set `tool_choice` to `{\"type\": \"any\", \"disable_parallel_tool_use\": true}`",
-        "reason": "With `any`, the flag means Claude calls **exactly** one tool, so it can't answer in plain text; some newer models also reject `any`."
-      },
-      {
-        "id": "c",
-        "text": "Set `tool_choice` to `{\"type\": \"auto\", \"disable_parallel_tool_use\": true}`",
-        "reason": "Correct: with `auto`, `disable_parallel_tool_use: true` means at most one tool call per response, and Claude can still answer without a tool."
-      },
-      {
-        "id": "d",
-        "text": "Nothing; Claude calls one tool per response unless you enable parallel tool use",
-        "reason": "Parallel tool use is on by default; you turn it off with `disable_parallel_tool_use: true`."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "`disable_parallel_tool_use` lives **inside** `tool_choice`: with `auto` it means at most one call; with `any` or `tool`, exactly one.",
-    "explanation": "You need two things: **at most one** tool call per response, and the freedom to answer in plain text. `disable_parallel_tool_use` goes inside the `tool_choice` object; with `auto` it means at most one call while Claude can still skip tools, which is Option C. B is the tempting trap because it uses the right flag, but with `any` it means **exactly** one tool call, so plain-text answers are impossible. A puts the flag at the wrong level, and D is wrong because parallel tool use is on by default.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
-      "title": "Parallel tool use",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-parallel-tool-use",
-      "c-tool-choice"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
-    "id": "q-forced-tool-no-preamble",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "tool_choice",
-    "stem": "On a model that supports forced tool use, you set `tool_choice` to `{\"type\": \"tool\", \"name\": \"get_weather\"}`. Product wants Claude to say what it's doing in a short sentence before the call, but no text ever appears, even when the prompt asks. What should you change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Use `auto`, and tell Claude in the user message to use `get_weather` in its response",
-        "reason": "Correct: for explanations while still steering Claude to a specific tool, the docs suggest `auto` (the default) plus an explicit instruction in a `user` message."
-      },
-      {
-        "id": "b",
-        "text": "Keep the forced `tool` choice and move the instruction to explain into the system prompt",
-        "reason": "With `any` or `tool`, the API prefills the assistant message to force a tool, so Claude emits no natural-language text first, even if explicitly asked."
-      },
-      {
-        "id": "c",
-        "text": "Switch to `{\"type\": \"any\"}`, which lets Claude write a sentence before calling the tool",
-        "reason": "`any` also forces tool use through a prefilled assistant message, so Claude still won't write text before the `tool_use` block."
-      },
-      {
-        "id": "d",
-        "text": "Add an `input_examples` entry for the tool that includes an `explanation` field",
-        "reason": "Each example must be valid against the tool's `input_schema`; examples show valid inputs and don't change the prefill that suppresses text."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Forced `tool` or `any` choices prefill the turn, so there's no preamble text: use `auto` plus a prompt instruction instead.",
-    "explanation": "With `any` or `tool`, the API **prefills** the assistant message to force a tool call, so Claude emits no natural-language text first, even when asked. To get a short explanation while still steering toward `get_weather`, the docs suggest `auto` plus an explicit instruction in a `user` message (Option A). C is the tempting trap because `any` seems looser than `tool`, but it also forces tool use through a prefill. B keeps the forced choice, and D's examples must match the schema and don't change the prefill.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-      "title": "Define tools",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-choice"
     ],
     "lessonId": "l-tool-implementation"
   },
@@ -1240,49 +1008,6 @@
     "lessonId": "l-tool-implementation"
   },
   {
-    "id": "q-sdk-readonly-hint-parallel",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Custom tools",
-    "stem": "Your Agent SDK app defines three custom lookup tools that only read data. Claude needs all three for most questions, but they never run in parallel with each other. What should you add to those tools?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`destructiveHint: false`, so the SDK knows the tools are safe to run together",
-        "reason": "`destructiveHint` is informational only; the annotation that controls parallel calls is `readOnlyHint`."
-      },
-      {
-        "id": "b",
-        "text": "`idempotentHint: true`, since repeating a lookup with the same arguments changes nothing",
-        "reason": "`idempotentHint` is informational only. Parallel calls with other read-only tools are controlled by `readOnlyHint`."
-      },
-      {
-        "id": "c",
-        "text": "`openWorldHint: false`, so the tools are treated as local and can run side by side",
-        "reason": "`openWorldHint` (the tool reaches systems outside your process) is informational only; it doesn't control parallel calls."
-      },
-      {
-        "id": "d",
-        "text": "`readOnlyHint: true`, since the tools don't modify their environment",
-        "reason": "Correct: `readOnlyHint` (default `false`) controls whether a tool can run in parallel with other read-only tools. It's metadata, not enforcement, so keep it accurate."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "In the Agent SDK, `readOnlyHint: true` lets side-effect-free tools run in parallel; the other hints are informational.",
-    "explanation": "In the Agent SDK, only one annotation controls parallel calls: `readOnlyHint`, default `false`, decides whether a tool can run in parallel with other read-only tools. Your lookups only read data, so set `readOnlyHint: true`, keeping it accurate because it is metadata rather than enforcement (Option D). A is the tempting trap because 'not destructive' sounds like 'safe to parallelize', but `destructiveHint` is informational only, as are `idempotentHint` (B) and `openWorldHint` (C).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
-      "title": "Give Claude custom tools",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-sdk-custom-tool",
-      "c-parallel-tool-use"
-    ],
-    "lessonId": "l-tool-implementation"
-  },
-  {
     "id": "q-mcp-host-one-client-per-server",
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
@@ -1368,91 +1093,6 @@
     "lessonId": "l-mcp-server-dev"
   },
   {
-    "id": "q-mcp-unix-socket-transport",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP transports",
-    "stem": "Your platform team wants clients to reach an internal MCP server over a Unix domain socket rather than stdio or Streamable HTTP. What does the MCP specification say about this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Allowed as a custom transport: keep JSON-RPC and reuse the stdio newline-delimited framing",
-        "reason": "Correct: custom transports must preserve the JSON-RPC message format, and ones over a reliable byte stream (Unix sockets, TCP) should reuse stdio framing."
-      },
-      {
-        "id": "b",
-        "text": "Not allowed: MCP messages may only travel over the stdio and Streamable HTTP bindings",
-        "reason": "Clients and servers MAY implement custom transports; the protocol is transport-agnostic over any channel that supports bidirectional message exchange."
-      },
-      {
-        "id": "c",
-        "text": "Allowed, but a socket transport should define its own message framing and JSON format",
-        "reason": "Custom transports MUST preserve the JSON-RPC message format, and byte-stream ones SHOULD reuse the stdio framing rather than define a new one."
-      },
-      {
-        "id": "d",
-        "text": "Allowed only if each message is wrapped in an HTTP POST, the same way Streamable HTTP works",
-        "reason": "HTTP POST is how the Streamable HTTP binding works; a byte-stream custom transport should reuse the stdio framing instead."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Sockets are a **custom transport**: same JSON-RPC messages and patterns, newline-delimited framing borrowed from stdio.",
-    "explanation": "MCP is transport-agnostic: clients and servers **may** implement custom transports, but they must preserve the JSON-RPC message format, and transports over a reliable byte stream, such as Unix sockets or TCP, should reuse stdio's newline-delimited framing (Option A). C is the tempting trap because a new transport seems to deserve its own framing, but the spec asks byte-stream transports to reuse the stdio framing. B wrongly forbids custom transports, and D borrows the Streamable HTTP binding's POST mechanism.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports",
-      "title": "Overview",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-transports"
-    ],
-    "lessonId": "l-mcp-server-dev"
-  },
-  {
-    "id": "q-mcp-websocket-push",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP transports",
-    "stem": "You're connecting Claude Code to a remote MCP server that must push events to Claude unprompted. The vendor offers a `wss://` endpoint. Which statement about this setup is accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add it with `claude mcp add --transport ws`, then sign in through the OAuth flow",
-        "reason": "The `--transport` flag doesn't accept `ws`, and WebSocket servers don't support OAuth: their authentication is header-only."
-      },
-      {
-        "id": "b",
-        "text": "Use the SSE transport, since it's the only remote option that can push events",
-        "reason": "SSE is deprecated in Claude Code; WebSocket's persistent bidirectional connection suits remote servers that push events unprompted."
-      },
-      {
-        "id": "c",
-        "text": "Use HTTP instead, because an HTTP server can do everything a WebSocket one can",
-        "reason": "The docs recommend HTTP when your server **only responds** to requests; WebSocket suits remote servers that push events to Claude unprompted."
-      },
-      {
-        "id": "d",
-        "text": "Configure a `type: \"ws\"` entry in `.mcp.json` and pass auth in `headers`",
-        "reason": "Correct: configure WebSocket servers in `.mcp.json` or with `claude mcp add-json`; pass a static token in `headers` or generate one with `headersHelper`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Remote server that **pushes** events: WebSocket (`type: \"ws\"`, header auth). Request/response only: HTTP, which supports OAuth.",
-    "explanation": "The requirement is a remote server that **pushes events** unprompted, which suits WebSocket's persistent bidirectional connection. In Claude Code you configure it as a `type: \"ws\"` entry in `.mcp.json` (or with `claude mcp add-json`) and pass auth in `headers`, which is Option D. A is the tempting trap because it looks like the usual setup, but `--transport` doesn't accept `ws`, and WebSocket servers use header-only auth, not OAuth. B relies on deprecated SSE, and C's HTTP fits servers that only respond.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/mcp",
-      "title": "Connect Claude Code to tools via MCP",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-transports",
-      "c-mcp-json"
-    ],
-    "lessonId": "l-mcp-server-dev"
-  },
-  {
     "id": "q-mcp-tool-execution-error",
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
@@ -1496,98 +1136,6 @@
     "lessonId": "l-mcp-server-dev"
   },
   {
-    "id": "q-mcp-elicitation-url-mode",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP elicitation",
-    "stem": "Midway through a `tools/call`, your MCP server needs the user to authorize a third-party account and supply an API key. How should the server collect this, according to MCP's client concepts guide?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Use form-mode elicitation with a schema that includes a password field for the key",
-        "reason": "Servers must not use form mode to request sensitive information such as passwords, API keys or access tokens; those belong in URL mode."
-      },
-      {
-        "id": "b",
-        "text": "Use sampling to have the client's LLM ask the user for the key in the chat",
-        "reason": "Sampling is deprecated as of `2026-07-28`, and sending the key through the model is what URL mode avoids: it keeps data out of the LLM context."
-      },
-      {
-        "id": "c",
-        "text": "Use URL-mode elicitation, so the user completes it at a URL, out of band",
-        "reason": "Correct: in URL mode the data never passes through the client or the LLM context; clients show the full URL and get consent before opening it."
-      },
-      {
-        "id": "d",
-        "text": "Return an error asking the user to paste the key into their next chat message",
-        "reason": "Pasting the key into chat sends it through the client and the LLM context, which URL-mode elicitation exists to avoid."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Elicitation: **form** mode for ordinary structured input; **URL** mode for credentials and OAuth, kept out of the client and model.",
-    "explanation": "Elicitation has two modes, chosen by **sensitivity**. Form mode is for ordinary structured input, but servers must not use it for passwords, API keys or access tokens. URL mode sends the user to a URL out of band, so the data never passes through the client or the LLM context, which fits authorizing an account and supplying a key (Option C). A is the tempting trap because a password field looks right. B uses deprecated sampling and routes the key through the model, and D puts the key in chat.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/client-concepts",
-      "title": "Understanding MCP clients",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-server"
-    ],
-    "lessonId": "l-mcp-server-dev"
-  },
-  {
-    "id": "q-mcp-connector-block-write-tools",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP connector",
-    "stem": "Through the MCP connector, your read-only calendar assistant uses a server whose tools include `search_events`, `update_event` and `delete_event`. Claude must never be able to call the two write tools. Which `mcp_toolset` configurations achieve this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`default_config` with `enabled: false`, plus `configs` enabling only `search_events`",
-        "reason": "Correct: the allowlist pattern sets `enabled: false` as the default and enables specific tools; tool-specific `configs` override `default_config`."
-      },
-      {
-        "id": "b",
-        "text": "`configs` that set `defer_loading: true` on `update_event` and `delete_event`",
-        "reason": "`defer_loading` only keeps a tool's description from being sent initially, for use with tool search; the tools stay enabled."
-      },
-      {
-        "id": "c",
-        "text": "No `mcp_toolset` at all, so Claude can see the server but can't call its tools",
-        "reason": "That fails validation: every server in `mcp_servers` must be referenced by exactly one MCPToolset."
-      },
-      {
-        "id": "d",
-        "text": "Default settings, plus `configs` setting `enabled: false` on both write tools",
-        "reason": "Correct: the denylist pattern enables all tools by default and disables unwanted ones, as recommended for read-only assistants."
-      },
-      {
-        "id": "e",
-        "text": "A second `mcp_toolset` for the same server, listing just the write tools as disabled",
-        "reason": "Each MCP server can be referenced by only one MCPToolset, so a second toolset for the same server is rejected."
-      }
-    ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "Connector tool control lives in `mcp_toolset`: **allowlist** (default off, enable a few) or **denylist** (default on, disable a few).",
-    "explanation": "Connector tool control lives in `mcp_toolset`, where tool-specific `configs` override `default_config`. An **allowlist** sets `enabled: false` by default and enables only `search_events` (A). A **denylist** keeps the default and sets `enabled: false` on the two write tools (D). Both stop Claude calling the write tools. B is the most tempting wrong pick, but `defer_loading` only delays sending a tool's description; the tools stay enabled. C fails validation, and E adds a second toolset for one server, which is rejected.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
-      "title": "MCP connector",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-mcp-connector"
-    ],
-    "lessonId": "l-mcp-server-dev"
-  },
-  {
     "id": "q-mcp-token-audience",
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
@@ -1618,7 +1166,7 @@
     "answer": "d",
     "takeaway": "Remote MCP server: **always validate tokens**, including the audience, so tokens issued for other APIs are rejected.",
     "explanation": "MCP's authorization guide says a token reaching your server isn't necessarily **meant** for it. Accepting any signed, unexpired token lets tokens issued for other internal APIs through, so check that each token's audience matches your server and reject the rest, which also helps avoid token passthrough (Option D). B is the tempting trap because logging seems useful for tracing misuse, but the guide says never to log `Authorization` headers or tokens. A doesn't secure a remote server, and C makes stolen tokens dangerous for longer.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
       "title": "Understanding Authorization in MCP",
@@ -1931,98 +1479,6 @@
     "lessonId": "l-agentic-customisation"
   },
   {
-    "id": "q-skill-api-no-network",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Agent Skills",
-    "stem": "A custom Skill's script calls your internal REST API using only the Python standard library, and it works in Claude Code. You upload the same Skill through the Skills API and use it with the code execution tool. The rest of the Skill works, but that step fails. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Skills on the Claude API run without network access, so the API call fails",
-        "reason": "Correct: on the Claude API, Skills run in a sandboxed container with no network access, so they can't make external API calls; Claude Code Skills have full network access."
-      },
-      {
-        "id": "b",
-        "text": "Skills uploaded through the API must also be uploaded on claude.ai before they sync",
-        "reason": "Skills don't sync across surfaces, but that affects where a Skill is available; it wouldn't make one step of a working Skill fail."
-      },
-      {
-        "id": "c",
-        "text": "The Skill is missing the code execution tool, which its scripts need in order to run",
-        "reason": "The stem says the code execution tool is in the request and the rest of the Skill works, so its container is running."
-      },
-      {
-        "id": "d",
-        "text": "API Skills can't run bundled scripts at all; only the SKILL.md instructions are loaded",
-        "reason": "Bundled scripts run through bash in the Skill's environment, and only their output enters context; that isn't specific to one surface."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Same Skill, different runtime: **API = no network, no runtime installs**; Claude Code = full network access.",
-    "explanation": "The same Skill runs in a **different runtime** depending on the surface. On the Claude API, Skills run in a sandboxed container with no network access, so the step calling your REST API fails, while Claude Code Skills have full network access (Option A). C is the tempting trap, but the stem says the code execution tool is in the request and the rest of the Skill works, so the container is running. B's lack of syncing affects availability, not a single step, and D is wrong because bundled scripts do run.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
-      "title": "Agent Skills",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-agent-skill"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-skill-team-sharing",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Agent Skills",
-    "stem": "Your engineers use Claude Code and an internal app built on the Claude API. You want one custom Skill available to all of them without each person uploading or installing it. Which approaches achieve that?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Upload it once in claude.ai settings, where it's shared with the organization",
-        "reason": "Custom Skills in claude.ai are individual to each user: each team member must upload separately."
-      },
-      {
-        "id": "b",
-        "text": "Upload it through the Claude API, where custom Skills are shared workspace-wide",
-        "reason": "Correct: custom Skills uploaded through the API are workspace-wide, so all workspace members can access them."
-      },
-      {
-        "id": "c",
-        "text": "Upload it in claude.ai and let it sync to the API and to Claude Code from there",
-        "reason": "Custom Skills don't sync across surfaces: Skills uploaded to claude.ai must be uploaded separately to the API."
-      },
-      {
-        "id": "d",
-        "text": "Commit it to the repository's `.claude/skills/` directory for Claude Code",
-        "reason": "Correct: Claude Code Skills can be project-based (`.claude/skills/`), and can also be shared through plugins."
-      },
-      {
-        "id": "e",
-        "text": "Ask a claude.ai admin to distribute it centrally to every member of the org",
-        "reason": "claude.ai does not support centralized admin management or org-wide distribution of custom Skills."
-      }
-    ],
-    "answer": [
-      "b",
-      "d"
-    ],
-    "takeaway": "Skill sharing: claude.ai = per user; **API = workspace-wide**; Claude Code = project `.claude/skills/` or a plugin.",
-    "explanation": "Sharing depends on the **surface**. Custom Skills uploaded through the Claude API are workspace-wide, so everyone using the internal app gets it (B). For Claude Code, committing the Skill to the repository's `.claude/skills/` directory shares it with the project (D). A is the most tempting wrong pick because a single upload in claude.ai sounds organization-wide, but custom Skills there are individual to each user. C fails because Skills don't sync across surfaces, and E because claude.ai has no org-wide distribution for custom Skills.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
-      "title": "Agent Skills",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-agent-skill"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
     "id": "q-skill-untrusted-source",
     "domainId": "tools-mcp",
     "subSkillId": "agentic-customisation",
@@ -2062,49 +1518,6 @@
     "relatedCardIds": [
       "c-agent-skill",
       "c-plugin-trust"
-    ],
-    "lessonId": "l-agentic-customisation"
-  },
-  {
-    "id": "q-sdk-tools-empty-builtins",
-    "domainId": "tools-mcp",
-    "subSkillId": "agentic-customisation",
-    "topic": "Built-in vs custom tools",
-    "stem": "Your Agent SDK support bot should use only your custom MCP tools, never built-ins like Bash or Read. You list your tools in `allowedTools`, yet Claude still sometimes tries Bash. What should you change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add a scoped `disallowedTools` rule such as `\"Bash(rm *)\"` to deny risky calls",
-        "reason": "A scoped rule leaves the tool in context and denies only matching calls, so Claude may still try Bash; removing it needs `tools` or a bare name."
-      },
-      {
-        "id": "b",
-        "text": "List each custom tool in `allowedTools` again, using its full `mcp__` tool name",
-        "reason": "`allowedTools` works at the permission layer: listed tools skip the prompt, but other tools remain available to Claude."
-      },
-      {
-        "id": "c",
-        "text": "Pass `tools: []` so every built-in is removed and only your MCP tools remain",
-        "reason": "Correct: `tools` controls availability. `tools: []` removes all built-ins, so Claude can only use your MCP tools."
-      },
-      {
-        "id": "d",
-        "text": "Set `readOnlyHint: true` on the custom tools so Claude prefers them to built-ins",
-        "reason": "`readOnlyHint` controls whether a tool can run in parallel with other read-only tools; it doesn't hide built-ins."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "`allowedTools` = skip the prompt; `tools` = what exists. To hide built-ins, use `tools: []` (or bare names in `disallowedTools`).",
-    "explanation": "`allowedTools` and `tools` work at different layers. `allowedTools` is the permission layer: listed tools skip the prompt, but other tools stay available, which is why Claude still tries Bash. `tools` controls what exists, so `tools: []` removes every built-in and leaves only your MCP tools (Option C). A is the tempting trap because a deny rule sounds strong, but a scoped rule like `Bash(rm *)` keeps the tool in context and denies only matching calls. B repeats the permission-layer fix, and D's `readOnlyHint` doesn't hide built-ins.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
-      "title": "Give Claude custom tools",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-allowed-vs-disallowed-tools",
-      "c-sdk-custom-tool"
     ],
     "lessonId": "l-agentic-customisation"
   },
@@ -2370,7 +1783,7 @@
     "takeaway": "Within a tool-use turn, `thinking` blocks go back to the API unchanged, next to their `tool_use` blocks.",
     "explanation": "When Claude calls a tool it pauses its response, and your `tool_result` lets it resume that same response, so its earlier reasoning must travel with it. The detail that decides it is that the blocks are dropped inside an unfinished tool-use turn. Choice d looks like a clean workaround, but switching thinking mid-turn just silently disables thinking for that request.",
     "mnemonic": "Mid-turn, the thinking rides along.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
@@ -2607,7 +2020,7 @@
     "answer": "b",
     "takeaway": "Steps that always run together can be one tool: build for the workflow (`schedule_event`), not for each API endpoint.",
     "explanation": "When subtasks always depend on each other, splitting them across tools costs round trips and the context of intermediate outputs. The post's own example replaces `list_users`, `list_events` and `create_event` with `schedule_event`. Choice a is tempting because smaller steps feel simpler, but it adds tools and makes the chain longer.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "Three always-chained calls, consolidated into one.",
@@ -2836,49 +2249,6 @@
     "lessonId": "l-course-mcp-vs-manual"
   },
   {
-    "id": "q-mcp-sdk-mix-server-and-custom",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP vs manual schemas",
-    "stem": "Your Agent SDK support agent must list GitHub issues and run your in-house `issue_refund` logic. You want no hand-written GitHub tools, and only the GitHub tool you need allowed to run without a prompt. Which setup fits the Agent SDK's MCP docs?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Hand-write a GitHub tool, then expose both tools from one stdio MCP server you build for the agent",
-        "reason": "The docs say MCP lets agents integrate with APIs like GitHub without writing custom tool implementations."
-      },
-      {
-        "id": "b",
-        "text": "Connect the GitHub MCP server, and set `permissionMode: \"acceptEdits\"` to auto-approve its tools",
-        "reason": "`acceptEdits` doesn't auto-approve MCP tools, and this setup leaves the refund logic without a tool."
-      },
-      {
-        "id": "c",
-        "text": "Connect the GitHub MCP server, put `issue_refund` in an SDK MCP server, and allow `mcp__github__list_issues`",
-        "reason": "Correct: external servers and your own in-process SDK MCP server sit side by side, and `allowedTools` grants exactly the tool you name."
-      },
-      {
-        "id": "d",
-        "text": "Connect the GitHub MCP server and describe the refund rules in the prompt so Claude applies them",
-        "reason": "The refund logic should run as a tool in your code; SDK MCP servers exist to define custom tools directly in application code."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Mix freely: a ready-made MCP server for third-party services, your own SDK MCP server for in-house logic, and `allowedTools` for approval.",
-    "explanation": "This is the use-both case: GitHub already has an MCP server, while the refund logic is yours. The SDK lets you pass external servers and an in-process SDK MCP server together, and an `allowedTools` entry like `mcp__github__list_issues` auto-approves just that tool. Choice b is tempting because a permission mode looks simpler, but `acceptEdits` doesn't cover MCP tools.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
-      "title": "Connect to external tools with MCP",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-sdk-custom-tool",
-      "c-allowed-vs-disallowed-tools"
-    ],
-    "lessonId": "l-course-mcp-vs-manual"
-  },
-  {
     "id": "q-mcp-vague-server-description",
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
@@ -3097,70 +2467,6 @@
     "relatedCardIds": [
       "c-content-blocks",
       "c-tool-choice"
-    ],
-    "lessonId": "l-course-tool-use-loop"
-  },
-  {
-    "id": "q-loop-request-count",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Tool-use loop",
-    "stem": "A user asks \"What's the weather where I am?\". Claude calls your `get_location` tool, then, after seeing that result, calls your `get_weather` tool, then answers. Your app drives the loop on the Messages API. How many requests does it send for this one question?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "One: Claude runs both tools inside the request and returns the finished answer",
-        "reason": "That describes server tools, which run in a server-side loop. Client tools need a round trip per call: Claude asks, you execute, you report back."
-      },
-      {
-        "id": "b",
-        "text": "Three: the question, then one more request that returns each tool's result",
-        "reason": "Correct: request 1 gets the `get_location` call, request 2 returns its result and gets `get_weather`, request 3 returns that result and gets the answer."
-      },
-      {
-        "id": "c",
-        "text": "Two: the question, then one request that carries both tools' results together",
-        "reason": "Results share a request only when Claude asked for them in one response; here `get_weather` comes after Claude sees the location."
-      },
-      {
-        "id": "d",
-        "text": "Four: each tool needs a request to call it and another to return its result",
-        "reason": "Claude's `tool_use` arrives in the response to your previous request, so each call adds only the request that carries its result."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Each client tool round trip costs a request: one to start, then one per response of tool calls you answer.",
-    "explanation": "Client tools run in your code, so every `tool_use` response needs a new request carrying its `tool_result`. The deciding detail is that `get_weather` depends on the location, so the two calls arrive in separate responses. Choice a is tempting, but only server tools such as `web_search` run inside Anthropic's server-side loop within one request.",
-    "difficulty": "medium",
-    "diagram": {
-      "kind": "flow",
-      "caption": "What Claude does for this question. Count the round trips.",
-      "steps": [
-        {
-          "label": "User question"
-        },
-        {
-          "label": "tool_use",
-          "sublabel": "get_location"
-        },
-        {
-          "label": "tool_use",
-          "sublabel": "get_weather"
-        },
-        {
-          "label": "Final answer",
-          "sublabel": "end_turn"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
-      "title": "How tool use works",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-client-vs-server-tools",
-      "c-stop-reason"
     ],
     "lessonId": "l-course-tool-use-loop"
   },
@@ -3569,49 +2875,6 @@
     "lessonId": "l-course-tool-schemas"
   },
   {
-    "id": "q-schema-prefix-vs-suffix",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Tool namespacing",
-    "stem": "Your team agrees to namespace tools across Asana and Jira but splits on the pattern: prefixes (`asana_search`, `jira_search`) or suffixes (`search_asana`, `search_jira`). What does Anthropic's post on writing tools for agents advise?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Always use prefixes, because prefixes are the format that MCP clients require for tool names",
-        "reason": "The post says MCP clients sometimes namespace by default, not that they require prefixes, and effects vary by LLM."
-      },
-      {
-        "id": "b",
-        "text": "Either pattern works the same, because Claude reads the descriptions before it reads the names",
-        "reason": "The post found that choosing between prefix- and suffix-based namespacing has non-trivial effects on tool-use evaluations."
-      },
-      {
-        "id": "c",
-        "text": "Skip namespacing, since detailed descriptions alone keep overlapping tools apart",
-        "reason": "The post recommends namespacing to delineate boundaries when tools overlap in function or have a vague purpose."
-      },
-      {
-        "id": "d",
-        "text": "Decide with your own evaluations, since the choice has non-trivial effects that vary by model",
-        "reason": "Correct: effects vary by LLM, and the post encourages choosing a naming scheme according to your own evaluations."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Namespacing helps; whether prefixes or suffixes work better varies by model, so let your own evals decide.",
-    "explanation": "Namespacing separates overlapping tools, but the post reports that prefix and suffix schemes score differently, and the effect depends on the model. The deciding detail is that the team already agrees to namespace and only disputes the pattern. Choice b is tempting because the names carry the same information either way, yet Anthropic measured non-trivial differences.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
-      "title": "Writing effective tools for agents — with agents",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-tool-description",
-      "c-minimal-tool-set"
-    ],
-    "lessonId": "l-course-tool-schemas"
-  },
-  {
     "id": "q-schema-when-claude-calls",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -3650,7 +2913,7 @@
     ],
     "takeaway": "Claude calls a tool when a request needs its described capability; steer how readily it does so with the system prompt.",
     "explanation": "Under `auto`, Claude weighs each request against each tool's described capability and answers general knowledge itself. The deciding detail is that only the live-data question triggered the tool, which is the documented behavior. Choice c is tempting because strict sounds like stricter tool use, but it governs input shape, not whether Claude calls the tool.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
       "title": "Tool use with Claude",
@@ -4000,8 +3263,8 @@
     "choices": [
       {
         "id": "a",
-        "text": "Rename Asana's tool to `asana_search` in that toolset's `configs` entry",
-        "reason": "Per-tool `configs` set fields such as `enabled` and `defer_loading`; the page offers no field for renaming a server's tool."
+        "text": "Rewrite the description of `search` on the Asana server",
+        "reason": "You own neither server, so you can't change their tool descriptions."
       },
       {
         "id": "b",
@@ -4010,19 +3273,19 @@
       },
       {
         "id": "c",
-        "text": "Set `defer_loading: true` on Jira's `search` so Claude examines it more closely",
-        "reason": "With `defer_loading`, a tool's description isn't sent to the model initially, so Claude would see less of Jira's tool, not more."
+        "text": "Remove the Jira server so only one `search` tool is left",
+        "reason": "The assistant needs Jira's `search`; dropping the server removes the tool you actually want."
       },
       {
         "id": "d",
-        "text": "Remove the Asana server's `mcp_toolset` while keeping the server listed in `mcp_servers`",
-        "reason": "Every server in `mcp_servers` must be referenced by exactly one toolset, so this fails validation and drops the other tools."
+        "text": "Set `tool_choice` to `any` so Claude has to call some tool",
+        "reason": "Forcing a tool call doesn't change which `search` tool Claude picks."
       }
     ],
     "answer": "b",
     "takeaway": "When a server you don't own exposes a tool you don't need, disable it in the toolset's `configs` so Claude can't pick it.",
-    "explanation": "Claude chooses among MCP tools by their names and descriptions, and you can't fix another vendor's description. The deciding detail is that you own neither server but control your own toolset configuration. Choice a is tempting because namespacing is the usual cure for overlap, but the connector's per-tool configs only enable, disable or defer tools.",
-    "difficulty": "hard",
+    "explanation": "Claude chooses among MCP tools by their names and descriptions, and you can't edit another vendor's server. What you do control is your own toolset configuration: per-tool `configs` can disable Asana's `search` while its other tools stay enabled (B). A needs access you don't have, C drops a server you need, and D forces a call without changing which tool gets picked.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
       "title": "MCP connector",

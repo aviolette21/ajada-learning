@@ -426,8 +426,8 @@
     "choices": [
       {
         "id": "a",
-        "text": "Pin a Claude 4.6 model instead, since that generation still accepts the prefill",
-        "reason": "Prefill on the last assistant turn stopped being supported **starting with** Claude 4.6 models; only earlier models accept it."
+        "text": "Move `{\"label\": \"` into the system prompt and ask Claude to start its reply with it",
+        "reason": "That only asks for the format; the guide's replacement for prefill-forced formats is structured outputs or an enum tool."
       },
       {
         "id": "b",
@@ -446,10 +446,10 @@
       }
     ],
     "answer": "c",
-    "takeaway": "Prefill on the last turn is gone from **Claude 4.6** on; constrain format with **structured outputs** or an enum tool instead.",
-    "explanation": "The 400 comes from the request **shape**: a prefilled final assistant turn isn't supported starting with Claude 4.6 models. So the prefill must go, and the guide's replacement for constraining a classifier's format is structured outputs or a tool whose field is an `enum` of valid labels (C). Option B is tempting, but any prefill fails however short it is. Option A misreads the cutoff, since 4.6 is where support stopped, and D retries a request that fails the same way every time.",
-    "mnemonic": "No prefill from 4.6 on: schema it instead.",
-    "difficulty": "hard",
+    "takeaway": "Newer models reject a prefilled last assistant turn; constrain format with **structured outputs** or an enum tool instead.",
+    "explanation": "The 400 comes from the request **shape**: newer models such as Claude Opus 5.5 don't accept a prefilled final assistant turn. So the prefill must go, and the guide's replacement for constraining a classifier's format is structured outputs or a tool whose field is an `enum` of valid labels (C). B fails because any prefill fails however short it is, A only asks for the format instead of constraining it, and D retries a request that fails the same way every time.",
+    "mnemonic": "No prefill: schema it instead.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -575,7 +575,7 @@
     "answer": "a",
     "takeaway": "Prompts tuned against undertriggering can **overtrigger** newer models; soften the wording first, lower effort second.",
     "explanation": "The prompt was written to fight **undertriggering** on an older model, and Opus 4.5 and 4.6 are more responsive to the system prompt, so the aggressive 'CRITICAL... MUST' wording now overtriggers. The first fix is to dial back to normal wording (A). Option C sounds like it adds judgment, but the guide warns that 'If in doubt, use [tool]' itself causes overtriggering. Option B adds more aggressive language, the very cause, and D gets effort backwards: the guide's fallback is to lower it.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -689,49 +689,6 @@
     "lessonId": "l-output-handling"
   },
   {
-    "id": "q-output-enum-casing",
-    "domainId": "prompt-context",
-    "subSkillId": "output-handling",
-    "topic": "Structured outputs",
-    "stem": "A classifier uses JSON outputs with an `enum` of labels that includes \"Conversation topic 3\". Now and then a reply says \"Conversation Topic 3\", with no error and a normal stop reason, and your exact-match lookup fails. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Report it as a bug, since constrained decoding guarantees the exact enum values",
-        "reason": "The docs say structured outputs **don't** guarantee the capitalization of string `enum` and `const` values."
-      },
-      {
-        "id": "b",
-        "text": "Treat it as a refusal and retry the request on a fallback model",
-        "reason": "A refusal has `stop_reason: \"refusal\"`. This response completes normally, with no special stop reason."
-      },
-      {
-        "id": "c",
-        "text": "Raise `max_tokens` so that the label is never cut off partway",
-        "reason": "A cut-off shows `stop_reason: \"max_tokens\"`; here the whole label arrived with different casing."
-      },
-      {
-        "id": "d",
-        "text": "Compare labels case-insensitively and avoid values that differ only in case",
-        "reason": "Correct: this is the docs' advice, and it applies to both JSON outputs and strict tool use."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Structured outputs can change an enum's **capitalization** silently, so compare labels case-insensitively.",
-    "explanation": "The key details are that the reply completes **normally**, with no error and no special stop reason; only the capitalization differs. The docs say structured outputs don't guarantee the casing of string `enum` and `const` values, so the fix is case-insensitive comparison and avoiding labels that differ only by case (D). Option A is the trap, assuming constrained decoding guarantees exact casing. Option B would need `stop_reason: \"refusal\"`, and C would need `\"max_tokens\"`; neither appears here.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-enum-casing",
-      "c-json-outputs"
-    ],
-    "lessonId": "l-output-handling"
-  },
-  {
     "id": "q-output-allow-uncertainty",
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
@@ -772,134 +729,6 @@
       "c-allow-uncertainty"
     ],
     "lessonId": "l-output-handling"
-  },
-  {
-    "id": "q-context-skill-truncation-after-compact",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Compaction (Claude Code)",
-    "stem": "A team's 12,000-token skill puts its critical safety steps at the end of `SKILL.md`. After a long Claude Code session compacts, Claude still follows the skill's early steps but skips the safety steps. What explains this, and what's the fix?",
-    "takeaway": "After compaction, big skills come back **truncated from the end**; put critical instructions at the top of `SKILL.md`.",
-    "explanation": "After compaction, invoked skill bodies are **re-injected**, but capped at 5,000 tokens per skill, and truncation keeps the start of the file. A 12,000-token skill with its safety steps at the end loses exactly those steps, which matches the symptom, so the fix is to move them to the top (D). Option A is tempting but wrong because skills aren't dropped outright; the early steps still work. Option B swaps in path-scoped rules, which are also summarized away, and C blames the description, which doesn't affect the body cap.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/context-window",
-      "title": "Explore the context window",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-agent-skill",
-      "c-compaction"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Skills are dropped entirely at compaction; re-invoke the skill by hand after every compaction",
-        "reason": "Invoked skill bodies are re-injected after compaction, capped at 5,000 tokens per skill and 25,000 tokens in total; they aren't dropped outright."
-      },
-      {
-        "id": "b",
-        "text": "Compaction summarizes skills with the chat; copy the safety steps into a path-scoped rule",
-        "reason": "Path-scoped rules are themselves summarized away at compaction until a matching file loads them again, so they are no safer here."
-      },
-      {
-        "id": "c",
-        "text": "The skill description is too long; trim the description so the full body is reloaded",
-        "reason": "The cap applies to the re-injected skill body, whatever the description says: large skills are truncated to fit the per-skill cap."
-      },
-      {
-        "id": "d",
-        "text": "Re-injection keeps only the start of a large skill; move the most important steps to the top",
-        "reason": "Correct: skill bodies return capped at 5,000 tokens per skill, and truncation keeps the start of the file, so the docs say put the key instructions near the top."
-      }
-    ],
-    "answer": "d"
-  },
-  {
-    "id": "q-context-exclude-tools",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context editing",
-    "stem": "Your agent uses tool result clearing. Its first call, `get_requirements`, returns the spec Claude must follow for the whole task, but that result gets cleared as the conversation grows. How do you keep it while other old results are still cleared?",
-    "takeaway": "Need one tool's results to survive clearing? List the tool in **`exclude_tools`**.",
-    "explanation": "You need one specific tool's result to survive while clearing keeps working on everything else, and `exclude_tools` names tools whose uses and results are never cleared (B). Option D is the tempting trap: `keep` preserves the most **recent** pairs, but the API removes the oldest first, and `get_requirements` is the very first call. Option A only controls whether tool inputs are cleared along with results, and C sets a minimum amount cleared per pass; neither protects anything.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
-      "title": "Context editing",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-result-clearing"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set `clear_tool_inputs` to `true` so the requirements tool call is preserved",
-        "reason": "`clear_tool_inputs` controls whether tool call parameters are cleared **along with** the results; it doesn't protect any result."
-      },
-      {
-        "id": "b",
-        "text": "List `get_requirements` in `exclude_tools` so its uses and results are never cleared",
-        "reason": "Correct: `exclude_tools` names tools whose tool uses and results should never be cleared, which the docs call useful for preserving important context."
-      },
-      {
-        "id": "c",
-        "text": "Raise `clear_at_least` so that each clearing pass removes fewer of the older tool results",
-        "reason": "`clear_at_least` sets a **minimum** number of tokens cleared each time, to make breaking the cache worthwhile; it protects nothing."
-      },
-      {
-        "id": "d",
-        "text": "Raise `keep` to a high value so the tool's first result is always among the results kept",
-        "reason": "`keep` preserves the most **recent** tool use/result pairs; the API removes the oldest first, and this is the oldest call."
-      }
-    ],
-    "answer": "b"
-  },
-  {
-    "id": "q-context-clearing-cache-cost",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context editing",
-    "stem": "After you enable tool result clearing, cache write costs jump. Logs show each clearing pass frees only a few hundred tokens, yet each one breaks the cached prompt prefix. Which setting addresses this?",
-    "takeaway": "Tool result clearing breaks the cache; use **`clear_at_least`** so each clearing frees enough tokens to pay for it.",
-    "explanation": "The logs show the real cost: every clearing pass breaks the cached prompt prefix, yet frees only a few hundred tokens. `clear_at_least` (A) sets a minimum, so clearing runs only when it can free enough tokens to be worth the cache break. Option C is the trap, because thinking block clearing also invalidates the cache where blocks are cleared. Option B stops clearing altogether and brings back the pile-up, and D removes more per pass without setting any minimum.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
-      "title": "Context editing",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-result-clearing",
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`clear_at_least`, so clearing runs only when it can free enough tokens to be worth it",
-        "reason": "Correct: clearing invalidates cached prefixes, so the docs say clear enough tokens to make it worthwhile; if the API can't clear that amount, the strategy isn't applied."
-      },
-      {
-        "id": "b",
-        "text": "`exclude_tools` listing every tool, so no tool result is ever cleared from the history",
-        "reason": "That stops clearing altogether, so old tool results pile up again, which is the problem the strategy was enabled to solve."
-      },
-      {
-        "id": "c",
-        "text": "Thinking block clearing instead, since it never affects the prompt cache at any setting",
-        "reason": "Thinking block clearing also invalidates the cache at the point where blocks are cleared; only keeping them preserves the cache."
-      },
-      {
-        "id": "d",
-        "text": "`clear_tool_inputs: true`, so that each pass also removes the tool call parameters",
-        "reason": "That clears tool inputs along with results, but each pass still breaks the cache however little it frees; it sets no minimum."
-      }
-    ],
-    "answer": "a"
   },
   {
     "id": "q-context-editing-client-history",
@@ -1003,48 +832,6 @@
       }
     ],
     "answer": "d"
-  },
-  {
-    "id": "q-context-compaction-custom-instructions",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Compaction",
-    "stem": "To make compaction summaries list every file the agent edited, you set the `instructions` parameter to \"Also list every file path you edited.\" Now summaries list the paths but drop the task state and next steps. Why?",
-    "takeaway": "Compaction `instructions` **replace** the default prompt; restate everything the summary must keep, not just the extra.",
-    "explanation": "The `instructions` parameter **replaces** the default summarization prompt completely rather than adding to it. The default asked for what is needed to continue the task, so a one-line replacement that only asks for file paths loses the task state and next steps (B). Option C is the tempting trap: the trigger sets **when** compaction happens, but what the summary contains comes from the prompt. Options A and D point at `pause_after_compaction` and streaming, neither of which changes the summary's content.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
-      "title": "Compaction at a token threshold",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-compaction"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Custom instructions take effect only once you also enable `pause_after_compaction`",
-        "reason": "`pause_after_compaction` lets you add content blocks after the summary is generated; it doesn't change how `instructions` apply."
-      },
-      {
-        "id": "b",
-        "text": "Custom instructions replace the default summarization prompt completely; they don't add to it",
-        "reason": "Correct: custom instructions replace the default prompt, which asks for what's needed to continue the task (on some models: state, next steps, learnings), so yours must ask too."
-      },
-      {
-        "id": "c",
-        "text": "The trigger fired too early, so there wasn't enough history yet for a fuller summary",
-        "reason": "The trigger sets when compaction happens; what the summary contains comes from the summarization prompt, here your one-line replacement."
-      },
-      {
-        "id": "d",
-        "text": "Compaction blocks lose detail when streamed, since the summary arrives in a single delta event",
-        "reason": "Streaming sends the complete summary in a single `content_block_delta`; that changes how the block arrives, not what it contains."
-      }
-    ],
-    "answer": "b"
   },
   {
     "id": "q-context-hybrid-retrieval",
@@ -1549,48 +1336,6 @@
     "answer": "d"
   },
   {
-    "id": "q-prompt-opus5-oververification",
-    "domainId": "prompt-context",
-    "subSkillId": "prompt-engineering",
-    "topic": "Prompt adjustment",
-    "stem": "You migrate a coding prompt to Claude Opus 5. It still ends with \"Before you finish, verify your answer against the test criteria,\" carried over from older models, and responses now spend extra tokens and time re-verifying. What does the prompting guide advise?",
-    "takeaway": "Re-check carried-over prompt lines per model: on **Opus 5**, drop self-check instructions instead of rewording them.",
-    "explanation": "Prompt lines carried over from older models need re-checking per model. On Opus 5, the guide says it verifies its own work well without being asked, so carried-over self-check instructions cause over-verification, costing tokens and latency; remove them (C). Option B is the tempting trap: softening the wording seems gentler, but the guide says remove these lines rather than rewrite them. Option A adds more verification, and D assumes self-check lines help on every model, while Opus 5 is the exception.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
-      "title": "Prompting best practices",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-overtriggering"
-    ],
-    "lessonId": "l-prompt-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Strengthen it to \"ALWAYS verify twice\" so that each verification pass is more thorough",
-        "reason": "More emphasis means more verification; the guide says Opus 5 verifies its own work well without explicit instruction."
-      },
-      {
-        "id": "b",
-        "text": "Rewrite the instruction in softer, less emphatic wording and keep it in the prompt",
-        "reason": "On Claude Opus 5, the guide says to remove these instructions rather than rewrite them."
-      },
-      {
-        "id": "c",
-        "text": "Remove the self-check line; Opus 5 verifies its own work well without being asked",
-        "reason": "Correct: carried-over verification instructions can cause over-verification on Opus 5, adding tokens and latency; the guide says remove them rather than rewrite them."
-      },
-      {
-        "id": "d",
-        "text": "Keep it unchanged, since self-check lines catch errors reliably on every current model",
-        "reason": "The guide makes Opus 5 the exception: it verifies well unprompted, and carried-over verification instructions can cause over-verification."
-      }
-    ],
-    "answer": "c"
-  },
-  {
     "id": "q-prompt-not-every-fix-is-prompting",
     "domainId": "prompt-context",
     "subSkillId": "prompt-engineering",
@@ -1848,9 +1593,9 @@
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
     "topic": "Defensive parsing",
-    "stem": "You move an app from Claude Sonnet 4.6 to Claude Sonnet 5.5 without setting the `thinking` parameter. Code that reads `response.content[0].text` now sometimes finds no text there. What does Anthropic's prompting guide advise?",
+    "stem": "Your app turns thinking on. Code that reads `response.content[0].text` now sometimes finds no text there. What does Anthropic's prompting guide advise?",
     "takeaway": "Never assume `content[0]` is text: **select blocks by `type`**, since responses can start with `thinking` blocks.",
-    "explanation": "With `thinking` omitted, thinking is on by default on Sonnet 5.5, so a response can **begin** with `thinking` blocks and `content[0]` may not be text. The fix is to select blocks by `type` and leave room in `max_tokens` for thinking (C). Option B is the trap: reading the last block still selects by position. Option A fails because the lowest setting on Sonnet 5.5 is `between_tools`, not disabled, and D squeezes `max_tokens`, the opposite of the guide's advice.",
+    "explanation": "With thinking on, a response can **begin** with `thinking` blocks, so `content[0]` may not be text. The fix is to select blocks by `type` and leave room in `max_tokens` for thinking (C). Options A and B still select by position, and D squeezes `max_tokens`, the opposite of the guide's advice.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
@@ -1864,8 +1609,8 @@
     "choices": [
       {
         "id": "a",
-        "text": "Set `thinking` to disabled on Sonnet 5.5 so the first block is always the text block",
-        "reason": "On Claude Sonnet 5.5 the lowest thinking setting is `between_tools`, accepted at effort `high` or lower."
+        "text": "Always read `content[1]` instead, since the text is always the second block",
+        "reason": "That still selects by position; the guide says select content blocks by `type` rather than by position."
       },
       {
         "id": "b",
@@ -1875,7 +1620,7 @@
       {
         "id": "c",
         "text": "Pick content blocks by `type`, not position, and leave room in `max_tokens` for thinking",
-        "reason": "Correct: on Sonnet 5.5, thinking is on by default when `thinking` is omitted, so a response can begin with `thinking` blocks."
+        "reason": "Correct: with thinking on, a response can begin with `thinking` blocks, so select blocks by `type`."
       },
       {
         "id": "d",
@@ -1886,104 +1631,11 @@
     "answer": "c"
   },
   {
-    "id": "q-output-schema-too-complex",
-    "domainId": "prompt-context",
-    "subSkillId": "output-handling",
-    "topic": "Strict tool use",
-    "stem": "Your agent marks all 40 of its tools `strict: true`, many with optional parameters nested several levels deep. Requests fail with a 400: \"Schema is too complex for compilation.\" Which two changes does the structured outputs page suggest?",
-    "takeaway": "Schema too complex? Use **strict only where it matters**, fewer optional parameters and flatter structures.",
-    "explanation": "The 400 says combined grammar complexity is too high, so the fixes reduce complexity. Reserve strict for tools where violations cause real problems (B), and make parameters with sensible defaults required (E), since each optional parameter roughly doubles part of the state space. Option C is the tempting wrong pick: grouping by nesting deeper compounds complexity, and the page says flatten instead. Option A retries a too-complex schema, and D adds `minimum`/`maximum`, which aren't supported.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-strict-tool-use"
-    ],
-    "lessonId": "l-output-handling",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Retry the request until the grammar finishes compiling",
-        "reason": "The 400 means the combined complexity exceeds what can be efficiently compiled; there is also a 180-second compilation timeout."
-      },
-      {
-        "id": "b",
-        "text": "Mark as strict only tools where violations cause real problems",
-        "reason": "Correct: the page's first tip is to reserve strict for those tools and rely on Claude's natural adherence for simpler ones."
-      },
-      {
-        "id": "c",
-        "text": "Nest the optional fields deeper to group related parameters together",
-        "reason": "Deeply nested objects with optional fields compound complexity; the page says flatten structures where possible."
-      },
-      {
-        "id": "d",
-        "text": "Add `minimum` and `maximum` to numbers to narrow the grammar",
-        "reason": "Numerical constraints like `minimum` and `maximum` are not supported; using them returns a 400 error."
-      },
-      {
-        "id": "e",
-        "text": "Make more parameters required, with Claude supplying the defaults",
-        "reason": "Correct: each optional parameter roughly doubles part of the grammar's state space; if a parameter has a sensible default, make it required."
-      }
-    ],
-    "answer": [
-      "b",
-      "e"
-    ]
-  },
-  {
-    "id": "q-context-compaction-system-cache",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Compaction",
-    "stem": "You use threshold compaction with prompt caching. Each time compaction fires, your long system prompt is written to the cache again along with the new summary. How do you keep the system prompt's cache valid across compaction events?",
-    "takeaway": "With compaction, put a **`cache_control` breakpoint after the system prompt** so only the new summary needs a cache write.",
-    "explanation": "Without a breakpoint of its own, each new summary also invalidates the cached system prompt, which is why it gets written again. Putting a `cache_control` breakpoint at the end of the system prompt caches it on its own, so after compaction it is read from cache and only the summary is written (A). Option B is the trap: caching the compaction block alone still leaves the system prompt invalidated. Option C just spaces out the same cost, and D changes the summary prompt, not caching.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-threshold",
-      "title": "Compaction at a token threshold",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-compaction",
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add a `cache_control` breakpoint at the end of the system prompt to cache it on its own",
-        "reason": "Correct: the docs say a breakpoint at the end of the system prompt keeps it cached separately, so after compaction it's read from cache and only the summary is written."
-      },
-      {
-        "id": "b",
-        "text": "Put `cache_control` only on the `compaction` block, so the summary is all that gets cached",
-        "reason": "You can cache the compaction block, but without a separate breakpoint the new summary also invalidates the cached system prompt."
-      },
-      {
-        "id": "c",
-        "text": "Raise the compaction trigger so compaction, and the cache rewrite, happen less often",
-        "reason": "That only spaces compactions out; each one still invalidates the cached system prompt unless the system prompt has its own breakpoint."
-      },
-      {
-        "id": "d",
-        "text": "Pass custom `instructions` so the summary leaves the system prompt out of the rewrite",
-        "reason": "`instructions` replaces the summarization prompt; caching depends on breakpoints, and the docs' fix is one at the end of the system prompt."
-      }
-    ],
-    "answer": "a"
-  },
-  {
     "id": "q-context-subagent-descriptions",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
     "topic": "Subagent context",
-    "stem": "Your Claude Code project defines 30 custom subagents, each with a long `description` that holds its full procedure. Claude Code warns at startup that agent descriptions exceed 15,000 tokens. What does the subagents guide recommend?",
+    "stem": "Your Claude Code project defines 30 custom subagents, each with a long `description` that holds its full procedure. Claude Code warns at startup that the agent descriptions are too large. What does the subagents guide recommend?",
     "takeaway": "Subagent **descriptions** cost context in every session: keep them short and put the detail in the **system prompt**.",
     "explanation": "Claude uses subagent **descriptions** to decide when to delegate, so they occupy context in every session, while a subagent's system prompt loads only when that subagent runs. Long procedures in 30 descriptions trigger the warning, so trim them and move the procedures into each system prompt (B). Option C is the trap, since it assumes descriptions load lazily, which is true only of system prompts. Option D shortens the wrong part, and A still keeps one long description in context.",
     "difficulty": "medium",
@@ -2062,98 +1714,6 @@
       }
     ],
     "answer": "c"
-  },
-  {
-    "id": "q-context-thinking-keep-across-tiers",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context editing",
-    "stem": "Your app routes the same conversations to Claude Sonnet 4.5 or Claude Opus 5.5 depending on load. Earlier turns' thinking blocks stay in context on one model but not the other, so context use differs. Which setting makes this consistent?",
-    "takeaway": "Thinking retention differs by model; across tiers, set **`keep`** explicitly in thinking block clearing.",
-    "explanation": "Thinking retention defaults **differ by model**: Opus 4.5 and later keep all prior thinking, while Sonnet 4.5 and earlier keep only the last turn's. When the same conversation can hit either tier, the docs say to set `keep` explicitly in thinking block clearing (D). Option C is the tempting DIY route, but on Opus 5.5 client-side edits to earlier turns can invalidate later thinking blocks. Option B gets the defaults wrong, and A manages tool results, not thinking.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
-      "title": "Context editing",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-tool-result-clearing"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Tool result clearing, which also removes thinking blocks from earlier turns",
-        "reason": "Tool result clearing removes old tool results (and optionally inputs); thinking blocks are managed by the thinking block clearing strategy."
-      },
-      {
-        "id": "b",
-        "text": "Each model's default, since both keep only the last turn's thinking blocks",
-        "reason": "Defaults differ: Opus 4.5 and later keep all prior thinking, while Sonnet 4.5 and earlier keep only the last turn's."
-      },
-      {
-        "id": "c",
-        "text": "Stripping the thinking blocks from your stored history before each request",
-        "reason": "On Claude Opus 5.5, client-side edits to earlier turns can invalidate the thinking blocks in later turns; server-side context management never does."
-      },
-      {
-        "id": "d",
-        "text": "Thinking block clearing (`clear_thinking_20251015`) with an explicit `keep` value",
-        "reason": "Correct: the default varies by model, and the docs say that if your code runs across model tiers, set `keep` explicitly rather than relying on the per-model default."
-      }
-    ],
-    "answer": "d"
-  },
-  {
-    "id": "q-context-tool-chains-and-caching",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Tool context",
-    "stem": "An agent's conversations are short, but each turn runs a chain of five small lookup calls whose intermediate results all land in the history. It also resends the same stable 15-tool set, all used often, on thousands of requests. Which two approaches fit?",
-    "takeaway": "Chains of small calls → **programmatic tool calling**; stable, repeated definitions → **prompt caching**.",
-    "explanation": "Read the two details separately. Chains of small lookups whose intermediate results flood the history call for programmatic tool calling (B), which runs the chain as one script so those results never enter the conversation. A stable toolset resent on thousands of requests calls for prompt caching (D), which cuts cost though not context size. Option A is the tempting wrong pick, but tool search fits large toolsets of 20+ mostly unused tools, not 15 used often. Option C targets long conversations, and these are short.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/manage-tool-context",
-      "title": "Manage tool context",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-context-engineering",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Tool search, to load the 15 definitions on demand",
-        "reason": "Tool search fits large toolsets (20+ tools) where most tools aren't needed every turn; this set is small and used often."
-      },
-      {
-        "id": "b",
-        "text": "Programmatic tool calling for the lookup chains",
-        "reason": "Correct: it collapses a chain of calls into one script run in a sandbox, so the intermediate results never enter the conversation history."
-      },
-      {
-        "id": "c",
-        "text": "Context editing to trim the earlier lookup results",
-        "reason": "Context editing fits long conversations where early results stop being relevant; these conversations are short."
-      },
-      {
-        "id": "d",
-        "text": "Prompt caching on the stable tool definitions",
-        "reason": "Correct: caching doesn't shrink the context, but for a stable toolset it cuts what you pay for the definitions on later requests."
-      },
-      {
-        "id": "e",
-        "text": "Removing `cache_control` so definitions load fresh",
-        "reason": "Without caching you pay full price for the same definitions every time; the guide suggests caching tool definitions from day one."
-      }
-    ],
-    "answer": [
-      "b",
-      "d"
-    ]
   },
   {
     "id": "q-prompt-context-hydration",
@@ -2416,49 +1976,6 @@
     "answer": "d"
   },
   {
-    "id": "q-output-format-change-cache",
-    "domainId": "prompt-context",
-    "subSkillId": "output-handling",
-    "topic": "Structured outputs",
-    "stem": "A long chat uses prompt caching. Midway, your app starts sending `output_config.format` with a JSON schema on some requests, and cache reads drop while input tokens rise slightly. What explains both effects?",
-    "takeaway": "Structured outputs add a little **input** (an injected format prompt), and **changing the format breaks the prompt cache**.",
-    "explanation": "Both effects come from how structured outputs work. Claude receives an extra system prompt explaining the format, which adds a little input, and **changing** `output_config.format` invalidates the prompt cache for that thread, so cache reads drop (A). Option C is the tempting near-miss: caching isn't switched off; it is the change of format that breaks it. Option B confuses grammar compilation, which is cached and adds latency, with prompt caching, and D blames output length, which has nothing to do with cache reads.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-json-outputs",
-      "c-prompt-caching"
-    ],
-    "lessonId": "l-output-handling",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A format system prompt is injected, and changing the format invalidates the cache",
-        "reason": "Correct: Claude gets an extra system prompt explaining the format, which costs input tokens, and changing `output_config.format` invalidates the prompt cache for that thread."
-      },
-      {
-        "id": "b",
-        "text": "The grammar is recompiled on every request, and compiling it is billed as extra input",
-        "reason": "Compiled grammars are cached for 24 hours from last use and add latency on first use; that doesn't explain the prompt cache misses."
-      },
-      {
-        "id": "c",
-        "text": "Structured outputs switch off prompt caching for any request that carries a schema",
-        "reason": "Nothing switches caching off; it's changing the `output_config.format` parameter that invalidates the prompt cache for that thread."
-      },
-      {
-        "id": "d",
-        "text": "JSON replies run longer than prose, and the extra output is counted as cache misses",
-        "reason": "Output length has nothing to do with cache reads; the input rise comes from the format system prompt Claude receives."
-      }
-    ],
-    "answer": "a"
-  },
-  {
     "id": "q-output-investigate-before-answering",
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
@@ -2550,7 +2067,7 @@
     "stem": "A compliance bot answers questions about one 50k-token policy document. Its answers sometimes include claims drawn from Claude's general knowledge rather than the policy. Which two techniques from Anthropic's hallucination guide target this?",
     "takeaway": "Answers drifting beyond the source? **Restrict to the documents** and **ground answers in extracted quotes**.",
     "explanation": "The drift is toward **general knowledge**, over a document above 20k tokens. Two techniques target that: external knowledge restriction, telling Claude to use only the policy (C), and extracting word-for-word quotes first so the answer is grounded in the actual text (E). Option D is the tempting wrong pick, since skipping quotes saves tokens but removes that grounding. Option A removes a protection that drastically reduces false information, and B misuses best-of-N, which compares outputs for inconsistency, not length.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
       "title": "Reduce hallucinations",
@@ -2969,44 +2486,37 @@
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
     "topic": "Choosing a technique",
-    "stem": "An eval of a contract-review prompt shows two failure types: (1) the risk report sometimes misses required sections, so your parser rejects it; (2) its risk ratings are wrong on contracts that need several cross-referencing steps. Which plan matches each failure?",
+    "stem": "An eval of a contract-review prompt shows the risk report always parses, but its risk ratings are wrong on contracts that need several cross-referencing steps. Which change targets this failure?",
     "choices": [
       {
         "id": "a",
-        "text": "Add a JSON schema with structured outputs; that one change fixes both failure types",
+        "text": "Add a JSON schema with structured outputs",
         "reason": "Structured outputs constrain the report's format. The ratings already fit the format but are wrong, which is a reasoning problem."
       },
       {
         "id": "b",
-        "text": "Prefill the reply with `{` and ask Claude to reason carefully",
-        "reason": "Structured outputs are the documented replacement for prefill-forced formats, and a request to be careful isn't the same as giving Claude thinking."
+        "text": "Give Claude more room to think before it rates",
+        "reason": "Correct: thinking helps on complex multistep reasoning, which is what these contracts need."
       },
       {
         "id": "c",
-        "text": "Give Claude more thinking for the report and examples for the ratings",
-        "reason": "Swapped: thinking helps with multistep reasoning, not schema compliance, and the report's format calls for a schema constraint."
+        "text": "Prefill the reply with `{` so the report starts cleanly",
+        "reason": "That targets format, which already works; structured outputs are the documented replacement for prefill-forced formats anyway."
       },
       {
         "id": "d",
-        "text": "Use structured outputs for the report and more thinking for the ratings",
-        "reason": "Correct: structured outputs constrain the response to a schema, and thinking helps on complex multistep reasoning."
+        "text": "Cut the prompt to one line so Claude isn't distracted",
+        "reason": "Removing context doesn't add reasoning; the failure appears only on contracts that need several steps."
       }
     ],
-    "answer": "d",
-    "takeaway": "Diagnose first: a **format** failure needs a constraint (structured outputs), while a **reasoning** failure needs thinking or worked examples.",
-    "explanation": "Each failure type points at a different missing technique. Failure 1 is a format problem, and structured outputs are designed to constrain responses to a schema. Failure 2 is a reasoning problem on multistep tasks, where thinking (helped by worked examples) is the fix. Option A is the tempting one-size fix: a schema makes the rating well-formed, but it can't make it right.",
-    "difficulty": "hard",
+    "answer": "b",
+    "takeaway": "A **reasoning** failure needs thinking (or worked examples); a schema only fixes **format**.",
+    "explanation": "Diagnose the failure first. The report parses, so format isn't the problem; the ratings go wrong only when the contract needs several reasoning steps. Thinking helps on complex multistep reasoning, so giving Claude more room to think is the fix (B). A and C both target format, which already works, and D removes context without adding reasoning.",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
-      "caption": "Two failure types, two different fixes.",
+      "caption": "Match the fix to the failure type.",
       "steps": [
-        {
-          "label": "Missing sections",
-          "sublabel": "format failure"
-        },
-        {
-          "label": "Structured outputs"
-        },
         {
           "label": "Wrong multistep rating",
           "sublabel": "reasoning failure"
@@ -3430,7 +2940,7 @@
     "answer": "c",
     "takeaway": "Fix the first step that failed: a passage lost at chunking can't be recovered by retrieval or prompting tweaks.",
     "explanation": "Trace the failure back through the path. The passage never reached the prompt, which rules out assembly and generation, and the log shows why: the split separated labels from values. Choice d is the tempting shortcut, but more chunks add noise while each half of the table still lacks the other.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "The answer was lost at the first step, so later steps can't recover it.",
@@ -3753,7 +3263,7 @@
     "answer": "a",
     "takeaway": "Give the **reason** behind a rule; Claude generalizes from the explanation to cases the rule didn't list.",
     "explanation": "The guide says providing the context or motivation behind instructions helps Claude understand your goals, and that Claude is smart enough to generalize from the explanation. Its own example turns \"NEVER use ellipses\" into a rule with its reason (a text-to-speech engine can't pronounce them). Here, saying why competitors mustn't appear lets Claude cover links and product pages too (A). B is the tempting patch-by-patch approach, which never ends.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
@@ -3788,8 +3298,8 @@
       },
       {
         "id": "d",
-        "text": "String `enum` values in the input match your casing exactly",
-        "reason": "Capitalization of string `enum` and `const` values isn't guaranteed, and that applies to strict tool use too."
+        "text": "Claude will call `create_ticket` on every turn",
+        "reason": "Strict tool use validates how Claude calls your functions; it doesn't decide whether Claude calls the tool."
       },
       {
         "id": "e",
@@ -3801,8 +3311,8 @@
       "a",
       "c"
     ],
-    "takeaway": "`strict: true` guarantees the tool's **input** and **name**. It doesn't shape the final reply or fix `enum` casing.",
-    "explanation": "Strict tool use is the half of structured outputs that guarantees schema validation on tool names and inputs, which is what A and C state. Option B is the tempting overreach: the response format is a separate feature, JSON outputs. D fails because enum casing isn't guaranteed in either feature, and E because Claude keeps its safety behaviour with structured outputs.",
+    "takeaway": "`strict: true` guarantees the tool's **input** and **name**. It doesn't shape the final reply or force a call.",
+    "explanation": "Strict tool use is the half of structured outputs that guarantees schema validation on tool names and inputs, which is what A and C state. Option B is the tempting overreach: the response format is a separate feature, JSON outputs. D fails because strict mode validates calls rather than forcing them, and E because Claude keeps its safety behaviour with structured outputs.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
@@ -3912,34 +3422,34 @@
     "id": "q-course-schema-reasoning-property",
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
-    "topic": "Structured outputs",
-    "stem": "To audit answers, you add a required `step_by_step_reasoning` property to your JSON outputs schema. Now some replies come back with HTTP 200 and `stop_reason: \"refusal\"`, and they don't match the schema. What does the structured-outputs guide suggest?",
+    "topic": "Combining structured outputs",
+    "stem": "Your agent must call its tools with schema-valid inputs, and its final answer must match a report schema your code parses. Which setup covers both needs?",
     "choices": [
       {
         "id": "a",
-        "text": "Make the property optional, so that a refusal can still come back as schema-valid JSON",
-        "reason": "Optional or not, a refusal message takes precedence over the schema. The trigger is the request for reasoning itself."
+        "text": "Strict tool use only; its guarantee also covers the final reply",
+        "reason": "Strict tool use validates tool parameters (how Claude calls your functions), not the response format."
       },
       {
         "id": "b",
-        "text": "Raise `max_tokens`, because the reasoning property makes replies too long",
-        "reason": "Running out of tokens shows up as `stop_reason: \"max_tokens\"`, not as a refusal."
+        "text": "JSON outputs only; its schema also validates every tool call",
+        "reason": "JSON outputs control Claude's response format (what Claude says), not tool parameters."
       },
       {
         "id": "c",
-        "text": "Retry until a reply passes, since a 200 status means the request succeeded",
-        "reason": "A 200 doesn't mean the schema was met: on a refusal you still get a 200, you're billed for the tokens, and the output may not match."
+        "text": "Neither works here, since the two features can't be combined",
+        "reason": "The guide says the two features can be used independently or together in the same request."
       },
       {
         "id": "d",
-        "text": "Swap it for a short explanation field; asking for reasoning can trigger refusals",
-        "reason": "Correct: a property that asks for the model's thinking or step-by-step reasoning may lead to a `reasoning_extraction` refusal. Ask for a short explanation instead."
+        "text": "Both: `strict: true` on the tools and a schema in `output_config.format`",
+        "reason": "Correct: combined, Claude calls tools with guaranteed-valid parameters and returns structured JSON responses."
       }
     ],
     "answer": "d",
-    "takeaway": "Don't ask for step-by-step reasoning in a schema property. Ask for a **short explanation**, and keep reasoning in thinking blocks.",
-    "explanation": "The guide warns that a schema property asking for the model's thinking or step-by-step reasoning may lead to a `reasoning_extraction` refusal, and a refusal overrides the schema. The refusals in the stem started when the reasoning property was added, which points to that cause. Option C is the tempting reflex because the status is 200, but refusals are billed and still miss the schema. B misreads the stop reason.",
-    "difficulty": "hard",
+    "takeaway": "Strict tool use guards **tool inputs**; JSON outputs guard the **reply**. Use both when you need both.",
+    "explanation": "JSON outputs and strict tool use solve different problems: JSON outputs control what Claude says, and strict tool use validates how it calls your functions. The guide notes they work together in the same request, which suits agents that need reliable tool calls and a structured final output (D). A and B each stretch one feature over the other's job, and C is wrong because the features combine.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
       "title": "Structured outputs",
@@ -4402,56 +3912,6 @@
     "lessonId": "l-course-rag-breakpoints"
   },
   {
-    "id": "q-rag-diagnose-chunking-symptoms",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "RAG chunking",
-    "stem": "You're triaging bad answers from a RAG bot to decide which step to fix first. Which findings point to the chunking step rather than retrieval matching or prompt assembly?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A query for error code \"TS-999\" retrieves pages about error codes in general, but not the TS-999 page",
-        "reason": "That is the match: embedding models can miss exact matches, which BM25’s lexical matching is built to catch."
-      },
-      {
-        "id": "b",
-        "text": "A pricing table was split so one chunk holds the row labels and the next holds the values",
-        "reason": "Correct: chunk size, boundaries and overlap affect retrieval performance, and this split left the table’s answer spread over two chunks."
-      },
-      {
-        "id": "c",
-        "text": "Initial retrieval returns hundreds of chunks of mixed relevance for every query",
-        "reason": "That is a retrieval-filtering problem; the post handles it with a reranking step that passes only the most relevant chunks to the model."
-      },
-      {
-        "id": "d",
-        "text": "A retrieved chunk says \"Revenue grew 3% over the previous quarter\" but names no company or period",
-        "reason": "Correct: splitting documents can leave chunks without context; Contextual Retrieval prepends chunk-specific context to fix exactly this."
-      },
-      {
-        "id": "e",
-        "text": "Passing the top 5 chunks misses answers that passing the top 20 would include",
-        "reason": "That is how many chunks are assembled into the prompt; the post found passing 20 more effective than passing 10 or 5."
-      }
-    ],
-    "answer": [
-      "b",
-      "d"
-    ],
-    "takeaway": "Split passages and context-free chunks are chunking failures; missed exact strings and noisy candidate lists are retrieval failures.",
-    "explanation": "Chunking decides what text each indexed unit holds, so its failures show up as units that are incomplete or that lost their surrounding context. A split table and an orphaned revenue sentence are both that. Choice a is the tempting one because it also looks like a retrieval miss, but the chunk itself is fine; the embedding match just can't see the exact code.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://www.anthropic.com/engineering/contextual-retrieval",
-      "title": "Introducing Contextual Retrieval",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-long-context-vs-rag"
-    ],
-    "lessonId": "l-course-rag-breakpoints"
-  },
-  {
     "id": "q-budget-long-session-resends-history",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
@@ -4704,7 +4164,7 @@
     ],
     "takeaway": "Hand off verbose, self-contained or permission-scoped work; keep iterative, shared-context and quick tasks in the main conversation.",
     "explanation": "A handoff pays off when the subagent's work would otherwise flood your context and only a summary needs to come back, or when the work needs its own tool restrictions. The test run and the read-only log audit both qualify. Choice e is the tempting one, since a big feature sounds like a lot of tokens, but its phases depend on shared context that a fresh subagent wouldn't have.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/sub-agents",
       "title": "Create custom subagents",
@@ -4806,7 +4266,7 @@
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
     "topic": "Context budget",
-    "stem": "Using Claude Code with an API key, a developer leaves a large session for 20 minutes. Their first message back uses far more input than messages just before the break, though the context is unchanged. What explains it?",
+    "stem": "Using Claude Code, a developer leaves a large session idle for a while. Their first message back uses far more input than messages just before the break, though the context is unchanged. What explains it?",
     "choices": [
       {
         "id": "a",
@@ -4815,8 +4275,8 @@
       },
       {
         "id": "b",
-        "text": "API-key sessions keep the cache for an hour, so the history was re-read from cache",
-        "reason": "On an API key or cloud provider the cache lifetime is five minutes by default; an hour is the subscription default."
+        "text": "Claude Code re-reads every project file after an idle period and adds it to context",
+        "reason": "The context is unchanged, so nothing new was added; the difference is whether the history was served from the cache."
       },
       {
         "id": "c",
@@ -4825,14 +4285,14 @@
       },
       {
         "id": "d",
-        "text": "The cache expired after its 5-minute default, so the whole context was processed again",
-        "reason": "After a break longer than the cache lifetime, the first message misses the cache and reprocesses your full context; on an API key that lifetime is five minutes by default."
+        "text": "The prompt cache expired during the break, so the whole context was processed again",
+        "reason": "Correct: after a break longer than the cache lifetime, the first message misses the cache and reprocesses your full context."
       }
     ],
     "answer": "d",
-    "takeaway": "After a break longer than the cache lifetime, the next message reprocesses the full context; on an API key that’s 5 minutes by default.",
-    "explanation": "Caching makes a long history cheap to resend only while the cache is warm. The deciding details are the API key, which means a five-minute default lifetime, and the 20-minute gap, so the first message back pays to process everything again. Choice b is the near-miss: a one-hour lifetime does exist, but as the subscription default, not for API keys.",
-    "difficulty": "hard",
+    "takeaway": "After a break longer than the cache lifetime, the next message reprocesses the full context.",
+    "explanation": "Caching makes a long history cheap to resend only while the cache is warm. After a break longer than the cache lifetime (five minutes by default on an API key), the first message back misses the cache and processes everything again (D). Auto-compaction (A) runs as context nears its limit, not after idle time, and background summarization (C) doesn't change what your next message sends.",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/costs",
       "title": "Manage costs effectively",

@@ -86,7 +86,7 @@ These are copied word for word from the plan. They are binding.
   - Questions are scenario-based. Each has exactly one defensible answer, 4 plausible choices built from real misconceptions, a reason for every choice, and a one-line takeaway.
   - No "all/none of the above" and no trick wording.
   - Markup is `**bold**` and `` `code` `` only, with at most 2 code spans in a card definition.
-  - Difficulty mix per slice: about 30% easy, 50% medium, 20% hard.
+  - Difficulty mix per slice: about 40% easy, 50% medium, 10% hard (see the difficulty note below: no arithmetic, trivia or trick items).
   - About 1 diagram per 5 questions (`segmented-bar` or `flow`).
 - **Answer-key balance:** in any domain with ≥ 8 questions, no answer letter may exceed 40% of that domain's questions (the validator enforces this after Task 1).
 - Ids are permanent and never reused: `q-<slug>`, `c-<slug>`, `l-<slug>` (lowercase, digits, hyphens). **Never rename or delete an existing id.** Fix existing items in place.
@@ -102,7 +102,7 @@ These are copied word for word from the plan. They are binding.
 - **Wrong choices must be wrong for a reason the source supports.** Each distractor should be a real misconception, such as a neighbouring feature, a plausible-but-wrong parameter, or the right idea applied at the wrong layer. Its `reason` says why it's wrong, citing the source's facts, not only "this is incorrect".
 - **Exactly one defensible answer.** Read each distractor as a sceptical expert would. If a distractor is right under some reasonable reading, reword the stem to rule that reading out, or replace the distractor.
 - **Scenario-based stems** describe a situation ("Your app...", "A team is...", "An agent keeps...") and ask what to do, what happened, or which option fits. Avoid bare definition recall in questions; flashcards cover recall.
-- **Difficulty:** `easy` means one fact directly applied. `medium` means choosing between two plausible neighbours, or applying a rule to a scenario. `hard` means combining two facts, spotting a subtle constraint, or ruling out a near-miss.
+- **Difficulty:** `easy` means one fact directly applied. `medium` means choosing the right option for a plain scenario. `hard` means a slightly longer scenario, still about one core idea. **Never** write cost or token arithmetic, exact-limit or version trivia, or trick questions that hinge on a subtle second fact (October 2026 learner feedback: questions must read as general knowledge, like the real exam).
 - **Takeaway:** one line, starting from the lesson of the question and not repeating the stem. **Mnemonic** is optional and short, and only worth adding when it actually helps recall.
 - **Answer-letter balance:** spread correct answers across `a`–`d` as you write, aiming for roughly equal counts. Move the correct choice to a different letter and reorder the choices, but keep the ids `a, b, c, d` in order. The validator fails any domain with 8 or more questions if one letter is over 40%. Check the distribution with:
 

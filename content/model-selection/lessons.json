@@ -120,8 +120,8 @@
       }
     ],
     "checkQuestionIds": [
-      "q-llm-token-estimate",
-      "q-llm-context-overflow",
+      "q-llm-context-rot",
+      "q-llm-input-exceeds-window",
       "q-llm-nondeterminism"
     ],
     "sources": [

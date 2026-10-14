@@ -158,7 +158,7 @@
     "answer": "a",
     "takeaway": "Screen tool outputs like user input: only content the classifier clears goes back raw; otherwise return an error or a summary.",
     "explanation": "A tool-output screen works like an input screen: only content the classifier clears goes back to Claude raw. When it reports `injection_suspected: true`, the guide says to return an error or a stripped summary as the `tool_result` and consider telling the user, which is Option A. Option B is the tempting trap: Claude's skepticism toward tool results is one layer, but ignoring the screen's verdict defeats its purpose. C puts third-party content in `system`, which you should never do, and D asks the classifier something the screen isn't designed to answer.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "Tool output is screened before Claude sees it.",
@@ -441,49 +441,6 @@
     "lessonId": "l-claude-hooks"
   },
   {
-    "id": "q-hook-headless-untrusted-repo",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "Hook security",
-    "stem": "A nightly job runs `claude -p` across open-source repositories your team didn't write. A reviewer worries about hooks committed in those repos' `.claude/settings.json`. Which statement is accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Those hooks can't run until someone accepts the workspace trust dialog, so no extra steps are needed",
-        "reason": "`-p` and SDK sessions never show the trust dialog and treat the folder as trusted, so committed hooks do run."
-      },
-      {
-        "id": "b",
-        "text": "Claude Code reads hooks only from `~/.claude/settings.json`, so the repos' project files are ignored",
-        "reason": "Project `.claude/settings.json` is a hook location, and it can be committed to the repo."
-      },
-      {
-        "id": "c",
-        "text": "Hooks run in a sandbox without file access, so the risk from a malicious repo is low",
-        "reason": "Command hooks execute shell commands with your full user permissions and can access any files your user account can."
-      },
-      {
-        "id": "d",
-        "text": "They run, since `-p` treats the folder as trusted; vet the settings, use `--bare`, or disable hooks",
-        "reason": "Correct: the docs say to review the repo's `.claude/` settings, start with `--bare`, or pass `--settings '{\"disableAllHooks\": true}'`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "`-p` and SDK runs skip the trust prompt, so vet or disable a foreign repo's hooks: they run with your full user permissions.",
-    "explanation": "The fact to notice is that `-p` and SDK sessions **never show the trust dialog** and treat the folder as trusted, so hooks committed in a foreign repo's `.claude/settings.json` do run. Command hooks run with your full user permissions, so you should vet the settings, start with `--bare`, or disable hooks, which is Option D. A is the tempting trap: in `-p` runs that dialog never appears. B is wrong because project settings are a hook location, and C because hooks aren't sandboxed.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-hook-workspace-trust",
-      "c-claude-code-hooks"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
     "id": "q-keys-service-account-ci",
     "domainId": "security-safety",
     "subSkillId": "secrets-keys",
@@ -598,7 +555,7 @@
     "answer": "a",
     "takeaway": "Read rules gate Claude's tools and recognized commands; to block **every** process, including scripts, enable the **sandbox**.",
     "explanation": "Read deny rules gate **Claude's own tools** and recognized Bash file commands, not arbitrary subprocesses. A Python script that opens `.env` itself bypasses those rules entirely, and only the sandbox blocks every process from a path, which is Option A. D is the tempting trap because it assumes the script shelled out to `cat`, but Read deny rules already cover recognized commands like `cat`; the leak came from the script's own file access. B misreads `./` paths, and C adds a `Write` rule that Claude Code never consults.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/permissions",
       "title": "Configure permissions",
@@ -809,7 +766,7 @@
     "answer": "c",
     "takeaway": "Never delegate authorization to the model: enforce privilege checks **deterministically, outside the LLM**, where they can be audited.",
     "explanation": "OWASP's rule is that authorization must **never be delegated to the LLM**; it must run deterministically and auditably. The clue is that the `set_limit` tool trusts whatever Claude sends, so a prompt-based admin rule is the only guard, and injection can alter it. Enforcing the role check in the backend that serves `set_limit` is Option C. B is the tempting trap because a second checker sounds stricter, but it still puts the decision in an LLM. A and D also leave authorization with the model.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/",
       "title": "LLM07:2025 System Prompt Leakage",
@@ -1199,7 +1156,7 @@
     "answer": "a",
     "takeaway": "A screen that **refuses** has effectively said \"harmful\": never let a missing verdict fail open.",
     "explanation": "The rule is that a screen must never **fail open**. Claude Haiku 5.5 runs safety classifiers that can decline the screening request itself, leaving `stop_reason: \"refusal\"` and no JSON, and the guide says to treat that refusal as a harmful verdict, which is Option A. C is the tempting trap: it assumes structured outputs always return a verdict, but a refused request returns none. B retries in search of a different answer, and D sends exactly the flagged messages past the screen.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",
@@ -1386,49 +1343,6 @@
     "lessonId": "l-guardrails"
   },
   {
-    "id": "q-hook-fail-closed",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "Hook failures",
-    "stem": "Your `PreToolUse` policy hook on `Bash` runs `.claude/hooks/check.sh`, but a teammate renamed the script. For a week every Bash command ran unchecked, with only a hook error notice. How do you make the hook fail closed in future?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set `\"onFailure\": \"block\"` on the hook, so a hook that can't start blocks the call",
-        "reason": "Correct: by default a failed or missing hook is a non-blocking error; with `onFailure: \"block\"`, a failure to start blocks the tool call."
-      },
-      {
-        "id": "b",
-        "text": "Have the script `exit 1` on violations, since that's the conventional Unix failure code",
-        "reason": "Without valid JSON, exit 1 is a non-blocking error. And a missing script never runs, whatever exit codes it contains."
-      },
-      {
-        "id": "c",
-        "text": "Raise the hook's `timeout` so that Claude Code waits longer for the script to respond",
-        "reason": "The script doesn't exist, so it fails to start; and by default a timed-out `PreToolUse` command hook doesn't block either."
-      },
-      {
-        "id": "d",
-        "text": "Move the hook to `PostToolUse`, which reports any hook errors back to Claude instead",
-        "reason": "`PostToolUse` runs after the tool already ran, so it can't stop the command."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "By default a hook that fails or can't start **lets the action through**; set `onFailure: \"block\"` so a policy hook fails closed.",
-    "explanation": "By default a hook that fails or **can't start** is a non-blocking error, so the action goes through, which is why a renamed script let Bash commands run unchecked for a week. Setting `\"onFailure\": \"block\"` makes a failure to start block the tool call, so the hook fails closed (Option A). B is the tempting trap: `exit 1` without valid JSON is non-blocking, and a missing script never runs at all. C can't help a script that doesn't exist, and D moves the check to after the tool has already run.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-code-hooks",
-      "c-hook-exit-code-2"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
     "id": "q-hook-allow-vs-deny-rule",
     "domainId": "security-safety",
     "subSkillId": "claude-hooks",
@@ -1471,133 +1385,6 @@
     "lessonId": "l-claude-hooks"
   },
   {
-    "id": "q-hook-blocked-prompt-on-disk",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "UserPromptSubmit",
-    "stem": "Your `UserPromptSubmit` hook exits 2 when a prompt contains an API key pattern, so the prompt never reaches Claude. Security asks whether this also keeps the pasted key off the developer's disk. What's accurate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Yes: a blocked prompt is discarded everywhere, including the transcript and prompt history",
-        "reason": "By default the block message ends with the original prompt, and Claude Code writes that message to the session's transcript file."
-      },
-      {
-        "id": "b",
-        "text": "Yes, as long as the hook also sets `suppressOriginalPrompt: true` in its JSON output",
-        "reason": "That only leaves the text out of the block message; it can still appear in the session transcript and your prompt history."
-      },
-      {
-        "id": "c",
-        "text": "No: the text can still appear in local files such as the transcript and prompt history",
-        "reason": "Correct: a blocked prompt never reaches Claude, but the docs say a blocking hook isn't a way to keep a secret off disk."
-      },
-      {
-        "id": "d",
-        "text": "No, because exit 2 on `UserPromptSubmit` only warns the user and then sends the prompt anyway",
-        "reason": "Exit 2 on `UserPromptSubmit` blocks the prompt, so it never reaches Claude."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "A `UserPromptSubmit` block keeps a prompt **from Claude**, not off disk: the text can remain in the transcript and prompt history.",
-    "explanation": "Separate two goals: keeping the prompt **from Claude** and keeping it **off disk**. Exit 2 on `UserPromptSubmit` achieves the first, but the docs say a blocking hook isn't a way to keep a secret off disk, because the text can remain in the transcript and prompt history, which is Option C. B is the tempting trap: `suppressOriginalPrompt: true` only leaves the text out of the block message. A assumes a blocked prompt is discarded everywhere, and D wrongly says exit 2 only warns.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-hook-exit-code-2"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
-    "id": "q-hook-mcp-matcher",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "Hook matchers",
-    "stem": "You add a `PreToolUse` hook with matcher `mcp__github` to log every call to tools from your `github` MCP server. Calls such as `mcp__github__create_issue` run, but the hook never fires. What's the fix?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Use `github`, since matchers compare against the MCP server name rather than the tool name",
-        "reason": "For tool events the matcher is tested against the tool name, such as `mcp__github__create_issue`; `github` would match no tool."
-      },
-      {
-        "id": "b",
-        "text": "Move the hook to `PostToolUse`, since `PreToolUse` doesn't fire for any MCP tool calls",
-        "reason": "MCP tools appear as regular tools in tool events, including `PreToolUse`."
-      },
-      {
-        "id": "c",
-        "text": "Drop the matcher and check `tool_name` in the script, since matchers can't target MCP tools",
-        "reason": "Matchers can target MCP tools using the `mcp__<server>__<tool>` names; no workaround is needed."
-      },
-      {
-        "id": "d",
-        "text": "Use `mcp__github__.*`, since a matcher of only letters and underscores is an exact string",
-        "reason": "Correct: a matcher of only letters, digits and underscores is compared as an exact string, so `mcp__github` matches no tool; `mcp__github__.*` matches them all."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "To match all of a server's tools, append `.*`: `mcp__<server>__.*`. A bare `mcp__<server>` is an exact string that matches nothing.",
-    "explanation": "For tool events, matchers are tested against the full tool name, like `mcp__github__create_issue`, and a matcher made only of letters, digits and underscores is compared as an **exact string**. So `mcp__github` matches no tool at all, while `mcp__github__.*` matches every tool from that server (Option D). A is the tempting trap because it assumes matchers compare against the server name. B is wrong because MCP tools appear as regular tools in `PreToolUse`, and C invents a limitation that doesn't exist.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-code-hooks"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
-    "id": "q-hook-configchange",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "Hook events",
-    "stem": "Your security team wants to audit, and block if needed, edits to `.claude/settings.json` made during a Claude Code session, for example by a script that Claude runs. Which hook event fits?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`ConfigChange` with matcher `project_settings`; exiting with code 2 blocks the change",
-        "reason": "Correct: `ConfigChange` fires when a configuration file changes during a session, and exit 2 blocks the change from taking effect (except for `policy_settings`)."
-      },
-      {
-        "id": "b",
-        "text": "`FileChanged` with matcher `settings.json`, which can block edits to any watched file",
-        "reason": "`FileChanged` has no decision control; exit 2 only shows stderr to the user."
-      },
-      {
-        "id": "c",
-        "text": "`InstructionsLoaded`, which fires whenever any settings file is loaded into context",
-        "reason": "`InstructionsLoaded` fires when CLAUDE.md or `.claude/rules/*.md` files load, and its exit code is ignored."
-      },
-      {
-        "id": "d",
-        "text": "`SessionStart` with matcher `resume`, which re-checks settings when a session resumes",
-        "reason": "`SessionStart` can't block, and it wouldn't see changes made in the middle of a session."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "To audit or block mid-session settings edits, use a **`ConfigChange`** hook; exit 2 stops the change taking effect.",
-    "explanation": "The stem asks to audit and **block** edits to settings made mid-session. `ConfigChange` fires when a configuration file changes during a session, and exit 2 stops the change taking effect (except for `policy_settings`), so A fits. B is the tempting trap because `FileChanged` sounds like it covers any file, but it has no decision control; exit 2 only shows stderr to the user. C fires on CLAUDE.md and rules files and ignores exit codes, and D can't block or see mid-session changes.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-code-hooks",
-      "c-hook-exit-code-2"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
     "id": "q-hook-managed-not-disabled",
     "domainId": "security-safety",
     "subSkillId": "claude-hooks",
@@ -1629,56 +1416,6 @@
     "takeaway": "Managed hooks are a reliable org guardrail: user, project and local settings **can't disable or remove** them.",
     "explanation": "`disableAllHooks` respects the managed hierarchy: set in user, project or local settings, it **can't disable managed hooks**; only the same setting at the managed level can. So the admin's audit hook keeps running, which is Option B. A is the tempting trap because it assumes user settings win. C invents a temporary effect that doesn't happen, and D is wrong because hook entries merge across levels, so lower levels add hooks without removing managed ones.",
     "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/hooks",
-      "title": "Hooks reference",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-code-hooks"
-    ],
-    "lessonId": "l-claude-hooks"
-  },
-  {
-    "id": "q-hook-redaction-outputs",
-    "domainId": "security-safety",
-    "subSkillId": "claude-hooks",
-    "topic": "Hook decision control",
-    "stem": "You want hooks to redact customer email addresses in two places: in arguments Claude sends to tools, and in tool results before Claude reads them. Which two hook outputs fit?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`PreToolUse` returning `updatedInput`, which replaces the tool's arguments before it runs",
-        "reason": "Correct: the docs say to intercept at `PreToolUse` for outbound tool inputs; `updatedInput` replaces the arguments before execution."
-      },
-      {
-        "id": "b",
-        "text": "`UserPromptSubmit` returning a rewritten prompt that fully replaces exactly what the user typed",
-        "reason": "`UserPromptSubmit` can't replace the prompt; it can only inject `additionalContext` alongside it."
-      },
-      {
-        "id": "c",
-        "text": "`PostToolUse` returning `updatedToolOutput`, which replaces the result",
-        "reason": "Correct: the docs say to intercept at `PostToolUse` for inbound tool results; `updatedToolOutput` replaces the tool's result."
-      },
-      {
-        "id": "d",
-        "text": "`PostToolUse` exiting 2 so the tool call is undone and then rerun with the cleaned data",
-        "reason": "`PostToolUse` can't block: the tool already ran, and exit 2 only shows stderr to Claude."
-      },
-      {
-        "id": "e",
-        "text": "`Notification` returning a `decision` that filters the text Claude is about to receive",
-        "reason": "`Notification` has no decision control; it's for side effects such as logging or cleanup."
-      }
-    ],
-    "answer": [
-      "a",
-      "c"
-    ],
-    "takeaway": "Redact **outbound** tool inputs at `PreToolUse` (`updatedInput`) and **inbound** results at `PostToolUse` (`updatedToolOutput`).",
-    "explanation": "Redaction needs two interception points, one for each direction. Outbound arguments are caught at `PreToolUse`, where `updatedInput` replaces them before the tool runs (A). Inbound results are caught at `PostToolUse`, where `updatedToolOutput` replaces the tool's result before Claude reads it (C). D is the most tempting wrong pick because it uses the right event, but `PostToolUse` can't block or undo a call; exit 2 only shows stderr to Claude. B can't rewrite the prompt, and E has no decision control.",
-    "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/hooks",
       "title": "Hooks reference",
@@ -1809,90 +1546,6 @@
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
       "title": "Authentication",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-key-types"
-    ],
-    "lessonId": "l-secrets-keys"
-  },
-  {
-    "id": "q-keys-limited-developer-role",
-    "domainId": "security-safety",
-    "subSkillId": "secrets-keys",
-    "topic": "Workspace roles",
-    "stem": "A contractor needs to create API keys and call the API in your Production workspace, but must not view session tracing or download files. Which workspace role gives the least access that still covers this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Workspace Developer in Production",
-        "reason": "Workspace Developer can create and manage keys and use the API, without the tracing and file restrictions the contractor needs."
-      },
-      {
-        "id": "b",
-        "text": "Workspace User in Production",
-        "reason": "Workspace User can use the playground only, so the contractor couldn't create keys or call the API."
-      },
-      {
-        "id": "c",
-        "text": "Workspace Limited Developer in Production",
-        "reason": "Correct: it can create and manage API keys and use the API, but can't access session tracing views or download files."
-      },
-      {
-        "id": "d",
-        "text": "Workspace Admin in Production",
-        "reason": "Workspace Admin has full control over workspace settings and members, far more than the contractor needs."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Match the **workspace role** to the job: Limited Developer can use the API and manage keys without tracing or file access.",
-    "explanation": "The rule is **least privilege**: pick the smallest workspace role that still covers the job. The contractor must create keys and call the API, but must not view session tracing or download files. Workspace Limited Developer does exactly that, which is Option C. A is the tempting trap because Workspace Developer covers keys and API use, but it lacks the tracing and file restrictions. B can only use the playground, and D grants full control over workspace settings and members.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/workspaces",
-      "title": "Workspaces",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-api-key-types"
-    ],
-    "lessonId": "l-secrets-keys"
-  },
-  {
-    "id": "q-keys-usage-by-key",
-    "domainId": "security-safety",
-    "subSkillId": "secrets-keys",
-    "topic": "Usage monitoring",
-    "stem": "Your Claude Console organization suspects one API key leaked. You want hourly token usage for just that key over the past two days, to see when misuse began. Which approach fits?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Call the usage report with the affected workspace's own workspace API key to authenticate",
-        "reason": "Usage and Cost endpoints are part of the Admin API, and workspace API keys don't work there."
-      },
-      {
-        "id": "b",
-        "text": "Query the Usage API with `api_key_ids[]` and `bucket_width=1h`, using an Admin API key",
-        "reason": "Correct: the Usage API filters by API key, supports `1m`, `1h` or `1d` buckets (raise `limit` past 24 hourly buckets) and needs an Admin API credential."
-      },
-      {
-        "id": "c",
-        "text": "Count tokens from your app's own response logs, since no API breaks usage down per key",
-        "reason": "The Usage API can filter and group usage by API key, workspace, model and more."
-      },
-      {
-        "id": "d",
-        "text": "Use the Usage API with `bucket_width=1d`, the finest time bucket that the report supports",
-        "reason": "Buckets come in `1m`, `1h` and `1d`, so hourly data is available."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Monitor key usage with the **Usage API** (Admin credentials): filter by `api_key_ids[]` and pick a fine bucket like `1h`.",
-    "explanation": "You need **per-key** usage at **hourly** granularity. The Usage API, part of the Admin API, can filter by `api_key_ids[]` and supports `1m`, `1h` or `1d` buckets, so an Admin API key with `bucket_width=1h` fits (Option B); raise `limit` past 24 hourly buckets to cover two days. A is the tempting trap because the workspace key seems relevant, but workspace API keys don't work with Admin API endpoints. C wrongly says no per-key breakdown exists, and D wrongly treats `1d` as the finest bucket.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/usage-cost-api",
-      "title": "Usage and Cost API",
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
@@ -2078,48 +1731,6 @@
     "lessonId": "l-secrets-keys"
   },
   {
-    "id": "q-cc-force-login-org",
-    "domainId": "security-safety",
-    "subSkillId": "secrets-keys",
-    "topic": "Login restrictions",
-    "stem": "Your company wants every developer's Claude Code to use claude.ai logins from your Enterprise organization only, never personal accounts, including on first login. Which setup does Claude Code's authentication guide describe?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set the keys only in server-managed settings, which apply before a developer's first login",
-        "reason": "Server-managed settings reach only accounts already authenticated into your organization, so they can't redirect a first login."
-      },
-      {
-        "id": "b",
-        "text": "Set `ANTHROPIC_API_KEY` to an organization key, which proves membership at every startup",
-        "reason": "Under `forceLoginOrgUUID`, an environment API key is blocked at startup, because organization membership can't be verified for it."
-      },
-      {
-        "id": "c",
-        "text": "Rely on `/status`, which shows each developer the organization they're currently logged in to",
-        "reason": "`/status` shows which credential is active; it doesn't restrict which organization a login can belong to."
-      },
-      {
-        "id": "d",
-        "text": "Set `forceLoginMethod` and `forceLoginOrgUUID` in managed settings via device management",
-        "reason": "Correct: with these keys, Claude Code exits at startup if the claude.ai credential belongs to an unlisted organization; device management reaches the first login too."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Restrict Claude Code logins with **`forceLoginMethod` + `forceLoginOrgUUID`** in managed settings, deployed by device management.",
-    "explanation": "Two constraints matter: logins must belong to your Enterprise organization, **including on first login**. With `forceLoginMethod` and `forceLoginOrgUUID` in managed settings, Claude Code exits at startup if the credential belongs to an unlisted organization, and device management reaches the first login too (Option D). A is the tempting trap: server-managed settings reach only accounts already authenticated into your organization, so they miss the first login. B is blocked under `forceLoginOrgUUID`, and C only displays the active credential.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/authentication",
-      "title": "Authentication",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-precedence"
-    ],
-    "lessonId": "l-secrets-keys"
-  },
-  {
     "id": "q-sec-json-encode-untrusted",
     "domainId": "security-safety",
     "subSkillId": "app-security",
@@ -2200,7 +1811,7 @@
     ],
     "takeaway": "Label untrusted content's **source**, and state the **policy** in the system prompt: retrieved content is data and never overrides your instructions.",
     "explanation": "Anthropic's guide uses two steps to separate untrusted content from your instructions. Label the content's **source**, such as OCR text from a user-uploaded image, in the tool's `description` or result structure so Claude can calibrate trust (A). And state the **policy** in the system prompt: tool content is untrusted data that never overrides it or the user's request (C). D is the most tempting wrong pick, but the guide's sample policy treats embedded instructions as information to report, not commands to weigh. B and E put third-party content where it doesn't belong.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
       "title": "Mitigate jailbreaks and prompt injections",

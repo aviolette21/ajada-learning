@@ -182,7 +182,7 @@
     "checkQuestionIds": [
       "q-output-refusal-schema",
       "q-output-strict-tool-inputs",
-      "q-output-enum-casing"
+      "q-output-allow-uncertainty"
     ],
     "sources": [
       {

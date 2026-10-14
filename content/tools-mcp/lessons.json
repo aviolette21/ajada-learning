@@ -49,7 +49,7 @@
     ],
     "checkQuestionIds": [
       "q-tool-description-quality",
-      "q-forced-tool-use-400",
+      "q-tool-result-text-first-400",
       "q-parallel-tool-results"
     ],
     "sources": [

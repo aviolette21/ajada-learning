@@ -126,7 +126,7 @@
     ],
     "checkQuestionIds": [
       "q-max-turns-result",
-      "q-bypass-permissions-allowlist",
+      "q-agent-sdk-choice",
       "q-pretooluse-block-env"
     ],
     "sources": [

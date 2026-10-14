@@ -408,17 +408,17 @@
     "domainId": "apps-integration",
     "subSkillId": "systems-lifecycle",
     "topic": "Model versioning",
-    "stem": "Your app calls `claude-sonnet-5`. A teammate says: \"It's a dateless alias, so we'll get improved weights automatically when Anthropic updates it.\" Which statement is correct?",
+    "stem": "Your app calls the model ID `claude-sonnet-5`. A teammate expects it to pick up improved weights automatically whenever Anthropic updates the model. Is that right?",
     "choices": [
       {
         "id": "a",
         "text": "True: dateless IDs are evergreen pointers that route to the latest model version",
-        "reason": "The docs call this a common misconception: from the 4.6 generation on, a dateless ID maps to a single, fixed snapshot."
+        "reason": "The docs call this a common misconception: a current dateless ID maps to a single, fixed snapshot."
       },
       {
         "id": "b",
         "text": "True for dateless IDs; only dated IDs like `claude-sonnet-4-5-20250929` are pinned",
-        "reason": "Every model ID is pinned. Pointer behavior belongs to pre-4.6 aliases such as `claude-sonnet-4-5`, not to 4.6+ IDs."
+        "reason": "Every current model ID is pinned, dated or not; updated models ship under a new ID."
       },
       {
         "id": "c",
@@ -427,15 +427,15 @@
       },
       {
         "id": "d",
-        "text": "False, but any behavior change on the same ID means the weights were quietly swapped",
-        "reason": "Weights are fixed per ID; if behavior shifts on a previously stable ID, a serving-infrastructure update is the most likely cause."
+        "text": "Yes: Anthropic retrains every model ID each month and keeps the same name",
+        "reason": "Anthropic doesn't update the weights or configuration of an existing model ID; updates ship under a new ID."
       }
     ],
     "answer": "c",
-    "takeaway": "From 4.6 on, a dateless ID **is** the snapshot; to get a newer model you switch to its new ID.",
-    "explanation": "From the 4.6 generation on, every model ID, dateless or dated, maps to one fixed snapshot; Anthropic ships updated weights or configuration under a **new** model ID. So the teammate is wrong, and Option C states why. Option A is the common misconception the docs call out, and Option B is tempting because pointer behavior did exist, but only for pre-4.6 aliases like `claude-sonnet-4-5`. Option D gets the verdict right but the cause wrong: if behavior shifts on a stable ID, a serving-infrastructure update is the most likely cause, not swapped weights.",
+    "takeaway": "A current model ID is a fixed snapshot: to get a newer model, you switch to its new ID.",
+    "explanation": "Current model IDs, dateless or dated, each map to one fixed snapshot; Anthropic ships updated weights or configuration under a **new** model ID (C). Option A is the common misconception the docs call out, B wrongly treats only dated IDs as pinned, and D invents monthly retraining under the same name.",
     "mnemonic": "No date doesn't mean no pin.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
       "title": "Model IDs and versioning",
@@ -506,49 +506,6 @@
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [
-      "c-model-lifecycle"
-    ],
-    "lessonId": "l-systems-lifecycle"
-  },
-  {
-    "id": "q-lifecycle-migration-400",
-    "domainId": "apps-integration",
-    "subSkillId": "systems-lifecycle",
-    "topic": "Model migration",
-    "stem": "Your service calls the Messages API over HTTP. After you change the model ID from `claude-opus-4-6` to `claude-opus-5-5`, every request returns a 400 error. Requests send `temperature: 0.3`, no `thinking` field, and `tool_choice` of type `auto`. What's the cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Claude Opus 5.5 requires `thinking` set to `enabled` with a `budget_tokens` value on every request",
-        "reason": "The reverse: manual thinking budgets are rejected on Claude Opus 5.5; sending no `thinking` field is fine, as adaptive thinking is always on."
-      },
-      {
-        "id": "b",
-        "text": "Opus 5.5 rejects a non-default `temperature`; omit it and steer behavior with prompting",
-        "reason": "Correct: omit `temperature`, `top_p` and `top_k` or leave them at their defaults; any other value is rejected with a 400 error."
-      },
-      {
-        "id": "c",
-        "text": "The model ID needs a date suffix, such as `claude-opus-5-5-YYYYMMDD`, to resolve to a snapshot",
-        "reason": "`claude-opus-5-5` is a fixed model ID with no date suffix."
-      },
-      {
-        "id": "d",
-        "text": "Claude Opus 5.5 needs a beta header to enable its 1M-token context window for these requests",
-        "reason": "No context-window beta header is needed: 1M tokens is the default, and a header sent for older models has no effect."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A model migration is a **code change**: check the target model's rejected settings, such as non-default `temperature`, before switching.",
-    "explanation": "A model migration is a **code change**, because the target model can reject settings the old one accepted. The detail to notice is `temperature: 0.3`: Claude Opus 5.5 rejects non-default `temperature`, `top_p` and `top_k` values with a 400, so you omit them and steer with prompting. Option A is the tempting trap because thinking settings changed too, but it is reversed: manual budgets are rejected and sending no `thinking` field is fine. The ID needs no date suffix (C), and 1M context is the default with no beta header (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
-      "title": "Claude Opus 5.5 migration guide",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-model-snapshot-id",
       "c-model-lifecycle"
     ],
     "lessonId": "l-systems-lifecycle"
@@ -759,7 +716,7 @@
     "answer": "d",
     "takeaway": "Single values follow precedence, but list keys like `permissions.allow` **merge**: each file adds entries.",
     "explanation": "Precedence decides between **single values**, but list keys like `permissions.allow` work differently: when the same list key appears in several files, Claude Code combines the lists, so each file adds entries without removing another's. Both `Bash(npm run test *)` and `Bash(npm run lint)` therefore apply. Option A is the trap, because it applies single-value precedence to a list key. Option B gets precedence backwards (user settings are the lowest level), and C invents a cancel-out rule that doesn't exist.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/settings",
       "title": "Settings files and precedence",
@@ -852,48 +809,6 @@
     },
     "relatedCardIds": [
       "c-mcp-scopes",
-      "c-mcp-json"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
-    "id": "q-config-mcp-credential-var",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "MCP env expansion",
-    "stem": "Your committed `.mcp.json` points a remote server at an internal gateway with the header `\"Authorization\": \"Bearer ${ANTHROPIC_API_KEY}\"`. The variable is set in every developer's shell, yet the server rejects each connection with a 401. What fixes it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Copy the value into a variable with a name of your own and reference that",
-        "reason": "Correct: Claude Code reads credential names like `ANTHROPIC_API_KEY` as empty in remote `url` and `headers`; a name of your own expands as written."
-      },
-      {
-        "id": "b",
-        "text": "Keep the name but add a fallback value, as in `${ANTHROPIC_API_KEY:-sk-...}`",
-        "reason": "For covered credential names a `:-default` fallback is ignored; the value still reads as empty."
-      },
-      {
-        "id": "c",
-        "text": "Export the variable again in the shell right before starting Claude Code",
-        "reason": "A covered name reads as empty whether or not you have set it, so exporting it again changes nothing."
-      },
-      {
-        "id": "d",
-        "text": "Move the key into the `url`, since `headers` values aren't expanded",
-        "reason": "`headers` is a supported expansion location, and the empty-credential rule applies to a remote server's `url` too."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "`.mcp.json` expands `${VAR}`, but Claude Code **blanks credential variables** like `ANTHROPIC_API_KEY` in remote `url`/`headers`.",
-    "explanation": "`.mcp.json` does expand `${VAR}`, but Claude Code reads credential names like `ANTHROPIC_API_KEY` as **empty** in a remote server's `url` and `headers`, so the header sends a blank bearer token and the gateway returns 401. Copying the value into a variable with a name of your own avoids the rule, since that name expands as written. Option C is the tempting fix because the symptom looks like an unset variable, but a covered name reads as empty whether or not it is set. A fallback (B) is ignored, and moving it to the `url` (D) hits the same rule.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/mcp",
-      "title": "Connect Claude Code to tools via MCP",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
       "c-mcp-json"
     ],
     "lessonId": "l-config-management"
@@ -1150,48 +1065,6 @@
     "lessonId": "l-api-basics"
   },
   {
-    "id": "q-api-many-images",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Image limits",
-    "stem": "An agent resends its full history each turn, including screenshots. Once the history holds more than 20 screenshots, requests fail with an `invalid_request_error` about \"many-image requests\", though every image is under 8000x8000 px. What's happening?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The API allows at most 20 images per request, counting resent turns",
-        "reason": "The API allows up to 100 images per request on 200k-context models and 600 on others; 20 is the threshold for a stricter size rule."
-      },
-      {
-        "id": "b",
-        "text": "Only images in the newest turn are checked, so one new screenshot is too large",
-        "reason": "All `image` blocks in the request count toward the threshold, including resent earlier turns and images inside `tool_result` content."
-      },
-      {
-        "id": "c",
-        "text": "Above 20 images, a stricter per-image dimension limit applies to every image",
-        "reason": "Correct: resize each image so neither dimension exceeds 2000 px, or keep the request to 20 or fewer image blocks."
-      },
-      {
-        "id": "d",
-        "text": "Each screenshot is over the 10 MB per-image size limit for the API",
-        "reason": "The error references many-image requests, the dimension rule; the 10 MB (base64) per-image size cap on the direct API is a separate limit."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Past **20 images** in one request, a stricter dimension limit hits every image: keep each ≤ 2000 px per side or send 20 or fewer.",
-    "explanation": "The phrase **many-image requests** is the clue: once a request carries more than 20 images, a stricter per-image dimension limit applies to every image, even though each is under 8000x8000 px. Resent screenshots and images inside `tool_result` content all count, so the fix is to keep each image at 2000 px or less per side, or send 20 or fewer image blocks. Option A is the trap because 20 is the threshold, but it is not the image cap (that is 100 or 600 depending on the model). The 10 MB size cap (D) is a separate limit.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
-      "title": "Vision",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-many-image-limit"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
     "id": "q-api-stop-sequence-match",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
@@ -1231,49 +1104,6 @@
     "relatedCardIds": [
       "c-stop-sequences",
       "c-stop-reason"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-count-tokens-url-image",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Token counting",
-    "stem": "Before each request, your app calls the token counting endpoint to check the prompt against a budget. The call fails with `invalid_request_error` whenever the prompt includes an image referenced by URL, though the same Messages request works. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Skip counting for these prompts, because the endpoint doesn't support images",
-        "reason": "The endpoint supports images; it returns an error only for `image` or `document` blocks with a `url` or `file` source."
-      },
-      {
-        "id": "b",
-        "text": "Stop pre-counting, because every count call is billed as input tokens",
-        "reason": "Token counting is free to use; it's only subject to requests-per-minute rate limits."
-      },
-      {
-        "id": "c",
-        "text": "Add `cache_control` so the endpoint can reuse a cached count",
-        "reason": "Token counting doesn't use caching logic; prompt caching only happens during actual message creation."
-      },
-      {
-        "id": "d",
-        "text": "Send the image to the counting endpoint as base64",
-        "reason": "Correct: the endpoint rejects image or document blocks with a `url` or `file` source; send images and PDFs as base64 to count them."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "The count endpoint takes Messages inputs with a few exceptions, like URL or file images: count those as **base64**.",
-    "explanation": "The token counting endpoint accepts the same inputs as Messages with a few exceptions: it returns an error for `image` or `document` blocks with a `url` or `file` source. That is why only URL-referenced images fail, and sending the image as **base64** lets you count it. Option A is the tempting overreaction, since the endpoint supports images, just not those source types. Option B is wrong because counting is free (it only has RPM limits), and C fails because counting doesn't use caching at all.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
-      "title": "Token counting",
-      "checkedOn": "2026-09-27"
-    },
-    "relatedCardIds": [
-      "c-token-counting",
-      "c-image-sources"
     ],
     "lessonId": "l-api-basics"
   },
@@ -1469,49 +1299,6 @@
     "lessonId": "l-swe-foundations"
   },
   {
-    "id": "q-swe-spend-cap-429",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Spend limits",
-    "stem": "Mid-month, every request starts returning 429 `rate_limit_error` with no `retry-after` header, and `error.details.error_code` is `enforced_spend_limit_reached`. The SDK's automatic retries all fail. What's going on?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The tier's monthly spend cap was hit; retries fail until access resumes or you move up a tier",
-        "reason": "Correct: at the spend cap, requests return 429 without `retry-after`, and retrying fails until access resumes; a higher tier restores access."
-      },
-      {
-        "id": "b",
-        "text": "A per-minute rate limit was exceeded; wait a few seconds and the retries will clear",
-        "reason": "A rate-limit 429 comes with a `retry-after` header; this one has none, and the error code marks the spend cap."
-      },
-      {
-        "id": "c",
-        "text": "A spend limit your team set below the tier cap in the Console's Billing settings has been reached",
-        "reason": "A spend limit you set returns HTTP 400 `invalid_request_error`; Claude Code workspace limits can 429, but with a `retry-after` header."
-      },
-      {
-        "id": "d",
-        "text": "Acceleration limits from a sudden usage spike; ramp traffic up gradually and keep it steady",
-        "reason": "Acceleration limits can cause 429s after a sharp increase in usage, but `enforced_spend_limit_reached` identifies the spend cap."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "A 429 with **no `retry-after`** and `enforced_spend_limit_reached` is the spend cap: retrying won't help until access resumes.",
-    "explanation": "Two details identify this 429: there is **no `retry-after`** header, and `error_code` is `enforced_spend_limit_reached`. Together they mark the tier's monthly spend cap, where retrying fails until access resumes or you move to a higher tier, which is why the SDK's retries keep failing. Option B is the tempting reading of any 429, but a per-minute rate limit comes with `retry-after`. A spend limit you set yourself returns 400 instead (C), and acceleration limits (D) don't carry this error code.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/rate-limits",
-      "title": "Rate limits",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-spend-cap-429",
-      "c-retry-after"
-    ],
-    "lessonId": "l-swe-foundations"
-  },
-  {
     "id": "q-swe-ratelimit-headers",
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
@@ -1600,7 +1387,7 @@
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
     "topic": "Rate limits",
-    "stem": "Each request sends the same 150k-token manual plus a short question to Claude Sonnet 5, and you keep hitting your input-tokens-per-minute (ITPM) limit. What raises effective throughput without a limit increase?",
+    "stem": "Every request sends the same long product manual plus a short question, and you keep hitting your input-tokens-per-minute (ITPM) limit. What raises throughput without a limit increase?",
     "choices": [
       {
         "id": "a",
@@ -1609,7 +1396,7 @@
       },
       {
         "id": "b",
-        "text": "Cache the manual; on most models, cache reads don't count toward ITPM",
+        "text": "Cache the manual, since cache reads don't count toward ITPM on most models",
         "reason": "Correct: for most models only `input_tokens` and `cache_creation_input_tokens` count toward ITPM, so cached reads free up throughput."
       },
       {
@@ -1625,8 +1412,8 @@
     ],
     "answer": "b",
     "takeaway": "Caching buys **throughput**, not only savings: on most Claude models, cache reads don't count toward ITPM.",
-    "explanation": "The detail to notice is the **same 150k-token manual** on every request. On most Claude models, only `input_tokens` and `cache_creation_input_tokens` count toward ITPM, so once the manual is cached, its cache reads stop consuming the limit and throughput rises without a limit increase. Option C is the tempting assumption because many other providers do count every input token, but most Claude models don't count cache reads. Lowering `max_tokens` (A) targets output, not input, and a second key (D) adds nothing since limits are organization-level.",
-    "difficulty": "hard",
+    "explanation": "The detail to notice is the **same manual** on every request. On most Claude models, only `input_tokens` and `cache_creation_input_tokens` count toward ITPM, so once the manual is cached its reads stop consuming the limit (B). Option C assumes every input token counts, which is how many other providers work but not most Claude models. Lowering `max_tokens` (A) targets output, not input, and a second key (D) adds nothing since limits are organization-level.",
+    "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
       "caption": "On most models, only uncached input counts toward ITPM.",
@@ -1737,65 +1524,6 @@
     },
     "relatedCardIds": [
       "c-async-client"
-    ],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-stream-resume",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Streaming errors",
-    "stem": "A long streamed answer from Claude Opus 5.5 is cut off by a network error most of the way through. You want to finish it without re-processing the whole response. What does the streaming guide recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Resend the original request from scratch and discard the partial text you received",
-        "reason": "That re-processes the entire response, which the capture-and-resume strategy exists to avoid."
-      },
-      {
-        "id": "b",
-        "text": "Put the received partial text in a final `assistant` message so Claude continues it",
-        "reason": "That's the approach for Claude 4.5 and earlier. On 4.6 and later, the partial response goes in a user message instead."
-      },
-      {
-        "id": "c",
-        "text": "Resume from the partial input of the last `tool_use` block that was being streamed",
-        "reason": "Tool use and thinking blocks can't be partially recovered; you can resume streaming from the most recent text block."
-      },
-      {
-        "id": "d",
-        "text": "Send a new request whose user message holds the partial text and asks to continue",
-        "reason": "Correct: on Claude 4.6 and later, capture the partial response, then ask the model in a user message to continue from where it left off."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "On Claude 4.6 and later, recover a broken stream with a **user** message carrying the partial text and a request to continue.",
-    "explanation": "The streaming guide's capture-and-resume strategy avoids re-processing the whole response, and on Claude 4.6 and later it works by sending a new request whose **user** message carries the partial text and asks the model to continue from where it left off. Option B is the tempting trap because putting partial text in a final `assistant` message was the approach for Claude 4.5 and earlier, but not for Opus 5.5. Option A re-processes everything, and C fails because tool use and thinking blocks can't be partially recovered.",
-    "difficulty": "hard",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Stream recovery on Claude 4.6 and later.",
-      "steps": [
-        {
-          "label": "Capture partial",
-          "sublabel": "content received"
-        },
-        {
-          "label": "New request",
-          "sublabel": "user: \"continue\""
-        },
-        {
-          "label": "Resume streaming"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
-      "title": "Streaming messages",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-stream-error-recovery"
     ],
     "lessonId": "l-swe-foundations"
   },
@@ -2057,49 +1785,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-citations-json-conflict",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Structured outputs",
-    "stem": "A research tool must reply in a strict JSON schema **and** cite passages from user-provided documents. After you add `output_config.format` to requests that have citations enabled, every call returns a 400 error. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "They're incompatible: citations interleave citation blocks with text",
-        "reason": "Correct: citations conflict with strict JSON schema constraints, and the API returns a 400 if citations are enabled with `output_config.format`."
-      },
-      {
-        "id": "b",
-        "text": "`output_config.format` needs the `structured-outputs-2025-11-13` beta header",
-        "reason": "Beta headers are no longer required; that header is only for the deprecated `output_format` parameter."
-      },
-      {
-        "id": "c",
-        "text": "Structured outputs can't be combined with streaming",
-        "reason": "Streaming is compatible: you can stream structured outputs like normal responses."
-      },
-      {
-        "id": "d",
-        "text": "You must call token counting first so the grammar is compiled",
-        "reason": "Token counting counts tokens without compilation; the grammar compiles on first use and is then cached."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Citations and JSON outputs **can't share a request**: citations interleave blocks with text, which a strict schema forbids.",
-    "explanation": "Citations and structured outputs **can't share a request**: citations interleave citation blocks with text, which conflicts with a strict JSON schema, so the API returns a 400 whenever citations are enabled together with `output_config.format`. That matches the stem exactly, since the errors began when the format was added. Option B is the tempting fix because missing beta headers often cause 400s, but beta headers are no longer required, and that one is only for the deprecated `output_format`. Streaming (C) is compatible, and token counting (D) is unrelated.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-json-outputs",
-      "c-citations"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-json-outputs",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -2138,48 +1823,6 @@
     },
     "relatedCardIds": [
       "c-json-outputs"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-schema-first-latency",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Structured outputs",
-    "stem": "After you adopt structured outputs, the first request with each new schema is noticeably slower, and later ones are fast. A teammate edits a property's `description` and worries the slowdown will come back. What does the guide say?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Every request compiles the grammar, so latency is the same each time",
-        "reason": "Compiled grammars are cached for 24 hours from last use, which makes later requests much faster."
-      },
-      {
-        "id": "b",
-        "text": "Any schema edit, even to a `description`, invalidates the cache",
-        "reason": "Changing only `name` or `description` fields doesn't invalidate the cache; changing the schema structure does."
-      },
-      {
-        "id": "c",
-        "text": "First use compiles a grammar, cached 24 hours; `description` edits keep it",
-        "reason": "Correct: first-request latency comes from grammar compilation, and `name` or `description` edits don't invalidate the cache."
-      },
-      {
-        "id": "d",
-        "text": "The slowdown comes from the injected system prompt, which is rebuilt each day",
-        "reason": "The injected system prompt adds input tokens; the first-request delay comes from compiling the grammar."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Structured outputs pay a **one-time compile** per schema; structure changes recompile, `description` edits don't.",
-    "explanation": "Structured outputs pay a **one-time compile**: the first request with a new schema is slower because a grammar is compiled, and that grammar is cached for 24 hours from last use. Editing only `name` or `description` fields doesn't invalidate the cache, so the teammate's change won't bring the slowdown back; only structural changes do. Option B is the tempting worry because it assumes any edit recompiles. Option A contradicts the caching, and D blames the injected system prompt, which adds tokens but isn't the first-request delay.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-grammar-caching"
     ],
     "lessonId": "l-app-design"
   },
@@ -2317,7 +1960,7 @@
     "answer": "b",
     "takeaway": "Screening and answering are separate jobs: **section** them into parallel calls instead of one overloaded prompt.",
     "explanation": "The Building effective agents post notes that one call handling both guardrails and the core response tends to perform worse than separate calls, so it recommends **sectioning**: split fixed, known subtasks into parallel calls, with one instance screening and another answering. Option C is tempting because voting is the other parallelization pattern, but it runs the **same** task repeatedly for diverse outputs. Option A keeps the overloaded single prompt, and D is for subtasks that can't be predicted, whereas these two are fixed.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/building-effective-agents",
       "title": "Building effective agents",
@@ -2368,54 +2011,6 @@
     "relatedCardIds": [
       "c-message-batches"
     ],
-    "lessonId": "l-requirements"
-  },
-  {
-    "id": "q-req-phi-hipaa-readiness",
-    "domainId": "apps-integration",
-    "subSkillId": "requirements",
-    "topic": "HIPAA readiness",
-    "stem": "A clinic's scheduling assistant will send protected health information (PHI) to the Claude API. Which steps fit Anthropic's guidance for this requirement?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Enable HIPAA readiness, with a signed BAA, for the organization that processes PHI",
-        "reason": "Correct: with a signed BAA and a HIPAA-enabled organization you can use supported API features to process PHI."
-      },
-      {
-        "id": "b",
-        "text": "Also request ZDR, because HIPAA readiness on its own doesn't cover PHI",
-        "reason": "If your organization handles PHI, HIPAA readiness is the arrangement to use; you do not also need ZDR."
-      },
-      {
-        "id": "c",
-        "text": "Run the assistant on Claude Managed Agents so session state stays on the server",
-        "reason": "Managed Agents is not eligible for ZDR or HIPAA readiness: sessions are stateful and transcripts persist until you delete them."
-      },
-      {
-        "id": "d",
-        "text": "Keep PHI out of JSON schema definitions, including property names and `enum` values",
-        "reason": "Correct: compiled schemas are cached separately from message content without the same PHI protections; PHI belongs only in message content."
-      },
-      {
-        "id": "e",
-        "text": "Test the prompts with real patient records in the Console playground before go-live",
-        "reason": "Processing PHI through the Claude Console is not covered under HIPAA readiness."
-      }
-    ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "For PHI, use **HIPAA readiness** (not ZDR on top), stick to eligible features, and keep PHI in message content only, never in schemas.",
-    "explanation": "For PHI, the arrangement to use is **HIPAA readiness**: with a signed BAA and a HIPAA-enabled organization, you can process PHI with supported API features (A). It also has a subtle rule (D): compiled JSON schemas are cached separately from message content without the same protections, so PHI belongs only in message content. Option B is the most tempting wrong pick, because adding ZDR sounds safer, but you don't also need it. Managed Agents (C) isn't eligible, and the Console (E) isn't covered.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
-      "title": "API and data retention",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
     "lessonId": "l-requirements"
   },
   {
@@ -2492,46 +2087,6 @@
     "takeaway": "Per-request `inference_geo` is a choice; **workspace** allowed and default geos turn it into a policy.",
     "explanation": "The requirement holds **even if a developer forgets**, so a per-request setting isn't enough; it has to be enforced at the workspace. Setting `allowed_inference_geos` to `[\"us\"]` makes other geos return an error, and `default_inference_geo` of `us` covers requests that omit the parameter. Option A is the trap because it relies on remembering, and a per-request setting can be left out. Option B confuses workspace geo, which governs data at rest and endpoint processing, with inference, and on Bedrock (C) `inference_geo` doesn't apply.",
     "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
-      "title": "Data residency",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-requirements"
-  },
-  {
-    "id": "q-req-inference-geo-old-model",
-    "domainId": "apps-integration",
-    "subSkillId": "requirements",
-    "topic": "Data residency",
-    "stem": "To meet a new US-only inference requirement, you add `inference_geo: \"us\"` to a service that runs on Claude Haiku 4.5. Every request now returns a 400 error. What is the cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The value is case-sensitive and must be `\"US\"`; fix the casing and redeploy",
-        "reason": "The accepted values are lowercase: `\"global\"` (the default) and `\"us\"`."
-      },
-      {
-        "id": "b",
-        "text": "`inference_geo` works only on Claude 4.6 and later, so the service needs a newer model",
-        "reason": "Correct: requests with `inference_geo` on Claude Haiku 4.5 or earlier models return a 400 error."
-      },
-      {
-        "id": "c",
-        "text": "The workspace must first be recreated with a workspace geo of `us` before requests work",
-        "reason": "Workspace geo is a separate setting for data at rest; the 400 comes from the model not supporting the parameter."
-      },
-      {
-        "id": "d",
-        "text": "US-only inference is billed at 1.1x, so billing must be enabled for it before it is accepted",
-        "reason": "The 1.1x price applies to Claude 4.6 and later; on older models the parameter isn't supported at all and returns a 400."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A residency requirement can force a **model** change: `inference_geo` needs Claude 4.6 or later.",
-    "explanation": "The clue is the model: `inference_geo` only works on Claude 4.6 and later, and requests that include it on Claude Haiku 4.5 or earlier return a 400, so meeting the residency requirement forces a **model change**. Option D is tempting because US inference does have a 1.1x price, but that applies to 4.6 and later; on older models the parameter isn't supported at all. Option A is wrong because the accepted values are lowercase, and workspace geo (C) is a separate setting for data at rest.",
-    "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
       "title": "Data residency",
@@ -2757,48 +2312,6 @@
     "relatedCardIds": [
       "c-managed-agents",
       "c-claude-agent-sdk"
-    ],
-    "lessonId": "l-requirements"
-  },
-  {
-    "id": "q-req-managed-agents-zdr",
-    "domainId": "apps-integration",
-    "subSkillId": "requirements",
-    "topic": "Zero data retention",
-    "stem": "Requirements for a code-migration agent: each task runs for hours with many tool calls, and the organization's ZDR arrangement must cover all prompts and outputs. Which approach meets both?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Claude Managed Agents with a cloud sandbox, deleting each session as soon as it finishes",
-        "reason": "Managed Agents is not ZDR-eligible: sessions are stateful and transcripts persist until you delete them."
-      },
-      {
-        "id": "b",
-        "text": "Claude Managed Agents with a self-hosted sandbox running on the team's own infrastructure",
-        "reason": "Managed Agents' ineligibility applies to all its sub-features, including self-hosted sandboxes."
-      },
-      {
-        "id": "c",
-        "text": "Claude Managed Agents with HIPAA readiness enabled in place of the ZDR arrangement",
-        "reason": "Managed Agents isn't eligible for HIPAA readiness either, and HIPAA readiness doesn't satisfy a ZDR requirement."
-      },
-      {
-        "id": "d",
-        "text": "Your own agent loop on the Messages API, using only ZDR-eligible features",
-        "reason": "Correct: ZDR covers the Messages API for eligible features, while Managed Agents is not ZDR-eligible."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "A hard **retention** requirement can rule out a hosted option: Managed Agents is stateful and not ZDR-eligible.",
-    "explanation": "Long-running, tool-heavy tasks sound like a Managed Agents fit, but the **ZDR** requirement rules it out: Managed Agents is stateful, with transcripts that persist until you delete them, so it isn't ZDR-eligible. Your own loop on the Messages API with only ZDR-eligible features meets both needs. Option B is the most tempting trap, since a self-hosted sandbox feels like keeping data in-house, but the ineligibility covers all sub-features. Deleting sessions afterward (A) doesn't change eligibility, and HIPAA readiness (C) neither applies nor satisfies ZDR.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
-      "title": "API and data retention",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
     ],
     "lessonId": "l-requirements"
   },
@@ -3078,70 +2591,6 @@
     "lessonId": "l-systems-lifecycle"
   },
   {
-    "id": "q-lifecycle-canary-error-budget",
-    "domainId": "apps-integration",
-    "subSkillId": "systems-lifecycle",
-    "topic": "Staged rollout",
-    "stem": "A release candidate has a defect that fails 20% of requests. You canary it on 5% of traffic, assuming uniform load. What overall error rate does it cause, and why does that matter?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "About 1%: impact on the error budget is proportional to the traffic exposed",
-        "reason": "Correct: 20% errors on 5% of traffic is a 1% overall error rate, so the canary risks only a small fragment of the error budget."
-      },
-      {
-        "id": "b",
-        "text": "About 20%: every request that reaches the defective version fails, so it all counts",
-        "reason": "Only 20% of the canary's requests fail, and the canary serves only 5% of traffic."
-      },
-      {
-        "id": "c",
-        "text": "About 5%: the whole canary population is exposed, so all of its traffic counts as failed",
-        "reason": "The canary's requests fail at 20%, not 100%, so the overall rate is 20% of 5%."
-      },
-      {
-        "id": "d",
-        "text": "0%: canary traffic is excluded from the SLO until the rollout has been fully approved",
-        "reason": "Canary errors count: the canary risks a small fragment of the error budget, limited by time and population size."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "A canary **spends error budget in proportion** to the traffic it exposes: 20% failures on 5% of traffic is 1% overall.",
-    "explanation": "A canary spends error budget **in proportion to the traffic it exposes**. With 20% of the canary's requests failing and the canary serving 5% of traffic, the overall error rate is 20% of 5%, about 1%, so the release risks only a small fragment of the budget. Option C is the tempting miscalculation, treating the whole canary population as failed when only 20% of its requests fail. Option B ignores that only 5% of traffic is exposed, and D is wrong because canary errors do count against the budget.",
-    "difficulty": "hard",
-    "diagram": {
-      "kind": "segmented-bar",
-      "caption": "20% failures on a 5% canary is 1% of all traffic.",
-      "segments": [
-        {
-          "label": "Control",
-          "sublabel": "95%",
-          "weight": 95,
-          "tone": "neutral"
-        },
-        {
-          "label": "Canary ok",
-          "sublabel": "4%",
-          "weight": 4,
-          "tone": "success"
-        },
-        {
-          "label": "Fail",
-          "sublabel": "1%",
-          "weight": 1,
-          "tone": "error"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://sre.google/workbook/canarying-releases/",
-      "title": "Canarying Releases",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-systems-lifecycle"
-  },
-  {
     "id": "q-lifecycle-blameless-postmortem",
     "domainId": "apps-integration",
     "subSkillId": "systems-lifecycle",
@@ -3186,7 +2635,7 @@
     "domainId": "apps-integration",
     "subSkillId": "systems-lifecycle",
     "topic": "Production monitoring",
-    "stem": "A Claude-powered summarization service's dashboard shows a 0% error rate, counted from HTTP 5xx responses at the load balancer. Users report summaries that are confidently wrong. How does SRE monitoring guidance classify this?",
+    "stem": "Your summarization service's dashboard counts only HTTP 5xx responses and shows a 0% error rate, yet users report confidently wrong summaries. How does SRE monitoring guidance treat this?",
     "choices": [
       {
         "id": "a",
@@ -3212,7 +2661,7 @@
     "answer": "b",
     "takeaway": "For LLM apps, a **200 with wrong content is still an error**: status codes alone miss it, so add end-to-end checks.",
     "explanation": "In SRE monitoring, the errors signal covers more than explicit failures like HTTP 500s; it also includes **implicit failures**, such as a 200 response with wrong content. A dashboard counting only 5xx responses shows 0% while summaries are wrong, and only end-to-end tests detect wrong content. Option D is the tempting trap because it matches how the dashboard counts errors today, but it ignores implicit failures. Nothing in the stem is slow, so latency (A) doesn't fit, and saturation (C) measures how full the service is, not correctness.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
       "title": "Monitoring Distributed Systems",
@@ -3220,46 +2669,6 @@
     },
     "relatedCardIds": [],
     "lessonId": "l-systems-lifecycle"
-  },
-  {
-    "id": "q-swe-code-review-gate-merge",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "Your org uses Claude Code Review. The team wants any PR with an Important finding blocked from merging, but such PRs still merge. What should they do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Mark the Claude Code Review check as required in branch protection so Important findings fail it",
-        "reason": "The check run always completes with a neutral conclusion, so it never blocks merging through branch protection rules."
-      },
-      {
-        "id": "b",
-        "text": "Add a `REVIEW.md` rule telling Code Review to request changes whenever it finds an Important bug",
-        "reason": "Findings don't approve or block your PR. `REVIEW.md` tunes what gets flagged and at what severity, not whether the PR can merge."
-      },
-      {
-        "id": "c",
-        "text": "In your own CI, parse the check run's severity counts and fail when `normal` is non-zero",
-        "reason": "Correct: the Details text ends in a machine-readable comment; `normal` counts Important findings, so your CI can gate on it."
-      },
-      {
-        "id": "d",
-        "text": "Switch the repo's Review Behavior to After every push so each push's findings gate the merge",
-        "reason": "Review Behavior only sets when reviews run (and how much they cost); every run still ends with a neutral check."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Code Review never blocks a merge by itself; to gate on it, read the severity counts from the check run in your own CI.",
-    "explanation": "Claude Code Review never blocks a merge itself: its check run **always completes neutral**, and findings don't approve or block the PR. To gate merges, your own CI parses the machine-readable comment at the end of the Details text and fails when `normal`, the count of Important findings, is non-zero. Option A is the tempting trap because requiring a check in branch protection is the usual way to gate, but a neutral check never fails. `REVIEW.md` (B) tunes what gets flagged, and Review Behavior (D) only sets when reviews run.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
   },
   {
     "id": "q-swe-review-md-rules",
@@ -3338,174 +2747,6 @@
     "source": {
       "url": "https://code.claude.com/docs/en/code-review",
       "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-review-fork-pr",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "A repo's Code Review is set to After every push. A contributor's PR comes from a fork, and after several pushes it still has no Claude review. What explains this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Fork pushes queue their reviews until a maintainer clicks Re-run on the check run",
-        "reason": "Clicking Re-run doesn't start a review on a fork pull request; only a comment command does."
-      },
-      {
-        "id": "b",
-        "text": "Fork PRs are never reviewed automatically; someone must comment `@claude review`",
-        "reason": "Correct: Claude reviews a fork PR only when someone with write access to the base repo comments `@claude review`."
-      },
-      {
-        "id": "c",
-        "text": "The contributor needs write access to the fork before push-triggered reviews run",
-        "reason": "The write access that matters is to the base repository, and pushes never start a fork review in any mode."
-      },
-      {
-        "id": "d",
-        "text": "Fork PRs are reviewed only once they leave draft and are marked ready for review",
-        "reason": "Draft status isn't the cause: Claude doesn't review fork PRs automatically, regardless of the Review Behavior setting."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Fork PRs get a Code Review only on request: comment `@claude review`. Pushes and Re-run never start one.",
-    "explanation": "Fork PRs are a special case: Claude never reviews them automatically, whatever the Review Behavior setting, and only reviews one when someone with write access to the **base** repository comments `@claude review`. That's why After every push did nothing here. Option C is the tempting trap, since it mentions write access, but the access that matters is to the base repo and pushes never start a fork review. Clicking Re-run (A) doesn't start one either, and draft status (D) isn't the cause.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-review-act-on-findings",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "Claude Code Review left two findings on your PR, which is subscribed to push-triggered reviews. One is a real bug; the other is a false positive you want gone without a code change. Which two actions do what you intend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Reply to the bug's inline comment asking Claude to push a fix to the PR",
-        "reason": "Replying to an inline comment doesn't prompt Claude to respond or update the PR."
-      },
-      {
-        "id": "b",
-        "text": "Fix the bug and push; the next push-triggered review resolves that thread",
-        "reason": "Correct: to act on a finding, fix the code and push; a push-triggered run resolves the thread once the issue is fixed."
-      },
-      {
-        "id": "c",
-        "text": "React with 👎 on the false positive so Claude re-reviews and withdraws it",
-        "reason": "Reactions are collected after merge to tune the reviewer; they don't trigger a re-review or change the PR."
-      },
-      {
-        "id": "d",
-        "text": "Reply \"not a bug\" under the false positive so Claude dismisses the finding",
-        "reason": "Replying doesn't dismiss a finding; resolving its thread does."
-      },
-      {
-        "id": "e",
-        "text": "Resolve the false positive's thread to dismiss it with no code change",
-        "reason": "Correct: to dismiss a finding without a code change, resolve its thread."
-      }
-    ],
-    "answer": [
-      "b",
-      "e"
-    ],
-    "takeaway": "Act on Code Review findings by pushing fixes or resolving threads; replies and reactions change nothing on the PR.",
-    "explanation": "Code Review findings change only through **code or thread resolution**. For the real bug, fix it and push; because the PR is subscribed, the next push-triggered review resolves the thread once the issue is fixed (B). For the false positive, resolving its thread dismisses it with no code change (E). Option D is the most tempting wrong pick, since replying feels like dismissing, but replies don't dismiss findings or prompt Claude to respond. Asking for a fix in a reply (A) and reacting with a thumbs-down (C) don't change the PR.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-code-review-fix-rewind",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Code review",
-    "stem": "You run `/code-review --fix` mid-session. It runs in the background and applies its findings to your working tree. One fix is wrong, so you run `/rewind`, but the edit stays. Why, and how do you undo it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`/rewind` restores only the conversation, never code; use `/clear` to drop the edit",
-        "reason": "When the review runs in the foreground, `/rewind` restores its edits as usual, so rewind does cover code edits made in your turn."
-      },
-      {
-        "id": "b",
-        "text": "Background review edits fall outside your checkpoints; revert them with git",
-        "reason": "Correct: a background review applies `--fix` edits outside your session's checkpoints, so `/rewind` doesn't undo them; use git."
-      },
-      {
-        "id": "c",
-        "text": "Only `ultra` cloud reviews bypass checkpoints; rerun as `/code-review low` to undo",
-        "reason": "This was a local background review. Effort levels trade coverage for confidence; they don't undo edits."
-      },
-      {
-        "id": "d",
-        "text": "`--fix` runs as a forked subagent that rewinds only after you approve its findings",
-        "reason": "No approval step is described: `--fix` applies the findings to your working tree, outside your checkpoints when it runs in the background."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A background `/code-review --fix` edits outside your checkpoints: `/rewind` won't undo it, but git will.",
-    "explanation": "The detail that matters is that the review ran **in the background**. A background `/code-review --fix` applies its edits outside your session's checkpoints, so `/rewind` can't restore them and you revert with git instead. Option A is the tempting explanation, but `/rewind` does restore code edits from your turn, including a foreground review's. Option C wrongly limits the bypass to `ultra` cloud reviews and treats an effort level as an undo, and D invents an approval step that isn't described.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/code-review",
-      "title": "Code Review",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-gha-github-token-ci",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "GitHub Actions",
-    "stem": "Your workflow passes `github_token: ${{ secrets.GITHUB_TOKEN }}` to `anthropics/claude-code-action`. Claude pushes fixes to PR branches, but your CI workflow never runs on those commits. What fixes it?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add `actions: read` to the workflow permissions so Claude can see CI results",
-        "reason": "`actions: read` lets Claude read CI results on PRs; it doesn't make GitHub trigger workflows on Claude's commits."
-      },
-      {
-        "id": "b",
-        "text": "List the Claude bot in `allowed_bots` so its commits are allowed to start CI runs",
-        "reason": "`allowed_bots` decides which bot actors may trigger the Claude action itself, not which commits start your CI."
-      },
-      {
-        "id": "c",
-        "text": "Grant `--allowedTools \"Bash(git push *)\"` in `claude_args` so pushes go through the shell",
-        "reason": "GitHub doesn't trigger workflows on commits made with the default `GITHUB_TOKEN`, whichever tool makes the push."
-      },
-      {
-        "id": "d",
-        "text": "Remove the `github_token` input so the action authenticates as the Claude GitHub App",
-        "reason": "Correct: GitHub doesn't trigger workflows on commits made with the default `GITHUB_TOKEN`; without it, the action uses the Claude GitHub App (or pass a custom app token)."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Commits pushed with the default `GITHUB_TOKEN` don't trigger CI; let the action authenticate as the Claude GitHub App.",
-    "explanation": "GitHub does not trigger workflows on commits made with the default `GITHUB_TOKEN`, so passing it to `claude-code-action` means Claude's pushes never start CI, regardless of how the push is made. Removing the `github_token` input lets the action authenticate as the Claude GitHub App (or you pass a custom app token). Option B is the tempting trap because `allowed_bots` sounds like it permits bot commits to run things, but it only decides which bots may trigger the Claude action itself. `actions: read` (A) lets Claude read CI results, and C still pushes with the same token.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/github-actions",
-      "title": "Claude Code GitHub Actions",
       "checkedOn": "2026-10-13"
     },
     "relatedCardIds": [],
@@ -3980,49 +3221,6 @@
     "lessonId": "l-swe-foundations"
   },
   {
-    "id": "q-swe-sdk-long-request-valueerror",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "Long requests",
-    "stem": "A Python job calls `client.messages.create()` without streaming and with a very large `max_tokens`. The SDK raises a `ValueError` for the call. Which change does the Python SDK page recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Catch the `ValueError` and retry, since timed-out requests are retried twice by default",
-        "reason": "The error is raised because a non-streaming request is expected to run past about 10 minutes; retrying repeats the same request."
-      },
-      {
-        "id": "b",
-        "text": "Stream the request, for example with `stream=True`, as advised for long requests",
-        "reason": "Correct: the SDK raises `ValueError` for non-streaming requests expected to exceed about 10 minutes; `stream=True` disables it."
-      },
-      {
-        "id": "c",
-        "text": "Set `max_retries=0`, since the error comes from the SDK estimating total retry time",
-        "reason": "`max_retries` configures automatic retries; the `ValueError` is about the expected latency of a non-streaming request."
-      },
-      {
-        "id": "d",
-        "text": "Move to `AsyncAnthropic`, since only the synchronous client applies this length check",
-        "reason": "The page names `stream=True` or overriding `timeout` as what disables the error; it doesn't exempt the async client."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "For long generations, **stream**: the SDK rejects non-streaming calls expected to run past ~10 minutes.",
-    "explanation": "The SDK raises this `ValueError` up front for a **non-streaming request expected to run past about 10 minutes**, which a very large `max_tokens` triggers. The page's fix is to stream, for example with `stream=True` (overriding `timeout` also disables it). Option A is the trap: this isn't a timeout to retry, and retrying sends the identical request. `max_retries` (C) only configures retries, and the async client (D) isn't exempt.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
-      "title": "Python SDK",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-streaming",
-      "c-sdk-retries"
-    ],
-    "lessonId": "l-swe-foundations"
-  },
-  {
     "id": "q-swe-idempotent-retry",
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
@@ -4142,46 +3340,6 @@
     "takeaway": "Interoperable JSON: unique names, no reliance on member order, UTF-8 with no BOM.",
     "explanation": "Interoperability means every receiver, whatever library it uses, agrees on the data. **Unique names** (A) make all implementations agree on the name-value mappings, and **not depending on member order** (D) avoids a point where parsers differ. Option C is the tempting one, but with duplicate names behavior is unpredictable: many parsers keep the last pair, others error or report all pairs. A BOM (B) is forbidden on networked JSON, and text exchanged between open systems must be UTF-8, not UTF-16 (E).",
     "difficulty": "medium",
-    "source": {
-      "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
-      "title": "RFC 8259: The JavaScript Object Notation (JSON) Data Interchange Format",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [],
-    "lessonId": "l-swe-foundations"
-  },
-  {
-    "id": "q-swe-json-large-int",
-    "domainId": "apps-integration",
-    "subSkillId": "swe-foundations",
-    "topic": "JSON handling",
-    "stem": "A service sends `{\"id\": 9007199254740993}` to a client whose JSON parser uses IEEE 754 double-precision numbers, and the client ends up with a different id. What does RFC 8259 say about this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "JSON forbids integers above 2**31, so the sender emitted invalid JSON text",
-        "reason": "The RFC lets implementations set limits on range and precision; it doesn't cap integers at 2**31."
-      },
-      {
-        "id": "b",
-        "text": "With double-precision parsers, only integers in [-(2**53)+1, (2**53)-1] are sure to be exact",
-        "reason": "Correct: with IEEE 754 doubles, integers in that range are interoperable (agreed exactly); larger numbers may be approximated."
-      },
-      {
-        "id": "c",
-        "text": "JSON numbers must always be quoted, since every JSON value is a string",
-        "reason": "A JSON value can be a string, number, boolean, null, object or array; numbers are their own type."
-      },
-      {
-        "id": "d",
-        "text": "The parser is non-compliant, since RFC 8259 requires arbitrary precision",
-        "reason": "The RFC explicitly allows implementations to set limits on the range and precision of numbers they accept."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "With double-precision parsers, only integers within ±(2**53 − 1) are sure to be exact; bigger JSON numbers may be approximated.",
-    "explanation": "RFC 8259 lets implementations set limits on number range and precision. With IEEE 754 doubles, only integers in **[-(2**53)+1, (2**53)-1]** are sure to be agreed exactly, and `9007199254740993` is larger, so it may be approximated. Option D is the trap: the parser isn't non-compliant, because the RFC explicitly allows these limits. There's no 2**31 cap (A), and numbers are their own JSON type, not strings (C).",
-    "difficulty": "hard",
     "source": {
       "url": "https://www.rfc-editor.org/rfc/rfc8259.html",
       "title": "RFC 8259: The JavaScript Object Notation (JSON) Data Interchange Format",
@@ -4525,49 +3683,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-path-rule-compaction",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Session hygiene",
-    "stem": "Your `.claude/rules/api-security.md` has `paths: src/api/**` frontmatter. In long sessions, after compaction Claude sometimes writes API code that ignores the rule until it next opens a matching file. You need the rule present after every compaction. What does the context-window guide advise?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move the rule into a nested `src/api/CLAUDE.md` so it travels with the code",
-        "reason": "Nested CLAUDE.md files also load into history when a trigger file is touched, so compaction summarizes them away too."
-      },
-      {
-        "id": "b",
-        "text": "Drop the `paths:` frontmatter or move the rule to the root CLAUDE.md",
-        "reason": "Correct: path-scoped rules get summarized away; to persist, drop `paths:` or move the rule to the project-root CLAUDE.md, which is re-injected from disk."
-      },
-      {
-        "id": "c",
-        "text": "Inject the rule once from a `PostToolUse` hook so it stays in the history",
-        "reason": "Context that hooks added earlier is summarized with the rest of the conversation, so it doesn't survive compaction intact."
-      },
-      {
-        "id": "d",
-        "text": "Restate the rule in a chat message right after each manual `/compact`",
-        "reason": "A chat message is ordinary conversation history, which the next compaction condenses into the summary again."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Path-scoped rules and nested CLAUDE.md files are **summarized away** by compaction; the root CLAUDE.md is re-injected.",
-    "explanation": "Context that loads on demand into history, like a path-scoped rule, gets **summarized away** by compaction; the project-root CLAUDE.md is re-injected from disk. So to have the rule present after every compaction, drop `paths:` or move it to the root CLAUDE.md. Option A is the trap because it feels more targeted, but a nested CLAUDE.md also loads into history when triggered and is summarized away the same way. Hook output (C) and chat restatements (D) are history too.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/context-window",
-      "title": "Explore the context window",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-md",
-      "c-context-window"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-resume-named-session",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -4607,48 +3722,6 @@
     "takeaway": "Named sessions resume by name: **`claude --resume <name>`** from the shell, or **`/resume <name>`** inside a session.",
     "explanation": "The session has a name from `/rename`, so you can resume it **by name**: `claude --resume oauth-migration` from the shell (B), or `/resume oauth-migration` inside a running session (D). Option A is the trap: `--continue` reopens the **most recent** session in the directory, and the stem says you worked in two others since. `-n` (C) names a new session, and `/clear` with a name (E) names the session you're leaving and starts fresh.",
     "difficulty": "easy",
-    "source": {
-      "url": "https://code.claude.com/docs/en/sessions",
-      "title": "Manage sessions",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-continue-resume"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-resume-launch-flags",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Session hygiene",
-    "stem": "Yesterday you started Claude Code with `--mcp-config ./ci-mcp.json --plugin-dir ./my-plugin`. Today `claude --continue` reopens that conversation, but the MCP tools and the plugin's skills are missing. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Those launch flags aren't restored on resume; pass them again with `--continue`",
-        "reason": "Correct: if a session depended on `--mcp-config` or `--plugin-dir`, pass them again when you resume; settings files, by contrast, are re-read at launch."
-      },
-      {
-        "id": "b",
-        "text": "A resume restores only the conversation, so model and permissions reset too",
-        "reason": "A resumed session generally continues on its model and, from a terminal, restores its permission mode; only some launch flags are dropped."
-      },
-      {
-        "id": "c",
-        "text": "`--continue` skips sessions launched with extra flags, so it opened an older one",
-        "reason": "`--continue` skips sessions created with `-p`, the Agent SDK or `/loop`; here it reopened the right conversation."
-      },
-      {
-        "id": "d",
-        "text": "Resumed sessions can't use MCP servers, so start a new session to get tools",
-        "reason": "Resume restores the full history, including tool calls and results; the missing pieces are flags that weren't passed again."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Resume restores the conversation, not every launch flag: **re-pass** `--mcp-config`, `--plugin-dir` and similar when you resume.",
-    "explanation": "Resume restores the conversation, but some launch flags aren't restored: if a session depended on `--mcp-config` or `--plugin-dir`, pass them again with `--continue`. That fits the stem exactly, since the conversation came back but the tools and skills didn't. Option D is tempting, but resume restores the full history, including tool calls; MCP isn't blocked. Model and permissions generally carry over (B), and `--continue` did open the right conversation (C).",
-    "difficulty": "hard",
     "source": {
       "url": "https://code.claude.com/docs/en/sessions",
       "title": "Manage sessions",
@@ -4840,92 +3913,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-system-after-tool-result",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Mid-session instructions",
-    "stem": "On Claude Sonnet 5.5, your agent forwards a follow-up the user typed during a tool loop as a `system`-role message placed right after a `tool_result`. Claude often ignores it. What does the mid-conversation system messages guide recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add the beta header that mid-conversation system messages require",
-        "reason": "No beta header is required for mid-conversation system messages."
-      },
-      {
-        "id": "b",
-        "text": "Switch to Claude Sonnet 5, which supports system messages after tool results",
-        "reason": "Mid-conversation system messages aren't available on Claude Sonnet 5; use its top-level `system` field instead."
-      },
-      {
-        "id": "c",
-        "text": "Place the system message between the `tool_use` and its `tool_result`",
-        "reason": "That position returns a 400 error: a content-carrying system message can't sit between a `tool_use` block and the `tool_result` answering it."
-      },
-      {
-        "id": "d",
-        "text": "Append the user's words as a `text` block after the last `tool_result`",
-        "reason": "Correct: Sonnet 5.5 and Haiku 5.5 resist injection via tool results and can treat a system message there as untrusted; add the words as text in that user message."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Right after tool results, injection-resistant models may distrust a system message; put the **user's words in the user turn**.",
-    "explanation": "Sonnet 5.5 and Haiku 5.5 resist injection via tool results, so a `system` message placed **right after a `tool_result`** can be treated as untrusted. The guide's fix is to put the user's words as a `text` block in that same user message after the last `tool_result`. Option C is tempting since it moves the message, but between a `tool_use` and its `tool_result` is a 400 error. No beta header exists (A), and Sonnet 5 lacks mid-conversation system messages (B).",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages",
-      "title": "Mid-conversation system messages and tool changes",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-prompt-injection",
-      "c-content-blocks"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-sdk-system-reminders",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Agent SDK prompts",
-    "stem": "Your Agent SDK agent uses a custom `systemPrompt` string. Claude sometimes treats CLAUDE.md content and hook output as if the end user had typed them. What does the system-prompt guide suggest adding?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`excludeDynamicSections: true`, so app context moves out of the conversation",
-        "reason": "That option works only on the preset and moves per-user context into the first user message; it doesn't explain where reminders come from."
-      },
-      {
-        "id": "b",
-        "text": "A sentence saying system reminders come from the application, not the user",
-        "reason": "Correct: the `claude_code` preset explains system reminders, and a custom string replaces it, so say they're context from the application."
-      },
-      {
-        "id": "c",
-        "text": "`CLAUDE_CODE_DISABLE_ATTACHMENTS=1`, so reminders are labeled as app context",
-        "reason": "That turns off task list nudges, file-changed notes and the skill list; it doesn't label CLAUDE.md or hook output as app context."
-      },
-      {
-        "id": "d",
-        "text": "`settingSources: [\"project\"]`, which moves CLAUDE.md into the system prompt",
-        "reason": "CLAUDE.md doesn't change the system prompt: the SDK injects its content into the conversation as project context."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A custom SDK system prompt should say what **system reminders** are, or Claude may read app-added context as the user's words.",
-    "explanation": "The `claude_code` preset explains what **system reminders** are; a custom `systemPrompt` string replaces the preset, so that explanation is gone and Claude may read CLAUDE.md content and hook output as the user's words. Add a sentence saying reminders are context from the application. Option D is tempting because it touches CLAUDE.md, but the SDK injects CLAUDE.md into the conversation, not the system prompt. A only works on the preset, and C turns off attachments rather than labeling them.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
-      "title": "Modifying system prompts",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-claude-agent-sdk",
-      "c-claude-md"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-file-id-from-users",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -4964,141 +3951,6 @@
     },
     "relatedCardIds": [
       "c-files-api"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-schema-numeric-constraints",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Schema design",
-    "stem": "Your raw HTTP request uses `output_config.format` with a schema whose `quantity` field has `minimum: 1` and `maximum: 100`. The API returns a 400 error with details. What does the structured-outputs guide say?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Add `strict: true` inside `output_config` so the numeric limits are enforced",
-        "reason": "`strict: true` belongs on tool definitions for strict tool use; numerical constraints such as `minimum` are unsupported in these schemas either way."
-      },
-      {
-        "id": "b",
-        "text": "Wrap `quantity` in `anyOf` so the bounds are checked as a union",
-        "reason": "`anyOf` is supported, but `minimum` and `maximum` are still unsupported numerical constraints and return a 400."
-      },
-      {
-        "id": "c",
-        "text": "Retry, because the first request with a new schema can time out while compiling",
-        "reason": "First-request latency comes from grammar compilation, not a failure; an unsupported feature such as `minimum` returns a 400 with details."
-      },
-      {
-        "id": "d",
-        "text": "Drop the bounds, or let an SDK helper move them into the descriptions",
-        "reason": "Correct: numerical constraints are unsupported; most SDK helpers strip them, note them in field descriptions and can validate responses against your original schema."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Structured outputs reject `minimum`/`maximum`-style constraints: strip them (most SDK helpers do) and **enforce them in code**.",
-    "explanation": "Numerical constraints such as `minimum` and `maximum` are **unsupported** in structured-output schemas, which is why the API returns a 400 with details. Drop them, or let an SDK helper strip them into field descriptions and validate against your original schema, enforcing the bounds in code. Option A is tempting, but `strict: true` belongs on tool definitions and wouldn't make these limits supported. Wrapping in `anyOf` (B) keeps the bounds, and the error isn't a timeout (C).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-json-outputs",
-      "c-structured-invalid-outputs"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-schema-unsupported-features",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Schema design",
-    "stem": "You're designing a JSON schema for `output_config.format`. Which two schema features will make the API reject the request with a 400 error?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "A recursive schema, such as a `node` whose `children` are `node`s",
-        "reason": "Correct: recursive schemas aren't supported."
-      },
-      {
-        "id": "b",
-        "text": "An `enum` of plain string labels such as `open`, `closed` and `pending`",
-        "reason": "Supported: `enum` works with strings, numbers, bools or nulls (no complex types)."
-      },
-      {
-        "id": "c",
-        "text": "A `$ref` to a definition in the schema's own `$defs`",
-        "reason": "Supported: `$ref`, `$def` and `definitions` work; it's an external `$ref` that isn't supported."
-      },
-      {
-        "id": "d",
-        "text": "`additionalProperties: false` on every object",
-        "reason": "Supported and expected: `additionalProperties` must be set to `false` for objects."
-      },
-      {
-        "id": "e",
-        "text": "`maxLength: 280` on a `summary` string",
-        "reason": "Correct: string constraints such as `minLength` and `maxLength` aren't supported."
-      }
-    ],
-    "answer": [
-      "a",
-      "e"
-    ],
-    "takeaway": "Structured-output schemas can't use recursion or length/number limits; `enum`, internal `$ref` and `additionalProperties: false` are fine.",
-    "explanation": "Two kinds of schema features are rejected: **recursive schemas** (A), and **string length constraints** like `maxLength` (E). Option C is the most tempting wrong pick, because `$ref` sounds risky, but a `$ref` to the schema's own `$defs` is supported; only an external `$ref` isn't. A string `enum` (B) works, and `additionalProperties: false` (D) isn't just allowed but required for objects.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-json-outputs"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-schema-property-order",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Schema design",
-    "stem": "Your JSON outputs schema lists `title` (optional), then `id` and `score` (both required). A downstream parser assumes fields arrive in schema order, but `title` keeps appearing last. What does the structured-outputs guide recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Make all properties required, or accept the order in your parser",
-        "reason": "Correct: properties keep their schema order, except that required properties come first, followed by optional ones."
-      },
-      {
-        "id": "b",
-        "text": "Set `additionalProperties: false`, which locks the property order",
-        "reason": "That setting is required for objects anyway; the ordering comes from required properties being placed before optional ones."
-      },
-      {
-        "id": "c",
-        "text": "Sort keys yourself, because structured outputs ignore schema order",
-        "reason": "Order isn't ignored: properties keep their defined order, with the one caveat that required ones come first."
-      },
-      {
-        "id": "d",
-        "text": "Raise `max_tokens`, since `title` is moved last when output runs long",
-        "reason": "The order comes from required-first placement; `max_tokens` matters only when output is cut off and may be incomplete."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Structured outputs emit **required properties first**; if order matters, make every property required.",
-    "explanation": "Structured outputs keep properties in **schema order, except that required properties come first**, followed by optional ones. Since `title` is optional and `id` and `score` are required, `title` lands last. Make every property required, or let the parser accept the order. Option C is the trap: it overcorrects by claiming order is ignored, when it's kept with one caveat. `additionalProperties: false` (B) is required anyway, and `max_tokens` (D) only matters if output is cut off.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-json-outputs"
     ],
     "lessonId": "l-app-design"
   },
@@ -5240,49 +4092,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-plugin-project-not-installed",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Plugin management",
-    "stem": "You installed a `formatter` plugin at project scope and committed `.claude/settings.json`. A teammate pulls the repo, and Claude Code reports the plugin is enabled in project settings but not installed. What should the teammate do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Nothing: committing the settings file downloads the plugin on next launch",
-        "reason": "Committing that entry turns the plugin on for collaborators but doesn't download it to their machines."
-      },
-      {
-        "id": "b",
-        "text": "Run `/reload-plugins` so the session picks up the project's plugin",
-        "reason": "Reloading loads plugins that are already installed; this one was never downloaded to the teammate's machine."
-      },
-      {
-        "id": "c",
-        "text": "Run `claude plugin install formatter@<marketplace> --scope project` once",
-        "reason": "Correct: each collaborator runs `claude plugin install <name>@<marketplace> --scope project` once, because the committed entry doesn't download it."
-      },
-      {
-        "id": "d",
-        "text": "Add it to `enabledPlugins` in `~/.claude/settings.json`, since user scope wins",
-        "reason": "Precedence runs the other way (local over project, project over user), and an enabled entry alone doesn't download the plugin."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Project scope **enables** a plugin for collaborators but doesn't **download** it; each of them runs the install once.",
-    "explanation": "Committing a project-scope plugin entry **enables** the plugin for collaborators, but it doesn't **download** it to their machines. That's why Claude Code reports it as enabled but not installed. Each collaborator runs `claude plugin install <name>@<marketplace> --scope project` once. Option B is tempting, but `/reload-plugins` only loads plugins already installed. Option A assumes the commit downloads it, and D gets precedence backwards and still wouldn't download anything.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/discover-plugins",
-      "title": "Install and manage plugins",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-scopes",
-      "c-plugin-manifest"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-plugin-local-scope",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -5410,98 +4219,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-app-plugin-cloud-session",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Plugin management",
-    "stem": "A plugin works in your terminal, where you installed it and the repo's `.claude/settings.json` enables it. In a cloud session at claude.ai/code on the same repo, its skills are missing. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Cloud sessions load plugins only after you run `/reload-plugins` there",
-        "reason": "A reload isn't the issue: cloud sessions don't load your locally installed plugins or ones the repo's settings turn on."
-      },
-      {
-        "id": "b",
-        "text": "The plugin needs user scope, because cloud sessions read only user settings",
-        "reason": "Cloud sessions don't load plugins you installed on your own machine, whatever their scope."
-      },
-      {
-        "id": "c",
-        "text": "Cloud sessions need the plugin installed through the cloud session's `/plugin` browser",
-        "reason": "A cloud session has no plugin browser; organizations distribute plugins there through managed settings."
-      },
-      {
-        "id": "d",
-        "text": "Cloud sessions don't load your local plugins or ones the repo's settings enable",
-        "reason": "Correct: a cloud session doesn't load plugins installed on your machine or turned on by `.claude/settings.json`; orgs use managed settings instead."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Cloud sessions don't inherit your **local plugin setup**; organizations distribute plugins to them through managed settings.",
-    "explanation": "A cloud session at claude.ai/code **doesn't load plugins installed on your machine**, nor ones turned on by the repo's `.claude/settings.json`; organizations distribute plugins there through managed settings. That explains why the same repo behaves differently. Option B is tempting because it suggests a scope fix, but scope doesn't matter: local installs don't reach cloud sessions at all. There's no plugin browser there (C), and reloading (A) changes nothing.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/discover-plugins",
-      "title": "Install and manage plugins",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-scopes"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
-    "id": "q-app-plugin-setup-script",
-    "domainId": "apps-integration",
-    "subSkillId": "app-design",
-    "topic": "Plugin management",
-    "stem": "You're writing a setup script that installs plugins on brand-new developer machines where nobody has opened an interactive Claude Code session yet. Which two steps does the plugin guide call for?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Use `/plugin install` lines, since the script runs through `claude -p`",
-        "reason": "`/plugin` doesn't run in `claude -p`; scripts use `claude plugin install` from the shell."
-      },
-      {
-        "id": "b",
-        "text": "Expect already-open sessions to pick up the new plugins at once, with no reload",
-        "reason": "Shell installs load the next time Claude Code starts, or after `/reload-plugins` in a session that's already open."
-      },
-      {
-        "id": "c",
-        "text": "Add the official marketplace first with `claude plugin marketplace add`",
-        "reason": "Correct: where no one has opened an interactive session, the official marketplace isn't registered, so the script adds it before installing."
-      },
-      {
-        "id": "d",
-        "text": "Pass `--scope managed` so every user on the machine gets the plugins",
-        "reason": "`claude plugin install` uses user scope by default and takes `--scope project` or `--scope local`; managed plugins come from org settings."
-      },
-      {
-        "id": "e",
-        "text": "Pass `--yes` so plugins with a `command` source install without a prompt",
-        "reason": "Correct: a `command` source asks you to accept its command first; a script has no one to answer, so pass `--yes`."
-      }
-    ],
-    "answer": [
-      "c",
-      "e"
-    ],
-    "takeaway": "Scripted installs: register the **official marketplace** first on fresh machines, and pass **`--yes`** for command-source plugins.",
-    "explanation": "Two details matter: **brand-new machines** and an **unattended script**. Where nobody has opened an interactive session, the official marketplace isn't registered, so add it first with `claude plugin marketplace add` (C). A `command` source asks you to accept its command, and a script has no one to answer, so pass `--yes` (E). Option A is the trap: `/plugin` doesn't run in `claude -p`. Open sessions need a restart or `/reload-plugins` (B), and `--scope managed` isn't an install option (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://code.claude.com/docs/en/discover-plugins",
-      "title": "Install and manage plugins",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-cc-settings-scopes"
-    ],
-    "lessonId": "l-app-design"
-  },
-  {
     "id": "q-app-desktop-mcp-restart",
     "domainId": "apps-integration",
     "subSkillId": "app-design",
@@ -5545,57 +4262,6 @@
     "lessonId": "l-app-design"
   },
   {
-    "id": "q-api-bedrock-unsupported-features",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Claude in Amazon Bedrock",
-    "stem": "A team is moving its workload from the Claude API to Claude in Amazon Bedrock (the Messages API endpoint for Opus 4.7 and later). Which two parts of the current design must they replace, because Bedrock doesn't support them?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Prompt caching on the long system prompt shared by every request",
-        "reason": "Prompt caching is listed among the supported feature highlights for Claude in Amazon Bedrock."
-      },
-      {
-        "id": "b",
-        "text": "Nightly jobs submitted through the Message Batches API",
-        "reason": "Correct: API endpoints including Message Batches are listed under features not supported on Claude in Amazon Bedrock."
-      },
-      {
-        "id": "c",
-        "text": "Thinking on hard requests, read back from the thinking blocks",
-        "reason": "Thinking is listed among the supported feature highlights for Claude in Amazon Bedrock."
-      },
-      {
-        "id": "d",
-        "text": "PDFs uploaded once to the Files API and referenced by `file_id`",
-        "reason": "Correct: input sources, meaning URL sources for images and documents and the Files API, are not supported on Claude in Amazon Bedrock."
-      },
-      {
-        "id": "e",
-        "text": "Citations on answers drawn from the user's own documents",
-        "reason": "Citations are listed among the supported feature highlights for Claude in Amazon Bedrock."
-      }
-    ],
-    "answer": [
-      "b",
-      "d"
-    ],
-    "takeaway": "Claude in Amazon Bedrock keeps the Messages API shape, but some features, such as **Message Batches** and the **Files API**, aren't available there.",
-    "explanation": "Claude in Amazon Bedrock keeps the Messages API shape, but some features aren't there. **Message Batches** (B) is among the unsupported API endpoints, and the **Files API** (D) falls under unsupported input sources, so the nightly batch and `file_id` uploads need replacing. The tempting picks are A, C and E, but prompt caching, thinking and citations are all listed as supported feature highlights, so those parts of the design can stay.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
-      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-message-batches",
-      "c-files-api"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
     "id": "q-api-bedrock-regional-endpoint",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
@@ -5634,48 +4300,6 @@
     },
     "relatedCardIds": [
       "c-request-size-limits"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-vertex-request-shape",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Claude on Google Cloud",
-    "stem": "You port a working Claude API request to Claude on Google Cloud's Agent Platform by changing only the endpoint URL and authentication. The body still has `\"model\": \"claude-opus-5-5\"` and you still send the `anthropic-version` header. What else must change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Nothing more: Agent Platform accepts the Messages API request body exactly as it is",
-        "reason": "It's nearly identical, but there are two key differences in request format: where `model` goes and how `anthropic_version` is sent."
-      },
-      {
-        "id": "b",
-        "text": "Rename `max_tokens` and `messages` to the Agent Platform field names for that data",
-        "reason": "The page lists only two request-format differences, `model` and `anthropic_version`; `max_tokens` and `messages` aren't among them."
-      },
-      {
-        "id": "c",
-        "text": "Move `model` into a request header and leave the `anthropic-version` header as is",
-        "reason": "On Agent Platform, `model` isn't passed in the request body; it is specified in the Google Cloud endpoint URL."
-      },
-      {
-        "id": "d",
-        "text": "Remove `model` from the body and send `anthropic_version: \"vertex-2023-10-16\"` in it",
-        "reason": "Correct: on Agent Platform `model` goes in the endpoint URL, and `anthropic_version` is passed in the body (not as a header) with the value `vertex-2023-10-16`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "On Google Cloud, the **model is in the URL** and `anthropic_version: \"vertex-2023-10-16\"` is in the body; the rest matches the Messages API.",
-    "explanation": "The request on Agent Platform is nearly identical to the Messages API, with **two differences**: `model` goes in the endpoint URL rather than the body, and `anthropic_version` is sent in the body, not as a header, with the value `vertex-2023-10-16`. Option C is tempting because it moves `model`, but to a header instead of the URL, and it leaves the version header unchanged. A ignores both differences, and B invents renames that aren't among them.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
-      "title": "Claude on Google Cloud",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-anthropic-version"
     ],
     "lessonId": "l-api-basics"
   },
@@ -5722,132 +4346,6 @@
     "lessonId": "l-api-basics"
   },
   {
-    "id": "q-api-foundry-ratelimit-headers",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Claude in Microsoft Foundry",
-    "stem": "Your client throttles itself by reading `anthropic-ratelimit-tokens-remaining` from each response. After moving to Claude in Microsoft Foundry, the header is never present and the throttle does nothing. What does the Foundry guide say?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Send the `anthropic-version` header so Foundry turns the rate limit headers back on",
-        "reason": "Foundry requests already send `anthropic-version`; the guide says Foundry does not include Anthropic's standard rate limit headers at all."
-      },
-      {
-        "id": "b",
-        "text": "Foundry doesn't send them; manage rate limiting through Azure's monitoring tools",
-        "reason": "Correct: Foundry omits the `anthropic-ratelimit-*` headers, so manage rate limiting through Azure's monitoring tools and back off on 429s."
-      },
-      {
-        "id": "c",
-        "text": "Read the same values from the `usage` object, which reports remaining quota",
-        "reason": "The `usage` object reports token consumption for the request, consistently across platforms; it doesn't report remaining rate limit."
-      },
-      {
-        "id": "d",
-        "text": "Switch to Entra ID authentication, which returns the headers on each response",
-        "reason": "The authentication method doesn't matter: Foundry does not include Anthropic's standard rate limit headers in responses."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Foundry responses lack the `anthropic-ratelimit-*` headers: track limits with **Azure monitoring** and use backoff on 429s.",
-    "explanation": "Foundry **does not include** Anthropic's standard `anthropic-ratelimit-*` headers, so a throttle reading them gets nothing. The guide says to manage rate limiting through Azure's monitoring tools and back off on 429s. Option C is tempting because `usage` sounds like quota, but it reports token consumption for the request, not remaining limits. No header (A) or auth method (D) turns the rate limit headers back on.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
-      "title": "Claude in Microsoft Foundry",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-ratelimit-headers"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-pdf-bedrock-converse",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "PDF support",
-    "stem": "On the legacy Amazon Bedrock integration, your app sends PDFs through the Converse API. Claude answers questions about the text but says it can't see the charts in the reports. What does the PDF guide say is the likely cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Charts need the PDF sent as a Files API `file_id` rather than as inline bytes",
-        "reason": "On Amazon Bedrock only base64-encoded sources are currently available; the missing charts come from Converse's text-only mode."
-      },
-      {
-        "id": "b",
-        "text": "The PDFs exceed the page limit, so the image layer of each page was dropped",
-        "reason": "The guide gives a different cause: without citations, Converse falls back to basic text extraction, which can't analyze charts."
-      },
-      {
-        "id": "c",
-        "text": "Citations are off, so Converse falls back to basic text extraction only",
-        "reason": "Correct: in the Converse API, full visual PDF understanding requires citations to be enabled; without them it falls back to basic text extraction."
-      },
-      {
-        "id": "d",
-        "text": "Claude can't read charts in PDFs on any platform; convert them to tables first",
-        "reason": "PDF support converts each page into an image plus text, so Claude can analyze charts, graphs and visual layouts."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "In Bedrock's Converse API, visual PDF analysis needs **citations enabled**; otherwise you get text extraction only.",
-    "explanation": "In Bedrock's Converse API, full **visual** PDF understanding requires **citations enabled**; without them it falls back to basic text extraction. That matches the symptom exactly: text answers work, but charts are invisible. Option D is tempting but false, since PDF support converts each page to an image plus text so charts can be analyzed. File IDs (A) aren't available on Bedrock anyway, and nothing in the stem points to a page limit (B).",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
-      "title": "PDF support",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-citations"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-pdf-page-limit",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "PDF support",
-    "stem": "A request on a model with a 200k-token context window attaches a 180-page PDF and is rejected, though the request is well under 32 MB. The same PDF works on a model with a 1M-token window. What explains this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Base64 encoding pushes the file past the 32 MB limit on smaller models",
-        "reason": "The 32 MB maximum request size doesn't depend on the model's context window, and this request is well under it."
-      },
-      {
-        "id": "b",
-        "text": "PDF support is available only on models with a 1M-token context window",
-        "reason": "All active models support PDF processing; the limit that differs by context window is pages per request."
-      },
-      {
-        "id": "c",
-        "text": "A PDF with more than 100 pages has to be uploaded with the Files API first",
-        "reason": "The page limit is on the entire request however the PDF is supplied; the Files API only keeps request payloads small."
-      },
-      {
-        "id": "d",
-        "text": "The cap is 100 pages per request when the window is under 1M tokens, not 600",
-        "reason": "Correct: the maximum is 600 pages per request, or 100 when the request's context window is under 1M tokens, so split larger PDFs into chunks."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "PDF requests allow up to **600 pages**, but only **100** when the context window is under 1M tokens; split larger documents.",
-    "explanation": "The key contrast is the **context window**: the same PDF fails at 200k tokens and works at 1M. The page limit is 600 pages per request, but only **100** when the context window is under 1M tokens, so 180 pages fails on the smaller model; split it into chunks. Option C is tempting, but the limit applies to the whole request however the PDF is supplied. The 32 MB cap doesn't depend on the model (A), and all active models support PDFs (B).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/pdf-support",
-      "title": "PDF support",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-request-size-limits"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
     "id": "q-api-pdf-token-cost",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
@@ -5886,99 +4384,6 @@
     },
     "relatedCardIds": [
       "c-token-counting"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-vision-high-res-tokens",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Vision inputs",
-    "stem": "After switching an OCR pipeline from Claude Haiku 4.5 to Claude Opus 5.5, input tokens per 1920x1080 screenshot rose from about 1,560 to about 2,690. Quality was already fine. What's the cause, and the fix?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Opus 5.5 bills each image twice; send each image only in the first turn",
-        "reason": "Images aren't billed twice; the count follows the model's resolution tier: 1560 tokens on the standard tier vs 2691 on high resolution."
-      },
-      {
-        "id": "b",
-        "text": "Newer models need a beta header for images, or they upscale them to 4K",
-        "reason": "High-resolution support is automatic on Claude 4.7 and later and needs no beta header or opt-in."
-      },
-      {
-        "id": "c",
-        "text": "It's on the high-resolution tier; downsample images that don't need the fidelity",
-        "reason": "Correct: Claude 4.7 and later use a high-resolution tier (2576 px long edge), so 1920x1080 isn't downsized; downsample when you don't need that detail."
-      },
-      {
-        "id": "d",
-        "text": "Opus 5.5 pads each image up to 4K before processing, so crop the screenshots tighter",
-        "reason": "A 1920x1080 image isn't resized on the high-resolution tier and costs 2691 tokens; only images over the limits are downscaled."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Claude 4.7 and later see images at **high resolution** (up to ~3× the visual tokens); downsample when you don't need the detail.",
-    "explanation": "Claude 4.7 and later use a **high-resolution tier** (2576 px long edge), so a 1920x1080 screenshot isn't downsized and costs about 2691 tokens instead of 1560. Since quality was already fine, downsample images that don't need that fidelity. Option D is tempting because it also blames image size, but images aren't padded to 4K; only those over the limits are downscaled. Images aren't billed twice (A), and high resolution needs no beta header (B).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
-      "title": "Vision",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-image-sources"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-files-design-facts",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Files API",
-    "stem": "Your team is designing a contract-review feature on the Claude API's Files API: users upload contracts, ask questions about them, and sometimes want their original file back. Which two facts should shape the design?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Files you upload can't be downloaded later; only generated files can",
-        "reason": "Correct: uploaded files have `downloadable: false` and downloading one returns 400; only files created by skills or the code execution tool can be downloaded."
-      },
-      {
-        "id": "b",
-        "text": "Uploads are free, but file content used in Messages is billed as input tokens",
-        "reason": "Correct: Files API operations such as uploading are free; file content used in Messages requests is priced as input tokens."
-      },
-      {
-        "id": "c",
-        "text": "Each upload is capped at 32 MB, the same limit as a Messages request",
-        "reason": "The Files API maximum file size is 500 MB per file, with 1 TB of total storage per organization."
-      },
-      {
-        "id": "d",
-        "text": "Every Files API request must still send the `files-api-2025-04-14` beta header",
-        "reason": "The Files API is out of beta and needs no beta header; requests that still send it get the older response shapes."
-      },
-      {
-        "id": "e",
-        "text": "Files are private to the API key that uploaded them",
-        "reason": "Files are scoped to the workspace: any API key with access to that workspace can access them."
-      }
-    ],
-    "answer": [
-      "a",
-      "b"
-    ],
-    "takeaway": "Files API: upload once, pay as **input tokens** when used, files are **workspace-scoped**, and your uploads can't be downloaded.",
-    "explanation": "Two facts hit this design directly. Users want their originals back, but **uploaded files can't be downloaded** (A); only files created by skills or the code execution tool can. And uploads are free, but file content used in Messages is **billed as input tokens** (B). Option E is the tempting wrong pick, but files are workspace-scoped, not per API key. The file limit is 500 MB, not 32 MB (C), and the Files API needs no beta header (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
-      "title": "Files API",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-files-api",
-      "c-routing-workflow"
     ],
     "lessonId": "l-api-basics"
   },
@@ -6025,49 +4430,6 @@
     "lessonId": "l-api-basics"
   },
   {
-    "id": "q-api-search-results-tool-mix",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Search results",
-    "stem": "Your RAG tool returns a `tool_result` whose content holds three `search_result` blocks plus a `text` block saying \"Results sorted by date.\" The request fails validation. How should you return that note?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Move the `text` block in front of the search results in the same tool result",
-        "reason": "Order doesn't matter: if any block in a `tool_result` is a `search_result`, all of its blocks must be `search_result`."
-      },
-      {
-        "id": "b",
-        "text": "Put the note in the system prompt, since tool results can't contain any text",
-        "reason": "Text is allowed inside a search result's `content`; it just can't sit beside search results as a separate block in a `tool_result`."
-      },
-      {
-        "id": "c",
-        "text": "Add the note as a text block inside one search result's `content` array",
-        "reason": "Correct: that keeps the tool result all `search_result` blocks, and text inside a search result's `content` also becomes citable."
-      },
-      {
-        "id": "d",
-        "text": "Turn off citations on the search results, which allows mixed block types",
-        "reason": "Citation settings don't change the rule: a tool result with any `search_result` block must contain only `search_result` blocks."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "A `tool_result` with search results must hold **only** `search_result` blocks; put extra text inside one of them.",
-    "explanation": "The rule: if **any** block in a `tool_result` is a `search_result`, **all** of its blocks must be `search_result`. The note can't sit beside them, but text inside a search result's `content` is allowed, and becomes citable too. Option A is tempting because it seems like a fix, but order doesn't matter, only block types. Tool results can hold text inside a search result (B), and citation settings don't change the rule (D).",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/search-results",
-      "title": "Search results",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-citations",
-      "c-content-blocks"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
     "id": "q-api-search-results-granularity",
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
@@ -6107,48 +4469,6 @@
     "relatedCardIds": [
       "c-cited-text",
       "c-citations"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-stream-omitted-thinking",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Streaming thinking",
-    "stem": "Your app streams Claude Opus 5.5 responses and fills a live \"reasoning\" pane from `thinking_delta` events. The pane stays empty: each thinking block gets one `thinking_delta` with an empty string, then a `signature_delta`. What's going on?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The stream was truncated; reconnect and resume from the last `thinking_delta`",
-        "reason": "This is the normal omitted-display sequence, not an error: the block opens, gets an empty delta and a signature, then closes."
-      },
-      {
-        "id": "b",
-        "text": "The thinking text arrives later in the `message_delta` event, so read it there",
-        "reason": "With display omitted, no thinking text is streamed in any event; the empty delta and the signature are the whole block."
-      },
-      {
-        "id": "c",
-        "text": "Thinking is off by default on Opus 5.5, so add `thinking: {\"type\": \"enabled\"}`",
-        "reason": "Thinking is already on for Opus 5.5, and `\"enabled\"` with `budget_tokens` returns a 400 there; the empty text comes from `display`."
-      },
-      {
-        "id": "d",
-        "text": "The model's default `display` is `\"omitted\"`; request `\"summarized\"` thinking",
-        "reason": "Correct: Opus 5.5 defaults to `display: \"omitted\"`, which streams no thinking text; opt in with `{\"type\": \"adaptive\", \"display\": \"summarized\"}`."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "On models like Opus 5.5, thinking is on but **hidden** by default (`display: \"omitted\"`); request `\"summarized\"` to see a summary.",
-    "explanation": "Thinking is **on** for Opus 5.5 but its default `display` is `omitted`, which streams no thinking text: each block opens, gets one empty `thinking_delta` and a `signature_delta`, then closes. That's the exact sequence in the stem. Request `{\"type\": \"adaptive\", \"display\": \"summarized\"}` to see a summary. Option C is the trap: thinking is already on, and `enabled` with `budget_tokens` returns 400 there. It isn't truncation (A), and no later event carries the text (B).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-stream-event-flow"
     ],
     "lessonId": "l-api-basics"
   },
@@ -6235,91 +4555,6 @@
     "relatedCardIds": [
       "c-thinking-budget",
       "c-max-tokens"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-thinking-migrate-adaptive",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Extended thinking",
-    "stem": "Code written for Claude Opus 4.5 sends `thinking: {\"type\": \"enabled\", \"budget_tokens\": 16000}`. After you change the model to Claude Opus 5.5, every request returns 400. What's the migration?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Cut the budget below 4,000 tokens, the ceiling on newer models",
-        "reason": "There's no such ceiling: on Claude 4.7 and later models, `type: \"enabled\"` itself returns a 400 error."
-      },
-      {
-        "id": "b",
-        "text": "Remove `budget_tokens`, use adaptive thinking, and set depth with `effort`",
-        "reason": "Correct: remove `budget_tokens`, set `thinking: {type: \"adaptive\"}`, and control reasoning depth with `output_config: {effort: ...}`."
-      },
-      {
-        "id": "c",
-        "text": "Keep the config but add the `interleaved-thinking-2025-05-14` beta header too",
-        "reason": "On models that reject `type: \"enabled\"` (4.7 and later), the header has no manual-mode effect."
-      },
-      {
-        "id": "d",
-        "text": "Delete the `thinking` field, because Opus 5.5 can't think at all",
-        "reason": "Opus 5.5 doesn't lack thinking; it supports adaptive thinking, and only the `enabled` configuration is rejected."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Moving to 4.7+ models: replace `budget_tokens` with **adaptive thinking + `effort`**; at lower effort Claude may skip thinking on easy inputs.",
-    "explanation": "On Claude 4.7 and later, `type: \"enabled\"` itself returns a 400, so the size of the budget isn't the issue. The migration is to remove `budget_tokens`, set `thinking: {type: \"adaptive\"}`, and control reasoning depth with `output_config: {effort: ...}`. Option A is tempting because it treats the 400 as a too-big budget, but no such ceiling exists. The beta header (C) has no effect on manual mode there, and Opus 5.5 does think (D).",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
-      "title": "Extended thinking",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-thinking-budget",
-      "c-effort"
-    ],
-    "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-api-batch-size-limit",
-    "domainId": "apps-integration",
-    "subSkillId": "api-mechanics",
-    "topic": "Message Batches",
-    "stem": "A nightly job builds one Message Batch with 250,000 short classification requests, about 90 MB in total. The create call is rejected. What should the job do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Compress the requests so the batch fits under the 256 MB size limit",
-        "reason": "At about 90 MB it's already under 256 MB; the problem is the request count, which is capped at 100,000."
-      },
-      {
-        "id": "b",
-        "text": "Send the requests through the Messages API in parallel instead",
-        "reason": "That gives up the 50% batch discount; splitting into several batches keeps it."
-      },
-      {
-        "id": "c",
-        "text": "Split it into batches of at most 100,000 requests each",
-        "reason": "Correct: a batch is limited to 100,000 requests or 256 MB, whichever is reached first, so 250,000 requests need at least three batches."
-      },
-      {
-        "id": "d",
-        "text": "Ask support to raise the batch size limit for the workspace",
-        "reason": "The guide states the limit as 100,000 requests or 256 MB per batch, whichever comes first; splitting the job into several batches stays within it."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "One batch holds up to **100,000 requests or 256 MB**, whichever comes first; split bigger jobs across batches.",
-    "explanation": "A batch is limited to **100,000 requests or 256 MB, whichever comes first**. At about 90 MB the job is under the size limit, but 250,000 requests exceed the count, so split into batches of at most 100,000 (at least three). Option A is the trap: it fixes size, which was never the problem. Moving to the Messages API (B) gives up the 50% batch discount, and rather than asking support (D), split the job so it stays within the stated limit.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
-      "title": "Batch processing",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-message-batches"
     ],
     "lessonId": "l-api-basics"
   },
@@ -6416,91 +4651,6 @@
       "c-cache-control"
     ],
     "lessonId": "l-api-basics"
-  },
-  {
-    "id": "q-config-pre46-alias-pin",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Model versioning",
-    "stem": "A service on the Claude API calls `claude-sonnet-4-5`. An auditor asks you to guarantee that the underlying model can't change for as long as the service uses that ID. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Nothing: every dateless ID maps to one fixed model snapshot",
-        "reason": "That holds from the 4.6 generation on; `claude-sonnet-4-5` is an earlier-model alias that points to the most recent dated snapshot."
-      },
-      {
-        "id": "b",
-        "text": "Switch to `anthropic.claude-sonnet-4-5`, the pinned form of the alias",
-        "reason": "The `anthropic.` prefix is the Amazon Bedrock ID format, not a way to pin a version on the Claude API."
-      },
-      {
-        "id": "c",
-        "text": "Switch to `claude-sonnet-4-6`, which is the alias's pinned form",
-        "reason": "That's a different model release, not a pinned form of Sonnet 4.5; Sonnet 4.5's pin is its dated snapshot ID."
-      },
-      {
-        "id": "d",
-        "text": "Use the dated snapshot ID, `claude-sonnet-4-5-20250929`",
-        "reason": "Correct: before 4.6, the short name is a convenience alias; the model-stays-constant guarantee covers model IDs, not aliases."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Pre-4.6 short names like `claude-sonnet-4-5` are **aliases**; pin with the dated ID. From 4.6 on, the dateless ID is the snapshot.",
-    "explanation": "The guarantee that the model stays constant covers **model IDs, not aliases**. From 4.6 on, a dateless ID is the fixed snapshot, but before 4.6, a short name like `claude-sonnet-4-5` is an alias pointing to the most recent dated snapshot. So pin with `claude-sonnet-4-5-20250929`. Option A is the trap, applying the 4.6-and-later rule to an earlier model. The `anthropic.` prefix (B) is the Bedrock format, and `claude-sonnet-4-6` (C) is a different model.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
-      "title": "Model IDs and versioning",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-model-alias",
-      "c-model-snapshot-id"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
-    "id": "q-config-pinned-id-drift",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Model versioning",
-    "stem": "Your app has called `claude-opus-4-7` for months with no code or prompt changes. This week a regression suite shows slightly different outputs on a few cases. What does the model versioning guide name as the most likely cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Anthropic quietly retrained the weights behind `claude-opus-4-7`",
-        "reason": "Weights are fixed for a given ID: Anthropic doesn't update an existing ID's weights or configuration, and updates ship under new IDs."
-      },
-      {
-        "id": "b",
-        "text": "An update to the serving infrastructure, such as routing or sampling logic",
-        "reason": "Correct: infrastructure such as the request router, safety classifiers and sampling logic can change, occasionally causing minor behavior differences."
-      },
-      {
-        "id": "c",
-        "text": "The ID is an evergreen alias that now routes to a newer Opus release",
-        "reason": "From 4.6 on, the dateless ID is the canonical ID for one fixed snapshot, not an evergreen pointer."
-      },
-      {
-        "id": "d",
-        "text": "Dateless IDs are re-snapshotted monthly; switch to a dated ID to stop it",
-        "reason": "Dateless IDs map to a single, fixed snapshot; when an updated version is available, it ships under a new model ID."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "A model ID's **weights never change**; small behavior shifts on a stable ID most likely come from serving infrastructure.",
-    "explanation": "A model ID's **weights and configuration never change**; updates ship under new IDs. But serving infrastructure, such as the request router, safety classifiers and sampling logic, can change and occasionally cause minor behavior differences, which fits small shifts with no code changes. Option A is the trap: Anthropic doesn't retrain an existing ID. From 4.6 on a dateless ID like `claude-opus-4-7` is one fixed snapshot, not an alias (C) or a monthly re-snapshot (D).",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
-      "title": "Model IDs and versioning",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-model-snapshot-id"
-    ],
-    "lessonId": "l-config-management"
   },
   {
     "id": "q-config-cc-pin-third-party",
@@ -6630,90 +4780,6 @@
     "lessonId": "l-config-management"
   },
   {
-    "id": "q-config-agent-version-concurrency",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Prompt versioning",
-    "stem": "Two engineers update the system prompt of the same Claude Managed Agents agent from separate scripts. One engineer's update silently replaced the other's. How should the scripts call the update endpoint so this can't go unnoticed?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Send the `version` they last read, so a stale update fails with 409",
-        "reason": "Correct: supplying `version` gives optimistic concurrency; a mismatch returns 409, so the caller re-reads the agent and retries."
-      },
-      {
-        "id": "b",
-        "text": "Omit `version`, so the API merges both system prompts into one",
-        "reason": "Omitting `version` applies the update unconditionally: the last write silently wins, with no error to either caller."
-      },
-      {
-        "id": "c",
-        "text": "Archive the agent before each edit so only one script can change it",
-        "reason": "Archiving is permanent and makes the agent read-only; updates to archived agents are rejected."
-      },
-      {
-        "id": "d",
-        "text": "Create a new agent per edit, since agents can't keep a version history",
-        "reason": "Agents are versioned: each change creates a new version, and listing versions returns the full history."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Managed Agents version every config change; send **`version`** on updates so a concurrent edit fails with 409 instead of overwriting.",
-    "explanation": "Managed Agents version every config change, and supplying `version` on an update gives **optimistic concurrency**: if someone else updated first, the mismatch returns 409, so the caller re-reads and retries instead of silently overwriting. Option B is the trap: omitting `version` is exactly what caused the problem, since the update applies unconditionally and the last write wins. Archiving (C) is permanent and read-only, and agents do keep a version history (D).",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
-      "title": "Define your agent",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
-    "id": "q-config-session-pin-agent-version",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Prompt versioning",
-    "stem": "Your support agent on Claude Managed Agents is at version 7. You updated its system prompt, creating version 8, and want only 10% of new sessions to use it while the rest stay on 7. How should sessions reference the agent?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Pass the agent ID as a string and let the API split the traffic",
-        "reason": "A string agent ID creates the session with the latest agent version; there's no automatic traffic split."
-      },
-      {
-        "id": "b",
-        "text": "Pass the ID string for new sessions; they stay on version 7 until you switch",
-        "reason": "A string agent ID creates the session with the latest agent version, so every new session would get version 8."
-      },
-      {
-        "id": "c",
-        "text": "Pass an object pinning `version` 7 or 8, chosen by your own rollout logic",
-        "reason": "Correct: passing an object pins a session to a specific agent version, which lets you stage rollouts of new versions."
-      },
-      {
-        "id": "d",
-        "text": "Use `agent_with_overrides` on every session to set the old system prompt",
-        "reason": "Overrides change one session without versioning the agent; pinning versions is the documented way to stage rollouts."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "A string agent ID means **latest version**; pin sessions with a version object to roll prompt changes out gradually.",
-    "explanation": "A **string** agent ID creates the session with the **latest** version, so it can't hold 90% on version 7. Passing an object that pins `version` lets your own rollout logic choose 7 or 8 per session, which is how you stage a rollout. Option B is the trap: it assumes a string stays on the old version, but every new session would get 8. The API doesn't split traffic for you (A), and overrides (D) change one session without using agent versions.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/managed-agents/sessions",
-      "title": "Start a session",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-managed-agents"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
     "id": "q-config-plugin-dep-constraint",
     "domainId": "apps-integration",
     "subSkillId": "config-management",
@@ -6752,91 +4818,6 @@
     },
     "relatedCardIds": [
       "c-plugin-manifest"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
-    "id": "q-config-plugin-dep-tags",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Plugin dependencies",
-    "stem": "Your plugin declares `{\"name\": \"secrets-vault\", \"version\": \"~2.1.0\"}`. `secrets-vault` lives in its own GitHub repository, and installs of your plugin fail with `has no git tag satisfying`. What must the `secrets-vault` maintainer do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Set `\"version\": \"2.1.0\"` in `plugin.json` on the default branch, which is what gets read",
-        "reason": "Constraints resolve against git tags, and checks use the tag's version rather than the `version` in `plugin.json`."
-      },
-      {
-        "id": "b",
-        "text": "Publish the plugin to npm, because version ranges only resolve against npm",
-        "reason": "Tag-based resolution is for git-backed sources; for npm sources the constraint doesn't control which version is fetched."
-      },
-      {
-        "id": "c",
-        "text": "Add your marketplace to their `allowCrossMarketplaceDependenciesOn` list",
-        "reason": "That allowlist lives in the root marketplace and controls cross-marketplace installs, not version resolution."
-      },
-      {
-        "id": "d",
-        "text": "Tag releases as `secrets-vault--v2.1.0`, e.g. with `claude plugin tag --push`",
-        "reason": "Correct: a constraint installs the highest `<plugin-name>--v<version>` tag in range; for a plugin with its own repo, its author creates the tags."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Version constraints resolve against **git tags** named `<plugin>--v<version>`; an untagged repo can't satisfy a range.",
-    "explanation": "Version constraints on git-backed dependencies **resolve against git tags** named `<plugin-name>--v<version>`, and install the highest tag in range. The error says no tag satisfies `~2.1.0`, so the maintainer must create tags like `secrets-vault--v2.1.0`, for example with `claude plugin tag --push`. Option A is the trap: the `version` in `plugin.json` isn't what's checked; the tag's version is. npm (B) isn't required, and the allowlist (C) doesn't affect version resolution.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/plugins/dependencies",
-      "title": "Plugin dependencies",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-plugin-manifest"
-    ],
-    "lessonId": "l-config-management"
-  },
-  {
-    "id": "q-config-plugin-dep-cross-marketplace",
-    "domainId": "apps-integration",
-    "subSkillId": "config-management",
-    "topic": "Plugin dependencies",
-    "stem": "Your `deploy-kit` plugin in `your-marketplace` declares a dependency on `audit-logger@shared-marketplace` in its `plugin.json`. Users install `deploy-kit`, but `audit-logger` never installs and `deploy-kit` then fails to load. What fixes it for new users?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Re-declare the dependency without `@shared-marketplace` so that it resolves from anywhere",
-        "reason": "A bare name is looked up in the declaring plugin's own marketplace, so it won't find a plugin hosted in another one."
-      },
-      {
-        "id": "b",
-        "text": "Add a `version` range to the dependency so Claude Code can resolve it",
-        "reason": "Version ranges control which release installs, not whether a cross-marketplace dependency is allowed."
-      },
-      {
-        "id": "c",
-        "text": "Add `shared-marketplace` to `allowCrossMarketplaceDependenciesOn` in your marketplace",
-        "reason": "Correct: by default Claude Code won't install a dependency from another marketplace; the root marketplace's allowlist in `marketplace.json` permits it."
-      },
-      {
-        "id": "d",
-        "text": "Ask the `shared-marketplace` maintainer to allowlist `your-marketplace`",
-        "reason": "Only the root marketplace's allowlist applies: the one hosting the plugin the user is installing."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Cross-marketplace dependencies are **blocked by default**; the root marketplace allows them with `allowCrossMarketplaceDependenciesOn`.",
-    "explanation": "By default Claude Code **won't install a dependency from another marketplace**. The **root** marketplace, the one hosting the plugin the user installs, can permit it with `allowCrossMarketplaceDependenciesOn` in `marketplace.json`, so you add `shared-marketplace` there. Option D is the trap: it puts the allowlist on the wrong side, but only the root marketplace's list applies. A bare name (A) is looked up in your own marketplace, and a `version` range (B) doesn't grant permission.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://code.claude.com/docs/en/plugins/dependencies",
-      "title": "Plugin dependencies",
-      "checkedOn": "2026-10-13"
-    },
-    "relatedCardIds": [
-      "c-plugin-manifest",
-      "c-plugin-trust"
     ],
     "lessonId": "l-config-management"
   },
@@ -7083,7 +5064,7 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "topic": "Message Batches",
-    "stem": "Your web backend uses `AsyncAnthropic`, awaiting each Messages call while users wait for their replies. A teammate says the backend is \"already async\", so moving these calls to the Message Batches API would only lower the price. Why is that wrong?",
+    "stem": "Users wait on each reply from your web backend, which awaits `AsyncAnthropic` calls. A teammate suggests moving these calls to the Message Batches API to save money. Why is that a poor fit?",
     "choices": [
       {
         "id": "a",
@@ -7102,14 +5083,14 @@
       },
       {
         "id": "d",
-        "text": "Batch results are polled for later, and most take under an hour: too slow here",
+        "text": "Batch results are fetched later by polling, so users would wait far too long",
         "reason": "Correct: a batch is processed asynchronously and you poll for results; most batches finish in under 1 hour, which suits work that doesn't need an immediate response."
       }
     ],
     "answer": "d",
-    "takeaway": "An async **client** awaits a normal reply; the Batches API is async **processing** you poll later. Users waiting need the former.",
-    "explanation": "\"Async\" means two different things here. The backend's async client still gets each reply within the call; the Message Batches API processes requests in the background, and you poll for results, with most batches finishing in under an hour (D). That's fine for bulk work, not for users waiting on replies. Option A is the tempting rebuttal, but batches really do cost 50% less, so price isn't the problem. B and C misstate what batches support.",
-    "difficulty": "hard",
+    "takeaway": "Batches suit work nobody is waiting on; a user waiting for a reply needs a normal (or streamed) Messages call.",
+    "explanation": "The Message Batches API processes requests in the background and you poll for results, with most batches finishing in under an hour (D). That suits bulk work, not users waiting on replies. Batches really do cost 50% less (so A is wrong), and B and C misstate what batches support.",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "Batch processing is asynchronous: submit now, collect results later.",
@@ -7277,7 +5258,7 @@
     "answer": "a",
     "takeaway": "A stream ending isn't a message completing: check `stop_reason` from `message_delta` before acting on the content.",
     "explanation": "This combines two facts. A clean `message_stop` says the stream closed, not that the content is usable, and `stop_reason: \"max_tokens\"` says the reply was truncated. For a truncated response with an incomplete tool use block, the documented fix is to retry with more `max_tokens`. Option B is the trap of treating stream end as success, and D looks for `stop_reason` where it's always null.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
       "title": "Stop reasons and fallback",
@@ -7344,41 +5325,33 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "topic": "Message Batches",
-    "stem": "You're converting synchronous Messages calls into Message Batches API requests. Which two request settings must you remove, because a batch rejects them with a validation error?",
+    "stem": "You're moving synchronous Messages calls into Message Batches API requests. Which request setting must you remove, because a batch rejects it?",
     "choices": [
       {
         "id": "a",
-        "text": "`stream: true`",
-        "reason": "Correct: `stream: true` isn't supported in batch requests, because batch results come back as a single file, not a stream."
-      },
-      {
-        "id": "b",
         "text": "A `system` prompt on each request",
         "reason": "System messages can be batched; almost any Messages request can go in a batch."
       },
       {
+        "id": "b",
+        "text": "Tool definitions, including server tools",
+        "reason": "Tool use, including server tools such as web search and code execution, works in batch requests."
+      },
+      {
         "id": "c",
-        "text": "`speed` set for fast mode",
-        "reason": "Correct: fast mode tunes synchronous latency, which doesn't apply to asynchronous batch processing, so batches reject it."
+        "text": "Earlier turns of a multi-turn conversation",
+        "reason": "Multi-turn conversations are on the guide's list of what can be batched."
       },
       {
         "id": "d",
-        "text": "Tool definitions, including server tools",
-        "reason": "Tool use, including all server tools such as web search and code execution, works in batch requests."
-      },
-      {
-        "id": "e",
-        "text": "Earlier turns of a multi-turn conversation",
-        "reason": "Multi-turn conversations are on the guide's list of what can be batched."
+        "text": "`stream: true`",
+        "reason": "Correct: `stream: true` isn't supported in batch requests, because batch results come back later as a file, not a stream."
       }
     ],
-    "answer": [
-      "a",
-      "c"
-    ],
-    "takeaway": "Almost any Messages request can be batched, but **`stream: true`**, fast mode's **`speed`** and `max_tokens: 0` are rejected.",
-    "explanation": "The batch guide says almost any Messages request can go in a batch, including vision, tool use with server tools, system messages and multi-turn conversations. A small set of parameters returns a validation error: `stream: true`, since results arrive as a single file (A), and fast mode's `speed`, since it tunes synchronous latency (C). D is the tempting wrong pick, because server tools seem like they need a live connection, but the guide lists all server tools as batchable.",
-    "difficulty": "medium",
+    "answer": "d",
+    "takeaway": "Almost any Messages request can be batched, but not a **streamed** one: batch results are fetched later.",
+    "explanation": "The batch guide says almost any Messages request can go in a batch, including system messages, tool use (with server tools) and multi-turn conversations. Streaming is the exception: `stream: true` returns a validation error, since batch results are retrieved later rather than streamed (D).",
+    "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -7420,7 +5393,7 @@
     "answer": "d",
     "takeaway": "Cancel → `canceling` → `ended`: finished requests keep their results; **canceled** ones aren't billed.",
     "explanation": "After you cancel, the batch's `processing_status` is `canceling`, and it finishes as `ended`, possibly with partial results for requests processed before cancellation. Requests that never reached the model get the `canceled` result type, which isn't billed (D). So the teammate is half right: unprocessed work is free, but finished requests are kept and billed. A is the tempting \"all or nothing\" reading. C confuses cancellation with the 24-hour expiry.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "diagram": {
       "kind": "flow",
       "caption": "Canceling keeps what already finished.",
@@ -7657,7 +5630,7 @@
     "answer": "d",
     "takeaway": "Only text can be resumed. A half-streamed `thinking` or `tool_use` block is discarded, never stored or continued.",
     "explanation": "The recovery guidance says tool use and thinking blocks cannot be partially recovered, and resuming starts from the most recent text block. Here the drop happened inside the first block, a thinking block, so there is nothing resumable and the request is retried. Option A is the tempting idea, because it seems to save work, but partial thinking can't be continued. B would store a block that never received its signature.",
-    "difficulty": "hard",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",

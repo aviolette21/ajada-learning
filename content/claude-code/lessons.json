@@ -49,7 +49,7 @@
     "checkQuestionIds": [
       "q-cc-plan-mode",
       "q-cc-team-skill",
-      "q-cc-continue-skips-print"
+      "q-cc-print-json"
     ],
     "sources": [
       {
