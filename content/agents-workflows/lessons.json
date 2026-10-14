@@ -292,7 +292,7 @@
       }
     ],
     "checkQuestionIds": [
-      "q-raw-loop-continue-condition",
+      "q-course-agent-tradeoff-cost-latency",
       "q-agent-sdk-what-you-still-own",
       "q-sdk-human-approval-bash"
     ],

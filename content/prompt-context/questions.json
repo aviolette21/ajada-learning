@@ -3265,49 +3265,6 @@
     "lessonId": "l-course-context-budget"
   },
   {
-    "id": "q-budget-lower-effort-first",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Model selection",
-    "stem": "An agent on Claude Opus 5.5 meets its accuracy target in evals, but each long session now costs more than the budget allows. Following Anthropic's model-selection guidance, what should the team try first?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Lower the effort level on Claude Opus 5.5, then re-run the evals",
-        "reason": "The guide says tuning effort is often a better lever than switching models, and lists lowering effort as a way to increase efficiency."
-      },
-      {
-        "id": "b",
-        "text": "Move the agent to Claude Fable 5.1, the most capable model open to all customers",
-        "reason": "Fable 5.1 is the step up for when evals at `xhigh` or `max` effort still fall short; this agent already meets its target, and the problem is cost."
-      },
-      {
-        "id": "c",
-        "text": "Turn on fast mode to finish each session sooner",
-        "reason": "Fast mode delivers higher output speed at premium pricing, so it raises cost rather than lowering it."
-      },
-      {
-        "id": "d",
-        "text": "Swap to Claude Haiku 5.5 in production right away, without running evals",
-        "reason": "Downgrading can be valid, but the guide calls a good evaluation set the most important step; switching blind risks the accuracy target."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "When a model is good enough but too expensive, tune effort before switching models, and confirm with evals.",
-    "explanation": "The guide's capability-first path is: get it working on a strong model, then lower effort or downgrade over time, checking with evals. The deciding details are that accuracy is already met and cost is the problem. Choice d is tempting because Haiku is cheaper, but it skips the evals the guide treats as essential.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
-      "title": "Choosing the right model",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-effort",
-      "c-current-models"
-    ],
-    "lessonId": "l-course-context-budget"
-  },
-  {
     "id": "q-rag-contextual-chunks",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
@@ -3439,48 +3396,6 @@
     "relatedCardIds": [
       "c-xml-tags",
       "c-quote-grounding"
-    ],
-    "lessonId": "l-course-rag-breakpoints"
-  },
-  {
-    "id": "q-rag-embedding-input-type",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Embeddings",
-    "stem": "Your RAG pipeline embeds both the corpus and incoming questions with `vo.embed(texts, model=\"voyage-4\")` and never sets `input_type`. Retrieval quality is mediocre. Which change does the Embeddings guide recommend?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Switch the similarity function from dot product to cosine",
-        "reason": "Voyage AI embeddings are normalized to length 1, so cosine and dot-product similarity are equivalent; switching changes nothing."
-      },
-      {
-        "id": "b",
-        "text": "Embed the corpus as `document` and questions as `query` via `input_type`",
-        "reason": "For retrieval tasks such as RAG, the guide says not to omit `input_type`; marking queries and documents can create better vectors for retrieval."
-      },
-      {
-        "id": "c",
-        "text": "Move to `voyage-4-lite`, which is tuned for retrieval accuracy",
-        "reason": "`voyage-4-lite` is optimized for latency and cost; the guide lists `voyage-4-large` for the best quality."
-      },
-      {
-        "id": "d",
-        "text": "Request `binary` embeddings so the vectors are sharper and cheaper to compare",
-        "reason": "Binary quantization cuts storage and cost; the default `float` type gives the highest precision and retrieval accuracy."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "For retrieval, always tell the embedding model whether text is a query or a document.",
-    "explanation": "The embedding match is the break here, and the stem's detail is that `input_type` is never set. Voyage prepends a different retrieval prompt to queries and documents, which can produce better vectors for search. Choice a is a distractor that sounds technical but changes nothing, because normalized vectors rank the same under both functions.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings",
-      "title": "Embeddings",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-long-context-vs-rag"
     ],
     "lessonId": "l-course-rag-breakpoints"
   },
@@ -4037,48 +3952,6 @@
     "lessonId": "l-course-structured-outputs"
   },
   {
-    "id": "q-course-strict-schema-limits",
-    "domainId": "prompt-context",
-    "subSkillId": "output-handling",
-    "topic": "Schema design",
-    "stem": "Your request has five tools. One of them, `create_user`, is marked `\"strict\": true`, and its `input_schema` gives `username` a `minLength` of 3. Requests now return a 400 error with details. What is the cause?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Strict tool use allows only a few tools per request, and five is too many",
-        "reason": "The limit is 20 tools with `strict: true` per request, and non-strict tools don't count toward it. One strict tool is far below that."
-      },
-      {
-        "id": "b",
-        "text": "`minLength` must be paired with `maxLength` in a strict tool's schema",
-        "reason": "Neither is supported: string constraints such as `minLength` and `maxLength` aren't part of the supported schema subset."
-      },
-      {
-        "id": "c",
-        "text": "Strict tools share JSON outputs' schema limits, and `minLength` isn't supported",
-        "reason": "Correct: both features share the same schema limitations, string constraints like `minLength` aren't supported, and using one returns a 400 error with details."
-      },
-      {
-        "id": "d",
-        "text": "`minLength` only works when the same constraint is also repeated in `output_config.format`",
-        "reason": "The limitation applies to both features, so repeating the constraint in `output_config.format` would fail there too."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "Strict tools and JSON outputs share one supported JSON Schema subset: no `minLength`, `minimum` or other unsupported constraints.",
-    "explanation": "JSON outputs and strict tool use compile schemas the same way, and the guide says both share its JSON Schema limitations. String constraints such as `minLength` are on the not-supported list, so a strict tool that uses one gets a 400 error with details. Option A is the tempting complexity explanation, but the limit counts only strict tools and allows 20. B and D assume the constraint could work with the right pairing.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-strict-tool-use"
-    ],
-    "lessonId": "l-course-structured-outputs"
-  },
-  {
     "id": "q-course-strict-input-location",
     "domainId": "prompt-context",
     "subSkillId": "output-handling",
@@ -4116,49 +3989,6 @@
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
-      "c-strict-tool-use"
-    ],
-    "lessonId": "l-course-structured-outputs"
-  },
-  {
-    "id": "q-course-strict-enum-casing",
-    "domainId": "prompt-context",
-    "subSkillId": "output-handling",
-    "topic": "Strict tool use",
-    "stem": "A strict `set_status` tool defines `status` as an `enum` of `\"In progress\"` and `\"Done\"`. Now and then a call arrives with `\"In Progress\"`, and your exact-match switch falls through. The call has no error. What should you do?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Compare it case-insensitively; casing isn't guaranteed in strict tool use either",
-        "reason": "Correct: capitalization of string `enum` values isn't guaranteed for strict tool use or JSON outputs, so compare them case-insensitively."
-      },
-      {
-        "id": "b",
-        "text": "Switch the tool to JSON outputs, which guarantee exact `enum` casing",
-        "reason": "The casing caveat applies to both JSON outputs and strict tool use, so switching features doesn't help."
-      },
-      {
-        "id": "c",
-        "text": "Raise `max_tokens` so the value isn't cut off partway through a word",
-        "reason": "Nothing is cut off. The response completes normally, with no error and no special `stop_reason`."
-      },
-      {
-        "id": "d",
-        "text": "Report a bug, since strict mode never returns a value that isn't listed in the `enum`",
-        "reason": "This is documented behaviour: a value may differ from the schema only in capitalization, typically the first letter after a space."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "`enum` casing isn't guaranteed in strict tools or JSON outputs: compare case-insensitively and avoid values that differ only in case.",
-    "explanation": "Structured outputs don't guarantee the capitalization of string `enum` values, and the guide says this applies to strict tool use as well as JSON outputs. The stem's `\"In Progress\"` differs only in the letter after a space, the typical pattern. Option B is the tempting fix, but the other feature has the same caveat. D treats documented behaviour as a bug.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
-      "title": "Structured outputs",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-enum-casing",
       "c-strict-tool-use"
     ],
     "lessonId": "l-course-structured-outputs"
@@ -4261,7 +4091,7 @@
       },
       {
         "id": "b",
-        "text": "Rerank: score the top 150 chunks against the query, then pass only the top 20",
+        "text": "Rerank: score the retrieved chunks against the query and pass only the best ones",
         "reason": "Reranking is a filtering step so only the most relevant chunks reach the model; Anthropic retrieved the top 150, reranked them and passed the top 20."
       },
       {
@@ -4622,48 +4452,6 @@
     "lessonId": "l-course-rag-breakpoints"
   },
   {
-    "id": "q-rag-dot-vs-cosine",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Embeddings",
-    "stem": "Your RAG service ranks Voyage AI embeddings by dot product. A teammate proposes switching to cosine similarity to fix a few poor matches. What does the Embeddings guide imply about this change?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Cosine will fix them, because dot product ignores the direction the vectors point in",
-        "reason": "Voyage AI embeddings are normalized to length 1, so cosine similarity and dot product are equivalent for them."
-      },
-      {
-        "id": "b",
-        "text": "Cosine is required for Voyage AI embeddings, because dot product gives them invalid scores",
-        "reason": "The guide says you can use dot-product similarity, cosine similarity or Euclidean distance with Voyage AI embeddings."
-      },
-      {
-        "id": "c",
-        "text": "Switch to Euclidean distance instead, which ranks normalized vectors differently",
-        "reason": "For these normalized embeddings, the guide says cosine similarity and Euclidean distance give identical rankings."
-      },
-      {
-        "id": "d",
-        "text": "Rankings won’t change: the vectors are normalized, so cosine equals dot product",
-        "reason": "Correct reading of the guide: with vectors of length 1, cosine similarity is equivalent to dot product, which is also quicker to compute."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "With normalized embeddings, the similarity function isn't the lever; look elsewhere, such as setting `input_type` for queries and documents.",
-    "explanation": "Voyage AI returns vectors of length 1, and for unit vectors cosine similarity and dot product are the same number, so the ranking can't change. The guide adds that Euclidean distance gives identical rankings too. Choice c is the subtle trap, because it sounds like a genuinely different metric, but on normalized vectors it orders results the same way.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/embeddings",
-      "title": "Embeddings",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-long-context-vs-rag"
-    ],
-    "lessonId": "l-course-rag-breakpoints"
-  },
-  {
     "id": "q-budget-long-session-resends-history",
     "domainId": "prompt-context",
     "subSkillId": "context-engineering",
@@ -4805,91 +4593,6 @@
     "relatedCardIds": [
       "c-tool-description",
       "c-context-window"
-    ],
-    "lessonId": "l-course-context-budget"
-  },
-  {
-    "id": "q-budget-model-switch-same-window",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Context budget",
-    "stem": "An agent on Claude Opus 5.5 keeps nearing its context limit in long sessions. A teammate proposes moving it to Claude Sonnet 5.5 \"to get a bigger window\". What does the Context windows page show?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Sonnet 5.5 has a 2M-token window, so the move doubles the budget",
-        "reason": "The page lists Claude Sonnet 5.5 with a 1M-token context window, the same as Claude Opus 5.5."
-      },
-      {
-        "id": "b",
-        "text": "Sonnet 5.5 has a 200k-token window, so the move would make things worse",
-        "reason": "A 200k-token window applies to other models such as Claude Sonnet 4.5; Claude Sonnet 5.5 has 1M tokens."
-      },
-      {
-        "id": "c",
-        "text": "Sonnet 5.5 strips earlier thinking blocks, so the same session uses much less context",
-        "reason": "The page says Claude Sonnet 4.6 and later Sonnet models keep previous thinking blocks by default, so they count like other input."
-      },
-      {
-        "id": "d",
-        "text": "Both have a 1M-token window; manage the context instead, e.g. with compaction",
-        "reason": "Both models have a 1M-token window; for conversations approaching the limit, the page names server-side compaction as the primary strategy."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Claude Opus 5.5 and Claude Sonnet 5.5 share a 1M-token window, so switching buys no room; manage what is in the context instead.",
-    "explanation": "The budget's size is set by the model's context window, and Claude Opus 5.5 and Claude Sonnet 5.5 both have 1M tokens. A sideways move can't fix a session that grows without limit; compaction can. Choice c is the subtle trap, because some older models do strip earlier thinking blocks, but Sonnet 4.6 and later keep them by default.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
-      "title": "Context windows",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-context-window",
-      "c-current-models"
-    ],
-    "lessonId": "l-course-context-budget"
-  },
-  {
-    "id": "q-budget-compaction-on-demand",
-    "domainId": "prompt-context",
-    "subSkillId": "context-engineering",
-    "topic": "Compaction",
-    "stem": "Your app runs long support sessions on the Claude API. It must compact at points it chooses, such as when a ticket closes, can’t pause while a summary is written, and must keep the last few turns word for word. Which option does the Compaction overview point to?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Compaction on demand, using its keep-recent-turns and background options",
-        "reason": "The overview says to choose on demand when your app must control timing, can’t pause for the summary, or must keep recent turns; both options exist for it."
-      },
-      {
-        "id": "b",
-        "text": "Compaction at a token threshold, set once as a parameter on ordinary requests",
-        "reason": "With threshold compaction the API decides when, once input reaches your trigger, and it runs inside that request rather than in the background."
-      },
-      {
-        "id": "c",
-        "text": "Tool result clearing with a low `trigger`, so that old turns drop out sooner",
-        "reason": "Clearing removes old tool results by rule instead of summarizing turns; the overview sends you to context editing for that."
-      },
-      {
-        "id": "d",
-        "text": "Your own summarizer, because the API options can’t keep recent turns verbatim",
-        "reason": "Both API options can keep recent turns word for word, and the overview says to use on-demand compaction wherever it is available."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "When your app must decide when to compact, keep recent turns verbatim or avoid pausing, use compaction on demand.",
-    "explanation": "The three requirements map onto the overview's \"choose it when\" row for compaction on demand: your code picks the moment, a background variant avoids pausing, and a keep-recent-turns variant preserves the tail. Threshold compaction hands timing to the API instead. Choice d is tempting for full control, but it means writing the summarization call and history rewrite yourself for no gain.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
-      "title": "Compaction overview",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-compaction"
     ],
     "lessonId": "l-course-context-budget"
   },
@@ -5139,5 +4842,47 @@
       "c-prompt-caching"
     ],
     "lessonId": "l-course-context-budget"
+  },
+  {
+    "id": "q-course-sdk-parse-helper",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "lessonId": "l-course-structured-outputs",
+    "topic": "Structured outputs",
+    "stem": "Your Python service defines its extraction result as a Pydantic model, hand-maintains a matching JSON schema for `output_config.format`, and parses the reply text itself. The model and the schema keep drifting apart. What does the structured-outputs guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste the Pydantic class into the system prompt and ask for matching JSON",
+        "reason": "Prompting alone gives no guarantee; structured outputs enforce the schema through constrained decoding."
+      },
+      {
+        "id": "b",
+        "text": "Drop the schema and retry in code whenever a reply fails validation",
+        "reason": "Structured outputs make retries for schema violations unnecessary; dropping the schema throws that guarantee away."
+      },
+      {
+        "id": "c",
+        "text": "Pass the Pydantic model to `client.messages.parse()` and read `parsed_output`",
+        "reason": "Correct: the SDK transforms the model’s schema, sends it as `output_config.format`, validates the response and returns the parsed model."
+      },
+      {
+        "id": "d",
+        "text": "Turn the model into a strict tool and read the reply from its `tool_use` input",
+        "reason": "Strict tool use validates how Claude calls your functions; JSON outputs control the response format, which is what you need here."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Let the SDK own the schema: `client.messages.parse()` with a **Pydantic** (or Zod) model sends the schema, validates the reply and returns a typed result.",
+    "explanation": "When code types and the schema are kept by hand in two places, they drift. The guide's recommended Python path is to pass the Pydantic model to `client.messages.parse()`, which sends the schema, validates the reply and returns `parsed_output` (C), so the model is the single source of truth. Option D is tempting because strict tools also enforce schemas, but they shape tool calls, not the response format. A and B give up the schema guarantee.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs"
+    ]
   }
 ]

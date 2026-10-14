@@ -2288,50 +2288,6 @@
     "lessonId": "l-agentic-customisation"
   },
   {
-    "id": "q-loop-stop-reason-tool-use",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Tool-use loop",
-    "stem": "Your first tool-using app sends a request with a `get_weather` tool. The response has `stop_reason: \"tool_use\"`, a `text` block saying \"I'll check the weather for you.\" and a `tool_use` block. Your code shows the text to the user and stops. What should it do instead?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Show the text as the final answer; the tool_use block is only a log of what Claude already ran",
-        "reason": "For a client tool, Claude never executes anything itself: the `tool_use` block is a request your code must run and answer."
-      },
-      {
-        "id": "b",
-        "text": "Run `get_weather`, send its output back in a `tool_result`, and repeat while `stop_reason` is `tool_use`",
-        "reason": "Correct: the agentic loop keys on `stop_reason`. While it's `\"tool_use\"`, execute the tools, send `tool_result` blocks, and continue."
-      },
-      {
-        "id": "c",
-        "text": "Wait for a second response from the API, which will contain the tool's output",
-        "reason": "That's how server tools such as `web_search` behave. For your own tools the API waits for you; no result arrives until you send one."
-      },
-      {
-        "id": "d",
-        "text": "Resend the same request with a higher `max_tokens` so Claude can finish the answer",
-        "reason": "The response didn't stop on `max_tokens`. It stopped because Claude wants a tool run; more tokens won't change that."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "`stop_reason: \"tool_use\"` means \"your turn\": run the tool, return a `tool_result`, and loop until another stop reason.",
-    "explanation": "Client tools need a round trip: Claude asks, your code executes, you report back, Claude continues. The deciding detail is `stop_reason: \"tool_use\"` on a client tool. The `text` block is only Claude's comment before the call. Choice c is tempting because server tools do finish on Anthropic's side, but `get_weather` is your own tool.",
-    "mnemonic": "tool_use = your move.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
-      "title": "How tool use works",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-tool-definition",
-      "c-client-vs-server-tools"
-    ],
-    "lessonId": "l-course-tool-use-loop"
-  },
-  {
     "id": "q-loop-block-ownership",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -2575,48 +2531,6 @@
     "relatedCardIds": [
       "c-tool-description",
       "c-tool-choice"
-    ],
-    "lessonId": "l-course-tool-schemas"
-  },
-  {
-    "id": "q-schema-missing-required-location",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Required parameters",
-    "stem": "Your `get_weather` tool lists `location` in `required`. A user asks only \"What's the weather?\". On Claude Sonnet, Claude calls the tool with `{\"location\": \"New York, NY\"}`, a city the user never mentioned. What does Anthropic's tool use overview say about this?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "It's a schema error: required fields are filled only from the user's words, so `required` must be malformed",
-        "reason": "The overview shows this kind of call as expected behavior: Claude, particularly Sonnet, might guess values you didn't supply."
-      },
-      {
-        "id": "b",
-        "text": "The API rejects tool calls with inferred values, so this call fails before it reaches your code",
-        "reason": "The overview shows the guessed call arriving as an ordinary `tool_use` block, not as an error."
-      },
-      {
-        "id": "c",
-        "text": "Sonnet might infer a reasonable value; Opus is much more likely to notice the gap and ask, though neither is guaranteed",
-        "reason": "Correct: this is the documented behavior when required parameters are missing, and it isn't guaranteed either way."
-      },
-      {
-        "id": "d",
-        "text": "Moving `location` out of `required` would make Claude ask the user for the city before calling",
-        "reason": "Optional means Claude may omit the field, not that it will ask. The overview gives no such effect."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "A missing required value may be asked for or guessed, depending on the model; it isn't guaranteed either way.",
-    "explanation": "Claude must fill every field in `required`. When the prompt lacks the information, Claude Opus is much more likely to ask, while Claude Sonnet might ask, especially when prompted to think first, but might also infer a value. The detail that decides it is the Sonnet model plus the missing city. Choice d is tempting, but making a field optional only lets Claude leave it out.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
-      "title": "Tool use with Claude",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-tool-definition"
     ],
     "lessonId": "l-course-tool-schemas"
   },
@@ -3251,56 +3165,6 @@
     "lessonId": "l-course-tool-use-loop"
   },
   {
-    "id": "q-loop-thinking-toggle-mid-turn",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Thinking with tool use",
-    "stem": "Your agent sends each user question with thinking off, then turns thinking on for the follow-up requests that carry `tool_result` blocks, so Claude reasons about the results. Nothing errors, but those responses never contain `thinking` blocks. Which two statements match Anthropic's thinking guide?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The API should reject this with a 400 error, so no error means the thinking setting was ignored",
-        "reason": "Mid-turn conflicts degrade gracefully: the API doesn't error, it silently disables thinking for that request."
-      },
-      {
-        "id": "b",
-        "text": "Passing every `thinking` block back in the history makes it safe to toggle thinking during the loop",
-        "reason": "Passing blocks back is required, but it doesn't permit toggling: the whole turn, tool-use loop included, runs in one thinking mode."
-      },
-      {
-        "id": "c",
-        "text": "A tool-use loop is one assistant turn, so switching before the results arrive is mid-turn",
-        "reason": "Correct: an assistant turn doesn't complete until Claude finishes its full response, tool calls and results included."
-      },
-      {
-        "id": "d",
-        "text": "Toggling thinking mid-turn leaves the prompt cache intact, so the only cost is the missing reasoning",
-        "reason": "Toggling thinking modes also invalidates prompt caching, so the cache is affected too."
-      },
-      {
-        "id": "e",
-        "text": "Pick the thinking setting at the turn's start and keep it for the loop; change it only between turns",
-        "reason": "Correct: toggle between turns, not within them. Complete the assistant turn, then change the thinking configuration for the next one."
-      }
-    ],
-    "answer": [
-      "c",
-      "e"
-    ],
-    "takeaway": "The whole tool-use loop is one assistant turn in one thinking mode; switch thinking only between turns.",
-    "explanation": "From the model's view, a turn isn't over until Claude finishes its full response, tool calls and results included. The deciding detail is that thinking is switched on for the `tool_result` requests, inside that turn, so the API silently disables it instead of erroring. Choice a is tempting because a mismatch sounds like an error, but the guide says mid-turn conflicts degrade gracefully.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
-    ],
-    "lessonId": "l-course-tool-use-loop"
-  },
-  {
     "id": "q-loop-message-between-call-and-result",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -3473,48 +3337,6 @@
     "lessonId": "l-course-tool-use-loop"
   },
   {
-    "id": "q-schema-tool-name-regex",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Tool definitions",
-    "stem": "You define a tool named `orders.lookup v2`, and the API rejects the request because of the name. Which rename follows the naming rule for user-defined tools?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`orders.lookup.v2`, replacing only the space with a dot",
-        "reason": "Dots aren't allowed either: a name must match `^[a-zA-Z0-9_-]{1,128}$`."
-      },
-      {
-        "id": "b",
-        "text": "`orders_lookup-v2`, using only letters, digits, `_` and `-`",
-        "reason": "Correct: the name matches `^[a-zA-Z0-9_-]{1,128}$`, which allows only letters, digits, underscores and hyphens."
-      },
-      {
-        "id": "c",
-        "text": "`orders lookup v2`, removing only the dot but keeping spaces",
-        "reason": "Spaces aren't in the allowed set; a name must match `^[a-zA-Z0-9_-]{1,128}$`."
-      },
-      {
-        "id": "d",
-        "text": "`orders/lookup/v2`, since slashes namespace a tool by service",
-        "reason": "Slashes aren't allowed. The guide namespaces with prefixes such as `github_list_prs`, which fit the pattern."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Tool names may use letters, digits, underscores and hyphens, 1 to 128 characters: no dots, spaces or slashes.",
-    "explanation": "A user-defined tool's `name` must match `^[a-zA-Z0-9_-]{1,128}$`. The deciding detail is that the original name has both a dot and a space, so a fix must remove both. Choice a is tempting because dotted names look like namespaces, but dots fail the pattern; namespace with an underscore prefix instead.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-      "title": "Define tools",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-tool-definition"
-    ],
-    "lessonId": "l-course-tool-schemas"
-  },
-  {
     "id": "q-schema-tools-system-prompt",
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
@@ -3553,49 +3375,6 @@
     },
     "relatedCardIds": [
       "c-tool-definition"
-    ],
-    "lessonId": "l-course-tool-schemas"
-  },
-  {
-    "id": "q-schema-input-examples-invalid",
-    "domainId": "tools-mcp",
-    "subSkillId": "tool-implementation",
-    "topic": "Tool definitions",
-    "stem": "To show Claude when to include optional fields, you add `input_examples` to your `create_event` tool. One example leaves out `start_time`, which is listed in `required`. Every request that includes the tool now returns a 400 error. Why?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`input_examples` isn't supported on user-defined tools, only on Anthropic's server tools",
-        "reason": "It's the reverse: examples work on user-defined and most Anthropic-schema client tools, but not on server tools such as web search."
-      },
-      {
-        "id": "b",
-        "text": "The examples add prompt tokens, and this one pushed the tool definition over a size limit",
-        "reason": "Examples do add prompt tokens (~20–50 for simple ones, ~100–200 for complex ones), but that is a cost; invalid examples are what return 400."
-      },
-      {
-        "id": "c",
-        "text": "An example may show only optional fields, because required fields already belong in the description",
-        "reason": "The guide's own examples include the required `location` in every entry; each one must be valid against `input_schema`."
-      },
-      {
-        "id": "d",
-        "text": "Each example must validate against the tool's `input_schema`, and this one lacks a required field",
-        "reason": "Correct: each example must be valid according to the tool's `input_schema`, and invalid examples return a 400 error."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "Every `input_examples` entry must validate against `input_schema`; one invalid example makes the request fail with a 400.",
-    "explanation": "Input examples are schema-validated: the API checks each one against the tool's `input_schema` before using it. The deciding detail is the example without `start_time`, a required field. Choice c is tempting because the goal was to illustrate optional fields, but every example must still be a complete, valid input.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
-      "title": "Define tools",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-tool-definition",
-      "c-tool-description"
     ],
     "lessonId": "l-course-tool-schemas"
   },
@@ -3752,32 +3531,32 @@
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
     "topic": "Tool descriptions",
-    "stem": "Your `search_news` tool works, but Claude keeps adding the current year to every query, which skews results toward that year's articles. According to Anthropic's post on writing tools for agents, how did Anthropic fix the same habit in Claude's web search tool?",
+    "stem": "Your `search_news` tool works, but Claude keeps adding the current year to every query, which skews results toward that year's articles. You own the tool. Based on Anthropic's post on writing tools for agents, what should you try first?",
     "choices": [
       {
         "id": "a",
-        "text": "By post-processing each query to strip out the year before the search runs",
-        "reason": "The post says Anthropic steered Claude in the right direction by improving the tool description, not by rewriting queries afterward."
+        "text": "Strip the year from each query in code before the search runs",
+        "reason": "The post fixed this same habit by improving the tool description, steering Claude instead of patching its queries afterwards."
       },
       {
         "id": "b",
-        "text": "By improving the tool description, which steered Claude away from appending the year",
-        "reason": "Correct: Claude was needlessly appending 2025 to the query, and Anthropic steered it in the right direction by improving the tool description."
+        "text": "Improve the tool description to steer how Claude writes its queries",
+        "reason": "Correct: the post saw Claude needlessly appending the year to search queries and fixed it by improving the tool description."
       },
       {
         "id": "c",
-        "text": "By splitting the tool into one search tool per year so that Claude picks the right date range",
-        "reason": "More tools don't always lead to better outcomes, and overlapping tools can distract agents; the fix was the description."
+        "text": "Split the tool into one search tool per year so Claude picks a range",
+        "reason": "The post's fix for this habit was a better description, not more tools for Claude to choose between."
       },
       {
         "id": "d",
-        "text": "By moving the tool to a larger model, since parameter habits like this one come from model size",
-        "reason": "The post's fix was prompt-engineering the description, which it calls one of the most effective ways to improve tools."
+        "text": "Move to a larger model, since query habits like this come from size",
+        "reason": "The post didn't treat it as a model-size problem; improving the description alone steered Claude the right way."
       }
     ],
     "answer": "b",
-    "takeaway": "When Claude misuses a parameter, refine the tool description: even small description changes can steer its behavior.",
-    "explanation": "Tool descriptions are loaded into the agent's context, so they steer how Claude fills each parameter. The deciding detail is that the tool works and only Claude's query habit is wrong. Choice a is tempting because it patches the symptom in code, but Anthropic fixed the cause by improving the description.",
+    "takeaway": "When Claude misuses a tool parameter, **improve the tool description** first: Anthropic fixed this exact habit that way.",
+    "explanation": "Tool descriptions act as prompts, so a bad parameter habit is often a description problem. Anthropic saw Claude needlessly appending the year to web search queries and steered it **by improving the tool description** (B). A is the tempting trap because it works mechanically, but it would also strip years that users really asked for. C and D add tools or cost without addressing the cause.",
     "difficulty": "medium",
     "source": {
       "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
@@ -3882,48 +3661,6 @@
       "c-tool-description"
     ],
     "lessonId": "l-course-tool-schemas"
-  },
-  {
-    "id": "q-mcp-call-by-name-not-title",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP in the tool loop",
-    "stem": "An MCP server's `tools/list` response includes a tool with `name: \"weather_current\"` and `title: \"Weather Information\"`. When your MCP client sends `tools/call` for it, which value identifies the tool?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`weather_current`, because the `name` must exactly match the name from discovery",
-        "reason": "Correct: in `tools/call`, the `name` must match exactly the tool name from the discovery response, so the server knows which tool to run."
-      },
-      {
-        "id": "b",
-        "text": "`Weather Information`, because the `title` is what clients use to call a tool",
-        "reason": "`title` is a human-readable display name that clients can show to users; `name` is the primary key for execution."
-      },
-      {
-        "id": "c",
-        "text": "Either value, because the server matches incoming calls against both fields",
-        "reason": "The call must use the exact `name` from the discovery response so the server can identify the tool to execute."
-      },
-      {
-        "id": "d",
-        "text": "A hash of the tool's `inputSchema`, which stays stable even if the tool is renamed",
-        "reason": "`inputSchema` defines the expected input parameters; it isn't an identifier. Calls name the tool by `name`."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "MCP calls use the tool's exact `name`; `title` is only a display name for people.",
-    "explanation": "Each tool in `tools/list` has a `name` that serves as its primary key for execution, plus an optional human-readable `title`. The deciding detail is that `tools/call` is a request to the server, which identifies tools by name. Choice b is tempting because the title looks like the tool's proper name, but it is only for display.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
-      "title": "Architecture overview",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-mcp-server"
-    ],
-    "lessonId": "l-course-mcp-vs-manual"
   },
   {
     "id": "q-mcp-unified-registry",
@@ -4058,48 +3795,6 @@
     "takeaway": "Connected MCP tools are for requests that need the service, not general-knowledge questions about it.",
     "explanation": "Claude calls an MCP tool when a request maps to the tool's described capability, which here means your Notion data. The deciding detail is that the question asks how Notion works in general. Choice a is tempting because no call looks like a configuration fault, but toolsets enable every tool by default.",
     "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
-      "title": "MCP connector",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-mcp-connector"
-    ],
-    "lessonId": "l-course-mcp-vs-manual"
-  },
-  {
-    "id": "q-mcp-connector-unused-server",
-    "domainId": "tools-mcp",
-    "subSkillId": "mcp-server-dev",
-    "topic": "MCP connector",
-    "stem": "Your request lists two servers, `calendar` and `crm`, in `mcp_servers`, but `tools` holds an `mcp_toolset` only for `calendar`. That toolset's `configs` also names `old_sync`, a tool the server no longer has. Which problem makes the API reject the request?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The `crm` server, since each server in `mcp_servers` needs exactly one toolset",
-        "reason": "Correct: the validation rules say every MCP server defined in `mcp_servers` must be referenced by exactly one MCP toolset."
-      },
-      {
-        "id": "b",
-        "text": "The `old_sync` entry, because every tool named in `configs` must exist on the server",
-        "reason": "An unknown tool name in `configs` only logs a backend warning, since MCP servers may have dynamic tool availability."
-      },
-      {
-        "id": "c",
-        "text": "Neither: unused servers are skipped, and tool names the server lacks are ignored",
-        "reason": "The `crm` server breaks the rule that every server in `mcp_servers` must be referenced by exactly one toolset."
-      },
-      {
-        "id": "d",
-        "text": "Both: the connector rejects any mismatch in servers, toolsets or tool names",
-        "reason": "Only the unreferenced server is an error; an unknown tool name in `configs` logs a warning and returns no error."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Every `mcp_servers` entry needs exactly one `mcp_toolset`; unknown tool names in `configs` only log a warning.",
-    "explanation": "The connector validates the link between servers and toolsets strictly but treats tool names leniently, because a server's tools can change. The deciding detail is that `crm` is defined but never referenced. Choice d is tempting because both look like mismatches, but a missing tool name is only logged as a warning.",
-    "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
       "title": "MCP connector",
@@ -4337,5 +4032,99 @@
       "c-mcp-connector"
     ],
     "lessonId": "l-course-mcp-vs-manual"
+  },
+  {
+    "id": "q-schema-strict-typed-inputs",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "lessonId": "l-course-tool-schemas",
+    "topic": "Strict tool use",
+    "stem": "Your `book_flight` tool expects `passengers` as an integer. Now and then Claude sends `\"2\"` or leaves out a required field, and your booking code throws a runtime error. You want every call to match the schema without writing validate-and-retry code. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `strict: true` on the tool so its inputs follow the schema",
+        "reason": "Correct: strict tool use constrains sampling so the tool `input` strictly follows your `input_schema`, with correctly typed values."
+      },
+      {
+        "id": "b",
+        "text": "Add a line to the description saying `passengers` must be a number",
+        "reason": "Descriptions guide Claude but guarantee nothing; without strict mode Claude might still send `\"2\"` instead of `2`."
+      },
+      {
+        "id": "c",
+        "text": "Set `tool_choice` so Claude is forced to call `book_flight` each turn",
+        "reason": "Forcing a call isn't the problem here; strict mode is what makes the tool's inputs match the schema."
+      },
+      {
+        "id": "d",
+        "text": "Change `passengers` to a string so any value Claude sends is accepted",
+        "reason": "That hides the mismatch and moves parsing into your code; strict mode gives you a correctly typed integer instead."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Need schema-valid tool inputs every time? Set **`strict: true`** on the tool: no more `\"2\"` for `2` or missing required fields.",
+    "explanation": "Without strict mode, Claude might return incompatible types (`\"2\"` instead of `2`) or omit required fields, which breaks your functions. Setting **`strict: true`** constrains sampling so the tool input strictly follows your `input_schema` (A), so you don't need validate-and-retry code. B is the tempting trap: clearer descriptions help but guarantee nothing. C controls whether a tool is called, and D weakens the schema.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/strict-tool-use",
+      "title": "Strict tool use",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-strict-tool-use",
+      "c-tool-definition"
+    ]
+  },
+  {
+    "id": "q-schema-high-signal-responses",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "lessonId": "l-course-tool-schemas",
+    "topic": "Tool responses",
+    "stem": "Your `get_customer` tool returns the full database record: 60 fields, an internal UUID for every related object, and raw timestamps. Claude's answers about customers are slow and sometimes mix up related records. Which two changes does Anthropic's post on writing tools for agents suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return every field, so Claude always has the complete record to reason over",
+        "reason": "The post advises returning only high-signal information to agents, not everything the backend holds."
+      },
+      {
+        "id": "b",
+        "text": "Add more UUIDs, so each related record can be referenced exactly",
+        "reason": "The post found that resolving arbitrary UUIDs into meaningful language improved precision by reducing hallucinations."
+      },
+      {
+        "id": "c",
+        "text": "Return only the high-signal fields Claude needs, not the whole record",
+        "reason": "Correct: tools should return only high-signal information back to agents."
+      },
+      {
+        "id": "d",
+        "text": "Return a bare status code, so the response costs as few tokens as possible",
+        "reason": "The post asks for meaningful, actionable context; opaque codes leave Claude without what it needs."
+      },
+      {
+        "id": "e",
+        "text": "Swap opaque IDs for meaningful names, or offer a concise/detailed `response_format`",
+        "reason": "Correct: interpretable names reduced hallucinations, and a `response_format` enum lets the agent choose concise or detailed output."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "Tool responses should be **high-signal**: only the fields Claude needs, with meaningful names instead of opaque IDs.",
+    "explanation": "What a tool returns goes into Claude's context, so the post asks tools to return only **high-signal information** and to resolve low-level technical identifiers such as UUIDs into meaningful language (C, E). The stem's slow answers and mixed-up records point at bloated, opaque output. A is the tempting trap, assuming more data always helps. B adds more opaque IDs, and D swings too far, leaving Claude nothing useful.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-minimal-tool-set"
+    ]
   }
 ]

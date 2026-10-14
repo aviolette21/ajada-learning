@@ -686,7 +686,7 @@
     ],
     "checkQuestionIds": [
       "q-batch-loop-is-not-batching",
-      "q-multimodal-image-cost-estimate",
+      "q-multimodal-cut-visual-tokens",
       "q-multimodal-pdf-cost-estimate"
     ],
     "sources": [

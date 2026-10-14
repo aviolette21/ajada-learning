@@ -570,7 +570,7 @@
       }
     ],
     "checkQuestionIds": [
-      "q-course-async-client-streaming",
+      "q-course-client-sdk-role",
       "q-course-stream-for-waiting-user",
       "q-course-async-not-batch"
     ],

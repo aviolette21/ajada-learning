@@ -308,7 +308,7 @@
       }
     ],
     "checkQuestionIds": [
-      "q-loop-stop-reason-tool-use",
+      "q-loop-next-request-contents",
       "q-loop-thinking-blocks-returned",
       "q-loop-claude-sees-schema-only"
     ],
@@ -405,7 +405,7 @@
     ],
     "checkQuestionIds": [
       "q-schema-overlapping-search-tools",
-      "q-schema-missing-required-location",
+      "q-schema-description-length",
       "q-schema-chained-scheduling-tools"
     ],
     "sources": [

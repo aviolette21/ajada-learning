@@ -3871,39 +3871,40 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Tokens",
-    "stem": "Your team budgets prompts by word count and is moving a workload from Claude Sonnet 4.6 to Claude Sonnet 5.5. A teammate says the token budget can stay exactly as it is. What does Anthropic's glossary say?",
+    "stem": "Your team is moving a workload from an older Claude model to a newer one and must confirm that its prompts still fit the context window and the cost budget. A teammate proposes reusing the token counts measured on the old model. What should you do?",
     "choices": [
       {
         "id": "a",
-        "text": "Recount on Sonnet 5.5: its newer tokenizer turns the same text into about 30% more tokens",
-        "reason": "Correct: Claude 4.7 and later models use a newer tokenizer that produces approximately 30 percent more tokens for the same text; for exact counts, use token counting with the model you plan to use."
+        "text": "Reuse the old counts, since every Claude model splits the same text into the same tokens",
+        "reason": "Newer models use a newer tokenizer, so the same input text can produce more tokens; counts from an earlier model don't carry over."
       },
       {
         "id": "b",
-        "text": "Keep the word count, because one token equals one word on every Claude model",
-        "reason": "A token can be a word, a subword, a character or even a byte, and how many characters it represents depends on the model and the language."
+        "text": "Count with `cache_control` blocks set, so cached tokens are left out of the total",
+        "reason": "Token counting gives an estimate without using caching logic; caching happens only during actual message creation."
       },
       {
         "id": "c",
-        "text": "Keep the old budget, because the 3.5-characters-per-token ratio holds on all models",
-        "reason": "About 3.5 English characters per token applies to models before the newer tokenizer; Claude 4.7 and later models produce about 30% more tokens."
+        "text": "Recount the prompts with token counting, passing the model you plan to move to",
+        "reason": "Correct: the token counting endpoint counts under the tokenizer of the `model` you pass, so recount against the model you plan to use."
       },
       {
         "id": "d",
-        "text": "Switch to counting characters, since tokens only matter when inspecting raw input",
-        "reason": "Tokens are the smallest units the model works in; the characters-per-token ratio varies by model and language, so a character count doesn't give you the token count."
+        "text": "Convert the old word counts with a fixed words-per-token ratio for all models",
+        "reason": "The guide doesn't give a fixed ratio; it says to count your prompts with the model you plan to use, because tokenizers differ."
       }
     ],
-    "answer": "a",
-    "takeaway": "Budget in **tokens**, and recount with the target model: Claude 4.7 and later tokenize the same text into about 30% more tokens.",
-    "explanation": "Tokens, not words, are the model's unit, and the ratio depends on the model and language. The detail that decides it is the move from Sonnet 4.6 to Sonnet 5.5: Claude 4.7 and later models use a newer tokenizer that yields about 30% more tokens for the same text, so recount with the target model (A). Option C is the tempting trap: 3.5 characters per token describes earlier models only. B and D assume a fixed word or character ratio that doesn't exist.",
+    "answer": "c",
+    "takeaway": "Token counts are **model-specific**: before a migration, recount your prompts with the token counting endpoint on the target model.",
+    "explanation": "Token counts depend on the model's tokenizer, and newer models can turn the same text into more tokens. The stem's decision is whether old measurements carry over to a new model: they don't, so recount with the target model (C). Option A is the tempting shortcut, but it assumes tokenizers never change. B misunderstands token counting, which ignores caching, and D invents a fixed ratio.",
     "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
-      "title": "Glossary",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/token-counting",
+      "title": "Token counting",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
+      "c-token-counting",
       "c-token"
     ],
     "lessonId": "l-course-how-llms-behave"
@@ -4195,7 +4196,7 @@
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
     "topic": "Effort",
-    "stem": "Your team treats model choice and reasoning settings as separate levers. While planning a rollout across several models, which two statements about the `effort` parameter are accurate?",
+    "stem": "Your team treats model choice and reasoning settings as separate levers. While planning how to use the `effort` parameter across several workloads, which two statements about it are accurate?",
     "choices": [
       {
         "id": "a",
@@ -4204,8 +4205,8 @@
       },
       {
         "id": "b",
-        "text": "On Claude Opus 5.5 you can turn thinking off with `\"disabled\"` at `low` effort",
-        "reason": "On Claude Opus 5.5, adaptive thinking is always on, and requests that set `thinking: {\"type\": \"disabled\"}` return a 400 error at every effort level."
+        "text": "It only changes how long Claude thinks; tool calls and reply text are untouched",
+        "reason": "Effort affects all tokens in the response, including text and tool calls; lower effort also means fewer and terser tool calls."
       },
       {
         "id": "c",
@@ -4214,8 +4215,8 @@
       },
       {
         "id": "d",
-        "text": "Claude Haiku 5.5 supports all five levels, from `low` up to `max`",
-        "reason": "Correct: Claude Haiku 5.5 supports all five effort levels, with `medium` as its default."
+        "text": "Lowering it trades some capability for speed and lower cost",
+        "reason": "Correct: lower effort optimizes for speed and cost while accepting some reduction in capability; `low` gives significant token savings."
       },
       {
         "id": "e",
@@ -4227,8 +4228,8 @@
       "a",
       "d"
     ],
-    "takeaway": "Effort scales **all** output and composes with any model and thinking mode; it's a soft signal, so `max_tokens` is the hard cap.",
-    "explanation": "Effort is one lever and model choice another, and they combine. Effort applies to every output token, so it works with or without thinking (A), and even the fastest current model, Haiku 5.5, supports all five levels (D). Option C is the tempting misreading: effort is a behavioral signal, and only `max_tokens` is a hard limit. B is wrong because Opus 5.5 keeps thinking always on, and E confuses the `adaptive` thinking mode with an effort level.",
+    "takeaway": "Effort scales **all** output, with or without thinking: lower it for speed and cost, and use `max_tokens` as the hard cap.",
+    "explanation": "Effort is one lever and model choice another. Effort applies to every output token, so it works with or without thinking (A), and lowering it trades some capability for speed and cost (D). Option C is the tempting misreading: effort is a behavioral signal, and only `max_tokens` is a hard limit. B understates effort's reach, since it also shapes text and tool calls, and E confuses the `adaptive` thinking mode with an effort level.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
@@ -4301,7 +4302,7 @@
       },
       {
         "id": "c",
-        "text": "Raise Opus 5.5's effort above its `medium` default and re-run the evals",
+        "text": "Raise Opus 5.5's effort level and re-run the evals",
         "reason": "Correct: tuning effort is often a better lever than switching models. On Opus 5.5 the default is `medium`; start there and adjust based on your evals."
       },
       {
@@ -4543,48 +4544,6 @@
     "lessonId": "l-course-extended-thinking"
   },
   {
-    "id": "q-course-interleaved-adaptive",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Interleaved thinking",
-    "stem": "Your agent on Claude Opus 5.5 should reason about each tool result before choosing its next tool call. It uses the model's default adaptive thinking. What do you need to add to get thinking between tool calls?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The `interleaved-thinking-2025-05-14` beta header on every request",
-        "reason": "With adaptive thinking no beta header is needed. That header is how interleaving is enabled in manual extended-thinking mode."
-      },
-      {
-        "id": "b",
-        "text": "`thinking: {\"type\": \"enabled\"}` with a `budget_tokens` above `max_tokens`",
-        "reason": "Claude Opus 5.5 rejects `type: \"enabled\"` with a 400 error. It uses adaptive thinking."
-      },
-      {
-        "id": "c",
-        "text": "Nothing; adaptive thinking interleaves between tool calls automatically",
-        "reason": "Correct: with adaptive thinking, interleaved thinking is automatic on every model that supports it, with no beta header."
-      },
-      {
-        "id": "d",
-        "text": "`tool_choice: {\"type\": \"any\"}` so Claude must think before each call",
-        "reason": "Opus 5.5 rejects forced tool use with a 400 error. Forcing a tool call doesn't add reasoning anyway."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "On adaptive-thinking models, **interleaved thinking** is automatic: no beta header, no budget.",
-    "explanation": "Interleaved thinking lets Claude think between tool calls, and with adaptive thinking it happens automatically, with no beta header. The deciding detail is the model: Opus 5.5 uses adaptive thinking and rejects manual mode. Option A is the tempting carry-over from manual-mode setups, where the beta header enabled interleaving, but it isn't needed here.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-budget"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
     "id": "q-batch-loop-is-not-batching",
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
@@ -4669,69 +4628,6 @@
     "lessonId": "l-course-batch-multimodal"
   },
   {
-    "id": "q-multimodal-image-cost-estimate",
-    "domainId": "model-selection",
-    "subSkillId": "cost-tokens",
-    "topic": "Image costs",
-    "stem": "Before writing ingestion code, you estimate the image-input cost for 10,000 product photos, each 1000×1000 px, on Claude Opus 5.5 at $4 per million input tokens. Using the Vision guide's patch formula, what's the estimate?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "About $52: each image costs 1,296 visual tokens",
-        "reason": "⌈1000/28⌉ × ⌈1000/28⌉ = 36 × 36 = 1,296 tokens; × 10,000 images = 12.96M tokens; × $4 per million ≈ $52."
-      },
-      {
-        "id": "b",
-        "text": "About $5: each image costs 1,296 visual tokens",
-        "reason": "The guide's $5.18 figure is per thousand images; 10,000 images cost ten times that."
-      },
-      {
-        "id": "c",
-        "text": "About $13: 1,296 tokens at $1 per million",
-        "reason": "$1 per million is Claude Haiku 4.5's input price in the guide's example, not Claude Opus 5.5's $4."
-      },
-      {
-        "id": "d",
-        "text": "About $191: each image costs 4,784 visual tokens",
-        "reason": "4,784 is the high-resolution cap, reached by a 4K image; a 1000×1000 image isn't resized and costs 1,296."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Image cost = ⌈w/28⌉ × ⌈h/28⌉ tokens × price × image count; work it out before you build.",
-    "explanation": "Images are billed as visual tokens, one per 28×28-pixel patch, so cost is easy to estimate up front. The stem fixes the size, model and price, which gives 1,296 tokens per image and about $52 in total. Choice b uses the right token count but stops at the guide's per-thousand figure.",
-    "difficulty": "hard",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Estimate image cost before writing ingestion code.",
-      "steps": [
-        {
-          "label": "1000×1000 px"
-        },
-        {
-          "label": "36 × 36 patches",
-          "sublabel": "1,296 tokens"
-        },
-        {
-          "label": "× 10,000 images",
-          "sublabel": "12.96M tokens"
-        },
-        {
-          "label": "× $4 / MTok",
-          "sublabel": "≈ $52"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
-      "title": "Vision",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-price-per-mtok"
-    ],
-    "lessonId": "l-course-batch-multimodal"
-  },
-  {
     "id": "q-multimodal-pdf-cost-estimate",
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
@@ -4787,13 +4683,13 @@
       },
       {
         "id": "b",
-        "text": "Submit all 200,000 requests as a single batch",
-        "reason": "A batch is limited to 100,000 requests or 256 MB, whichever comes first, so this backlog needs at least two batches."
+        "text": "Send the shared instructions only in the first request; later ones reuse them",
+        "reason": "Each request in a batch is processed independently, with no data leakage between requests, so every request must carry its own instructions."
       },
       {
         "id": "c",
         "text": "Cache the shared instructions using the 1-hour cache duration",
-        "reason": "Correct: batches can take longer than 5 minutes, so the guide suggests the 1-hour cache duration for shared context; the discounts stack."
+        "reason": "Correct: batches can take longer than 5 minutes, so the guide suggests the 1-hour cache duration for shared context."
       },
       {
         "id": "d",
@@ -4810,8 +4706,8 @@
       "a",
       "c"
     ],
-    "takeaway": "Batches take almost any Messages request; mind the 100,000-request cap and use the 1-hour cache for shared context.",
-    "explanation": "A week-long deadline with no one waiting is a batch workload, and the shared instructions are a caching opportunity. The size limit and the unsupported parameters rule out the rest. Choice b is the easiest trap: 200,000 requests is twice the per-batch cap.",
+    "takeaway": "Batches take almost any Messages request, each processed independently; repeat shared context per request and cache it with the 1-hour duration.",
+    "explanation": "A week-long deadline with no one waiting is a batch workload, and the shared instructions are a caching opportunity. Because each batched request is processed independently, every one must include the instructions, and the 1-hour cache keeps that cheap (C). Choice b is the tempting shortcut, but requests share no state. `max_tokens: 0` and `stream: true` (D, E) aren't supported in batches.",
     "difficulty": "hard",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -4823,56 +4719,6 @@
       "c-cache-control"
     ],
     "lessonId": "l-course-batch-multimodal"
-  },
-  {
-    "id": "q-course-sampling-params-accepted",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Temperature",
-    "stem": "Your gateway forwards sampling settings to a Claude model released after Claude Opus 4.6. Which two settings, each sent on its own, will the Messages API still accept?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`\"temperature\": 1.0`",
-        "reason": "Correct: on models released after Claude Opus 4.6, a `temperature` of 1.0 is accepted for backwards compatibility."
-      },
-      {
-        "id": "b",
-        "text": "`\"temperature\": 0.0`, for repeatable output",
-        "reason": "Any `temperature` other than 1.0 is rejected with a 400 error on these models, and even 0.0 is not fully deterministic."
-      },
-      {
-        "id": "c",
-        "text": "`\"top_k\": 40`",
-        "reason": "These models don't accept `top_k` at all: any value is rejected with a 400 error."
-      },
-      {
-        "id": "d",
-        "text": "`\"top_p\": 0.99`",
-        "reason": "Correct: a `top_p` of 0.99 or above is accepted for backwards compatibility."
-      },
-      {
-        "id": "e",
-        "text": "`\"top_p\": 0.9`",
-        "reason": "A `top_p` below 0.99 is rejected with a 400 error on models released after Claude Opus 4.6."
-      }
-    ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "After Claude Opus 4.6, only `temperature` 1.0 and `top_p` ≥ 0.99 pass; any `top_k` gets a 400.",
-    "explanation": "The API reference marks all three sampling parameters as deprecated for models released after Claude Opus 4.6, keeping only backwards-compatible values: `temperature` 1.0 and `top_p` of 0.99 or more. That makes A and D the two accepted settings. B is the tempting one, since lowering temperature used to be the way to get steadier output, but it now returns a 400. C and E fail the same way: any `top_k`, and any `top_p` under 0.99.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/api/messages/create",
-      "title": "Create a Message",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-temperature"
-    ],
-    "lessonId": "l-course-how-llms-behave"
   },
   {
     "id": "q-course-temperature-older-model-task",
@@ -5068,49 +4914,6 @@
     "relatedCardIds": [
       "c-token-counting",
       "c-context-window"
-    ],
-    "lessonId": "l-course-how-llms-behave"
-  },
-  {
-    "id": "q-course-max-output-batch-300k",
-    "domainId": "model-selection",
-    "subSkillId": "llm-fundamentals",
-    "topic": "Tokens",
-    "stem": "A nightly job on Claude Opus 5.5 must produce a single 200k-token technical manual in one turn, more output than a synchronous request can ask for. What does the Models overview describe for this case?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Use the Message Batches API with the `output-300k-2026-03-24` beta header",
-        "reason": "Correct: on the Message Batches API, Claude Opus 5.5 supports up to 300k output tokens with that beta header."
-      },
-      {
-        "id": "b",
-        "text": "Set `max_tokens` to 200,000, since the 1M-token context window has room for it",
-        "reason": "Max output is a separate limit: 128K tokens on the synchronous Messages API, whatever the context window size."
-      },
-      {
-        "id": "c",
-        "text": "Switch to Claude Fable 5.1, which has a larger maximum output",
-        "reason": "Every current model, Claude Fable 5.1 included, lists 128K max output, and Fable 5.1 isn't among the 300k batch models."
-      },
-      {
-        "id": "d",
-        "text": "Stream the response, since streaming lifts the 128K synchronous output cap",
-        "reason": "The 128K figure is the Messages API limit; the overview lists the 300k option only for the Message Batches API."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Max output is **128K** on the Messages API; the Batches API reaches 300k on listed models with a beta header.",
-    "explanation": "The overview lists 128K max output for every current model as the synchronous Messages API limit, and notes that on the Message Batches API, Claude Opus 5.5 and several others can go to 300k with the `output-300k-2026-03-24` beta header (A). B is the tempting mistake of reading the 1M context window as an output allowance. C fails because Fable 5.1 also lists 128K and isn't in the 300k list.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/models/overview",
-      "title": "Models overview",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-max-tokens",
-      "c-message-batches"
     ],
     "lessonId": "l-course-how-llms-behave"
   },
@@ -5467,57 +5270,6 @@
     "lessonId": "l-course-models-reasoning"
   },
   {
-    "id": "q-course-thinking-config-accepted",
-    "domainId": "model-selection",
-    "subSkillId": "model-tradeoffs",
-    "topic": "Adaptive thinking",
-    "stem": "A gateway routes requests across the current models. Which two of these request configurations will the API accept?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Claude Opus 5.5 with `thinking: {\"type\": \"disabled\"}` at `low` effort",
-        "reason": "On Claude Opus 5.5, requests that set `\"disabled\"` return a 400 error at every effort level."
-      },
-      {
-        "id": "b",
-        "text": "Claude Haiku 5.5 with `thinking: {\"type\": \"disabled\"}` at `medium` effort",
-        "reason": "Correct: Haiku 5.5 accepts `\"disabled\"` at `high` effort or below."
-      },
-      {
-        "id": "c",
-        "text": "Claude Haiku 5.5 with `thinking: {\"type\": \"disabled\"}` at `max` effort",
-        "reason": "At `xhigh` or `max`, `\"disabled\"` returns a 400 error on Haiku 5.5; use adaptive thinking there."
-      },
-      {
-        "id": "d",
-        "text": "Claude Sonnet 5.5 with `output_config.effort` set to `\"adaptive\"`",
-        "reason": "`adaptive` is a thinking mode, not an effort level; the effort values run from `low` to `max`."
-      },
-      {
-        "id": "e",
-        "text": "Claude Sonnet 5.5 with `thinking: {\"type\": \"between_tools\"}` at `high` effort",
-        "reason": "Correct: `between_tools` is Sonnet 5.5's lowest thinking setting and works at `low`, `medium` and `high` effort."
-      }
-    ],
-    "answer": [
-      "b",
-      "e"
-    ],
-    "takeaway": "Thinking-off rules differ by model: Haiku 5.5 `disabled` and Sonnet 5.5 `between_tools` work up to `high`; Opus 5.5 never.",
-    "explanation": "The Effort page gives each model its own rule. Claude Haiku 5.5 accepts `thinking: {\"type\": \"disabled\"}` at `high` effort or below (B), and Claude Sonnet 5.5 turns off up-front thinking with `between_tools` at `low`, `medium` or `high` (E). A is the tempting one, since `low` effort seems the natural place to switch thinking off, but Opus 5.5 rejects `\"disabled\"` at every level. C uses `max`, where Haiku rejects it, and D passes a thinking mode as an effort value.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
-      "title": "Effort",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-effort",
-      "c-current-models"
-    ],
-    "lessonId": "l-course-models-reasoning"
-  },
-  {
     "id": "q-course-opus-vs-sonnet-saving",
     "domainId": "model-selection",
     "subSkillId": "model-tradeoffs",
@@ -5661,91 +5413,6 @@
     "lessonId": "l-course-models-reasoning"
   },
   {
-    "id": "q-course-xhigh-not-on-opus46",
-    "domainId": "model-selection",
-    "subSkillId": "model-tradeoffs",
-    "topic": "Effort",
-    "stem": "A router sends `effort: \"xhigh\"` for long agentic tasks. That works on Claude Opus 5.5, but the team also routes some tasks to Claude Opus 4.6. What does the Effort page say about Opus 4.6?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "It supports `max` but not `xhigh`; not every model with `max` has `xhigh`",
-        "reason": "Correct: Opus 4.6 is on the `max` list but not the `xhigh` list, and the page notes that not every `max` model supports `xhigh`."
-      },
-      {
-        "id": "b",
-        "text": "It supports `xhigh` but not `max`, which only the 5.x models offer",
-        "reason": "`max` is available on Claude Opus 4.6; it's `xhigh` that Opus 4.6 lacks."
-      },
-      {
-        "id": "c",
-        "text": "It supports every level, because all five effort levels exist on every model",
-        "reason": "Availability varies by model: the page lists which models support `max` and which support `xhigh`."
-      },
-      {
-        "id": "d",
-        "text": "It doesn't support effort at all; only the 5.x models accept `effort`",
-        "reason": "Claude Opus 4.6 is on the page's list of models that support the effort parameter."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "**Not every model with `max` has `xhigh`**: check the Effort page's per-model lists before routing a level.",
-    "explanation": "The Effort page lists the models for each level. Claude Opus 4.6 appears under `max` but not under `xhigh`, and the page states plainly that not every model that supports `max` supports `xhigh` (A). B swaps the two levels, which is the tempting confusion. C and D are both contradicted by the page's lists: effort support and level support vary by model, and Opus 4.6 does support effort.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
-      "title": "Effort",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-effort"
-    ],
-    "lessonId": "l-course-models-reasoning"
-  },
-  {
-    "id": "q-course-budget-minimum-and-room",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Extended thinking",
-    "stem": "On Claude Haiku 4.5, which supports only manual extended thinking, a short classifier with no tools sends `max_tokens: 1000` and `thinking: {\"type\": \"enabled\", \"budget_tokens\": 800}`. The API rejects it. Which change makes the request valid?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Lower `budget_tokens` to 500 so it leaves more room under `max_tokens`",
-        "reason": "The budget must be at least 1,024 tokens; the API rejects smaller values, and 500 is further below the minimum."
-      },
-      {
-        "id": "b",
-        "text": "Set `budget_tokens` to 1,024 and keep `max_tokens` at 1,000",
-        "reason": "The budget must be less than `max_tokens`, because thinking counts toward it. With no tools, the interleaved-thinking exception doesn't apply."
-      },
-      {
-        "id": "c",
-        "text": "Set `budget_tokens` to 1,024 and raise `max_tokens` above it, say to 2,000",
-        "reason": "Correct: the budget meets the 1,024-token minimum and stays below `max_tokens`, leaving room for the final response."
-      },
-      {
-        "id": "d",
-        "text": "Switch to `thinking: {\"type\": \"adaptive\"}`, which has no minimum token budget",
-        "reason": "Adaptive thinking isn't available on models that support only extended thinking, such as Claude Haiku 4.5; `type: \"adaptive\"` returns a 400 error there."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "`budget_tokens` needs **at least 1,024** and must stay **below `max_tokens`** (interleaved thinking is the exception).",
-    "explanation": "Two budget rules apply at once: `budget_tokens` must be at least 1,024, and it must be less than `max_tokens`. The request in the stem breaks the first rule, and simply raising the budget to 1,024 would break the second, which is the trap in option B. Only C satisfies both. D fails because Claude Haiku 4.5 doesn't offer adaptive thinking.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
-      "title": "Extended thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-budget",
-      "c-max-tokens"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
     "id": "q-course-budget-is-target",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
@@ -5792,81 +5459,40 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "topic": "Adaptive thinking",
-    "stem": "Your app on Claude Sonnet 4.6 sends no `thinking` field. Its multistep financial reconciliations often skip checks, and you want Claude to reason first, deciding for itself how much on each request. What should you add?",
+    "stem": "Your app mixes one-line lookups with multistep financial reconciliations. You want Claude to reason only when a request needs it and to decide how much, instead of thinking at a fixed depth on every request. Your model supports both thinking modes. Which configuration fits?",
     "choices": [
       {
         "id": "a",
-        "text": "Nothing, because thinking is already on by default for every current model",
-        "reason": "On Claude Sonnet 4.6, a request with no `thinking` field runs with thinking off. Thinking is on by default only on some newer models."
+        "text": "`thinking: {\"type\": \"enabled\", \"budget_tokens\": 16000}` on every request",
+        "reason": "With a fixed budget, Claude thinks on every request; adaptive thinking is the mode where Claude decides whether and how much to think."
       },
       {
         "id": "b",
-        "text": "`thinking: {\"type\": \"enabled\", \"budget_tokens\": 16000}`, the mode recommended here",
-        "reason": "Manual extended thinking is deprecated on Claude Sonnet 4.6. The mode that lets Claude decide when and how deeply to think is `adaptive`."
+        "text": "`thinking: {\"type\": \"adaptive\"}`, with depth steered through `effort`",
+        "reason": "Correct: with adaptive thinking, Claude determines whether and how much to think on each request, and `output_config.effort` controls reasoning depth."
       },
       {
         "id": "c",
-        "text": "`output_config: {\"effort\": \"adaptive\"}`, which lets Claude choose how much to think",
-        "reason": "`adaptive` is a thinking mode, not an effort level, so don't pass it as an `effort` value."
+        "text": "`output_config: {\"effort\": \"adaptive\"}`, which lets Claude choose its depth",
+        "reason": "`adaptive` is a thinking mode set in `thinking.type`; effort takes a level such as `high` and controls depth separately."
       },
       {
         "id": "d",
-        "text": "`thinking: {\"type\": \"adaptive\"}`, because thinking is off here until you set it",
-        "reason": "Correct: on Claude Sonnet 4.6, thinking is off until you set `thinking: {type: \"adaptive\"}`, which lets Claude decide when and how deeply to think."
-      }
-    ],
-    "answer": "d",
-    "takeaway": "On Claude Sonnet 4.6, thinking stays off until you send `thinking: {\"type\": \"adaptive\"}`; `adaptive` is never an effort value.",
-    "explanation": "Whether thinking is on by default depends on the model: on Claude Sonnet 4.6, a request without a `thinking` field runs with thinking off. The stem wants Claude to choose its depth per request, which is what adaptive thinking does. Option B is tempting because it turns thinking on, but manual mode is deprecated on this model and fixes the budget. C puts a thinking mode in the effort field.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-effort"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
-    "id": "q-course-budget-starting-point",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Extended thinking",
-    "stem": "You are adding manual extended thinking on Claude Opus 4.5 to a complex legal-analysis task and need a first `budget_tokens` value to tune from. What does the extended thinking guide suggest?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Start at the 1,024 minimum for every task, and raise it only when answers fail",
-        "reason": "Starting near 1,024 and increasing step by step is the guidance for simple tasks, not complex ones."
-      },
-      {
-        "id": "b",
-        "text": "Start at 16,000 tokens or more, then adjust to your latency and quality needs",
-        "reason": "Correct: for complex tasks the guide suggests starting with a larger budget of 16,000 tokens or more, then adjusting."
-      },
-      {
-        "id": "c",
-        "text": "Start above 32,000 tokens so the model never runs short, and keep calls synchronous",
-        "reason": "Above 32k, the guide recommends batch processing: such long-running requests can hit system timeouts and open-connection limits."
-      },
-      {
-        "id": "d",
-        "text": "Set `budget_tokens` equal to `max_tokens` so that no output room is wasted",
-        "reason": "The budget must be less than `max_tokens`, because thinking counts toward that limit and the final response needs room too."
+        "text": "Manual thinking with the smallest budget, raised only on hard requests",
+        "reason": "A budget is still a fixed setting per request that your code must choose; adaptive thinking lets Claude decide per request, with effort for depth."
       }
     ],
     "answer": "b",
-    "takeaway": "Size the first budget to the task: near **1,024** for simple work, **16,000+** for complex work. Above 32k, use batch processing.",
-    "explanation": "The tuning advice matches the starting budget to the task: start near the 1,024 minimum for simple tasks, and at 16,000 or more for complex ones, then adjust. Legal analysis in the stem is a complex task, so B fits. Option A is the tempting cautious choice, but it is the advice for simple tasks. C invites the timeouts the guide warns about above 32k, and D breaks the rule that the budget must be below `max_tokens`.",
-    "difficulty": "medium",
+    "takeaway": "**Adaptive thinking** lets Claude decide whether and how much to think per request; steer its depth with `effort`, not a token budget.",
+    "explanation": "Adaptive thinking exists for mixed workloads: Claude decides on each request whether to think and how much, and effort sets the depth. The stem asks for exactly that, rather than a fixed depth, so B fits. Option A is the tempting one because it turns thinking on, but a fixed budget makes Claude think on every request. C puts a thinking mode in the effort field, and D still leaves your code choosing a budget.",
+    "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
       "title": "Extended thinking",
       "checkedOn": "2026-10-14"
     },
     "relatedCardIds": [
+      "c-effort",
       "c-thinking-budget"
     ],
     "lessonId": "l-course-extended-thinking"
@@ -5923,117 +5549,6 @@
     "lessonId": "l-course-extended-thinking"
   },
   {
-    "id": "q-course-omitted-field-ignored",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Preserving thinking blocks",
-    "stem": "Thinking blocks from Claude Opus 5.5 come back with an empty `thinking` field. Before passing them back with each `tool_result`, your code writes its own notes into that field so that Claude can \"see\" them. What happens to those notes?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Claude reads them as part of its earlier reasoning, which is how notes are meant to be added",
-        "reason": "Claude doesn't read them. The server rebuilds the original thinking from the `signature`, and text placed in an omitted block's field is ignored."
-      },
-      {
-        "id": "b",
-        "text": "The API rejects each request with a 400, as it does for any modified thinking block",
-        "reason": "Modified thinking blocks are normally rejected, but the docs name one exception: text in the empty field of an omitted block is ignored."
-      },
-      {
-        "id": "c",
-        "text": "They are ignored, and the server rebuilds the reasoning from the encrypted `signature`",
-        "reason": "Correct: the server decrypts the `signature` to reconstruct the original thinking, and any text you place in an omitted block's `thinking` field is ignored."
-      },
-      {
-        "id": "d",
-        "text": "They replace the signature's contents, so Claude's original reasoning is lost",
-        "reason": "The `signature` still carries the encrypted full thinking, and the server uses it. Your notes don't change it."
-      }
-    ],
-    "answer": "c",
-    "takeaway": "With omitted thinking, the reasoning travels in `signature`; text you put into the empty `thinking` field is ignored.",
-    "explanation": "With `display: \"omitted\"`, the `thinking` field is empty but the `signature` still holds the full reasoning, which the server decrypts when the block comes back. The docs carve out one exception to the no-modification rule: text written into an omitted block's empty field is ignored, not rejected. Option B is the tempting answer, because edited thinking blocks usually cause a 400. A assumes Claude reads the field.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
-    "id": "q-course-interleaved-budget-exceeds",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Interleaved thinking",
-    "stem": "On Claude Sonnet 4.5 with the `interleaved-thinking-2025-05-14` beta header, an agent turn calls several tools and sets `max_tokens: 16000` with `budget_tokens: 24000`. A reviewer flags the budget as invalid because it exceeds `max_tokens`. Are they right?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Yes: `budget_tokens` must always be less than `max_tokens`, so the API rejects it",
-        "reason": "The less-than rule has one exception: with interleaved thinking, `budget_tokens` can exceed `max_tokens`."
-      },
-      {
-        "id": "b",
-        "text": "No: with interleaved thinking the budget spans the turn and can exceed it",
-        "reason": "Correct: the budget spans all thinking blocks within one assistant turn, so `budget_tokens` can exceed `max_tokens` here."
-      },
-      {
-        "id": "c",
-        "text": "No: `budget_tokens` and `max_tokens` are independent in every thinking mode",
-        "reason": "Without interleaving, the budget must be less than `max_tokens`, because thinking counts toward that limit."
-      },
-      {
-        "id": "d",
-        "text": "Yes: Claude Sonnet 4.5 ignores the beta header, so the usual rule still applies",
-        "reason": "On Claude Sonnet 4.5 the header enables interleaved thinking. Claude Haiku 4.5 is a model that doesn't support it."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Normally `budget_tokens` < `max_tokens`. With **interleaved thinking**, the budget spans the whole turn and may exceed it.",
-    "explanation": "The budget rules require `budget_tokens` to be less than `max_tokens`, with one exception: interleaved thinking, where the budget covers every thinking block across the assistant turn. The stem describes a tool-calling turn on Claude Sonnet 4.5 with the interleaved beta header, so the exception applies. Option A is the tempting answer for anyone who knows only the general rule. D confuses Sonnet 4.5 with Haiku 4.5.",
-    "difficulty": "hard",
-    "diagram": {
-      "kind": "flow",
-      "caption": "Interleaved thinking: Claude thinks between tool calls in one assistant turn.",
-      "steps": [
-        {
-          "label": "Thinking"
-        },
-        {
-          "label": "Tool call"
-        },
-        {
-          "label": "Tool result"
-        },
-        {
-          "label": "Thinking"
-        },
-        {
-          "label": "Tool call"
-        },
-        {
-          "label": "Tool result"
-        },
-        {
-          "label": "Thinking"
-        }
-      ]
-    },
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
-      "title": "Extended thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-budget"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
     "id": "q-course-toggle-thinking-mid-turn",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
@@ -6076,99 +5591,6 @@
     "lessonId": "l-course-extended-thinking"
   },
   {
-    "id": "q-course-redacted-vs-omitted",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Thinking output",
-    "stem": "In one Claude Opus 5.5 response, your logs show a `thinking` block with an empty `thinking` field and a `redacted_thinking` block that holds only a `data` field. A teammate says both come from the `display: \"omitted\"` setting. What is the accurate distinction?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "`redacted_thinking` is safety-redacted; omitted display returns ordinary `thinking` blocks",
-        "reason": "Correct: `redacted_thinking` is a distinct block type for safety-redacted reasoning, separate from omitted display, which returns regular `thinking` blocks with an empty field."
-      },
-      {
-        "id": "b",
-        "text": "Both come from `display`: omitted empties the field, and redacted means summarizing failed",
-        "reason": "`redacted_thinking` doesn't come from `display` at all. It is returned when portions of Claude's reasoning are safety-redacted."
-      },
-      {
-        "id": "c",
-        "text": "`redacted_thinking` blocks are for logging only and should be dropped before the next tool call",
-        "reason": "They must be passed back to the API unchanged when continuing a conversation with tools, just like regular thinking blocks."
-      },
-      {
-        "id": "d",
-        "text": "The empty `thinking` block means Claude skipped thinking, so it can be dropped from history",
-        "reason": "An empty field reflects the omitted display. The `signature` still carries the full reasoning, and if adaptive thinking skips, no block is produced at all."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "`redacted_thinking` = safety-redacted, encrypted `data`. Omitted display = an ordinary `thinking` block with an empty field. Pass both back unchanged.",
-    "explanation": "Two different mechanisms can leave you without readable thinking. `display: \"omitted\"` returns regular `thinking` blocks with an empty field, while `redacted_thinking` is a separate block type returned when reasoning is safety-redacted. Option B is the tempting merge of the two, which the docs explicitly separate. C and D would drop blocks that must go back unchanged with tool results.",
-    "difficulty": "medium",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
-    "id": "q-course-thinking-block-default-fields",
-    "domainId": "model-selection",
-    "subSkillId": "technical-fundamentals",
-    "topic": "Thinking output",
-    "stem": "Your code reads the `thinking` blocks that Claude Opus 5.5 returns with default settings. Which two statements describe what it will find?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "The `thinking` field is empty, since `display` defaults to `\"omitted\"` here",
-        "reason": "Correct: on Claude Opus 5.5, `display` defaults to `\"omitted\"`, so thinking blocks come back with an empty `thinking` field."
-      },
-      {
-        "id": "b",
-        "text": "The `thinking` field holds Claude's raw chain of thought, unedited",
-        "reason": "No `display` setting returns the raw chain of thought. Even with `\"summarized\"`, the text is a summary."
-      },
-      {
-        "id": "c",
-        "text": "The thinking blocks come after the final `text` block",
-        "reason": "Thinking blocks arrive before the `text` blocks in the response."
-      },
-      {
-        "id": "d",
-        "text": "The `signature` field carries an encrypted copy of the full reasoning",
-        "reason": "Correct: each thinking block's `signature` is an encrypted copy of the full reasoning, which you pass back unchanged."
-      },
-      {
-        "id": "e",
-        "text": "A thinking block is billed only when its `thinking` field contains text",
-        "reason": "Omitted and summarized blocks are billed the same: you're charged for the full thinking tokens either way."
-      }
-    ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "On Opus 5.5 by default, the `thinking` field is empty, but `signature` holds the full reasoning, encrypted and billed either way.",
-    "explanation": "On Claude Opus 5.5, thinking is on and `display` defaults to `\"omitted\"`, so the `thinking` field is empty while the `signature` carries the full reasoning in encrypted form. A and D describe exactly that. Option E is the tempting inference from an empty field, but the block is billed the same whatever the display setting. B and C misplace what thinking blocks contain and where they appear.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
-      "title": "Thinking",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-thinking-blocks-unchanged",
-      "c-content-blocks"
-    ],
-    "lessonId": "l-course-extended-thinking"
-  },
-  {
     "id": "q-batch-tools-and-vision-ok",
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
@@ -6199,48 +5621,6 @@
     "answer": "a",
     "takeaway": "Batching isn’t limited to plain text: almost any Messages request qualifies; leave out `stream`, `speed` and `max_tokens: 0`.",
     "explanation": "The Message Batches API takes ordinary Messages requests, so the features a request uses rarely matter. The guide lists vision, tool use, system messages, multi-turn conversations and extended thinking as batchable, with just three parameters excluded. Choice b sounds like a reasonable constraint, but each request is processed independently, so mixed request types are fine.",
-    "difficulty": "easy",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
-      "title": "Batch processing",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-message-batches"
-    ],
-    "lessonId": "l-course-batch-multimodal"
-  },
-  {
-    "id": "q-batch-results-29-days",
-    "domainId": "model-selection",
-    "subSkillId": "cost-tokens",
-    "topic": "Message Batches",
-    "stem": "An auditor asks for the raw outputs of a Message Batch your team ran six weeks ago. The batch still shows up when you list batches, but its results won’t download. What happened?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "Results are deleted 24 hours after the batch ends unless your code downloads them first",
-        "reason": "The 24 hours is the processing window before a batch expires; results stay available for 29 days after creation."
-      },
-      {
-        "id": "b",
-        "text": "Results are kept for 29 days after the batch was created, then can’t be downloaded",
-        "reason": "After 29 days you may still view the batch, but its results are no longer available for download."
-      },
-      {
-        "id": "c",
-        "text": "Ended batches are archived after seven days, and archived results can’t be downloaded",
-        "reason": "There is no seven-day rule: batch results are available for 29 days after the batch is created."
-      },
-      {
-        "id": "d",
-        "text": "Results stay available only until the workspace’s monthly spend limit resets",
-        "reason": "Result availability depends on time since creation, 29 days, not on spend limits."
-      }
-    ],
-    "answer": "b",
-    "takeaway": "Download and store batch results within 29 days of creation; after that the batch is visible but its results are gone.",
-    "explanation": "Batch results have a fixed lifetime of 29 days, counted from the batch's creation, not from when processing ended. Six weeks is past that, so the batch record remains but the results file doesn't. Choice a mixes up the two windows: 24 hours is how long a batch may take to process before it expires.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
@@ -6334,48 +5714,6 @@
     },
     "relatedCardIds": [
       "c-message-batches"
-    ],
-    "lessonId": "l-course-batch-multimodal"
-  },
-  {
-    "id": "q-multimodal-4k-frame-cost",
-    "domainId": "model-selection",
-    "subSkillId": "cost-tokens",
-    "topic": "Image costs",
-    "stem": "You will send 4K video frames (3840×2160 px) to Claude Opus 5.5 at $4 per million input tokens. A teammate applies the patch formula to the full size: 138 × 78 = 10,764 visual tokens per frame. What should the estimate use?",
-    "choices": [
-      {
-        "id": "a",
-        "text": "4,784 per frame, the tier’s cap after downscaling: about $19 per thousand frames",
-        "reason": "Claude Opus 5.5 is on the high-resolution tier (2576 px long edge, 4784 visual tokens); a 4K image is downsized to 2576×1449, about $19.14 per thousand."
-      },
-      {
-        "id": "b",
-        "text": "10,764 per frame, about $43 per thousand, as the formula applies to the full size",
-        "reason": "Images larger than the model’s limits are downscaled before processing, which caps the token cost."
-      },
-      {
-        "id": "c",
-        "text": "1,560 per frame, because every model downsizes a 4K image to 1456×819 px first",
-        "reason": "That is the standard tier; Claude 4.7 and later models are high-resolution and downsize a 4K image to 2576×1449 for 4784 tokens."
-      },
-      {
-        "id": "d",
-        "text": "10,764 per frame plus a flat surcharge for each image above 8 megapixels",
-        "reason": "The guide estimates cost as token count times the model’s per-token price; larger images are downscaled, not surcharged."
-      }
-    ],
-    "answer": "a",
-    "takeaway": "Apply the patch formula after downscaling: on high-resolution models a large image caps at 4,784 visual tokens.",
-    "explanation": "The ⌈w/28⌉ × ⌈h/28⌉ formula is right, but it applies to the image Claude actually processes, and anything over the model's limits is downscaled first. Claude Opus 5.5 is on the high-resolution tier, so a 4K frame becomes 2576×1449 and costs the 4,784-token cap. Choice b is the trap: correct arithmetic on the wrong image size, more than double the real estimate.",
-    "difficulty": "hard",
-    "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
-      "title": "Vision",
-      "checkedOn": "2026-10-14"
-    },
-    "relatedCardIds": [
-      "c-price-per-mtok"
     ],
     "lessonId": "l-course-batch-multimodal"
   },
@@ -6488,41 +5826,33 @@
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
     "topic": "Message Batches",
-    "stem": "Your batch builder must give each request a `custom_id` that later maps its result back to a database row. Which choices meet the batch guide’s rules?",
+    "stem": "Your nightly batch job writes each result back to the database row whose position matches the result’s line number in the results file. Some rows now hold another row’s output, though every request succeeded. What should the job do?",
     "choices": [
       {
         "id": "a",
-        "text": "`order-10432`, built from the row’s order number",
-        "reason": "Correct: 1–64 letters, digits, hyphens or underscores, and meaningful enough to match the result to its row, since order isn’t guaranteed."
+        "text": "Resubmit the batch until its results come back in request order",
+        "reason": "Batch results can be returned in any order on every run, so resubmitting can’t make line position a reliable key."
       },
       {
         "id": "b",
-        "text": "`user@example.com`, the customer’s email address",
-        "reason": "The `@` and `.` characters aren’t allowed; a `custom_id` must match `^[a-zA-Z0-9_-]{1,64}$`."
+        "text": "Submit smaller batches, since order is only kept for batches under 1,000 requests",
+        "reason": "The guide says results can come back in any order; it sets no batch size below which order is kept."
       },
       {
         "id": "c",
-        "text": "The same `custom_id` on a request and on its retry within one batch",
-        "reason": "Each request in a batch must have a unique `custom_id`."
+        "text": "Switch the job to the synchronous Messages API so outputs arrive in order",
+        "reason": "That gives up the batch discount for a problem that has a direct fix: matching on `custom_id`."
       },
       {
         "id": "d",
-        "text": "`sku_10432-v2`, combining the SKU with a version suffix",
-        "reason": "Correct: letters, digits, an underscore and a hyphen, within 64 characters, and it identifies the row."
-      },
-      {
-        "id": "e",
-        "text": "No `custom_id` at all; match results by their position in the results file",
-        "reason": "Every request needs a `custom_id`, and results can come back in any order, so position can’t be trusted."
+        "text": "Give each request a unique, meaningful `custom_id` and match results on it",
+        "reason": "Correct: batch results can be returned in any order, so always use the `custom_id` field to match each result to its request."
       }
     ],
-    "answer": [
-      "a",
-      "d"
-    ],
-    "takeaway": "`custom_id`: unique within the batch, 1–64 letters, digits, hyphens or underscores, and meaningful enough to map results back.",
-    "explanation": "A `custom_id` is how a result finds its way home, because batch results are not returned in request order. The guide fixes the format at 1–64 alphanumeric characters, hyphens and underscores, and requires each id to be unique in the batch. Choice b is the tempting one, since an email is a natural key, but its `@` and `.` fail the pattern.",
-    "difficulty": "medium",
+    "answer": "d",
+    "takeaway": "Batch results come back in **any order**: give each request a unique, meaningful `custom_id` and match results on it.",
+    "explanation": "The job assumes results come back in request order, and the batch guide says they don't. The stem's clue is that every request succeeded yet outputs landed on the wrong rows, a matching bug, not a model bug. A unique, meaningful `custom_id` per request fixes it (D). Option C is tempting because synchronous calls feel ordered, but it throws away the batch discount when `custom_id` already solves the problem.",
+    "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
@@ -6644,5 +5974,175 @@
       "c-message-batches"
     ],
     "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-course-thinking-billed-hidden",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "lessonId": "l-course-extended-thinking",
+    "topic": "Thinking cost",
+    "stem": "Your support app runs with thinking on but never shows the thinking text, so it returns empty thinking blocks. Finance sees output-token bills far larger than the length of the visible replies and suspects a billing bug. What explains the gap?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The tokens Claude spends thinking are billed as output, even when the text isn’t returned",
+        "reason": "Correct: thinking tokens are billed as output tokens even when the thinking text isn’t returned, so billed output exceeds the visible reply."
+      },
+      {
+        "id": "b",
+        "text": "Each empty thinking block carries a flat per-block fee that the reply length hides",
+        "reason": "Thinking is billed by its tokens, as output tokens; the guide describes no flat per-block fee."
+      },
+      {
+        "id": "c",
+        "text": "With the text hidden, no thinking happens, so the extra tokens must be a metering error",
+        "reason": "Hiding the text doesn’t stop thinking: an omitted block is billed the same as a summarized one."
+      },
+      {
+        "id": "d",
+        "text": "You pay only for the summary length, so the gap must come from the system prompt",
+        "reason": "With summarized thinking you’re charged for the full thinking tokens, not the summary tokens; hiding the text changes nothing about billing."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Thinking tokens are billed as **output** whether or not you show them, so billed output can far exceed the visible reply.",
+    "explanation": "Thinking has a cost that doesn't show on screen: the reasoning tokens are billed as output even when the thinking text isn't returned. The stem's clue is that thinking is on but hidden, so a large gap between visible text and billed output is expected (A). Option C is the tempting misreading: an empty thinking field means the text wasn't returned, not that Claude didn't think. D gets the billing basis backwards.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget",
+      "c-price-per-mtok"
+    ]
+  },
+  {
+    "id": "q-course-thinking-max-tokens-room",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "lessonId": "l-course-extended-thinking",
+    "topic": "Thinking and max_tokens",
+    "stem": "A report generator sets `max_tokens` just above the length of a typical finished report. After you turn thinking on for better analysis, many replies come back cut off with `stop_reason: \"max_tokens\"`. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stream the response, since streaming lifts the `max_tokens` limit",
+        "reason": "`max_tokens`, which includes all the thinking Claude generates in the current turn, is enforced as a strict limit."
+      },
+      {
+        "id": "b",
+        "text": "Set `display: \"omitted\"` so thinking no longer uses up `max_tokens`",
+        "reason": "Hiding the thinking text changes what is returned, not what is generated; thinking still counts toward `max_tokens`."
+      },
+      {
+        "id": "c",
+        "text": "Report a bug, since `max_tokens` is meant to cap only the visible text",
+        "reason": "Thinking tokens count toward `max_tokens` alongside the response text, so this is expected behaviour, not a bug."
+      },
+      {
+        "id": "d",
+        "text": "Raise `max_tokens` so it leaves room for both the thinking and the report",
+        "reason": "Correct: thinking tokens count toward `max_tokens`, so set it high enough to leave room for both the thinking and the response text."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`max_tokens` covers **thinking plus response**: when you turn thinking on, raise it so the answer still fits.",
+    "explanation": "Thinking and the visible reply share one output limit. The stem's clue is that truncation started only after thinking was turned on: the reasoning now uses part of a `max_tokens` sized for the report alone, so raise it (D). Option B is tempting because the thinking isn't shown, but hidden thinking is still generated and counted. Streaming (A) doesn't change a strict limit.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ]
+  },
+  {
+    "id": "q-course-show-reasoning-display",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "lessonId": "l-course-extended-thinking",
+    "topic": "Thinking display",
+    "stem": "Product wants a \"How I worked this out\" panel showing users Claude's reasoning. Your model returns thinking blocks with an empty `thinking` field and an encrypted `signature`. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Decode the `signature` field, which holds the full reasoning in readable form",
+        "reason": "The `signature` carries the encrypted full thinking for multi-turn continuity; it isn’t a readable source for your UI."
+      },
+      {
+        "id": "b",
+        "text": "Set `display: \"summarized\"` to get a readable summary of the reasoning",
+        "reason": "Correct: `\"summarized\"` returns thinking blocks with a readable summary of Claude’s reasoning; `\"omitted\"` returns them empty."
+      },
+      {
+        "id": "c",
+        "text": "Request the raw chain of thought, so users see every step exactly as generated",
+        "reason": "No `display` setting returns the raw chain of thought; what you can show is a summary."
+      },
+      {
+        "id": "d",
+        "text": "Keep `display: \"omitted\"`, since it streams the thinking text to users sooner",
+        "reason": "`\"omitted\"` streams no thinking text at all; its benefit is a faster first text token when you don’t show thinking."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "To show reasoning, set `display: \"summarized\"`; you get a **summary**, never the raw chain of thought. Use `\"omitted\"` when you hide it.",
+    "explanation": "Display controls whether the thinking summary comes back. Empty thinking fields mean the request is using `\"omitted\"`, so to show reasoning in the UI, set `display: \"summarized\"` (B). Option C is the tempting overreach: no setting returns the raw chain of thought. A misreads the signature, which is encrypted, and D has `\"omitted\"` backwards, since it's for apps that don't show thinking.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-thinking-budget"
+    ]
+  },
+  {
+    "id": "q-course-adaptive-skips-easy",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "lessonId": "l-course-extended-thinking",
+    "topic": "Adaptive thinking",
+    "stem": "After migrating from a fixed `budget_tokens` to adaptive thinking at `low` effort, your logs show that easy requests now often return no thinking block, though hard ones still do. A teammate calls the migration broken. What does the Extended thinking guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Expected: adaptive thinking decides per request, and at lower effort may skip easy ones",
+        "reason": "Correct: with adaptive thinking, Claude determines whether and how much to think on each request, and at lower effort it may skip thinking on easy inputs."
+      },
+      {
+        "id": "b",
+        "text": "Broken: adaptive thinking should think on every request, just like a fixed budget",
+        "reason": "Thinking on every request is the fixed-budget behaviour; the guide says to expect a behavioural difference after migrating."
+      },
+      {
+        "id": "c",
+        "text": "Broken: put `budget_tokens` back alongside adaptive thinking to force a minimum",
+        "reason": "The migration mapping removes `budget_tokens` and controls depth with `effort` instead of a token budget."
+      },
+      {
+        "id": "d",
+        "text": "Expected, but only because `low` effort switches thinking off for every request",
+        "reason": "Hard requests in the stem still think; adaptive thinking may skip thinking on easy inputs, not on all of them."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Moving to adaptive thinking is a **behaviour change**: Claude decides per request, and at lower effort may skip thinking on easy inputs.",
+    "explanation": "A migration can change behaviour, not just syntax. With a fixed budget Claude thinks on every request; with adaptive thinking it decides per request, and at lower effort it may skip easy ones. The stem's detail that hard requests still think confirms this (A). Option B is the tempting assumption carried over from the old setup. D overstates `low`, and C reverses the migration mapping.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/extended-thinking",
+      "title": "Extended thinking",
+      "checkedOn": "2026-10-14"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-thinking-budget"
+    ]
   }
 ]
