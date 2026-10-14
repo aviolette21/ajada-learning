@@ -51,7 +51,7 @@ export function TodayPage() {
         {due > 0 && <p className="muted" style={{ marginTop: 10 }}>Optional: <Link to="/cards/review">{due} flashcard{due === 1 ? '' : 's'} due</Link></p>}
       </section>
       <section className="panel">
-        <div className="muted">By domain (exam weight)</div>
+        <div className="muted">By domain (exam weight) · <Link to="/practice/progress">all 25 topics</Link></div>
         {ordered.map((d) => {
           const s = byDomain.get(d.id);
           return (

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
 import { isCorrect } from '../../content/answers';
 import type { Question } from '../../content/schema';
-import { scoreMock } from '../../study/mockExam';
+import { mockRetryIds, scoreMock } from '../../study/mockExam';
 import { PASS_SCORE } from '../../study/readiness';
 import { Meter } from '../../ui/Meter';
 import { Screen } from '../../ui/Screen';
@@ -22,6 +22,11 @@ export function MockResultsPage() {
   if (!session?.submittedAt) return <Navigate to="/practice/mock" replace />;
 
   const result = scoreMock(session, questionById, domains);
+  const retryIds = mockRetryIds(session, questionById);
+  const luckyGuesses = (session.guessed ?? []).filter((id) => {
+    const q = questionById.get(id);
+    return q !== undefined && isCorrect(q, session.answers[id]);
+  }).length;
   const review = session.questionIds
     .map((id) => questionById.get(id))
     .filter((q): q is Question => Boolean(q))
@@ -33,7 +38,13 @@ export function MockResultsPage() {
         <div className={`result-score ${result.passes ? 'result-pass' : 'result-fail'}`}>{result.scaledScore}</div>
         <div>{result.passes ? 'Above' : 'Below'} the {PASS_SCORE} pass mark</div>
         <div className="muted">{result.correct} / {result.total} correct ({result.percent}%) · estimated scaled score</div>
+        {luckyGuesses > 0 && <div className="muted">{luckyGuesses} of those you marked as a guess</div>}
       </section>
+      {retryIds.length > 0 && (
+        <Link className="btn btn-primary btn-block" to={`/practice/mistakes?ids=${retryIds.join(',')}`}>
+          Retry the {retryIds.length} you missed or guessed
+        </Link>
+      )}
       <section className="panel">
         <h3>By domain</h3>
         {result.byDomain.map((d) => (

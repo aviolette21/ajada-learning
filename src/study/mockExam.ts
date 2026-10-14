@@ -124,10 +124,21 @@ export function scoreMock(session: MockSession, questionById: Map<string, Questi
   };
 }
 
+/** Questions to retry after an exam: answered wrong, left unanswered, or right only by a marked guess. */
+export function mockRetryIds(session: MockSession, questionById: Map<string, Question>): string[] {
+  return session.questionIds.filter((id) => {
+    const q = questionById.get(id);
+    return q !== undefined && (!isCorrect(q, session.answers[id]) || (session.guessed?.includes(id) ?? false));
+  });
+}
+
 export function mockAttempts(session: MockSession, questionById: Map<string, Question>, at: number): Attempt[] {
   return session.questionIds.flatMap((id) => {
     const q = questionById.get(id);
     const chosen = session.answers[id];
-    return q && chosenIds(chosen).length > 0 ? [{ questionId: id, chosen, correct: isCorrect(q, chosen), mode: 'mock' as const, at }] : [];
+    const guessed = session.guessed?.includes(id) ?? false;
+    return q && chosenIds(chosen).length > 0
+      ? [{ questionId: id, chosen, correct: isCorrect(q, chosen), ...(guessed ? { confident: false } : {}), mode: 'mock' as const, at }]
+      : [];
   });
 }

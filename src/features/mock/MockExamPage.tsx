@@ -85,6 +85,7 @@ export function MockExamPage() {
   };
   const total = session.questionIds.length;
   const flagged = session.flagged.includes(qid);
+  const guessed = session.guessed?.includes(qid) ?? false;
   const isLast = session.currentIndex === total - 1;
 
   return (
@@ -107,6 +108,10 @@ export function MockExamPage() {
         <button type="button" className={`chip ${flagged ? 'on' : ''}`} aria-pressed={flagged}
           onClick={() => update({ flagged: flagged ? session.flagged.filter((x) => x !== qid) : [...session.flagged, qid] })}>
           {flagged ? '★ Flagged for review' : '☆ Flag for review'}
+        </button>
+        <button type="button" className={`chip ${guessed ? 'on' : ''}`} aria-pressed={guessed}
+          onClick={() => update({ guessed: guessed ? (session.guessed ?? []).filter((x) => x !== qid) : [...(session.guessed ?? []), qid] })}>
+          🤔 {guessed ? 'Guessing' : 'Mark as a guess'}
         </button>
         <button type="button" className="chip" onClick={() => setNavOpen(true)}>All questions ({answered}/{total})</button>
       </div>

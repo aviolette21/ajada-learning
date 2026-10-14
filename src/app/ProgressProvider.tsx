@@ -24,7 +24,8 @@ export interface Progress {
 
 /** Save methods report a failure to the user (a toast) and still reject, so a caller that awaits can react. */
 export interface ProgressApi extends Progress {
-  recordAnswer(question: Question, chosen: Chosen, mode: AttemptMode): Promise<void>;
+  /** guessed: the learner marked this answer as a guess. */
+  recordAnswer(question: Question, chosen: Chosen, mode: AttemptMode, guessed?: boolean): Promise<void>;
   saveCardState(state: StoredCardState): Promise<void>;
   markLessonDone(lessonId: string): Promise<void>;
   toggleFlag(itemId: string, kind: Flag['kind']): Promise<void>;
@@ -103,10 +104,10 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
     };
     return {
       ...state,
-      recordAnswer: reported(async (question: Question, chosen: Chosen, mode: AttemptMode) => {
+      recordAnswer: reported(async (question: Question, chosen: Chosen, mode: AttemptMode, guessed = false) => {
         const at = now();
         const correct = isCorrect(question, chosen);
-        const resurfaced = correct
+        const resurfaced = correct && !guessed
           ? []
           : question.relatedCardIds.flatMap((cardId) =>
               (['forward', 'reverse'] as const).flatMap((d) => {
@@ -115,7 +116,10 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
                 return [s ? resurface(s, at) : newState(cardId, d, at)];
               }),
             );
-        const attempt = await db.recordAttempt({ questionId: question.id, chosen, correct, mode, at: at.getTime() }, resurfaced);
+        const attempt = await db.recordAttempt(
+          { questionId: question.id, chosen, correct, ...(guessed ? { confident: false } : {}), mode, at: at.getTime() },
+          resurfaced,
+        );
         setState((p) => p && { ...p, attempts: [...p.attempts, attempt], cardStates: withStates(p.cardStates, resurfaced) });
       }),
       saveCardState: reported(async (s: StoredCardState) => {

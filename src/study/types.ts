@@ -21,6 +21,8 @@ export interface Attempt {
   questionId: string;
   chosen: Chosen;
   correct: boolean;
+  /** false when the learner marked the answer as a guess; absent means sure (and for attempts saved before this existed). */
+  confident?: boolean;
   mode: AttemptMode;
   at: number;
 }
@@ -32,6 +34,8 @@ export interface MockSession {
   questionIds: string[];
   answers: Record<string, Chosen>;
   flagged: string[];
+  /** Questions the learner marked as a guess during the exam. */
+  guessed?: string[];
   currentIndex: number;
   submittedAt?: number;
 }

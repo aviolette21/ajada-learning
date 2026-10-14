@@ -14,6 +14,8 @@ import { MockExamPage } from '../features/mock/MockExamPage';
 import { MockIntroPage } from '../features/mock/MockIntroPage';
 import { MockResultsPage } from '../features/mock/MockResultsPage';
 import { PracticePage } from '../features/practice/PracticePage';
+import { MistakesPage } from '../features/practice/MistakesPage';
+import { ProgressPage } from '../features/practice/ProgressPage';
 import { QuizPage } from '../features/practice/QuizPage';
 import { WeakSpotsPage } from '../features/practice/WeakSpotsPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
@@ -31,7 +33,7 @@ import { TermsProvider } from './Terms';
 const systemNow = () => new Date();
 
 /** Full-screen flows hide the tab bar. */
-const FULLSCREEN = /^\/(session|practice\/(quiz|weak)|practice\/mock\/[^/]+$|cards\/review|learn\/lesson\/[^/]+\/check)/;
+const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes)|practice\/mock\/[^/]+$|cards\/review|learn\/lesson\/[^/]+\/check)/;
 
 export function Shell() {
   const location = useLocation();
@@ -46,6 +48,8 @@ export function Shell() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/practice/quiz" element={<QuizPage />} />
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
+          <Route path="/practice/mistakes" element={<MistakesPage />} />
+          <Route path="/practice/progress" element={<ProgressPage />} />
           <Route path="/cards/review" element={<ReviewPage />} />
           <Route path="/cards/browse/:domainId" element={<BrowsePage />} />
           <Route path="/cards/glossary" element={<GlossaryPage back="/cards" />} />

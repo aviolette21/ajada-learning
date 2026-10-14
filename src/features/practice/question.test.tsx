@@ -83,7 +83,7 @@ describe('QuestionRunner', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Continue' }));
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-beta-1/ }));
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
-    expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2 });
+    expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2, missedIds: ['q-beta-1'] });
     await waitFor(async () => expect(await db.getAttempts()).toHaveLength(2));
   });
 
@@ -132,7 +132,7 @@ describe('multiple-response questions', () => {
     expect(choice(/Multi right d/)).toHaveTextContent('you missed this one');
     expect(choice(/Multi wrong c/)).toHaveClass('choice-wrong');
     await userEvent.click(screen.getByRole('button', { name: 'Finish' }));
-    expect(onFinish).toHaveBeenCalledWith({ correct: 0, total: 1 });
+    expect(onFinish).toHaveBeenCalledWith({ correct: 0, total: 1, missedIds: ['q-alpha-multi'] });
     await waitFor(async () => expect(await db.getAttempts()).toMatchObject([{ chosen: ['b', 'c'], correct: false }]));
   });
 

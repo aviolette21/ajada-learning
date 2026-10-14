@@ -3,7 +3,12 @@ import type { Attempt } from './types';
 
 export const RECENCY_DECAY = 0.9;
 
-/** Accuracy where the newest attempt has weight 1, the next 0.9, then 0.81, … */
+/** Credit for one attempt: a right answer the learner marked as a guess earns half. */
+export function credit(a: Attempt): number {
+  return a.correct ? (a.confident === false ? 0.5 : 1) : 0;
+}
+
+/** Accuracy where the newest attempt has weight 1, the next 0.9, then 0.81, …; guessed right answers count half. */
 export function weightedAccuracy(attempts: Attempt[]): number | null {
   if (attempts.length === 0) return null;
   const newestFirst = [...attempts].sort((a, b) => b.at - a.at);
@@ -11,7 +16,7 @@ export function weightedAccuracy(attempts: Attempt[]): number | null {
   newestFirst.forEach((a, i) => {
     const w = RECENCY_DECAY ** i;
     den += w;
-    if (a.correct) num += w;
+    num += w * credit(a);
   });
   return num / den;
 }

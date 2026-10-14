@@ -5,13 +5,31 @@ import type { Attempt } from './types';
 
 export const TODAY_QUESTION_COUNT = 15;
 
+/** A miss is a wrong answer or a right one the learner only guessed. */
+export function isMiss(a: Attempt): boolean {
+  return !a.correct || a.confident === false;
+}
+
+/** Sure, right answers on this many different days after the last miss take a question off the mistakes pile. */
+export const MASTERY_DAYS = 2;
+const dayKey = (at: number) => new Date(at).toDateString();
+
+/**
+ * The mistakes pile: every question missed (or guessed) at some point and not yet mastered since its latest miss,
+ * most recently missed first.
+ */
 export function missedQuestionIds(attempts: Attempt[]): string[] {
-  const latest = new Map<string, Attempt>();
-  for (const a of attempts) {
-    const prev = latest.get(a.questionId);
-    if (!prev || a.at >= prev.at) latest.set(a.questionId, a);
+  const byQuestion = new Map<string, Attempt[]>();
+  for (const a of attempts) byQuestion.set(a.questionId, [...(byQuestion.get(a.questionId) ?? []), a]);
+  const pile: { id: string; at: number }[] = [];
+  for (const [id, list] of byQuestion) {
+    const sorted = [...list].sort((a, b) => a.at - b.at);
+    const lastMiss = sorted.findLast(isMiss);
+    if (!lastMiss) continue;
+    const goodDays = new Set(sorted.filter((a) => a.at > lastMiss.at && !isMiss(a)).map((a) => dayKey(a.at)));
+    if (goodDays.size < MASTERY_DAYS) pile.push({ id, at: lastMiss.at });
   }
-  return [...latest.values()].filter((a) => !a.correct).sort((a, b) => b.at - a.at).map((a) => a.questionId);
+  return pile.sort((a, b) => b.at - a.at).map((p) => p.id);
 }
 
 export function weakSubSkills(attempts: Attempt[], questionById: Map<string, Question>, limit = 3): string[] {

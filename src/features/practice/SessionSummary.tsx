@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { Link } from 'react-router-dom';
 import { Button } from '../../ui/Button';
 import type { RunSummary } from './QuestionRunner';
 
@@ -17,6 +18,11 @@ export function SessionSummary({ summary, extra, onDone, doneLabel = 'Done' }: {
       <div className="score">{summary.correct} / {summary.total}</div>
       <p>{message}</p>
       {extra && <p className="muted">{extra}</p>}
+      {summary.missedIds.length > 0 && (
+        <Link className="btn btn-secondary btn-block" to={`/practice/mistakes?ids=${summary.missedIds.join(',')}`}>
+          Retry the {summary.missedIds.length} you missed or guessed
+        </Link>
+      )}
       <Button block onClick={onDone}>{doneLabel}</Button>
     </motion.div>
   );

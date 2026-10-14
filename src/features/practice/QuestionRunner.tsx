@@ -11,7 +11,8 @@ import { ProgressBar } from '../../ui/ProgressBar';
 import { QuestionView } from './QuestionView';
 import { VerdictSheet } from './VerdictSheet';
 
-export interface RunSummary { correct: number; total: number }
+/** missedIds: questions answered wrong or guessed, for a one-tap retry. */
+export interface RunSummary { correct: number; total: number; missedIds: string[] }
 
 export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
   questions: Question[];
@@ -24,6 +25,8 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Chosen | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [guessing, setGuessing] = useState(false);
+  const [missedIds, setMissedIds] = useState<string[]>([]);
   const [correct, setCorrect] = useState(0);
   const question = questions[index];
 
@@ -43,8 +46,10 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
   const reveal = (answer: Chosen) => {
     setChosen(answer);
     setRevealed(true);
-    if (isCorrect(question, answer)) setCorrect((c) => c + 1);
-    recordAnswer(question, answer, mode).catch(ignore);
+    const right = isCorrect(question, answer);
+    if (right) setCorrect((c) => c + 1);
+    if (!right || guessing) setMissedIds((m) => [...m, question.id]);
+    recordAnswer(question, answer, mode, guessing).catch(ignore);
   };
   const multiple = isMultiple(question);
   const need = selectCount(question);
@@ -61,12 +66,13 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
   };
   const next = () => {
     if (isLast) {
-      onFinish({ correct, total: questions.length });
+      onFinish({ correct, total: questions.length, missedIds });
       return;
     }
     setIndex((i) => i + 1);
     setChosen(null);
     setRevealed(false);
+    setGuessing(false);
   };
 
   return (
@@ -80,6 +86,13 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div key={question.id} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }}
           transition={{ duration: 0.25, ease: [0.2, 0.8, 0.2, 1] }}>
+          {!revealed && (
+            <div className="guess-row">
+              <button type="button" className={`chip ${guessing ? 'on' : ''}`} aria-pressed={guessing} onClick={() => setGuessing((g) => !g)}>
+                {guessing ? '🤔 Guessing' : '🤔 Mark as a guess'}
+              </button>
+            </div>
+          )}
           <QuestionView question={question} chosen={chosen} onChoose={choose} mode="answer" revealed={revealed} />
         </motion.div>
       </AnimatePresence>
@@ -90,7 +103,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
           </Button>
         </div>
       )}
-      <VerdictSheet question={question} chosen={chosen} open={revealed} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
+      <VerdictSheet question={question} chosen={chosen} guessed={guessing} open={revealed} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
     </div>
   );
 }

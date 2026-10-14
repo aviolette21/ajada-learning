@@ -15,11 +15,15 @@ export function pickQuizQuestions(args: {
   questions: Question[];
   attempts: Attempt[];
   domainIds: string[];
+  /** Optional: limit to these sub-skills (overrides domainIds). */
+  subSkillIds?: string[];
   count: number;
   rng: () => number;
 }): Question[] {
-  const { questions, attempts, domainIds, count, rng } = args;
-  const pool = domainIds.length > 0 ? questions.filter((q) => domainIds.includes(q.domainId)) : questions;
+  const { questions, attempts, domainIds, subSkillIds = [], count, rng } = args;
+  const pool = subSkillIds.length > 0
+    ? questions.filter((q) => subSkillIds.includes(q.subSkillId))
+    : domainIds.length > 0 ? questions.filter((q) => domainIds.includes(q.domainId)) : questions;
   const seen = new Set(attempts.map((a) => a.questionId));
   return [
     ...shuffle(pool.filter((q) => !seen.has(q.id)), rng),

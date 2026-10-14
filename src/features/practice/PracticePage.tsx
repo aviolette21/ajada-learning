@@ -38,8 +38,16 @@ export function PracticePage() {
           ))}
         </div>
       </section>
+      <Link className="panel panel-link" to="/practice/mistakes">
+        <span className="grow"><h2>My mistakes</h2><span className="muted">{missed > 0 ? `${missed} question${missed === 1 ? '' : 's'} to master · right on 2 different days clears one` : 'Nothing to review yet'}</span></span>
+        <span className="chev"><IconChevron /></span>
+      </Link>
+      <Link className="panel panel-link" to="/practice/progress">
+        <span className="grow"><h2>Progress by topic</h2><span className="muted">All 25 exam topics · where you're losing the most points</span></span>
+        <span className="chev"><IconChevron /></span>
+      </Link>
       <Link className="panel panel-link" to="/practice/weak">
-        <span className="grow"><h2>Weak spots</h2><span className="muted">{missed > 0 ? `${missed} missed question${missed === 1 ? '' : 's'} + your lowest sub-skills` : 'Your lowest-scoring areas'}</span></span>
+        <span className="grow"><h2>Weak spots</h2><span className="muted">Your lowest-scoring areas, plus unseen questions</span></span>
         <span className="chev"><IconChevron /></span>
       </Link>
       <Link className="panel panel-link" to="/practice/mock">

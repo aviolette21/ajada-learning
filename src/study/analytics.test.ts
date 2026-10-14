@@ -58,8 +58,20 @@ describe('weak spots', () => {
     att('q-alpha-1', false, 1), att('q-alpha-1', true, 2),
     att('q-alpha-2', false, 3), att('q-alpha-3', false, 4), att('q-beta-1', true, 5),
   ];
-  it('lists questions whose latest attempt was wrong, most recent first', () => {
-    expect(missedQuestionIds(attempts)).toEqual(['q-alpha-3', 'q-alpha-2']);
+  it('keeps missed questions in the pile, most recently missed first, until mastered', () => {
+    // q-alpha-1 was answered right once since its miss, which is not yet two different days.
+    expect(missedQuestionIds(attempts)).toEqual(['q-alpha-3', 'q-alpha-2', 'q-alpha-1']);
+  });
+  it('clears a question after sure, right answers on two different days', () => {
+    const DAY = 86_400_000;
+    const sameDay = [att('q-alpha-1', false, 0), att('q-alpha-1', true, 1000), att('q-alpha-1', true, 2000)];
+    expect(missedQuestionIds(sameDay)).toEqual(['q-alpha-1']);
+    expect(missedQuestionIds([...sameDay, att('q-alpha-1', true, 2 * DAY)])).toEqual([]);
+  });
+  it('treats a right answer marked as a guess as a miss, and gives it half credit', () => {
+    const guess = { ...att('q-alpha-1', true, 5), confident: false };
+    expect(missedQuestionIds([guess])).toEqual(['q-alpha-1']);
+    expect(weightedAccuracy([guess])).toBe(0.5);
   });
   it('ranks sub-skills from weakest', () => {
     expect(weakSubSkills(attempts, questionById)).toEqual(['a1', 'b1']);

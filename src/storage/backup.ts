@@ -30,12 +30,12 @@ const FileSchema = z.object({
       }),
     })),
     attempts: z.array(z.looseObject({
-      id: z.int().optional(), questionId: z.string(), chosen: ChosenSchema, correct: z.boolean(),
+      id: z.int().optional(), questionId: z.string(), chosen: ChosenSchema, correct: z.boolean(), confident: z.boolean().optional(),
       mode: z.string().refine((m) => Object.hasOwn(ATTEMPT_MODES, m)), at: z.number(),
     })),
     mockSessions: z.array(z.looseObject({
       id: z.string(), startedAt: z.number(), durationMs: z.number().positive(), questionIds: z.array(z.string()),
-      answers: z.record(z.string(), ChosenSchema), flagged: z.array(z.string()), currentIndex: count,
+      answers: z.record(z.string(), ChosenSchema), flagged: z.array(z.string()), guessed: z.array(z.string()).optional(), currentIndex: count,
       submittedAt: z.number().optional(),
     }).refine((m) => m.currentIndex < m.questionIds.length)),
     lessonsDone: z.array(z.looseObject({ lessonId: z.string(), at: z.number() })),

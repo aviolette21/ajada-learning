@@ -10,9 +10,11 @@ import { renderInline } from '../../ui/inline';
 import { Sheet } from '../../ui/Sheet';
 import { Explanation } from './Explanation';
 
-export function VerdictSheet({ question, chosen, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
+export function VerdictSheet({ question, chosen, guessed = false, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
   question: Question;
   chosen: Chosen | null;
+  /** The learner marked the answer as a guess, so a right answer still comes back for review. */
+  guessed?: boolean;
   open: boolean;
   onContinue: () => void;
   continueLabel?: string;
@@ -26,7 +28,7 @@ export function VerdictSheet({ question, chosen, open, onContinue, continueLabel
     <Sheet open={open} label="Answer explanation">
       <div className={`verdict ${correct ? 'ok' : 'bad'}`}>
         <p className="verdict-line">
-          {correct ? <><IconCheck /> Correct!</> : <><IconX /> Not quite. The answer{answers.length > 1 ? 's are' : ' is'} {formatIds(answers)}.</>}
+          {correct ? <><IconCheck /> {guessed ? 'Correct, but a guess: it stays in your mistakes.' : 'Correct!'}</> : <><IconX /> Not quite. The answer{answers.length > 1 ? 's are' : ' is'} {formatIds(answers)}.</>}
         </p>
         <Explanation question={question} />
         {question.diagram && <DiagramView diagram={question.diagram} />}
