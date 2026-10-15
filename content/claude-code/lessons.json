@@ -88,5 +88,115 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-permission-modes",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "title": "Permission modes and human gates",
+    "summary": "Claude Code works in a loop: it gathers context, acts and checks its results, and the permission mode decides which of those actions wait for you. Choose the mode, and the settings file it lives in, by what the worst mistake would cost, not by how fast you want to go. An AI code review hands you findings to triage, not a verdict to apply.",
+    "keyPoints": [
+      "The loop: **gather context → take action → verify results**, repeated. For multi-file or unfamiliar work, **explore and plan in plan mode** before coding.",
+      "Six modes: **`default`** (Manual), **`acceptEdits`**, **`plan`**, **`auto`** (classifier checks), **`dontAsk`** (pre-approved only), **`bypassPermissions`** (isolated VMs only).",
+      "Four settings scopes: **user**, **shared project**, **project local**, **managed**. Managed wins, and a tool **denied at any level** can't be allowed at another.",
+      "**Permission mode is a risk decision, not a speed decision**: bypass on your own machine drops every prompt and the protected-path guard.",
+      "Code Review findings are tagged by severity and **never approve or block** a PR: triage them, and fix what affects correctness."
+    ],
+    "sections": [
+      {
+        "heading": "How Claude Code works through a task",
+        "body": "When you give Claude a task, it works through three phases: **gather context**, **take action** and **verify results**. The phases blend together, and Claude uses tools throughout: searching files to understand the code, editing to make changes, running tests to check its work. It decides each step from what it learned in the last one, and you can interrupt at any point to steer it.\n\nLetting Claude jump straight to coding can produce code that solves the wrong problem, so the best-practices guide recommends the **explore-plan-code workflow**, which separates research and planning from implementation:\n\n- **Explore:** in plan mode, Claude reads files and answers questions without making changes.\n- **Plan:** ask for a detailed implementation plan; you can edit it before Claude proceeds.\n- **Implement:** approve the plan (or leave plan mode) and let Claude code, verifying against the plan.\n- **Commit:** have Claude commit with a descriptive message and open a PR.\n\nPlanning adds overhead. It's most useful when you're unsure of the approach, the change touches several files, or the code is unfamiliar. If you could describe the diff in one sentence, skip the plan.",
+        "example": "Explore (plan mode): \"read /src/auth and understand how we handle sessions and login.\" Plan: \"I want to add Google OAuth. What files need to change? Create a plan.\" Implement: \"implement the OAuth flow from your plan. write tests for the callback handler, run the test suite and fix any failures.\" A typo fix or a variable rename skips straight to implementing.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Plan mode keeps exploration apart from execution until you approve the plan.",
+          "steps": [
+            {
+              "label": "Explore",
+              "sublabel": "plan mode, no edits"
+            },
+            {
+              "label": "Plan",
+              "sublabel": "you review it"
+            },
+            {
+              "label": "Implement",
+              "sublabel": "verify against plan"
+            },
+            {
+              "label": "Commit",
+              "sublabel": "message + PR"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "The six permission modes",
+        "body": "A permission mode sets which actions Claude can take without asking you first. Each makes a different trade-off between convenience and oversight:\n\n- **`default`** (labelled **Manual**): only reads run without asking. For sensitive work, unfamiliar code, reviewing every action yourself.\n- **`acceptEdits`**: reads, file edits and common filesystem commands (`mkdir`, `mv`, `cp`…) in your working directory. For code you'll review afterwards in your editor or `git diff`.\n- **`plan`**: Claude reads and explores but doesn't edit your source until you approve a plan. For exploring before changing anything.\n- **`auto`**: everything runs, with a classifier model reviewing actions in the background and blocking risky ones. For long tasks and prompt fatigue; it reduces prompts but doesn't guarantee safety.\n- **`dontAsk`**: only reads and pre-approved tools; anything that would prompt is denied. For locked-down CI and scripts.\n- **`bypassPermissions`**: everything, with permission prompts and safety checks disabled (a few actions, such as explicit ask rules, still prompt). Only for isolated containers and VMs.\n\nModes set the baseline; permission rules layer on top. **Deny rules block in every mode**, including `bypassPermissions`, and allow rules have no effect there.",
+        "example": "One repo, three jobs. Reviewing a payments change line by line: default mode (Manual). Iterating on a UI you'll check in `git diff`: `acceptEdits`. A nightly CI job that may only run the tests: `claude -p \"run the test suite\" --permission-mode dontAsk --allowedTools \"Bash(npm test)\" \"Read\"`."
+      },
+      {
+        "heading": "Where settings live and who they apply to",
+        "body": "Claude Code reads settings from four scopes. Pick the file by who a setting should affect:\n\n- **User** (`~/.claude/settings.json`): you, in every project on this machine.\n- **Shared project** (`.claude/settings.json`): everyone in the project once it's committed; team permissions and hooks.\n- **Project local** (`.claude/settings.local.json`): you, in this one project; kept out of git.\n- **Managed** (enterprise): everyone your organization deploys it to, for security policy and compliance.\n\nWhen the same key is set in several places, the highest level wins: managed, then command line, project local, shared project, user. List keys such as `permissions.allow` merge across files instead.\n\nPermission rules are evaluated **deny, then ask, then allow**, and if a tool is denied at any level, no other level can allow it: a user-level deny blocks a project allow, and nothing overrides a managed deny. One more limit: a `defaultMode` of `auto` or `bypassPermissions` doesn't take effect from project or local settings; set those in user or managed settings, or pass `--permission-mode`.",
+        "example": "Managed settings deny `Bash(git push *)`. A team's `.claude/settings.json` allows `Bash(git push *)` for its release script. The push is still blocked, because the managed deny can't be overridden. Everyone who maintains the project config needs to know that, or they'll keep wondering why the allow rule never takes effect."
+      },
+      {
+        "heading": "Placing the human gate by worst-case cost",
+        "body": "Where a human still has to look depends on what the worst mistake would cost. Three pressures pull on the choice:\n\n- **Cost:** in Manual mode Claude asks before file writes, Bash commands and MCP tools. That's safe but tedious on long, trusted work like a big refactor, and after the tenth approval you're clicking through rather than reviewing. Pre-approve trusted commands with allow rules, turn on the sandbox, or use auto mode, rather than dropping every check.\n- **Complexity:** settings stack across user, project, local and managed files. A managed deny that contradicts a project allow has to be understood by everyone who maintains the project config.\n- **Risk:** the real danger is the wrong mode for the context. `bypassPermissions` set out of impatience on a non-isolated machine removes nearly every prompt between Claude and your live files. Unlike the other modes, it also drops the protected-path guard, so writes to `.git`, `.claude` or shell config files run without asking, and it offers no protection against prompt injection.\n\nCheckpoints let you rewind Claude's file edits, but actions on remote systems (databases, APIs, deployments) can't be checkpointed: your permission mode and rules are what gate those. That's why **permission mode is a risk decision, not a speed decision**.",
+        "example": "A developer tired of prompts launches `claude --dangerously-skip-permissions` on their laptop. An injected instruction in a page Claude reads now meets no prompt apart from explicit ask rules, and only deny rules still block it. Safer choices: auto mode on the laptop, or the same flag inside a dev container running as a non-root user."
+      },
+      {
+        "heading": "AI code review: findings to triage",
+        "body": "Claude Code's **Code Review** (for Team and Enterprise plans) analyzes GitHub pull requests with several agents, runs a verification step to filter out false positives, and posts findings as inline comments, each tagged by severity:\n\n- **Important:** a bug that should be fixed before merging.\n- **Nit:** a minor issue, worth fixing but not blocking.\n- **Pre-existing:** a bug already in the codebase, not introduced by this PR.\n\nFindings don't approve or block the PR, and the check run never concludes as a failure. To gate merges on findings, read the severity breakdown from the check run in your own CI. Tune what gets flagged with `REVIEW.md` (or `CLAUDE.md`). Locally, `/code-review` reviews your branch's changes in a background subagent and reports the findings in your conversation.\n\nTreat the output as a list to triage. A reviewer prompted to find gaps will usually report some, even when the work is sound, and chasing every finding leads to over-engineering: extra abstraction layers, defensive code, tests for cases that can't happen. Ask the reviewer to flag only gaps that affect correctness or the stated requirements, and treat the rest as optional. **An AI code review gives you findings to triage, not a verdict to apply.**",
+        "example": "A PR comes back with one Important finding (token refresh races with logout), four Nits and one Pre-existing bug. Fix the Important one before merging, take or leave each Nit on its merits, and decide separately about the pre-existing bug, since this PR didn't introduce it. The neutral check run is not an approval."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-cc-explore-plan-before-coding",
+      "q-cc-managed-deny-beats-project-allow",
+      "q-cc-code-review-triage-severity"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/how-claude-code-works",
+        "title": "How Claude Code works",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/best-practices",
+        "title": "Best practices for Claude Code",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/permission-modes",
+        "title": "Choose a permission mode",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/permissions",
+        "title": "Configure permissions",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/settings",
+        "title": "Settings files and precedence",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/code-review",
+        "title": "Code Review",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/code-review-pull-requests",
+        "title": "Read and request reviews on a pull request",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/code-review-local",
+        "title": "Review locally with /code-review",
+        "checkedOn": "2026-10-15"
+      }
+    ]
   }
 ]

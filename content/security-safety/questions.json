@@ -1900,5 +1900,911 @@
       "c-api-key-types"
     ],
     "lessonId": "l-secrets-keys"
+  },
+  {
+    "id": "q-guard-bypass-on-laptop",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "bypassPermissions",
+    "stem": "Tired of prompts, a developer runs Claude Code in `bypassPermissions` mode on their everyday laptop, next to live project files and credentials. Which two statements about that session are true?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Writes to protected paths such as `.git` and `.claude` run without asking",
+        "reason": "Correct: bypassPermissions disables permission prompts and safety checks, including for writes to protected paths."
+      },
+      {
+        "id": "b",
+        "text": "A background classifier still blocks actions driven by hostile content",
+        "reason": "That's auto mode. bypassPermissions has no classifier reviewing actions."
+      },
+      {
+        "id": "c",
+        "text": "Deny rules from the settings files stop applying for the whole session",
+        "reason": "Deny rules block in every mode, including bypassPermissions."
+      },
+      {
+        "id": "d",
+        "text": "It offers no protection against prompt injection or unintended actions",
+        "reason": "Correct: the docs warn exactly this, and point to auto mode for fewer prompts with background safety checks."
+      },
+      {
+        "id": "e",
+        "text": "Claude Code first moves the session into an isolated container",
+        "reason": "Nothing isolates it automatically. The docs say to use this mode only in isolated environments like containers or VMs, which is what's missing here."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "**bypassPermissions** drops the permission prompts and the protected-path guard; run it only in an isolated container or VM.",
+    "explanation": "Bypass mode is a risk decision made for speed: on a non-isolated laptop it removes the prompts between Claude and live files, lets writes to protected paths run, and gives no protection against prompt injection. Choice c is the tempting wrong one, because \"bypass\" sounds total, but deny rules still block in this mode; they're one of the few controls left.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-guard-code-review-merge-gate",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Code Review",
+    "stem": "Your team wants pull requests that have an **Important** Code Review finding to be unable to merge until it's fixed. How does the Code Review documentation say to set that up?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Require the Claude Code Review check, which fails when it finds an Important bug",
+        "reason": "The check run never concludes as a failure, so a finished review doesn't fail a required check, whatever it found."
+      },
+      {
+        "id": "b",
+        "text": "Have your own CI read the check run's severity counts and fail on any Important",
+        "reason": "Correct: to gate merges on findings, read the severity breakdown from the check run output in your own CI; the Details text ends with a machine-readable summary."
+      },
+      {
+        "id": "c",
+        "text": "Add a rule to `REVIEW.md` telling Code Review to block any PR with a bug",
+        "reason": "REVIEW.md tunes what gets flagged and at what severity. Findings still don't approve or block the PR."
+      },
+      {
+        "id": "d",
+        "text": "Comment `@claude review always` so later pushes are held until the fix lands",
+        "reason": "That subscribes the PR to a review on each later push; the reviews still don't block merging."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Code Review never blocks a merge; to gate on findings, **read the severity counts in your own CI**.",
+    "explanation": "Code Review leaves the merge decision with your team: its findings never approve or block, and its check run never concludes as a failure. If your team wants a hard gate, that decision lives in your own CI, which reads the severity breakdown and fails the build. Choice a is the trap: requiring a check that never fails gates nothing.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/code-review-pull-requests",
+      "title": "Read and request reviews on a pull request",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-ctx-prod-config-guardrail",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hooks vs permissions",
+    "stem": "Your CLAUDE.md says \"Never edit `config/production.yaml`.\" Some developers run Claude Code in `bypassPermissions` mode on long tasks. You need edits to that file blocked in every session, whatever permission mode is in use. What should you add?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Mark the CLAUDE.md line IMPORTANT and repeat it in a rules file under `.claude/rules/`",
+        "reason": "Instructions still rely on Claude choosing to follow them; hooks give deterministic control instead."
+      },
+      {
+        "id": "b",
+        "text": "A `PostToolUse` hook on `Edit|Write` that warns Claude after it changes the file",
+        "reason": "`PostToolUse` hooks can't undo actions, since the tool has already executed; the file is already changed."
+      },
+      {
+        "id": "c",
+        "text": "A `PreToolUse` hook on `Edit|Write` that blocks any edit to that file's path",
+        "reason": "Correct: PreToolUse hooks fire before any permission-mode check, and a deny blocks the tool even in `bypassPermissions` mode."
+      },
+      {
+        "id": "d",
+        "text": "A `Notification` hook that alerts you whenever Claude asks to edit that file",
+        "reason": "A Notification hook runs when Claude Code sends a notification; it alerts you but doesn't block the edit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A CLAUDE.md line is a convention; a PreToolUse hook that denies the call is a guardrail that holds in every permission mode.",
+    "explanation": "The stem asks for a block that survives any permission mode, which only something enforced outside Claude's judgment can give. PreToolUse runs before the permission-mode check, so its deny holds even under `bypassPermissions`. Choice a is tempting because it makes the rule more prominent, but it is still an instruction that relies on Claude choosing to follow it.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "Claude calls Edit"
+        },
+        {
+          "label": "PreToolUse hook",
+          "sublabel": "before mode check"
+        },
+        {
+          "label": "Deny",
+          "sublabel": "even in bypassPermissions"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-pretooluse-hook",
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-sessionstart-compact",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook events",
+    "stem": "In long Claude Code sessions, compaction keeps dropping the current sprint goal and the list of recent commits. You want that context added back automatically every time the session compacts, including fresh output from `git log`. Which hook fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `SessionStart` hook on the `compact` matcher that prints the context",
+        "reason": "Correct: the hooks guide uses a `SessionStart` hook with a `compact` matcher; plain text on stdout is added to Claude's context."
+      },
+      {
+        "id": "b",
+        "text": "A `Stop` hook that prints the context again each time Claude finishes a response",
+        "reason": "`Stop` fires when Claude finishes responding, not after compaction, so it misses the moment the context is lost."
+      },
+      {
+        "id": "c",
+        "text": "A `SessionEnd` hook that saves the context to disk when the session terminates",
+        "reason": "`SessionEnd` fires when a session terminates, but compaction happens while the session is still running."
+      },
+      {
+        "id": "d",
+        "text": "A `Notification` hook that sends the context whenever Claude Code notifies you",
+        "reason": "`Notification` fires when Claude Code sends a notification, which has nothing to do with compaction."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To restore context after compaction, use `SessionStart` with the `compact` matcher; its stdout goes back into Claude's context.",
+    "explanation": "Each hook event fires at a fixed point, so the question is which point matches \"after the session compacts\". `SessionStart` fires when a session begins or resumes, and its `compact` matcher fires after compaction; the command can run `git log` for fresh output. Choice b is tempting because it repeats the context often, but `Stop` is tied to responses, not to compaction.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-compaction"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-stop-hook-verify-tests",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook events",
+    "stem": "Claude sometimes reports a task as finished while unit tests still fail. You want a check that runs whenever Claude is about to finish responding and, if the tests fail, sends Claude back to keep working. Which hook fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `SessionEnd` hook that runs the test suite when the session closes",
+        "reason": "`SessionEnd` fires when the session terminates, too late to send Claude back to work on the task."
+      },
+      {
+        "id": "b",
+        "text": "A `UserPromptSubmit` hook that runs the tests before each of your prompts",
+        "reason": "`UserPromptSubmit` fires when you submit a prompt, before Claude processes it, not when Claude finishes."
+      },
+      {
+        "id": "c",
+        "text": "A `Notification` hook that runs the tests when Claude needs your input",
+        "reason": "`Notification` fires when Claude Code sends a notification; it isn't the point where Claude decides to stop."
+      },
+      {
+        "id": "d",
+        "text": "A `Stop` hook that runs the tests and, on failure, tells Claude to continue",
+        "reason": "Correct: the hooks guide shows a `Stop` hook that verifies tests pass before letting Claude stop; on failure its reason keeps Claude working."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A `Stop` hook checks a condition each time Claude finishes responding and can send it back to work if the condition fails.",
+    "explanation": "The decisive detail is the timing: \"whenever Claude is about to finish responding\". That is the `Stop` event, and a Stop hook can return a reason that Claude uses as its next instruction. Choice a is tempting because it also runs at an end point, but `SessionEnd` is the end of the whole session, when there is no turn left to continue.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "Claude finishes responding"
+        },
+        {
+          "label": "Stop hook runs tests"
+        },
+        {
+          "label": "Tests fail",
+          "sublabel": "reason fed back"
+        },
+        {
+          "label": "Claude keeps working"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-userpromptsubmit-block-keys",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook events",
+    "stem": "Developers sometimes paste API keys into their Claude Code prompts. You want a script to check every prompt and block any that contains a key before Claude ever processes it. Which hook event fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`PreToolUse`, which runs before each tool call that Claude makes",
+        "reason": "`PreToolUse` runs before a tool call executes; by then Claude has already processed the prompt."
+      },
+      {
+        "id": "b",
+        "text": "`UserPromptSubmit`, which runs when each prompt is submitted",
+        "reason": "Correct: it runs when a prompt is submitted, before Claude processes it, and can validate or block prompts."
+      },
+      {
+        "id": "c",
+        "text": "`SessionStart`, which runs when a session begins or resumes",
+        "reason": "`SessionStart` runs once when a session starts or resumes, not on each prompt."
+      },
+      {
+        "id": "d",
+        "text": "`Notification`, which runs whenever Claude Code alerts you",
+        "reason": "`Notification` runs when Claude Code sends a notification; it never sees or blocks prompts."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "To check or block what a user types before Claude sees it, hook `UserPromptSubmit`.",
+    "explanation": "The requirement is to stop a prompt before Claude processes it, which only the event that fires on prompt submission can do. `UserPromptSubmit` runs at exactly that point and can block the prompt. Choice a is tempting because `PreToolUse` is the usual blocking hook, but it guards tool calls, and the key would already be in front of Claude.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ent-oauth-mcp-sign-in",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "MCP OAuth",
+    "stem": "A teammate added your company's remote CRM MCP server to Claude Code over HTTP. The server uses OAuth so each sales rep sees only their own accounts, and its tools fail until the teammate authenticates. What should they do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste an access token copied from a colleague into the server's entry in `.mcp.json`",
+        "reason": "Claude Code runs OAuth itself through `/mcp`. A copied token in shared config would act as the colleague, not the teammate."
+      },
+      {
+        "id": "b",
+        "text": "Set `ANTHROPIC_API_KEY`, which Claude Code also sends to the MCP servers it connects to",
+        "reason": "That key is a Claude credential, and Claude Code reads it as empty in a remote server's `headers`. OAuth servers are authenticated through `/mcp`."
+      },
+      {
+        "id": "c",
+        "text": "Re-add the server with the stdio transport so that it skips authentication",
+        "reason": "Stdio servers run as local processes on your machine. A remote CRM server is reached over HTTP, which is where OAuth works."
+      },
+      {
+        "id": "d",
+        "text": "Run `/mcp`, pick the server and complete the login steps in the browser",
+        "reason": "Correct: `/mcp` authenticates with remote servers that require OAuth 2.0, and the tokens are stored securely and refreshed automatically."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "For a remote MCP server that needs OAuth, sign in from Claude Code with `/mcp`; it stores and refreshes the tokens for you.",
+    "explanation": "The server acts on behalf of each user, which is the OAuth pattern, and Claude Code runs that flow for you: `/mcp` opens a browser login, then stores and refreshes the tokens. What decides it is that the server is remote, over HTTP, and needs each user's sign-in. Choice a is tempting because a token would make the error go away, but it puts someone else's credential in shared config, and every call would act as them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-401-means-authorize",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "MCP OAuth",
+    "stem": "Your MCP client sends its first request to a newly deployed remote MCP server without a token. The server replies `401 Unauthorized` with a `WWW-Authenticate` header that includes a `resource_metadata` URL. What is the server telling the client?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Authorization is needed: use that metadata to find the authorization server",
+        "reason": "Correct: the client extracts the `resource_metadata` URL, reads the metadata to find the authorization server, runs the OAuth flow and retries with a token."
+      },
+      {
+        "id": "b",
+        "text": "The token carries too few scopes, so the user must now approve a broader set",
+        "reason": "Insufficient scope is a **403 Forbidden** with `error=\"insufficient_scope\"`. A 401 means authorization is required or the token is invalid."
+      },
+      {
+        "id": "c",
+        "text": "The server is overloaded, so retry the same request later with backoff",
+        "reason": "The spec uses 401 for \"authorization required or token invalid\" and points the client at metadata to fix it. Nothing in it is about load."
+      },
+      {
+        "id": "d",
+        "text": "The server accepts only stdio clients, so launch it as a local process",
+        "reason": "The authorization flow is defined for HTTP-based transports. The 401 starts that flow; it doesn't reject HTTP clients."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A **401** from an MCP server means \"authorize first\": follow its `resource_metadata` to the authorization server. A **403** means the token lacks scope.",
+    "explanation": "In MCP's authorization flow, the server signals that authorization is needed by answering an unauthenticated request with 401 and a `WWW-Authenticate` header pointing at its Protected Resource Metadata. The client reads that metadata, finds the authorization server and runs OAuth. Choice b is tempting because scopes are part of the same flow, but a scope shortfall is a 403 with `insufficient_scope`, not a 401.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The 401 challenge is the first step of the OAuth flow.",
+      "steps": [
+        {
+          "label": "Request, no token"
+        },
+        {
+          "label": "401 Unauthorized",
+          "sublabel": "WWW-Authenticate"
+        },
+        {
+          "label": "Read metadata",
+          "sublabel": "find auth server"
+        },
+        {
+          "label": "OAuth sign-in"
+        },
+        {
+          "label": "Retry with token"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "title": "Authorization",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-local-stdio-boundary",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Local MCP servers",
+    "stem": "Your team ships an MCP server that indexes each developer's local checkout and runs on the developer's own machine. A reviewer asks how to keep other local processes and stray file access in check. Which approach does MCP's security guidance support?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Serve it over HTTP on localhost with no token, since only that machine can reach it",
+        "reason": "Local servers may be reachable by other processes on the machine. The guidance says to restrict an HTTP transport, for example with an authorization token."
+      },
+      {
+        "id": "b",
+        "text": "Use stdio, which limits access to the client, and restrict its file access",
+        "reason": "Correct: the guidance says to use stdio to limit access to just the MCP client, and to launch servers with restricted file system access."
+      },
+      {
+        "id": "c",
+        "text": "Give it read access to the whole home directory so that indexing never fails",
+        "reason": "The guidance flags access to sensitive locations such as the home directory and SSH keys, and calls for minimal default privileges."
+      },
+      {
+        "id": "d",
+        "text": "Trust it fully, because a server running locally can't exfiltrate data",
+        "reason": "Local servers run with the client's privileges. The listed risks include arbitrary code execution, data exfiltration and data loss."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A local MCP server's boundary is what its process can reach: prefer stdio and restrict its file system access.",
+    "explanation": "Local servers run with the same privileges as the client, so the security boundary is the process's access, not a network login. The guidance is to use stdio, which limits access to the MCP client, and to launch the server with restricted file system access. Choice a is tempting because localhost feels private, but a local server may be reachable by other processes on the machine, which is why the guidance says to require a token there.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
+      "title": "Security Best Practices",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-auth-pattern-by-service",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Auth patterns",
+    "stem": "Your company is planning two MCP integrations: a remote HR server that returns each employee's own records, and a local server that reads a developer's checkout over stdio. Which plans match MCP's authorization guidance?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "HR server: one shared token in the committed project config, so every client connects the same way",
+        "reason": "The guide says to store secrets in a proper secret manager, not in source control, and one shared token can't show which employee did what."
+      },
+      {
+        "id": "b",
+        "text": "HR server: OAuth, so each employee authorizes access to their own data",
+        "reason": "Correct: authorization is strongly recommended when a server accesses user-specific data or must audit who did what, and OAuth is the flow for remote HTTP servers."
+      },
+      {
+        "id": "c",
+        "text": "Local stdio server: run the full browser-based OAuth flow before each session",
+        "reason": "For stdio servers the guide points to environment-based credentials instead. OAuth flows are designed for remotely hosted HTTP servers."
+      },
+      {
+        "id": "d",
+        "text": "Local stdio server: expose it on the network so that OAuth can protect it",
+        "reason": "Nothing calls for that. A stdio server runs locally and can get its credentials from the environment."
+      },
+      {
+        "id": "e",
+        "text": "Local stdio server: use environment-based credentials, not MCP's HTTP OAuth flow",
+        "reason": "Correct: for stdio servers, the guide says you can use environment-based credentials or credentials from libraries embedded in the server."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Remote server with user data → **OAuth**; local stdio server → **environment-based credentials** instead of the HTTP OAuth flow.",
+    "explanation": "The pattern follows the service type. A remote HR server holds user-specific data and needs to know who did what, so it uses OAuth, the flow MCP defines for HTTP servers. A stdio server runs locally and can take credentials from its environment. Choice c is tempting because OAuth sounds more secure, but OAuth flows are designed for remotely hosted HTTP servers, not local stdio processes.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
+      "title": "Understanding Authorization in MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-deleted-ci-secret-key-valid",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Key rotation",
+    "stem": "A debug step in your GitHub Actions workflow printed the Claude API key into a log that outside contributors can read. A teammate deleted the repository's `ANTHROPIC_API_KEY` secret and says the exposure is handled. What else needs to happen?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing more: deleting the repository secret also revokes the key it held",
+        "reason": "The docs say the opposite: if you delete a secret, the credential it held stays valid."
+      },
+      {
+        "id": "b",
+        "text": "Delete the key in the Claude Console, then store a new key as the secret",
+        "reason": "Correct: to retire an API key entirely, you also delete it in the Claude Console. The workflow then needs a new key stored as a GitHub secret."
+      },
+      {
+        "id": "c",
+        "text": "Uninstall the Claude GitHub App so the leaked key can't be used anymore",
+        "reason": "Uninstalling the app is a separate step from retiring the key. The key is a Claude API credential and stays valid until it's deleted in the Console."
+      },
+      {
+        "id": "d",
+        "text": "Move the same key into an organization-level secret instead of a repository one",
+        "reason": "Moving it doesn't change that the key was exposed. To retire the key, it has to be deleted in the Claude Console."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Deleting a CI secret doesn't retire the key inside it. After an exposure, delete the key in the Claude Console and issue a new one.",
+    "explanation": "A secret store holds only a copy of the credential, so removing the copy leaves the key itself working. After a suspected exposure, the key has to be retired where it was issued, in the Claude Console, and replaced. Choice a is tempting because the secret is gone from the repository, but the docs say outright that the credential it held stays valid.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/github-actions",
+      "title": "Claude Code GitHub Actions",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-key-disable-vs-delete",
+      "c-anthropic-api-key-env"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-secret-separation",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Secret separation",
+    "stem": "Your team commits `.mcp.json` so everyone gets the same MCP servers. Security wants no credential to travel with that file. Which setups meet the requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`\"Authorization\": \"Bearer ${API_KEY}\"` in `headers`, with each person setting `API_KEY` locally",
+        "reason": "Correct: Claude Code expands `${VAR}` in `headers`, so the file holds only a reference and the value comes from each machine's environment."
+      },
+      {
+        "id": "b",
+        "text": "`${API_KEY:-<real key>}` with the real key as the default, so new teammates aren't blocked",
+        "reason": "A default after `:-` is literal text in the file, so the real key would be committed with it."
+      },
+      {
+        "id": "c",
+        "text": "Adding the server at project scope with `--header \"Authorization: Bearer <real token>\"`",
+        "reason": "`claude mcp add` saves that header into the server's configuration, so a project-scope entry puts the literal token in `.mcp.json`."
+      },
+      {
+        "id": "d",
+        "text": "Adding an OAuth server with `--client-secret`, which stores it outside the config",
+        "reason": "Correct: the client secret is stored securely in your system keychain (macOS) or a credentials file, not in your config."
+      },
+      {
+        "id": "e",
+        "text": "Putting the literal key in the server's `env` block, because `env` values aren't part of the file",
+        "reason": "`env` is one of the fields in the server's entry in `.mcp.json`, so a literal value there is committed. Use `${VAR}` there too."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Config holds references (`${VAR}`), never values. Secrets live in the environment, the keychain or a secrets store.",
+    "explanation": "Separation means the committed file says where to find a credential, not what it is. Environment variable expansion and Claude Code's keychain storage for client secrets both keep the value out of `.mcp.json`. Choice b is tempting because it looks like a harmless fallback, but the default is written into the file, so the key travels with the config after all.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-json",
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-never-expiring-key-rotation",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Key rotation",
+    "stem": "A production service's API key was created two years ago with its expiration set to **Never**. It sits in a secrets manager, has never been changed and shows no sign of a leak. A security reviewer flags it anyway. Why, according to Anthropic's authentication guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It shouldn't be flagged: keys in a secrets manager need replacing only after a leak",
+        "reason": "The guide says to rotate keys periodically, as well as disabling or deleting any key you suspect has leaked."
+      },
+      {
+        "id": "b",
+        "text": "Its expiration should now be changed in the Console so the key can't lapse unexpectedly",
+        "reason": "Expiration is set when a key is created and can't be changed afterward, and **Never** already means it won't lapse."
+      },
+      {
+        "id": "c",
+        "text": "**Never** is for keys you store and rotate yourself, and it was never rotated",
+        "reason": "Correct: **Never** is the option for keys you store in a secrets manager and rotate yourself, and the guide says to rotate keys periodically."
+      },
+      {
+        "id": "d",
+        "text": "Keys in a secrets manager should use short expirations instead of rotation",
+        "reason": "Expiration limits how long a leaked key works, but the guide says it isn't a substitute for secret hygiene, and it still says to rotate keys periodically."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Rotate keys **on a schedule**, not only after a leak. A key that never expires puts the rotation on you.",
+    "explanation": "Rotation has two triggers: a regular schedule and any suspected exposure. A key with no expiration is meant for a setup where you rotate it yourself, so two years untouched breaks the first rule even without a leak. Choice a is tempting because nothing has gone wrong yet, but the guide asks for periodic rotation as well as action on suspected leaks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-key-disable-vs-delete",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-hipaa-claude-code",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "HIPAA readiness",
+    "stem": "A hospital's organization has a signed BAA and HIPAA readiness enabled for the Claude API. Its developers now want to paste real patient records into Claude Code while debugging the intake service. What do Anthropic's data-retention docs say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "That's covered: the BAA extends to every Anthropic product the organization uses",
+        "reason": "HIPAA readiness applies to the Claude API for eligible features. The docs list what it doesn't cover, and Claude Code is on that list."
+      },
+      {
+        "id": "b",
+        "text": "It's covered once zero data retention is also turned on for Claude Code",
+        "reason": "ZDR and HIPAA readiness are separate arrangements, and the docs state plainly that Claude Code is not covered under HIPAA readiness."
+      },
+      {
+        "id": "c",
+        "text": "It's covered if they use the Claude Console instead, which shares the API's BAA",
+        "reason": "Processing PHI through the Console isn't covered either; only enabling HIPAA readiness from the Console settings is supported."
+      },
+      {
+        "id": "d",
+        "text": "Claude Code isn't covered by HIPAA readiness, so keep PHI out of those sessions",
+        "reason": "Correct: the docs list Claude Code among the things HIPAA readiness does not cover."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "HIPAA readiness covers eligible **Claude API** features under a BAA. Claude Code and Console use aren't covered, so check the scope before PHI goes in.",
+    "explanation": "Regulated arrangements have a defined scope, and HIPAA readiness covers the Claude API's eligible features, not every product. The docs name Claude Code as not covered, so the BAA doesn't make debugging with real patient records in Claude Code compliant. Choice b is tempting because ZDR sounds like extra protection, but it's a separate arrangement and doesn't extend HIPAA coverage to Claude Code.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+      "title": "API and data retention",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-audit-posttooluse-log",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Audit logging",
+    "stem": "During a legacy migration, compliance wants every shell command Claude Code runs written to a log, whether or not Claude remembers to record it. What should you set up?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A CLAUDE.md rule telling Claude to append each command it runs to a log file",
+        "reason": "That relies on the model choosing to do it each time. Hooks give deterministic control, so the action always happens."
+      },
+      {
+        "id": "b",
+        "text": "A `PreToolUse` hook on `Bash` that writes each command to the log and then exits 2",
+        "reason": "Exit code 2 from a `PreToolUse` hook denies the tool call, so the migration's commands would never run."
+      },
+      {
+        "id": "c",
+        "text": "A `PostToolUse` hook on `Bash` that appends `tool_input.command` to a log file",
+        "reason": "Correct: the guide's example matches `Bash` on `PostToolUse`, which fires after the command completes, and appends the command to a log file."
+      },
+      {
+        "id": "d",
+        "text": "A prompt at the end of the session asking Claude to list every command it ran",
+        "reason": "That still relies on the model. Hooks make the logging happen at every call rather than relying on the LLM to do it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Audit logs belong in a **hook**: a `PostToolUse` hook records each call deterministically, without relying on Claude.",
+    "explanation": "An audit requirement needs something that runs every time, which is what hooks provide. A `PostToolUse` hook matched on `Bash` fires after each command completes and can append it to a log. Choice b is tempting because a `PreToolUse` hook also sees every command, but exiting 2 there blocks the call, so the log would fill with commands that never ran.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-hook-exit-code-2"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-plan-mode-next-phase",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Phase approval",
+    "stem": "Your team gates a legacy rewrite in phases: Claude explores and proposes, the module owner approves, then Claude edits. Phase 1 ran in plan mode, and the owner chose \"Yes, manually approve edits.\" Phase 2 must also start from an approved plan. What should you know?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The session stays in plan mode, so Claude will propose phase 2's plan automatically",
+        "reason": "Approving a plan exits plan mode and switches the session to the mode that the chosen option describes."
+      },
+      {
+        "id": "b",
+        "text": "Approving exited plan mode: re-enter it with `Shift+Tab` or `/plan` for phase 2",
+        "reason": "Correct: approving exits plan mode. To plan again, cycle back to plan mode with `Shift+Tab` or prefix the next prompt with `/plan`."
+      },
+      {
+        "id": "c",
+        "text": "Phase 2 can skip planning, since edits need no review once one plan is approved",
+        "reason": "With \"Yes, manually approve edits\" each edit is still reviewed, and gating phase 2 on a plan means entering plan mode again."
+      },
+      {
+        "id": "d",
+        "text": "Switch to `acceptEdits` for phase 2, which also holds edits until a plan is approved",
+        "reason": "`acceptEdits` runs file edits without asking. Plan mode is the mode that blocks edits until you approve a plan."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Plan mode gates **one** plan: approving it exits plan mode, so each new phase needs plan mode again.",
+    "explanation": "Plan mode separates exploration from execution, but the gate closes behind you: approving switches the session to an editing mode. For a phased process, re-enter plan mode before each phase, and decide separately who is allowed to approve. Choice a is tempting because the session began in plan mode, but approval moves it to the mode that the chosen option describes.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-redirect-uri-per-host",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "OAuth redirect URIs",
+    "stem": "Your OAuth-authenticated MCP integration works in staging. After you deploy the same client to the production host, sign-in fails with a redirect URI mismatch. Nothing else changed. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Loosen the redirect URI match on the authorization server so any of your hosts is accepted",
+        "reason": "Authorization servers must validate exact redirect URIs against pre-registered values to prevent redirection attacks."
+      },
+      {
+        "id": "b",
+        "text": "Rotate the OAuth client secret, because staging and production share it",
+        "reason": "The error is about where the user is sent back after sign-in, not about the client's credential."
+      },
+      {
+        "id": "c",
+        "text": "Use a plain HTTP callback on the production host to avoid certificate trouble",
+        "reason": "Redirect URIs must be either `localhost` or HTTPS, so a plain HTTP production callback isn't allowed."
+      },
+      {
+        "id": "d",
+        "text": "Register the production host's redirect URI with the OAuth app, then retry",
+        "reason": "Correct: clients must have redirect URIs registered, and the server matches them exactly, so the staging registration doesn't cover production."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Redirect URIs are matched **exactly**, so register each new host's URI before moving an OAuth integration there.",
+    "explanation": "OAuth sends the user back to a redirect URI, and the authorization server accepts only exact matches against pre-registered values. A new host means a new URI, so the working staging connection says nothing about production. Choice b is tempting because credentials are the usual suspect in auth failures, but a mismatch error points at the unregistered URI, not the secret.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Each host's redirect URI needs its own registration.",
+      "segments": [
+        {
+          "label": "Staging URI",
+          "sublabel": "registered",
+          "weight": 1,
+          "tone": "success"
+        },
+        {
+          "label": "Production URI",
+          "sublabel": "not registered",
+          "weight": 1,
+          "tone": "error"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "title": "Authorization Security Considerations",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-shared-workload-service-account",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Service identity",
+    "stem": "A prototype integration that calls the Claude API runs in CI using the lead engineer's personal API key. The team is moving it to a shared production service. What does Anthropic's authentication guide recommend for the key?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Create a service account so the workload has its own identity, and use its key",
+        "reason": "Correct: for shared or automated workloads (CI, production services), the guide says to have an admin create a service account so the workload has its own identity."
+      },
+      {
+        "id": "b",
+        "text": "Keep the engineer's personal key but move it into the CI system's secret store",
+        "reason": "Storing it well doesn't fix the identity problem: a shared personal key acts as one person and breaks when they leave."
+      },
+      {
+        "id": "c",
+        "text": "Give every developer a copy of the personal key so anyone can redeploy",
+        "reason": "Spreading one person's key makes the problem worse: every request still acts as that one person, and the key stops working when they are removed."
+      },
+      {
+        "id": "d",
+        "text": "Create a new personal key for the engineer that is used only by this service",
+        "reason": "A fresh personal key is still tied to that person. It is archived when they leave the organization, taking the service down with it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Shared or automated workloads get their own identity through a service account; personal keys are for your own development.",
+    "explanation": "Personal keys act as the person who owns them, which is right for your own scripts but wrong for a workload many people depend on. The scenario moves from one engineer's prototype to a shared production service, so the workload needs its own identity. Choice b is tempting because a secret store is good practice, but it doesn't change whose identity the key carries.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-read-only-blast-radius",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Blast radius",
+    "stem": "Before a legacy modernization, Claude Code will map how a billing module uses the production database. It only needs to read schemas and queries. What database access should the session get?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The DBA's admin login, so no permission error interrupts the analysis",
+        "reason": "An admin login widens the blast radius to everything that login can do, far beyond the reads the task needs."
+      },
+      {
+        "id": "b",
+        "text": "A read-only credential scoped to the schemas and queries the mapping needs",
+        "reason": "Correct: granularly limiting tool permissions can help limit the blast radius; an agent with read-only DB access can be deployed far more broadly than one that writes to prod."
+      },
+      {
+        "id": "c",
+        "text": "Read-write access, with a system-prompt rule never to run writes",
+        "reason": "System prompts shape only what an agent tends to do, not what it can do. Defenses can be added higher up the chain by limiting the tool's access."
+      },
+      {
+        "id": "d",
+        "text": "The developer's personal login, since the session acts for them anyway",
+        "reason": "That grants whatever the developer can do, writes included. Capping the blast radius means limiting access to what the task needs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Cap the **blast radius** before the session starts: give the agent only the access the task needs, such as read-only for analysis.",
+    "explanation": "Blast radius is how much damage is possible if something goes wrong, and the most reliable cap is the access itself. Mapping dependencies needs only reads, so a read-only credential limits what any mistake or manipulation can touch. Choice c is tempting because the rule states the intent, but a prompt instruction isn't a limit; the tool's access is.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
   }
 ]

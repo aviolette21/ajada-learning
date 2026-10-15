@@ -859,5 +859,663 @@
       "c-cc-print-mode"
     ],
     "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cc-loop-gather-act-verify",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Agentic loop",
+    "stem": "You ask Claude Code to \"fix the failing tests.\" It runs the suite, reads the errors, opens the relevant source files, edits one, then runs the tests again. Which description of how Claude Code works fits what you saw?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It writes a full plan up front, then runs every step without revisiting it",
+        "reason": "Claude decides each step from what it learned in the previous one, course-correcting along the way, rather than running a fixed script."
+      },
+      {
+        "id": "b",
+        "text": "It generates the whole fix in one pass and leaves the testing to you",
+        "reason": "Running tests to check its work is part of Claude's own loop: with tools it acts and verifies, instead of only replying with text."
+      },
+      {
+        "id": "c",
+        "text": "It loops through gathering context, taking action and verifying results",
+        "reason": "Correct: the agentic loop has three phases that blend together (gather context, take action, verify results), repeated until the task is complete."
+      },
+      {
+        "id": "d",
+        "text": "It waits for you to name each file to read before it opens any of them",
+        "reason": "Claude chooses which tools to use and which files to read; you don't need to specify them, though you can interrupt at any point to steer."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Claude Code works in a loop: **gather context, take action, verify results**, each step informed by the last.",
+    "explanation": "The docs describe the agentic loop as three blended phases: gather context, take action and verify results. Re-running the tests after the edit is the verify phase, and its result feeds Claude's next step. Choice a is tempting because Claude can plan, but it adapts each step to what it just learned rather than following a fixed script.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "title": "How Claude Code works",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-skip-plan-small-fix",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Explore, plan, code",
+    "stem": "A teammate starts every Claude Code task in plan mode, even for renaming one variable or adding a single log line. What does the Claude Code best-practices guide suggest for small, clearly scoped tasks like these?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask Claude to make the change directly and skip the planning step",
+        "reason": "Correct: plan mode adds overhead. For a clear, small fix such as a typo, a log line or a rename, ask Claude to do it directly; if the diff fits in one sentence, skip the plan."
+      },
+      {
+        "id": "b",
+        "text": "Keep using plan mode, since every change should be explored first",
+        "reason": "Planning pays off when the approach is uncertain, the change spans several files, or the code is unfamiliar. Here it only adds overhead."
+      },
+      {
+        "id": "c",
+        "text": "Switch to `bypassPermissions` so the small edits finish without prompts",
+        "reason": "The issue is planning overhead, not prompts. The guide's advice is to skip the plan, not to remove safety checks."
+      },
+      {
+        "id": "d",
+        "text": "Write the change into CLAUDE.md so Claude applies it in every session",
+        "reason": "CLAUDE.md is for broad, persistent instructions loaded every session, not for one-off edits."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Plan when the approach is uncertain, multi-file or unfamiliar; if you could describe the diff in one sentence, **skip the plan**.",
+    "explanation": "The best-practices guide warns that plan mode adds overhead and is most useful for uncertain, multi-file or unfamiliar work. A rename or a log line is the guide's own example of a task to ask for directly. Choice b sounds careful, but exploring before a one-line change costs time without reducing any real risk.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-explore-plan-before-coding",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Explore, plan, code",
+    "stem": "Claude Code went straight to coding on a multi-file OAuth feature, in code your team doesn't know well, and the resulting PR solved the wrong problem. Which workflow does the Claude Code best-practices guide recommend for the next attempt?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the effort level so Claude reasons for longer before its first edit",
+        "reason": "Longer reasoning doesn't give you a separate phase to review. The guide's fix is to split exploration and planning from implementation."
+      },
+      {
+        "id": "b",
+        "text": "Explore and plan in plan mode, review the plan, then implement and commit",
+        "reason": "Correct: the guide's four phases are explore, plan, implement and commit, with plan mode separating exploration from execution."
+      },
+      {
+        "id": "c",
+        "text": "Use `acceptEdits` so you can spot the wrong approach later in `git diff`",
+        "reason": "Reviewing the diff afterwards only shows the wrong approach once it's built. The guide's fix is to separate exploration and planning from execution first."
+      },
+      {
+        "id": "d",
+        "text": "Write out every implementation step in CLAUDE.md before you start the task",
+        "reason": "CLAUDE.md holds broad project context loaded in every session. A task's plan comes from Claude exploring the code first, in plan mode."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For uncertain, multi-file or unfamiliar work, **explore and plan before coding**; plan mode keeps the two apart.",
+    "explanation": "Letting Claude jump straight to coding can produce code that solves the wrong problem, so the guide separates research and planning from implementation: explore and plan in plan mode, then implement against the approved plan and commit. The stem's details (multi-file, unfamiliar code) are exactly when planning pays off. Choice c is tempting, but reviewing afterwards catches the mistake only once it's built.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "Explore",
+          "sublabel": "plan mode"
+        },
+        {
+          "label": "Plan",
+          "sublabel": "review it"
+        },
+        {
+          "label": "Implement"
+        },
+        {
+          "label": "Commit",
+          "sublabel": "open a PR"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-accept-edits-review-later",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "You're iterating on a UI component you know well. Rather than approving each edit inline, you'd prefer to check Claude's changes afterwards in your editor or with `git diff`. Which permission mode fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`plan`, which lets Claude edit freely once it has written a plan",
+        "reason": "Plan mode is for research and proposals: it blocks source edits until you approve a plan."
+      },
+      {
+        "id": "b",
+        "text": "`default` (Manual), which asks before every file edit Claude makes",
+        "reason": "Manual mode is the opposite of what you want here: it asks you to approve the edits one by one."
+      },
+      {
+        "id": "c",
+        "text": "`dontAsk`, which approves file edits but blocks every shell command",
+        "reason": "`dontAsk` denies anything that would prompt unless you pre-approved it, so unapproved edits are denied, not accepted."
+      },
+      {
+        "id": "d",
+        "text": "`acceptEdits`, which runs file edits in your working directory",
+        "reason": "Correct: acceptEdits auto-approves file edits and common filesystem commands in the working directory, and the docs suggest it when you review changes after the fact."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Reviewing changes after the fact in your editor or `git diff`? That's what **`acceptEdits`** is for.",
+    "explanation": "The deciding detail is when you want to review: afterwards, not edit by edit. acceptEdits lets Claude create and edit files in the working directory without prompting, so you can check the result in `git diff`. Choice b is the safe-sounding default, but Manual mode would keep asking about every edit, which is the friction you want to avoid on code you know well.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-manual-mode-sensitive",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "You're changing an unfamiliar payment-settlement module, where one wrong edit or command would be costly. You want to see and approve each file edit and shell command yourself before it runs. Which permission mode fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`auto`, so a classifier reviews each risky action on your behalf",
+        "reason": "Auto mode replaces your review with a classifier's. It reduces prompts but doesn't guarantee safety, and isn't a replacement for review on sensitive operations."
+      },
+      {
+        "id": "b",
+        "text": "`default` (Manual), where only reads run without asking you first",
+        "reason": "Correct: Manual mode is for reviewing every action yourself, and the docs list sensitive work and unfamiliar code as its use."
+      },
+      {
+        "id": "c",
+        "text": "`acceptEdits`, so that you only approve the shell commands it runs",
+        "reason": "acceptEdits runs file edits without asking, so you'd lose the per-edit approval this task calls for."
+      },
+      {
+        "id": "d",
+        "text": "`bypassPermissions`, with deny rules guarding the riskiest paths",
+        "reason": "Bypass disables permission prompts and safety checks, so you'd approve nothing yourself; the docs say to use it only in isolated containers and VMs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Sensitive or unfamiliar code where you want to see every action first: **Manual (`default`)** mode.",
+    "explanation": "The stem asks for a human approval on each edit and command, on code where mistakes are expensive. That's the default mode, labelled Manual, where only reads run without a prompt. Choice a is tempting because a classifier sounds thorough, but the docs say auto mode is for tasks where you trust the general direction, not a replacement for review on sensitive operations.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-dontask-unlisted-denied",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "A nightly CI job runs Claude Code in `dontAsk` mode, with allow rules for `Bash(npm test)` and `Read`. Partway through the run, Claude tries to run `git push`. What happens?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The run pauses until someone approves the push from the CI log",
+        "reason": "`dontAsk` never waits for input, which is why it suits CI pipelines where nobody is there to answer a prompt."
+      },
+      {
+        "id": "b",
+        "text": "The push runs, because non-interactive sessions skip permission checks",
+        "reason": "Nothing skips the checks. In `dontAsk`, only reads, actions that need no approval, and tools you pre-approved run."
+      },
+      {
+        "id": "c",
+        "text": "The push is denied automatically instead of waiting for an approval",
+        "reason": "Correct: `dontAsk` auto-denies every tool call that would otherwise prompt, so the session never waits for input."
+      },
+      {
+        "id": "d",
+        "text": "A classifier checks whether the push matches the job's request",
+        "reason": "That describes auto mode. `dontAsk` has no classifier: anything not pre-approved is simply denied."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**`dontAsk`** runs only what's pre-approved and denies the rest, so an unattended job never hangs on a prompt.",
+    "explanation": "`dontAsk` is built for CI and restricted environments where you define in advance what Claude may do. `git push` isn't covered by the allow rules and would normally prompt, so it's denied on the spot. Choice d mixes up the modes: a background classifier is auto mode's mechanism, not `dontAsk`'s.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-protected-path-prompt",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Protected paths",
+    "stem": "In `acceptEdits` mode, Claude edits your source files without prompting. But when it tries to change `.claude/settings.json`, you get a permission prompt. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "acceptEdits only covers files that Claude created earlier in the session",
+        "reason": "acceptEdits auto-approves edits to files anywhere in your working directory (and additional directories), not just files Claude created."
+      },
+      {
+        "id": "b",
+        "text": "Settings files are read-only to Claude in every permission mode",
+        "reason": "They aren't read-only: you can approve the write when prompted, and bypassPermissions writes them without asking."
+      },
+      {
+        "id": "c",
+        "text": "A managed deny rule must be blocking edits to settings files",
+        "reason": "A deny rule would block the write outright rather than prompt you. This prompt comes from the protected-path check."
+      },
+      {
+        "id": "d",
+        "text": "`.claude` is a protected path, so its writes still prompt in acceptEdits",
+        "reason": "Correct: writes to protected paths such as `.claude` and `.git` still prompt in Manual and acceptEdits modes, to prevent corruption of repository state and Claude's own configuration."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "**Protected paths** (`.git`, `.claude`, shell configs…) still prompt in acceptEdits, and allow rules don't pre-approve them.",
+    "explanation": "acceptEdits auto-approves ordinary edits in the working directory, but writes to a small set of protected paths are never auto-approved except in bypass mode (or plan mode with bypass enabled). `.claude/settings.json` sits in one of them, so you're asked. Choice c is tempting because something is clearly restricting the write, but a deny rule blocks without asking; a prompt means approval is still possible.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-managed-deny-beats-project-allow",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Settings precedence",
+    "stem": "Your company's managed settings deny `Bash(git push *)`. A team adds an allow rule for `Bash(git push *)` to the project's `.claude/settings.json` so its release script can push. What happens when Claude runs `git push`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's blocked: a tool denied at any level can't be allowed at another",
+        "reason": "Correct: if a tool is denied at any level, no other level can allow it, and no level can override a managed permission rule."
+      },
+      {
+        "id": "b",
+        "text": "It runs, because the project rule is more specific to this repository",
+        "reason": "Scope and specificity don't matter here: deny rules from any scope are evaluated before allow rules, and managed is the top level."
+      },
+      {
+        "id": "c",
+        "text": "It prompts, because the two conflicting rules cancel out to an ask",
+        "reason": "Conflicting rules don't turn into an ask. Rules are evaluated deny, then ask, then allow, and the first match wins: the deny."
+      },
+      {
+        "id": "d",
+        "text": "It runs once a developer also allows it in `.claude/settings.local.json`",
+        "reason": "A local allow is just another allow rule: deny rules from any scope are evaluated first, and no level, including the command line, can override a managed permission rule."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Deny wins: a tool **denied at any level** can't be allowed at another, and nothing overrides a **managed** rule.",
+    "explanation": "This is the complexity cost of layered settings. Permission rules follow settings precedence with managed on top, and deny rules from every scope are checked before any allow rule, so the project allow never gets a say. Choice d is tempting because a personal local file feels like it should get the last word, but a deny, and especially a managed one, can't be undone from below.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Rules are checked in this order; the first match decides.",
+      "steps": [
+        {
+          "label": "Deny rules",
+          "sublabel": "any scope"
+        },
+        {
+          "label": "Ask rules"
+        },
+        {
+          "label": "Allow rules",
+          "sublabel": "only if no deny or ask"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-precedence",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-user-scope-default-mode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Settings scopes",
+    "stem": "You want every Claude Code terminal session you start, in any project on your machine, to begin in Manual mode. Your teammates' sessions shouldn't change. Where do you set `permissions.defaultMode`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In the project's committed `.claude/settings.json` file",
+        "reason": "Shared project settings reach everyone working in that project once committed, and they cover only that one project."
+      },
+      {
+        "id": "b",
+        "text": "In `.claude/settings.local.json` inside the current project",
+        "reason": "Project local settings apply only to you, but only in this one project, not in every project on the machine."
+      },
+      {
+        "id": "c",
+        "text": "In managed settings that your organization deploys",
+        "reason": "Managed settings reach everyone your organization deploys them to; they're for security policy and compliance, not one person's preference."
+      },
+      {
+        "id": "d",
+        "text": "In `~/.claude/settings.json` in your home directory",
+        "reason": "Correct: user settings apply to you, in every project on this machine, and hold personal preferences such as your own permission rules."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "**User** settings follow you into every project on the machine; project files follow the repository.",
+    "explanation": "Two details decide it: every project on your machine, and nobody else affected. Only the user scope, `~/.claude/settings.json`, matches both. Choice b is tempting because it's also personal, but a project local file stops at the edge of one project.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-checkpoints-not-remote",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Checkpoints",
+    "stem": "A teammate argues: \"The permission mode hardly matters, because pressing `Esc` twice rewinds anything Claude does.\" Which kind of action can a checkpoint **not** undo?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An edit Claude made to a source file earlier in this session",
+        "reason": "File edits are exactly what checkpoints cover: Claude snapshots a file's contents before editing it, so you can rewind."
+      },
+      {
+        "id": "b",
+        "text": "A deployment or database change Claude made on a remote system",
+        "reason": "Correct: actions that affect remote systems (databases, APIs, deployments) can't be checkpointed; your permission mode and rules are what control them."
+      },
+      {
+        "id": "c",
+        "text": "A variable rename Claude applied across several source files",
+        "reason": "Those are file edits too, and Claude snapshots each file before changing it, so a rewind can restore them."
+      },
+      {
+        "id": "d",
+        "text": "A file edit from yesterday, in a conversation you resumed today",
+        "reason": "Checkpoints are separate from git and remain available when you resume a conversation."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Checkpoints undo **file edits**, not remote actions: deployments and database writes are gated by your permission mode and rules.",
+    "explanation": "Checkpoints snapshot files before Claude edits them, which makes local edits reversible, even after you resume a session. Anything that changes a remote system is outside that safety net, so the gate for those actions has to come before they run. Choice d is tempting because resuming feels like a fresh start, but checkpoints survive it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "title": "How Claude Code works",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-code-review-triage-severity",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Code Review",
+    "stem": "Code Review finishes on your PR with a neutral check run: one **Important** finding, four **Nits** and one **Pre-existing** bug. A teammate says, \"Neutral means it passed, so let's merge.\" How should you read this review?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As an approval, since Code Review would have blocked a PR with a real bug",
+        "reason": "A review never approves or blocks a PR, and the check run never concludes as a failure, whatever it finds."
+      },
+      {
+        "id": "b",
+        "text": "As a to-do list: every one of the six findings must be fixed before merging",
+        "reason": "Nits are worth fixing but not blocking, and the pre-existing bug wasn't introduced by this PR. Treating every finding as required isn't triage."
+      },
+      {
+        "id": "c",
+        "text": "As findings to triage: fix the Important bug, then weigh the others",
+        "reason": "Correct: Important marks a bug that should be fixed before merging; Nits are minor and non-blocking; Pre-existing bugs weren't introduced by this PR."
+      },
+      {
+        "id": "d",
+        "text": "As noise, since the review already fixed anything serious on its own",
+        "reason": "A review posts findings; it doesn't fix your code. To clear a finding, you change the code and push, or resolve its thread to dismiss it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Code Review** findings come ranked by severity for you to triage; a neutral check run is never an approval.",
+    "explanation": "Code Review's findings don't approve or block a PR, so the neutral check run says nothing about whether the code is ready. The severity tags are what you triage by: the Important bug should be fixed before merging, while Nits and a pre-existing bug are judgement calls. Choice b overcorrects the other way, treating a set of findings as a verdict to apply in full.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Findings arrive ranked by severity; you decide what to act on.",
+      "segments": [
+        {
+          "label": "Important",
+          "sublabel": "fix before merge",
+          "weight": 1,
+          "tone": "error"
+        },
+        {
+          "label": "Nits",
+          "sublabel": "not blocking",
+          "weight": 4,
+          "tone": "accent"
+        },
+        {
+          "label": "Pre-existing",
+          "sublabel": "not from this PR",
+          "weight": 1,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/code-review-pull-requests",
+      "title": "Read and request reviews on a pull request",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-reviewer-over-engineering",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Reviewing AI code",
+    "stem": "After a long unattended run, a review subagent reports 14 gaps in work that the tests show is sound, and Claude starts adding abstraction layers and tests for cases that can't happen. What does the Claude Code best-practices guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell the reviewer to flag only gaps that affect correctness or the requirements",
+        "reason": "Correct: a reviewer prompted to find gaps will usually report some even when the work is sound, so limit it to correctness and the stated requirements and treat the rest as optional."
+      },
+      {
+        "id": "b",
+        "text": "Fix every gap it found, since a fresh-context reviewer has no bias to correct",
+        "reason": "Fresh context does remove bias toward the code, but the guide warns that chasing every finding leads to over-engineering."
+      },
+      {
+        "id": "c",
+        "text": "Drop the review step entirely, since the test suite already passes",
+        "reason": "The guide says the longer Claude works unattended, the more an independent check matters. Keep the review; scope what counts as a finding."
+      },
+      {
+        "id": "d",
+        "text": "Have the implementing session review its own diff instead of a subagent",
+        "reason": "A fresh-context reviewer sees only the diff and your criteria, not the reasoning behind the change, so it judges the result on its own terms. Self-review loses that."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A reviewer asked to find gaps will find some: **triage** for correctness and requirements, because chasing every finding over-engineers.",
+    "explanation": "The guide recommends an independent review step after unattended work, but warns that the reviewer reports gaps because that's what it was asked to do. The fix is to define what counts as a finding, not to obey or abandon the review. Choice b is tempting because the reviewer is unbiased, but an unbiased list of findings is still a list to triage, not a verdict.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-subagent-context"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cc-manual-fewer-prompts",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Prompt fatigue",
+    "stem": "On a long refactor you trust, Manual mode asks before every routine `npm run lint` and test run, and you've started approving without reading. Which two steps does the Claude Code best-practices guide suggest to cut the prompts without giving up control?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a line to CLAUDE.md telling Claude to stop asking for permission",
+        "reason": "CLAUDE.md instructions are advisory. To cut prompts, the guide points to allowlists and sandboxing instead."
+      },
+      {
+        "id": "b",
+        "text": "Pre-approve the trusted commands with permission allow rules",
+        "reason": "Correct: permission allowlists permit specific tools you know are safe, like `npm run lint` or `git commit`."
+      },
+      {
+        "id": "c",
+        "text": "Switch to `bypassPermissions` for the rest of the refactor",
+        "reason": "Skipping permission checks gives up control over every action, not just the routine ones; the guide's tip is fewer prompts without giving up control."
+      },
+      {
+        "id": "d",
+        "text": "Turn on sandboxing so commands run inside OS-level boundaries",
+        "reason": "Correct: sandboxing restricts filesystem and network access, letting Claude work more freely within defined boundaries."
+      },
+      {
+        "id": "e",
+        "text": "Switch to `dontAsk` so the routine commands stop prompting",
+        "reason": "`dontAsk` denies anything that would need approval and isn't pre-approved, so the lint and test runs would be denied, not approved."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Prompt fatigue? **Allowlist** trusted commands and **sandbox** the rest, rather than dropping every check.",
+    "explanation": "The guide calls Manual mode safe but tedious: after the tenth approval you're clicking through rather than reviewing, which is a cost of putting the gate in the wrong place. Allowlists and sandboxing remove the routine prompts while keeping a boundary. Choice c fixes the fatigue by removing the gate altogether, which trades a speed problem for a risk problem.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-course-command-file-to-skill",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Custom commands",
+    "stem": "Your repo has an older `.claude/commands/triage.md` file that creates `/triage`. A teammate wants it to carry supporting files and to let Claude load it automatically when an incident comes up. What does the Claude Code skills guide say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep it as a command file, since command files already load automatically and hold scripts",
+        "reason": "Supporting files and automatic loading when relevant are features skills add on top of command files."
+      },
+      {
+        "id": "b",
+        "text": "Turn it into a hook, because only hooks can run without anyone typing the command first",
+        "reason": "A skill can already be loaded by Claude automatically when relevant, so moving the procedure into a skill gives the teammate that without a hook."
+      },
+      {
+        "id": "c",
+        "text": "Recreate it as `.claude/skills/triage/SKILL.md`; skills add supporting files and auto-loading",
+        "reason": "Correct: custom commands have been merged into skills. Both create `/triage`, and skills add a directory for supporting files and automatic loading when relevant."
+      },
+      {
+        "id": "d",
+        "text": "Delete the commands folder first, because a command and a skill can never share the same name",
+        "reason": "They can coexist. Existing `.claude/commands/` files keep working, and when a skill and a command share a name, the skill is the one that runs."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Custom commands are now skills: move a command into `.claude/skills/<name>/` to gain supporting files and automatic loading.",
+    "explanation": "A command file and a skill both create a `/name` entry point, but only a skill can carry supporting files and be loaded by Claude when relevant. The teammate wants exactly those two extras. Choice d is tempting because duplicate names sound like a conflict, but Claude Code resolves it: the skill runs, and old command files keep working.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
   }
 ]

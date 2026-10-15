@@ -5817,5 +5817,175 @@
       "c-xml-tags"
     ],
     "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-course-plugin-org-wide-managed",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Plugin rollout",
+    "stem": "Your security team needs every developer's Claude Code to load the company's `secret-scanner` plugin from the internal marketplace, on every machine, and developers shouldn't be able to turn it off. Which approach fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Enable it in each repository's committed `.claude/settings.json` at project scope",
+        "reason": "Repository settings cover only that repository's contributors, not the whole fleet, and they don't carry managed settings' precedence."
+      },
+      {
+        "id": "b",
+        "text": "Register the marketplace and force-enable the plugin through managed settings",
+        "reason": "Correct: managed `extraKnownMarketplaces` registers the marketplace and `enabledPlugins` installs and enables the plugin; users can't override managed settings."
+      },
+      {
+        "id": "c",
+        "text": "Send developers the install command and ask them to install it at user scope",
+        "reason": "A self-installed plugin stays under each user's control. Only managed settings reach every machine in a way users can't override."
+      },
+      {
+        "id": "d",
+        "text": "Add an instruction to every project's CLAUDE.md telling Claude to load the plugin",
+        "reason": "Plugins are installed and enabled through settings such as `enabledPlugins`, not by instructions to Claude."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "To put a plugin on every machine without opt-out, register its marketplace and enable it in managed settings.",
+    "explanation": "Organization-wide deployment is what managed settings are for: they register the marketplace, install the plugin and take precedence over every other scope. The decisive requirements are \"every machine\" and \"can't turn it off\". Choice a is tempting because committed settings do reach a team, but only that repository's contributors, and without managed precedence.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Managed settings push the plugin to every machine.",
+      "steps": [
+        {
+          "label": "Managed settings",
+          "sublabel": "admin sets policy"
+        },
+        {
+          "label": "Marketplace registered",
+          "sublabel": "extraKnownMarketplaces"
+        },
+        {
+          "label": "Plugin enabled",
+          "sublabel": "enabledPlugins"
+        },
+        {
+          "label": "Loads every session",
+          "sublabel": "users can't override"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/org",
+      "title": "Manage Claude Code plugins for your organization",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes",
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-ent-ci-service-key-env",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "MCP credentials",
+    "stem": "Your CI pipeline runs Claude Code headlessly against an internal remote MCP server. No one is present to sign in, so the server's admins issued an API key for a service account. The project's `.mcp.json` is committed. How should the pipeline supply the key?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the OAuth sign-in with `/mcp` at the start of every pipeline run",
+        "reason": "A `claude -p` run has no `/mcp` panel, so Claude Code can't run the OAuth flow there, and an unattended job has no one to sign in."
+      },
+      {
+        "id": "b",
+        "text": "Write the key into the server's `headers` in `.mcp.json` so every checkout has it",
+        "reason": "Then the credential travels with the committed config. The docs' pattern is `Bearer ${API_KEY}`, with the value coming from the environment."
+      },
+      {
+        "id": "c",
+        "text": "Reference `${SERVICE_API_KEY}` in `headers` and have the runner set that variable",
+        "reason": "Correct: `.mcp.json` expands environment variables in `headers` for HTTP server authentication, so the file holds only a reference."
+      },
+      {
+        "id": "d",
+        "text": "Use `${SERVICE_API_KEY:-<the real key>}` so the run still works when the variable is missing",
+        "reason": "The default after `:-` is written in the file itself, so the real key would be committed along with the config."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Commit the reference, not the secret: `${VAR}` in `.mcp.json`, with the value set by the environment that runs the job.",
+    "explanation": "A service identity with no user present calls for an API key, and the config that references it shouldn't contain it. Claude Code expands `${VAR}` in `headers`, so the committed file names the variable while the runner supplies the value at execution time. Choice d is tempting because it looks like a safe fallback, but a default is literal text in the file, so the key would be committed anyway.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The file holds the name; the runner supplies the value.",
+      "steps": [
+        {
+          "label": "CI secret"
+        },
+        {
+          "label": "Env var",
+          "sublabel": "set at run time"
+        },
+        {
+          "label": "${SERVICE_API_KEY}",
+          "sublabel": "in .mcp.json"
+        },
+        {
+          "label": "Authorization header"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-json",
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-ent-residency-workspace-enforce",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Data residency",
+    "stem": "A regulator requires that model inference for your workspace stay in the US. Several teams call the Claude API from different services, and the rule must hold even if a developer forgets to set anything in code. What fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Restrict the workspace's allowed inference geos to US only",
+        "reason": "Correct: `allowed_inference_geos` restricts which geos a workspace can use; a request that asks for a geo outside the list gets an error."
+      },
+      {
+        "id": "b",
+        "text": "Set the workspace's default inference geo to the US",
+        "reason": "The default applies only when a request omits `inference_geo`. Individual requests can still override it explicitly."
+      },
+      {
+        "id": "c",
+        "text": "Have every service send `inference_geo: \"us\"` on its requests",
+        "reason": "That works per request, but it depends on every developer remembering it, which the requirement rules out."
+      },
+      {
+        "id": "d",
+        "text": "Set the workspace geo to the US when you create the workspace",
+        "reason": "Workspace geo controls where data is stored at rest and where endpoint processing runs. Where inference runs is set by inference geo."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "To **enforce** US-only inference, restrict the workspace's allowed geos; a default or a per-request setting can be overridden or forgotten.",
+    "explanation": "Data residency has two layers: `inference_geo` on each request, and workspace settings that apply across every key. Only the allowed-geos restriction rejects requests outside the list, so it holds even when code forgets the parameter. Choice b is tempting because a default sounds like a policy, but a request can still set a different geo explicitly.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+      "title": "Data residency",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
   }
 ]

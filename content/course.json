@@ -85,5 +85,48 @@
         "body": "Estimate image and PDF tokens up front. Bulk jobs nobody is waiting on belong in the Message Batches API; looping over the synchronous API is not batching."
       }
     ]
+  },
+  {
+    "id": "section-3",
+    "number": 3,
+    "title": "Claude Code, MCP & Integration",
+    "summary": "Running Claude Code safely and sharing the setup: choosing a permission mode and placing the human gate, giving every session durable context, packaging workflows as skills, commands and plugins, configuring MCP servers by transport and scope, and authenticating to enterprise systems without leaking secrets.",
+    "modules": [
+      { "title": "Permission modes and human gates", "lessonId": "l-course-permission-modes" },
+      { "title": "Durable project context", "lessonId": "l-course-durable-context" },
+      { "title": "Packaging workflows: skills, commands and plugins", "lessonId": "l-course-packaging-plugins" },
+      { "title": "Configuring MCP servers", "lessonId": "l-course-mcp-servers" },
+      { "title": "Enterprise integration and authentication", "lessonId": "l-course-enterprise-auth" }
+    ],
+    "takeaways": [
+      {
+        "title": "Permission mode is a risk decision, not a speed decision.",
+        "body": "Pick the mode by the worst thing that could happen in this environment. Prompts cost time on trusted work, but bypassing them on a machine with live files removes every safety check between the agent and those files."
+      },
+      {
+        "title": "An AI code review gives you a set of findings to triage, not a verdict to apply.",
+        "body": "Treat each finding as a claim to check: confirm it, fix what is real, and dismiss what is not. A human still decides what merges."
+      },
+      {
+        "title": "A skill is portable, but \"runs everywhere\" is something you design for.",
+        "body": "Write the description as the matching criterion, don't assume a local filesystem or local tools inside the skill, and remember that a subagent doesn't inherit the skills you used in the main session: preload what it needs with its `skills` field."
+      },
+      {
+        "title": "Durable context requires the right mechanism for each concern.",
+        "body": "Universal constraints go in CLAUDE.md, path-specific guidance in scoped rules files, rules that must never be broken in hooks, on-demand know-how in skills, and isolated side work in subagents."
+      },
+      {
+        "title": "A shareable setup requires portable components.",
+        "body": "Bundle skills, commands, hooks, subagents and MCP servers as a plugin so a team installs one unit, and keep machine-specific paths and secrets out of what you share."
+      },
+      {
+        "title": "Transport and scope are independent decisions with dependent consequences.",
+        "body": "Transport is how Claude Code talks to a server (stdio locally, HTTP remotely); scope is who loads it (local, project or user, with managed configuration on top for the organization). A project-scoped server is shared with everyone on the repo, so its transport and credentials must work for all of them."
+      },
+      {
+        "title": "Enterprise integration requires identifying the security requirements before deployment.",
+        "body": "Match authentication to the service type, keep credentials out of configuration and rotate them, and settle blast radius, audit logging and phase approvals before an agent touches high-risk systems."
+      }
+    ]
   }
 ]

@@ -3212,5 +3212,1830 @@
       "c-client-vs-server-tools"
     ],
     "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-ctx-claude-md-imports-no-savings",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "CLAUDE.md size",
+    "stem": "Your project CLAUDE.md has grown to 500 lines, and Claude has started missing some of its rules. A teammate proposes moving half of it into separate files pulled in with `@path` imports, so Claude loads less. What will that change actually do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The imported files will load only when Claude works with a file in the same directory",
+        "reason": "That describes CLAUDE.md files in subdirectories, which load on demand. Imported files are expanded and loaded at launch with the file that imports them."
+      },
+      {
+        "id": "b",
+        "text": "It organizes the file, but imported files still load at launch, so the context cost stays the same",
+        "reason": "Correct: imports help you organize a long file but don't reduce its context cost, because imported files also load at launch."
+      },
+      {
+        "id": "c",
+        "text": "Imported content becomes enforced configuration, so Claude can no longer skip those rules",
+        "reason": "Claude treats CLAUDE.md content as context, not enforced configuration; to block an action regardless, the docs point to a PreToolUse hook."
+      },
+      {
+        "id": "d",
+        "text": "Claude will load each imported file only when it judges the file relevant, as it does with skills",
+        "reason": "That's how skills behave. Imports load at launch; to load content only when needed, use path-scoped rules or skills."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "`@path` imports tidy a long CLAUDE.md but don't shrink it: trim it, or move content into path-scoped rules or skills.",
+    "explanation": "Size hurts adherence because everything that loads at launch competes for attention, so the fix has to change what loads at launch. Imports only change where the text lives; the stem's goal of loading less is not met. Choice d is tempting because skills do load on demand, but imported files are expanded into context at launch alongside the CLAUDE.md that references them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-init-starter-review",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "CLAUDE.md content",
+    "stem": "You ran `/init` in an existing repo, and it generated a starter CLAUDE.md. Before committing it, you review each entry by asking whether removing it would cause Claude to make mistakes. Which entries should stay in CLAUDE.md?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A file-by-file description of every module under `src/`",
+        "reason": "The best-practices guide lists file-by-file descriptions, and anything Claude can figure out by reading code, as things to exclude."
+      },
+      {
+        "id": "b",
+        "text": "\"Run tests with `make test-unit`, not plain `pytest`\"",
+        "reason": "Correct: Bash commands Claude can't guess and preferred test runners are on the guide's include list."
+      },
+      {
+        "id": "c",
+        "text": "\"Write clean, readable, well-structured code\"",
+        "reason": "Self-evident practices like \"write clean code\" are on the exclude list; they don't change what Claude does."
+      },
+      {
+        "id": "d",
+        "text": "The full reference docs for the internal billing API",
+        "reason": "Detailed API documentation is excluded (link to docs instead); knowledge needed only sometimes belongs in a skill."
+      },
+      {
+        "id": "e",
+        "text": "\"Set `APP_ENV=local` before starting the dev server\"",
+        "reason": "Correct: developer environment quirks such as required env vars are on the include list; Claude can't infer them."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Treat an `/init` draft as a baseline: keep what Claude can't guess, cut what it can read from the code or already knows.",
+    "explanation": "CLAUDE.md loads every session, so each line should change Claude's behavior. The test command and the env var are things Claude can't infer from the code. Choice d is tempting because the billing API is project-specific, but detailed reference docs bloat every session; link to them, or move them into a skill that loads on demand.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-claude-md-conflicting-files",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "CLAUDE.md conflicts",
+    "stem": "Your root CLAUDE.md says to write tests with Jest. A `packages/web/CLAUDE.md` written last year says to use Vitest. When Claude works in `packages/web/`, it sometimes uses one framework and sometimes the other. What explains this, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The subdirectory file should override the root file, so it's a loading bug; restart the session",
+        "reason": "CLAUDE.md files don't override each other: all discovered files are concatenated into context."
+      },
+      {
+        "id": "b",
+        "text": "The root file always wins because it loads first, so move the Vitest instruction into it",
+        "reason": "Load order doesn't make a file win. Contradicting instructions let Claude pick either one, wherever they live."
+      },
+      {
+        "id": "c",
+        "text": "Nested CLAUDE.md files are ignored unless imported, so add an `@` import for the subdirectory file",
+        "reason": "Subdirectory CLAUDE.md files load on demand, once Claude reads, writes or edits a file in that subdirectory."
+      },
+      {
+        "id": "d",
+        "text": "The two files contradict each other, so Claude may pick either; remove the outdated instruction",
+        "reason": "Correct: if two instructions contradict each other, Claude may pick one arbitrarily. Review instruction files to remove outdated or conflicting ones."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "CLAUDE.md files are combined, not ranked: contradictions make Claude's choice arbitrary, so prune outdated instructions.",
+    "explanation": "Both files reach Claude's context when it works in `packages/web/`, and nothing ranks one above the other, so the inconsistent behavior comes from the contradiction itself. The fix is to remove the stale line. Choice a is tempting because nested settings often override parents, but CLAUDE.md files are concatenated rather than overriding each other.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-path-rule-loads-on-match",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Rules files",
+    "stem": "You added `.claude/rules/frontend.md` with `paths: [\"src/web/**\"]` in its frontmatter. Right after launch, the rule isn't in Claude's context, and a teammate thinks it's broken. When will it load?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "When Claude reads, writes or edits a file that matches `src/web/**`",
+        "reason": "Correct: a path-scoped rule loads when Claude uses Read, Write or Edit on a matching file, or views one with a Bash read such as `cat`."
+      },
+      {
+        "id": "b",
+        "text": "Only after you import it from CLAUDE.md with an `@.claude/rules/frontend.md` line",
+        "reason": "No import is needed: every `.md` file in `.claude/rules/` is discovered automatically, recursively."
+      },
+      {
+        "id": "c",
+        "text": "Only in sessions that you launch from inside the `src/web/` directory itself",
+        "reason": "A path-scoped rule is triggered by Claude working with a matching file, not by the directory you launch from."
+      },
+      {
+        "id": "d",
+        "text": "When you open `/memory` and switch the rule on for the current session",
+        "reason": "`/memory` opens your memory files for viewing and editing; it isn't a switch that loads path-scoped rules."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A rule with `paths` stays out of context until Claude works with a matching file; that's the point of scoping it.",
+    "explanation": "Rules without `paths` load at launch; adding `paths` makes a rule conditional on Claude touching a matching file. So the rule isn't broken: it is waiting for the first read, write or edit under `src/web/`. Choice b is tempting because imports pull files into CLAUDE.md, but rules in `.claude/rules/` are discovered on their own.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "steps": [
+        {
+          "label": "Session starts",
+          "sublabel": "unscoped rules load"
+        },
+        {
+          "label": "Claude edits src/web/App.tsx"
+        },
+        {
+          "label": "frontend.md loads",
+          "sublabel": "paths match"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-rule-vs-skill-loading",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Rules vs skills",
+    "stem": "A teammate says path-scoped rules and skills are interchangeable, because both keep instructions out of context until they're needed. Which difference should guide which one you pick?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Skills load at launch in every session, while rules wait until someone invokes them",
+        "reason": "This is inverted: skills load when invoked or judged relevant, and rules load every session or when matching files are opened."
+      },
+      {
+        "id": "b",
+        "text": "Rules can live only in `~/.claude/rules/`, so they can't be shared with the team",
+        "reason": "Project rules live in the repo's `.claude/rules/`, which keeps team instructions modular and easier to maintain."
+      },
+      {
+        "id": "c",
+        "text": "Rules load when Claude works with matching files; skills load when invoked or judged relevant",
+        "reason": "Correct: rules load every session or when matching files are opened; skills load when you invoke them or Claude judges them relevant to your prompt."
+      },
+      {
+        "id": "d",
+        "text": "Rules are enforced on every tool call, while skills are only suggestions Claude may ignore",
+        "reason": "Rules are instructions loaded into context, like CLAUDE.md, not enforcement; to block an action regardless, the docs point to a PreToolUse hook."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Pick a rule when guidance follows the files being touched; pick a skill when it follows the task being done.",
+    "explanation": "Both mechanisms save context, but their triggers differ: a path-scoped rule is tied to which files Claude works with, while a skill is tied to the task and loads when invoked or judged relevant. That makes rules fit directory- or file-type guidance and skills fit task-specific workflows. Choice d is tempting because rules sound strict, but they are context, not enforcement.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-user-vs-project-rule-conflict",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Rules files",
+    "stem": "Your personal `~/.claude/rules/style.md` says to indent with tabs. The project's `.claude/rules/style.md` says to use 2-space indentation. Claude's indentation in this repo is inconsistent. What does the memory guide say about this situation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Project rules override user rules, the same way project settings override user settings",
+        "reason": "Rules don't follow settings precedence: user rules load before project rules, but neither set overrides the other."
+      },
+      {
+        "id": "b",
+        "text": "Neither set overrides the other, so Claude may follow either; keep them consistent",
+        "reason": "Correct: if a user rule and a project rule conflict, Claude may follow either one, so the guide says to keep them consistent."
+      },
+      {
+        "id": "c",
+        "text": "User rules always win, because your personal preferences outrank the project's",
+        "reason": "No set wins. Both load, and a conflict leaves Claude free to follow either instruction."
+      },
+      {
+        "id": "d",
+        "text": "Only one `style.md` loads, because rule files with the same name replace each other",
+        "reason": "Both sets load: Claude Code loads user-level rules first, then project rules, so both instructions reach Claude."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "User and project rules are both loaded and neither wins a conflict, so contradictions between them make behavior unpredictable.",
+    "explanation": "Rules files add instructions to Claude's context; they don't merge by precedence like settings do. Both `style.md` files load, user rules first, so Claude sees two contradicting indentation rules and may follow either. Choice a is tempting because settings do have a precedence order, but the guide says neither set of rules overrides the other.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-subagent-startup-context",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Subagent context",
+    "stem": "After an hour of discussion in your main Claude Code session, Claude delegates a refactor to your custom `refactorer` subagent (not a fork). Which of these are in the subagent's context when it starts?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The main conversation's history, so it knows what you discussed",
+        "reason": "A non-fork subagent starts with a fresh context and doesn't see your conversation history; it works from Claude's delegation message."
+      },
+      {
+        "id": "b",
+        "text": "The files Claude has already read in the main conversation",
+        "reason": "Files Claude already read don't carry over; the subagent reads what it needs in its own context."
+      },
+      {
+        "id": "c",
+        "text": "The project's CLAUDE.md files, which custom subagents load",
+        "reason": "Correct: a non-fork subagent loads every level of the CLAUDE.md hierarchy the main conversation loads, unless its definition sets `omitClaudeMd`."
+      },
+      {
+        "id": "d",
+        "text": "The skills you already invoked in the main conversation",
+        "reason": "Skills invoked in the main conversation don't carry over; only skills listed in its `skills` field are preloaded."
+      },
+      {
+        "id": "e",
+        "text": "Its own system prompt, from its definition's markdown body",
+        "reason": "Correct: the markdown body of a custom subagent's file becomes its system prompt, plus environment details Claude Code appends."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "A non-fork subagent gets its own prompt, the task message and CLAUDE.md, but none of your conversation, files read or invoked skills.",
+    "explanation": "Context isolation is what keeps a subagent's work out of your main window, and it cuts both ways: what lived only in your conversation doesn't reach the subagent. It still gets durable context, its own system prompt and the CLAUDE.md hierarchy. Choice d is tempting because the skills feel like part of the session, but only the `skills` field preloads them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-subagent-context",
+      "c-cc-subagent-file"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-decision-reaches-subagents",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Subagent context",
+    "stem": "In chat, your team agreed to keep the legacy `/v1` endpoints, and Claude saved this to auto memory. Later, your custom `cleanup` subagent (not a fork) deletes the `/v1` routes. Which change makes the decision reach this subagent, and future ones, every time they start?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write the decision into the project CLAUDE.md, which these subagents load on start",
+        "reason": "Correct: a non-fork subagent loads the CLAUDE.md hierarchy the main conversation loads, so the decision reaches every run."
+      },
+      {
+        "id": "b",
+        "text": "Leave it in auto memory, since subagents read the main conversation's saved memory notes",
+        "reason": "The main conversation's auto memory isn't loaded into a non-fork subagent; subagents need their own `memory` field."
+      },
+      {
+        "id": "c",
+        "text": "Restate the decision in the main chat so that it sits in the most recent turns",
+        "reason": "A non-fork subagent doesn't see your conversation history, however recent the turn."
+      },
+      {
+        "id": "d",
+        "text": "Set an output style for the session that states the decision in its instructions",
+        "reason": "A subagent runs its own system prompt, so your output style doesn't shape its responses, except in a fork."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Decisions that must reach subagents need durable context, such as CLAUDE.md; chat, auto memory and output style stay with the main session.",
+    "explanation": "A non-fork subagent starts fresh, so the question is which context it still loads. The CLAUDE.md hierarchy is on that list; conversation history, the main session's auto memory and its output style are not. Choice b is tempting because auto memory feels durable, but it belongs to the main conversation and isn't loaded into subagents.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-subagent-context",
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-subagent-block-skills",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Subagents and Skills",
+    "stem": "Your custom `security-auditor` subagent must never invoke a skill during its runs. A teammate says that leaving the `skills` field out of its frontmatter is enough. What do the subagent docs say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "That's enough: a subagent without a `skills` field can't see or use any skill",
+        "reason": "The `skills` field controls preloading, not access: without it, a subagent can still discover and invoke skills through the Skill tool."
+      },
+      {
+        "id": "b",
+        "text": "Set `skills: []` in its frontmatter, which revokes access to every skill",
+        "reason": "The `skills` field only decides which skills are preloaded; an empty list preloads nothing but leaves the Skill tool available."
+      },
+      {
+        "id": "c",
+        "text": "Add `disable-model-invocation: true` to the subagent's own frontmatter",
+        "reason": "`disable-model-invocation` is a skill's frontmatter field that stops Claude invoking that skill; it isn't how you limit a subagent."
+      },
+      {
+        "id": "d",
+        "text": "Leave `Skill` out of its `tools` list, or add it to `disallowedTools`",
+        "reason": "Correct: to prevent a subagent from invoking skills entirely, omit `Skill` from `tools` or add it to `disallowedTools`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The `skills` field preloads skill content; access to skills is controlled by whether the subagent has the Skill tool.",
+    "explanation": "Two separate controls are in play: which skills are injected at startup, and whether the subagent can invoke skills at all. The `skills` field handles the first; the tool list handles the second. Choice a is tempting because subagents don't inherit skills you invoked, but without the field they can still discover and invoke project, user and plugin skills.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-subagent-file",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-right-mechanism-each-concern",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Your 400-line CLAUDE.md mixes three things: the project's build command, a rule that ESLint must run after every file edit, and a 30-step release checklist used once a month. Which reorganization gives each concern the right mechanism?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep all three in CLAUDE.md, and mark the ESLint and release lines as IMPORTANT",
+        "reason": "The checklist would still load every session, and an ESLint instruction still relies on Claude; something that must run every time needs a hook."
+      },
+      {
+        "id": "b",
+        "text": "The build command in a skill, the ESLint rule in CLAUDE.md, the checklist in a hook",
+        "reason": "This swaps the roles: the build command is an always-needed convention, and a hook runs on events rather than holding a procedure."
+      },
+      {
+        "id": "c",
+        "text": "Build command in CLAUDE.md, ESLint as a file-edit hook, the checklist as a skill",
+        "reason": "Correct: CLAUDE.md is for conventions and build commands, a hook for automation on every matching event, a skill for repeatable workflows."
+      },
+      {
+        "id": "d",
+        "text": "Move all three into a subagent so that they stay out of the main conversation",
+        "reason": "A subagent is an isolated worker that returns a summary; it doesn't guide the main session or run on every edit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Always-needed facts go in CLAUDE.md, must-happen actions in hooks, and occasional procedures in skills.",
+    "explanation": "Each concern has a different trigger: the build command is needed in every session, ESLint must run on every edit without Claude choosing to, and the checklist matters once a month. Those map to CLAUDE.md, a hook and a skill. Choice a is tempting because it changes nothing structural, but emphasis doesn't make an instruction run every time or stop the checklist loading every session.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-skill-vs-subagent",
+      "c-claude-code-hooks",
+      "c-claude-md"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-ctx-static-context-claude-md",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "A teammate wrote a `SessionStart` hook that only echoes the same fixed list of team coding conventions into every session. Nothing in the list changes from one session to the next. What does the hooks reference suggest instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch it to a `UserPromptSubmit` hook so the list is repeated before every prompt",
+        "reason": "That adds the same text before every prompt. For static context that doesn't need a script, the reference points to CLAUDE.md."
+      },
+      {
+        "id": "b",
+        "text": "Put the fixed conventions in CLAUDE.md, and keep SessionStart for dynamic context",
+        "reason": "Correct: SessionStart suits context like existing issues or recent changes; for static context that doesn't require a script, use CLAUDE.md."
+      },
+      {
+        "id": "c",
+        "text": "Keep the hook, because SessionStart is the only way to add context at session start",
+        "reason": "It isn't the only route: the reference itself recommends CLAUDE.md for static context that needs no script."
+      },
+      {
+        "id": "d",
+        "text": "Move the list into a `SessionEnd` hook so it's saved for the next session",
+        "reason": "`SessionEnd` runs when a session ends, for tasks like cleanup or logging; it doesn't put anything into the next session's context."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Static, always-true context belongs in CLAUDE.md; a `SessionStart` hook earns its place when the context has to be generated.",
+    "explanation": "Hooks are for things a script must do; a fixed list doesn't need one, and CLAUDE.md already loads at the start of every session. SessionStart stays useful for context that changes, such as open issues or recent changes. Choice c is tempting because the hook does work, but it isn't the only route, and the reference points static context to CLAUDE.md.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks reference",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-course-skill-personal-vs-project",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Where skills live",
+    "stem": "You wrote a `changelog` skill in `~/.claude/skills/changelog/`, and Claude Code uses it in every project on your laptop. A teammate who cloned the same repository can't see it at all. What explains this, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Personal skills load only for you; move it to the repo's `.claude/skills/` and commit it",
+        "reason": "Correct: `~/.claude/skills/` loads in all your projects on this machine, while `.claude/skills/` in the repository loads for the repo, so committing it gives the team the skill too."
+      },
+      {
+        "id": "b",
+        "text": "Skills load only for the person who wrote them, so each teammate must write their own copy",
+        "reason": "Where you save a skill decides which sessions load it. A skill committed to the repository's `.claude/skills/` reaches everyone who works there."
+      },
+      {
+        "id": "c",
+        "text": "The teammate has to invoke `/changelog` by name once before Claude Code can discover it",
+        "reason": "Invoking by name doesn't change discovery. The skill isn't in any location the teammate's sessions load, so there's nothing to invoke."
+      },
+      {
+        "id": "d",
+        "text": "Claude Code shares skills only after they're uploaded, so upload it for your teammates",
+        "reason": "Claude Code skills are files on disk: saving one under the repository's `.claude/skills/` and committing it is what shares it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In Claude Code, a skill's location sets its reach: `~/.claude/skills/` is yours everywhere; a committed `.claude/skills/` reaches the team.",
+    "explanation": "Claude Code discovers skills from the filesystem, and the folder decides who gets them. The detail that decides it is the path: `~/.claude/skills/` sits in your home directory, so only your sessions load it. Choice c is tempting because skills can be invoked by name, but invoking doesn't help when the teammate's sessions never load the file.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-skill-api-runs-in-container",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills on the API",
+    "stem": "Your Messages API app uses a custom skill whose script reads a pricing file from a folder on your application server. In testing, the script can't find the file. Where does a skill attached to a Messages API request actually run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In your application's own process, so the script should read your server's file paths directly",
+        "reason": "API skills don't run in your application. They run in the code execution environment, so your server's folders aren't there."
+      },
+      {
+        "id": "b",
+        "text": "On the end user's device, which downloads the skill along with each response",
+        "reason": "Nothing runs on the user's device. Skills named in the request's `container` run in the code execution environment."
+      },
+      {
+        "id": "c",
+        "text": "In the code execution container, apart from your app; send input files with the Files API",
+        "reason": "Correct: skills run in the code execution environment. To give a skill files to work on, upload them with the Files API and reference them with a container upload block."
+      },
+      {
+        "id": "d",
+        "text": "In a copy of Claude Code on your server, which the API calls to run the skill's scripts",
+        "reason": "The API doesn't call out to Claude Code. Skills specified in the `container` parameter run in the code execution environment."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On the Messages API a skill runs in the code execution container, not your app; pass files in with the Files API.",
+    "explanation": "A skill on the API runs in the code execution container, so your server's folders aren't visible to it. The script's failure to find a file on your server is the clue. Choice a is tempting because the app makes the request, but making the request doesn't put the skill in your process; input files must be uploaded and referenced instead.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The skill runs in the container, so files reach it by upload.",
+      "steps": [
+        {
+          "label": "Your app",
+          "sublabel": "request names skill"
+        },
+        {
+          "label": "Files API",
+          "sublabel": "input files uploaded"
+        },
+        {
+          "label": "Code execution container",
+          "sublabel": "skill runs here"
+        },
+        {
+          "label": "Response",
+          "sublabel": "results back"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/skills-guide",
+      "title": "Using Agent Skills with the API",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-skill-api-no-network",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skill portability",
+    "stem": "A skill that works well in Claude Code calls your company's public REST API with `curl` and runs `pip install` for a helper library at the start of each run. You upload the same skill for a Messages API app. What should you expect?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It runs unchanged, since a skill behaves the same way on every surface that supports it",
+        "reason": "The runtime depends on the surface. Claude Code skills have the user's network access; API skills don't, so the same steps behave differently."
+      },
+      {
+        "id": "b",
+        "text": "Those steps fail: API skills have no network access and can't install packages at runtime",
+        "reason": "Correct: on the Claude API, skills can't make external API calls or install new packages; only pre-installed packages are available."
+      },
+      {
+        "id": "c",
+        "text": "It runs once the skill is also uploaded in claude.ai, which grants it network access on the API",
+        "reason": "Custom skills don't sync across surfaces, and a claude.ai upload doesn't change the API's runtime, which has no network access."
+      },
+      {
+        "id": "d",
+        "text": "It runs if the skill's description names the REST API and the library it installs",
+        "reason": "The description decides when Claude triggers the skill. It doesn't change what the runtime allows, and API skills have no network access."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Plan each skill for its runtime: on the Claude API there's no network access and no runtime package install.",
+    "explanation": "A skill's format is portable, but its runtime isn't: the API container has no network access and only pre-installed packages. The `curl` call and the `pip install` are exactly the two things the API runtime blocks. Choice a is tempting because the same SKILL.md loads everywhere, but loading isn't the same as running, and Claude Code's network access doesn't carry over.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-sdk-skills-setting-sources",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in the Agent SDK",
+    "stem": "Your Agent SDK service sets `settingSources: []` so that settings files on the machine can't affect it. Since then, Claude never uses the project skills in the repo's `.claude/skills/`, even for requests that clearly match their descriptions. What's the cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The SDK doesn't support skills at all; they work only in interactive Claude Code sessions",
+        "reason": "The SDK does support skills: it discovers them from the filesystem, and Claude invokes them when relevant or you dispatch them by name."
+      },
+      {
+        "id": "b",
+        "text": "Skills must first be registered in code with an SDK call before Claude can see any of them",
+        "reason": "The SDK has no programmatic API for registering skills. You create them as `SKILL.md` files on disk, which the SDK discovers."
+      },
+      {
+        "id": "c",
+        "text": "The SDK matches descriptions more strictly than the CLI does, so they all need rewriting",
+        "reason": "The descriptions already match. With no setting sources, the SDK doesn't load skills at all, whatever their descriptions say."
+      },
+      {
+        "id": "d",
+        "text": "Skills load through setting sources; include `'project'` (and `'user'` for personal skills)",
+        "reason": "Correct: the SDK discovers skills through the user and project setting sources. If you set `settingSources` explicitly and omit them, it doesn't load skills."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In the Agent SDK, skills are files discovered through setting sources; leave out `'project'` and project skills don't load.",
+    "explanation": "The SDK loads skills from the filesystem, and `settingSources` decides which filesystem locations it reads. The deciding detail is the empty list: it switches off the user and project sources that skills come from. Choice b is tempting because subagents can be defined in code, but skills can't; they're always files on disk.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/skills",
+      "title": "Extend agents with skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-managed-agent-attach-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in Managed Agents",
+    "stem": "You're moving a report-writing workflow to Claude Managed Agents. The workflow's skill currently lives only in your laptop's `~/.claude/skills/` folder. How does the agent get the skill?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload it to your workspace as a custom skill and list its ID in the agent's `skills` array",
+        "reason": "Correct: you upload a custom skill (a directory with `SKILL.md`) to your workspace, which returns a `skill_*` ID, and attach it in the agent's `skills` array."
+      },
+      {
+        "id": "b",
+        "text": "Anthropic scans your laptop's `~/.claude/skills/` folder each time a session starts",
+        "reason": "Skills reach a Managed Agent through its `skills` array or a mounted GitHub repository's `.claude/skills`, not from folders on your laptop."
+      },
+      {
+        "id": "c",
+        "text": "Send the skill's name in a user event, and the agent then fetches the skill from your machine",
+        "reason": "The agent invokes attached skills automatically when relevant. It doesn't fetch skills from your machine; they come from the `skills` array or a mounted repo."
+      },
+      {
+        "id": "d",
+        "text": "Install it in Claude Code as a plugin, since Managed Agents loads your enabled plugins",
+        "reason": "Skills reach a Managed Agent in two ways, the agent's `skills` array or a mounted GitHub repository. Claude Code plugins aren't one of them."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A Managed Agent gets skills from its definition: upload custom skills to the workspace and list them in the agent's `skills` array.",
+    "explanation": "In Managed Agents the agent is an API resource, and its skills are part of that definition. The deciding detail is that the skill lives only on your laptop, which Anthropic's infrastructure never reads. Choice b is tempting because Claude Code discovers that very folder, but Managed Agents has no discovery step on your machine.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/skills",
+      "title": "Skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-managed-agents",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-skill-portable-practices",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skill portability",
+    "stem": "Your team wants one `invoice-check` skill to work in Claude Code, in a Messages API app and in Claude Managed Agents. Which two authoring practices from Anthropic's skill best practices help it work everywhere?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write the `description` to say what the skill does and when Claude should use it",
+        "reason": "Correct: the description is how Claude discovers and selects the skill, so it must say both what the skill does and when to use it."
+      },
+      {
+        "id": "b",
+        "text": "Use backslash paths such as `scripts\\check.py`, which every platform accepts",
+        "reason": "Use forward slashes (`scripts/check.py`). Windows-style paths cause errors on Unix systems; Unix-style paths work across all platforms."
+      },
+      {
+        "id": "c",
+        "text": "Install any packages the skill needs at the start of each run, on every surface it runs on",
+        "reason": "The Claude API has no network access and no runtime package installation, so installing at run time fails there."
+      },
+      {
+        "id": "d",
+        "text": "Put the full procedure in the `description` so it's always in context everywhere",
+        "reason": "The description is for selection: what the skill does and when to use it. The rest of SKILL.md holds the implementation details."
+      },
+      {
+        "id": "e",
+        "text": "List the packages the skill needs, and check they're available where it runs",
+        "reason": "Correct: list required packages in SKILL.md and verify they're available in the code execution tool documentation."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "A portable skill describes its trigger clearly and doesn't assume tools or packages exist wherever it runs.",
+    "explanation": "Portability comes from two habits: a description that works as the matching criterion, and a body that doesn't assume a particular machine. A trigger-focused description helps on every surface, and checking packages protects against runtimes like the API's. Choice c is tempting because it works in Claude Code, but the API container can't install packages at run time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-plugin-skill-namespacing",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Plugin namespacing",
+    "stem": "Your team enables two plugins, `payments` and `docs`. Each one ships a skill named `review`. What happens when both plugins load?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The plugin installed second overrides the first one, so only one `review` skill can run",
+        "reason": "Neither overrides the other. Plugin skills get the plugin's name as a prefix, so both can provide a `review` skill."
+      },
+      {
+        "id": "b",
+        "text": "Claude Code refuses to load either plugin until one of the skills is renamed",
+        "reason": "No rename is needed: the plugin-name prefix lets two plugins each provide a skill with the same name without colliding."
+      },
+      {
+        "id": "c",
+        "text": "Both load, as `/payments:review` and `/docs:review`, since plugin skills are namespaced",
+        "reason": "Correct: plugin skills get the plugin name as a prefix, such as `/my-plugin:hello`, so two plugins can each provide a skill without colliding."
+      },
+      {
+        "id": "d",
+        "text": "They merge into a single `/review` skill that runs both plugins' steps one after the other",
+        "reason": "Skills don't merge. Each plugin's skill keeps its own steps and runs under its own prefixed name."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Plugin skills are namespaced as `/plugin-name:skill-name`, so same-named skills from different plugins don't collide.",
+    "explanation": "Claude Code prefixes every plugin skill with its plugin's name. That's why the shared name `review` causes no conflict: the two skills become `/payments:review` and `/docs:review`. Choice a is tempting because it's how name clashes work in many systems, but namespacing means neither plugin has to win.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/create",
+      "title": "Create a Claude Code plugin",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-manual-only-skill-context",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Explicit entry points",
+    "stem": "Your project has 25 skills that are manual procedures, such as `/release` and `/rotate-keys`, which people only ever run by typing them. Their descriptions still take up Claude's context on every turn. Which change fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delete each skill's `description` field, which takes the skill out of Claude's context",
+        "reason": "Without a `description`, Claude Code uses the first non-empty line of the skill's content instead, so something still describes it."
+      },
+      {
+        "id": "b",
+        "text": "Set `user-invocable: false`, which keeps the skills out of Claude's context",
+        "reason": "That does the opposite: it hides the skill from the `/` menu so only Claude invokes it, and its description stays in context."
+      },
+      {
+        "id": "c",
+        "text": "Move the 25 procedures into CLAUDE.md, which loads only when it's needed",
+        "reason": "CLAUDE.md isn't loaded on demand. Skills are the mechanism whose full content loads only when invoked."
+      },
+      {
+        "id": "d",
+        "text": "Set `disable-model-invocation: true`, so each loads only when someone runs it",
+        "reason": "Correct: with this setting you can still invoke the skill, Claude can't on its own, and its description isn't in context until the full skill loads on invoke."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`disable-model-invocation: true` turns a skill into a manual entry point: you run it, Claude doesn't, and its description leaves context.",
+    "explanation": "Manual-only skills don't need Claude to know about them in advance, and `disable-model-invocation: true` removes them from Claude's view until a person runs them. The deciding detail is that people only ever type these procedures. Choice b is tempting because it also limits who invokes a skill, but it limits the other side and leaves the description in context.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-disable-model-invocation"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-plugin-marketplace-catalog",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Plugin marketplaces",
+    "stem": "Your team keeps five internal Claude Code plugins in one Git repository. Teammates should be able to add that repository once, install any of the plugins by name and receive updates. What do you add to the repository?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "One `plugin.json` manifest at the repository root that names all five plugins",
+        "reason": "A `plugin.json` is one plugin's manifest, giving that plugin its name. Listing several plugins and where to fetch them is a marketplace's job."
+      },
+      {
+        "id": "b",
+        "text": "A `.claude-plugin/marketplace.json` catalog listing each plugin and where to fetch it",
+        "reason": "Correct: a marketplace is a repository or directory with `.claude-plugin/marketplace.json`. You add it once, then install plugins from it by name."
+      },
+      {
+        "id": "c",
+        "text": "A listing on Claude Marketplace, the claude.com site, that points to the repository",
+        "reason": "Claude Marketplace is a website for browsing plugins and connectors. It isn't a marketplace you add with `/plugin marketplace add`."
+      },
+      {
+        "id": "d",
+        "text": "An MCP server that hands the five plugins to Claude Code whenever it requests one",
+        "reason": "MCP servers are a plugin component that give Claude tools. They don't serve plugins; a marketplace lists them."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A marketplace is a catalog file (`marketplace.json`) listing plugins; teammates add it once and install from it by name.",
+    "explanation": "Distribution is the marketplace's job: it's a catalog, not a hosted store, that tells Claude Code which plugins exist and where to fetch each. The deciding needs are \"add once\", \"install by name\" and \"updates\". Choice c is tempting because of the name, but Claude Marketplace is a website, not a plugin catalog you register.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/overview",
+      "title": "Plugins overview",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-api-custom-skill-setup",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills on the API",
+    "stem": "Your team wrote a custom spreadsheet-reporting skill and wants Claude to use it inside your Messages API app. According to the API's skills guide, how do you make the skill available in a request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload it via the Skills API, then name its `skill_id` in `container` with code execution on",
+        "reason": "Correct: you upload a custom skill to your workspace, then specify it in the `container` parameter by `skill_id`; skills require the code execution tool."
+      },
+      {
+        "id": "b",
+        "text": "Save SKILL.md in a `.claude/skills/` folder on your server for the API to discover",
+        "reason": "The API doesn't scan your server. Skills are specified in the request's `container` parameter by `skill_id`, after a custom one is uploaded."
+      },
+      {
+        "id": "c",
+        "text": "Define it as a user-defined tool whose `description` holds the SKILL.md text",
+        "reason": "Skills go in the `container` parameter, not `tools`. The `tools` array carries the code execution tool that the skills run in."
+      },
+      {
+        "id": "d",
+        "text": "Upload SKILL.md with the Files API and attach it to each request with a container upload block",
+        "reason": "The Files API is for the input files a skill works on. The skill itself is uploaded through the Skills API to your workspace."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "On the API, upload a custom skill once, then name its `skill_id` in `container` alongside the code execution tool.",
+    "explanation": "API skills are sent with the request, not discovered: you upload the skill to your workspace, then reference it in the `container` parameter, and it runs in the code execution container. The phrase \"inside your Messages API app\" rules out filesystem discovery. Choice d is tempting because files do travel through the Files API, but that path is for inputs, not for the skill.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/skills-guide",
+      "title": "Using Agent Skills with the API",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-skill-no-cross-surface-sync",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skill portability",
+    "stem": "Developers use an `invoice-check` skill from your repo's `.claude/skills/` in Claude Code, and a product manager also uploaded it in claude.ai settings. Your new Messages API app expects Claude to use the same skill, but it never does. The app's requests reference no skills. What's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Share the product manager's claude.ai skill with the organization so every surface gets it",
+        "reason": "claude.ai custom skills are individual to each user and can't be shared org-wide, and skills don't sync to the API from there."
+      },
+      {
+        "id": "b",
+        "text": "Make the skill's description more specific so the API picks up the copy in the repository",
+        "reason": "The description controls when a loaded skill triggers. The API never loads the repo's copy, because Claude Code skills are separate from the API."
+      },
+      {
+        "id": "c",
+        "text": "Commit the skill to the app's repo too, since the API reads `.claude/skills/` from the caller",
+        "reason": "Claude Code skills are filesystem-based and separate from the API. The API uses skills named by `skill_id` in the request."
+      },
+      {
+        "id": "d",
+        "text": "Upload it through the Skills API and reference it in the app's requests; surfaces don't sync",
+        "reason": "Correct: custom skills don't sync across surfaces. API skills are uploaded through the Skills API and named by `skill_id` in the request."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Custom skills don't sync between Claude Code, claude.ai and the API; set the skill up separately on each surface.",
+    "explanation": "One SKILL.md can serve every surface, but each surface has its own store: the filesystem for Claude Code, Settings for claude.ai, and the Skills API for the API. The clue is that the app's requests name no skills, so the API has nothing to load. Choice c is tempting because filesystem discovery works in Claude Code, but the API never scans a repository.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Three surfaces, three separate places to set up a custom skill.",
+      "segments": [
+        {
+          "label": "Claude Code",
+          "sublabel": ".claude/skills/",
+          "weight": 1,
+          "tone": "neutral"
+        },
+        {
+          "label": "claude.ai",
+          "sublabel": "Settings upload",
+          "weight": 1,
+          "tone": "neutral"
+        },
+        {
+          "label": "Claude API",
+          "sublabel": "Skills API",
+          "weight": 1,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-packaging-decision",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Packaging decision",
+    "stem": "You're deciding how to package several Claude Code workflows. Which two statements match the Claude Code plugin guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `/deploy` procedure run only when someone types it: set `disable-model-invocation: true`",
+        "reason": "Correct: that frontmatter line means Claude doesn't run the skill on its own, so it runs only when invoked by name."
+      },
+      {
+        "id": "b",
+        "text": "Conventions Claude should apply on its own whenever relevant: set `disable-model-invocation: true`",
+        "reason": "That setting stops Claude running the skill on its own. Leave it out for a skill you want Claude to apply when relevant."
+      },
+      {
+        "id": "c",
+        "text": "A skill only you use, in one project, must be packaged as a plugin before it will load",
+        "reason": "Skills work standalone in your project or home directory. Keep the standalone setup while it serves one project or only you."
+      },
+      {
+        "id": "d",
+        "text": "Skills, agents and hooks to share with teammates across several projects: make a plugin",
+        "reason": "Correct: make a plugin when you want to share the setup with teammates, install it in several projects, or publish versioned releases."
+      },
+      {
+        "id": "e",
+        "text": "A plugin has to be listed in a marketplace before Claude Code can load it at all",
+        "reason": "You don't need a marketplace to run a plugin you're writing: load it from disk or a URL, for example with `--plugin-dir`."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Standalone skill for you or one project; manual-only skill for a typed procedure; plugin to share a setup across teammates and projects.",
+    "explanation": "The packaging choice follows who needs the workflow and who should trigger it. A procedure with side effects needs an explicit entry point, and a setup shared across teammates and projects needs a plugin. Choice c is tempting because plugins are the sharing mechanism, but a skill that serves only you or one project works fine standalone.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/create",
+      "title": "Create a Claude Code plugin",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-disable-model-invocation",
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-course-managed-repo-skills-session-start",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in Managed Agents",
+    "stem": "Your Managed Agents sessions mount your GitHub repository, and the agent uses skills from its root `.claude/skills/`. Midway through a long session you push an improved version of one skill. The agent keeps following the old steps. Why, and what should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Skills are cached for a day after first use, so wait for the cache to expire",
+        "reason": "There's no such cache. The repository's skills are scanned once, when the session starts, so a new session is what picks up changes."
+      },
+      {
+        "id": "b",
+        "text": "The repo is scanned once at session start; start a new session to load the update",
+        "reason": "Correct: the scan runs once when the session starts, and commits pushed mid-session aren't picked up. Start a new session to load updated skills."
+      },
+      {
+        "id": "c",
+        "text": "Repo skills need an entry in the agent's `skills` array before updates can load",
+        "reason": "Repository skills need no upload and no entry in the agent's `skills` array; the issue is that the scan happens only at session start."
+      },
+      {
+        "id": "d",
+        "text": "Send an event asking the agent to re-read the skills folder, which pulls the commit",
+        "reason": "Commits pushed mid-session aren't picked up, and the scan runs only when a session starts. Start a new session to load updated skills."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Managed Agents scan a mounted repo's `.claude/skills/` once per session; new sessions pick up skill changes.",
+    "explanation": "Repository skills are discovered server-side when a session starts, from the checked-out state of the repo. The deciding detail is that you pushed mid-session, after that scan. Choice d is tempting because you can steer an agent with events, but commits pushed mid-session aren't picked up; only a new session loads them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/skills",
+      "title": "Skills",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-managed-agents",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-mcp-cc-resource-at-mention",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP resources",
+    "stem": "Your GitHub MCP server is connected in Claude Code and exposes issues as resources. You want issue #123 in Claude's context when the turn starts, instead of waiting for Claude to decide to look it up. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `alwaysLoad: true` on the GitHub server so that its issues load into context at startup",
+        "reason": "`alwaysLoad` makes a server's tool definitions load upfront instead of through tool search; it doesn't put the server's data into context."
+      },
+      {
+        "id": "b",
+        "text": "Reference the issue in your prompt with an @ mention, the same way you reference a file",
+        "reason": "Correct: MCP resources can be referenced with @ mentions, and referenced resources are automatically fetched and included as attachments."
+      },
+      {
+        "id": "c",
+        "text": "Ask Claude to call the server's issue tool, because tools are the only way MCP data reaches Claude",
+        "reason": "Servers can also expose resources, which you reference directly with an @ mention; no tool call is needed to bring them in."
+      },
+      {
+        "id": "d",
+        "text": "Run one of the server's prompts as a command so that every open issue loads before you type",
+        "reason": "MCP prompts become commands whose result is injected into the conversation; they don't preload a server's data."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Known data you want in context from the start is a **resource**: @-mention it and Claude Code fetches and attaches it.",
+    "explanation": "A resource is data a server exposes for the client to fetch into context directly, rather than having the model call a tool to get it. The deciding detail is that you already know which issue you need. Choice a is tempting because it sounds like preloading, but `alwaysLoad` is about tool definitions, not the server's data.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-cc-prompt-as-command",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP prompts",
+    "stem": "Your team's MCP server, named `team`, exposes a vetted `pr_review` prompt that takes a PR number. You want every engineer to run exactly that review in Claude Code instead of writing their own instructions. How do they use it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Reference the prompt with an @ mention, the way you attach a file or an MCP resource",
+        "reason": "@ mentions reference MCP resources. A server's prompts become available as commands in Claude Code instead."
+      },
+      {
+        "id": "b",
+        "text": "Mention a PR in the chat and wait, because Claude runs the prompt whenever one comes up",
+        "reason": "Claude Code lists MCP prompts as commands that you run, with arguments after the name; they aren't triggered for you."
+      },
+      {
+        "id": "c",
+        "text": "Copy the prompt's text into each engineer's CLAUDE.md so that it loads in every session",
+        "reason": "MCP prompts are discovered dynamically from connected servers, so running the server's prompt uses its vetted version directly."
+      },
+      {
+        "id": "d",
+        "text": "Run it as a slash command with the PR number after it, such as `/mcp__team__pr_review 456`",
+        "reason": "Correct: MCP prompts become commands; arguments go space-separated after the command, and the result is injected into the conversation."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An MCP **prompt** is a vetted template run by name: in Claude Code it's a slash command that takes arguments.",
+    "explanation": "MCP prompts let a server offer a vetted template that users invoke by name, so nobody has to write their own version. In Claude Code they appear as commands and take arguments such as the PR number. Choice a is tempting because @ mentions also pull in server content, but they are for resources, not prompts.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-sse-deprecated-use-http",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "A vendor's older setup guide tells you to add its remote MCP server to Claude Code over SSE. The vendor's newer docs also list an HTTP endpoint for the same server. Which should you configure?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The HTTP endpoint: HTTP is the recommended transport for remote servers",
+        "reason": "Correct: HTTP is the recommended option for remote MCP servers, and the SSE transport is deprecated: use HTTP where available."
+      },
+      {
+        "id": "b",
+        "text": "The SSE endpoint, since SSE is the newer transport that replaces plain HTTP",
+        "reason": "It's the other way round: the SSE transport is deprecated, and HTTP is the recommended option for remote servers."
+      },
+      {
+        "id": "c",
+        "text": "A stdio entry that points at the vendor's URL in place of a local command",
+        "reason": "Stdio servers run as local processes on your machine; a remote server reached by URL needs an HTTP (or SSE) entry."
+      },
+      {
+        "id": "d",
+        "text": "Either one, since both are current and Claude Code treats them the same",
+        "reason": "They aren't interchangeable: SSE is deprecated, and it's meant for the services that still expose only an SSE endpoint."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Remote server? Use **HTTP**; SSE is deprecated and is for services that offer nothing else.",
+    "explanation": "Claude Code recommends HTTP for servers that don't run locally and marks SSE as deprecated. The deciding detail is that the vendor offers an HTTP endpoint, so there's no reason to stay on SSE. Choice d is tempting because both reach a remote URL, but only HTTP is the current, recommended transport.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-transport-scope-independent",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "Transport and scope",
+    "stem": "Your team wants a local stdio MCP server, started with `npx`, shared with everyone through the repo. A teammate says only HTTP servers can be project-scoped, so the team must choose between stdio and sharing it. What's right?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The teammate is right: stdio servers are always local scope, because they run on your own machine",
+        "reason": "Stdio describes how Claude Code talks to the server. `--scope` is one of Claude's own options when adding a stdio server, too."
+      },
+      {
+        "id": "b",
+        "text": "Add it at user scope instead, which shares a server with every teammate's projects",
+        "reason": "User scope makes a server available across all your projects but keeps it private to your user account; it isn't shared."
+      },
+      {
+        "id": "c",
+        "text": "Transport and scope are separate choices, so add it over stdio with `--scope project`",
+        "reason": "Correct: the `--` separates Claude's own options, such as `--transport` and `--scope`, from the server's command, so stdio works at project scope."
+      },
+      {
+        "id": "d",
+        "text": "Convert it to HTTP first, because `.mcp.json` only accepts server entries that have a URL",
+        "reason": "`.mcp.json` holds stdio entries too: env-var expansion there even covers `command` and `args`, the fields a stdio server uses."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Transport** (how Claude Code talks to a server) and **scope** (who loads its config) are independent choices.",
+    "explanation": "Transport and scope answer different questions, so any transport can be configured at any scope. The deciding detail is that the team wants sharing (project scope) and a local process (stdio) at once, which works fine. Choice a is tempting because a stdio server runs on one machine, but that's where it runs, not who loads its configuration.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-user-scope-all-projects",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP server scopes",
+    "stem": "You use a personal note-taking MCP server in every repository you work on. Your teammates don't use it, and you don't want it written into any repo's files. Which scope should you add it at?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Project scope, so that it's written to `.mcp.json` in each repository you open",
+        "reason": "Project scope writes `.mcp.json` at the repo root to share the server with your team through version control, which you don't want."
+      },
+      {
+        "id": "b",
+        "text": "User scope, which loads the server in all your projects and keeps it private",
+        "reason": "Correct: user-scoped servers are available across all projects on your machine while remaining private to your user account."
+      },
+      {
+        "id": "c",
+        "text": "Local scope, the default, which applies to every project on this machine",
+        "reason": "Local scope loads a server only in the project where you added it, so you'd have to add it again in every repository."
+      },
+      {
+        "id": "d",
+        "text": "Managed configuration, which deploys the server to your account everywhere",
+        "reason": "Managed configuration is how administrators deploy or provide servers for every user, not a place for one person's own tools."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Personal server in every project → **user** scope; one project → local; shared with the team → project.",
+    "explanation": "Scope decides which projects load a server and whether your team shares it. You need every project, which rules out local, and no sharing, which rules out project. Choice c is tempting because local is the default and sounds machine-wide, but it loads only in the project where you added the server.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-local-scope-missing-elsewhere",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP server scopes",
+    "stem": "In repo A you ran `claude mcp add` for a Stripe server without a scope flag. It works there, but it's missing when you open repo B, and `git status` in repo A shows no new files. What explains both?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The add failed quietly, so the server only lives in repo A's current session",
+        "reason": "The command did save the server, which is why it loads in repo A. Where it was saved explains the rest."
+      },
+      {
+        "id": "b",
+        "text": "It went to project scope, and `.mcp.json` is hidden from `git status`",
+        "reason": "Project scope needs `--scope project`, and its `.mcp.json` is meant to be checked into version control, so git would show it."
+      },
+      {
+        "id": "c",
+        "text": "It went to user scope, which reaches other projects after a restart",
+        "reason": "User scope would make the server available in all your projects. Without a flag, the default is local scope."
+      },
+      {
+        "id": "d",
+        "text": "It used local scope, saved in `~/.claude.json` under repo A's path",
+        "reason": "Correct: local is the default; the server loads only in that project, stays private, and is stored in `~/.claude.json`, not the repo."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The default **local** scope is private to one project and lives in `~/.claude.json`, not in the repository.",
+    "explanation": "Without a scope flag, `claude mcp add` uses local scope: one project, private to you, stored in `~/.claude.json` under that project's path. That explains both clues, the server missing in repo B and no new file in repo A. Choice b is tempting because the server is tied to repo A, but project scope would have written a `.mcp.json` that git shows.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Nothing is written to the repo, and other projects don't see it.",
+      "steps": [
+        {
+          "label": "claude mcp add",
+          "sublabel": "no scope flag"
+        },
+        {
+          "label": "Local scope",
+          "sublabel": "the default"
+        },
+        {
+          "label": "~/.claude.json",
+          "sublabel": "under repo A's path"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-managed-fixed-set",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "Managed MCP",
+    "stem": "Your security team approves three MCP servers for Claude Code. Every developer must get exactly those three, and nobody may add or use any other server, including through plugins. Which control fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An administrator deploys a `managed-mcp.json` defining the three servers",
+        "reason": "Correct: with `managed-mcp.json`, Claude Code loads only its servers (plus a few exceptions); users can't add others, plugin servers included."
+      },
+      {
+        "id": "b",
+        "text": "Commit the three servers to `.mcp.json` in every repository the company owns",
+        "reason": "By default anyone running Claude Code can connect any server they choose, so a shared `.mcp.json` doesn't stop their own servers."
+      },
+      {
+        "id": "c",
+        "text": "List the three servers under `managedMcpServers` so every user receives them",
+        "reason": "Provided servers load alongside the ones users add themselves: every user gets yours and keeps their own."
+      },
+      {
+        "id": "d",
+        "text": "Add each unapproved server to `deniedMcpServers` as the team discovers it",
+        "reason": "A denylist blocks known-bad servers and allows everything else, so a server nobody has listed yet still loads."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A fixed, exclusive server set for everyone is **`managed-mcp.json`**; `managedMcpServers` adds servers but doesn't restrict.",
+    "explanation": "The organization-wide layer is managed configuration, set by an administrator rather than a scope users pick. The deciding detail is \"exactly those, and nobody may add others\", which is the fixed-deployment pattern. Choice c is tempting because it also reaches every user, but provided servers load alongside users' own servers instead of replacing them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/managed-mcp",
+      "title": "Control MCP server access for your organization",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-allow-one-tool-rule",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP permission rules",
+    "stem": "In Claude Code, you want the `github` MCP server's `create_issue` tool to run without a permission prompt, while the server's other tools keep their normal permission behavior. Which allow rule fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`mcp__github`, the rule that names the server the tool belongs to",
+        "reason": "`mcp__github` matches any tool provided by the `github` server, so every tool on it would be allowed."
+      },
+      {
+        "id": "b",
+        "text": "`mcp__github__*`, which approves the server's tools one at a time",
+        "reason": "The wildcard also matches all tools from the server; it doesn't approve them selectively."
+      },
+      {
+        "id": "c",
+        "text": "`mcp__github__create_issue`, naming both the server and the tool",
+        "reason": "Correct: an MCP rule can name the server followed by one of its tools, and then it matches only that tool."
+      },
+      {
+        "id": "d",
+        "text": "`mcp__*__create_issue`, approving that tool on any server that has it",
+        "reason": "Allow rules accept globs only after a literal `mcp__<server>__` prefix: the server part must name a specific server."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "`mcp__server__tool` targets one MCP tool; `mcp__server` or `mcp__server__*` covers the whole server.",
+    "explanation": "Permission rules can target a whole MCP server or a single tool on it. The deciding detail is that only `create_issue` should skip the prompt, so the rule must name both the server and the tool. Choice b is tempting because a wildcard looks granular, but `mcp__github__*` matches every tool on the server.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-server-deny-beats-tool-allow",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP permission rules",
+    "stem": "Your project settings deny `mcp__github`. In your user settings you add an allow rule for `mcp__github__create_issue`, expecting the more specific rule to win. Claude still can't create issues. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "User settings can't hold MCP rules, so only the project's rules are being read",
+        "reason": "Rules from every scope count; the catch is that deny rules from any scope are evaluated before allow rules."
+      },
+      {
+        "id": "b",
+        "text": "Deny rules are checked first, and an allow rule can't carve an exception out of one",
+        "reason": "Correct: rules are evaluated deny, then ask, then allow. The first match decides, and specificity doesn't change the order."
+      },
+      {
+        "id": "c",
+        "text": "Allow rules for MCP tools need a wildcard, such as `mcp__github__create_*`",
+        "reason": "An exact `mcp__server__tool` rule matches that one tool, so no wildcard is needed. The deny is what blocks the call."
+      },
+      {
+        "id": "d",
+        "text": "MCP rules must use the tool's display label rather than its `mcp__` name",
+        "reason": "It's the reverse: rules match canonical tool names, not the labels shown in the transcript or permission dialog."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A server-wide **deny** beats any tool-level allow: deny, then ask, then allow, and the first match wins.",
+    "explanation": "Claude Code checks deny rules before ask and allow rules, across every settings scope. The deciding detail is that the server-wide deny already matches `create_issue`, so the allow is never reached. Choice c is tempting if you think the allow was malformed, but the rule is fine; it just can't override a deny.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The first match in this order decides; specificity doesn't matter.",
+      "steps": [
+        {
+          "label": "Deny rules",
+          "sublabel": "mcp__github matches"
+        },
+        {
+          "label": "Ask rules"
+        },
+        {
+          "label": "Allow rules",
+          "sublabel": "never reached"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-precedence",
+      "c-read-deny-rule"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-toolset-block-destructive",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP connector",
+    "stem": "Your read-only calendar assistant reaches a calendar MCP server through the Messages API's MCP connector. The server also offers a `delete_all_events` tool. Which two `mcp_toolset` setups stop Claude from using that tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `defer_loading: true` for `delete_all_events` in the toolset's `configs`",
+        "reason": "Deferred loading keeps the tool's description out of the initial prompt; the tool itself stays enabled."
+      },
+      {
+        "id": "b",
+        "text": "Set `enabled: false` for `delete_all_events` in the toolset's `configs`",
+        "reason": "Correct: a denylist. Every other tool stays enabled by default, and denylisting destructive tools suits read-only assistants."
+      },
+      {
+        "id": "c",
+        "text": "Keep the toolset's defaults and tell Claude in the system prompt never to delete",
+        "reason": "With no config every tool is enabled; the system prompt steers how readily Claude calls MCP tools but doesn't disable one."
+      },
+      {
+        "id": "d",
+        "text": "Move `delete_all_events` out of the toolset and into the `mcp_servers` entry",
+        "reason": "An `mcp_servers` entry holds connection details (type, URL, name, token); which tools are enabled is set in the toolset."
+      },
+      {
+        "id": "e",
+        "text": "Set `default_config` to `enabled: false`, then enable only the read tools in `configs`",
+        "reason": "Correct: an allowlist. Tools are disabled by default and only the ones you enable explicitly are available."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "On the API, `mcp_toolset` **allowlists** or **denylists** tools with `enabled`; `defer_loading` only delays the description.",
+    "explanation": "Through the MCP connector, the `mcp_toolset` decides which of a server's tools Claude can use, with an `enabled` flag per tool or as a default for the set. A denylist and an allowlist both leave `delete_all_events` disabled. Choice a is tempting because it changes how the tool loads, but a deferred tool is still enabled.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/mcp-connector",
+      "title": "MCP connector",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-cc-tool-search-default",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool search",
+    "stem": "You're about to connect a dozen MCP servers to Claude Code. A teammate warns that their tool definitions will fill the context window before you type anything. With default settings, what actually loads at session start?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Every tool's full definition, so each server should stay under a fixed tool cap",
+        "reason": "Full definitions are deferred by default, and Claude Code doesn't impose a fixed per-server tool cap."
+      },
+      {
+        "id": "b",
+        "text": "Nothing from MCP until you open `/mcp` and choose which servers to load",
+        "reason": "Servers connect without that step; by default, their tool names and server instructions load at session start."
+      },
+      {
+        "id": "c",
+        "text": "The first few servers' tools, until a set share of the context window fills",
+        "reason": "Threshold loading is the opt-in `auto` mode, which loads or defers all deferrable tools by total size, not by server order."
+      },
+      {
+        "id": "d",
+        "text": "Just tool names and server instructions; a definition loads once it is needed",
+        "reason": "Correct: tool search defers definitions until Claude needs them, so adding more servers has minimal impact on your context window."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude Code's **tool search** is on by default: extra servers cost little context until a tool is actually needed.",
+    "explanation": "Each connected server contributes tool definitions, and loading them all upfront would eat context. Claude Code avoids this by default with tool search: only names and server instructions load, and a tool's full definition arrives when Claude searches for it. Choice a is tempting if you assume everything loads upfront, but deferral is the default and there's no per-server cap.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Deferred by default, so more servers cost little context.",
+      "steps": [
+        {
+          "label": "Session start",
+          "sublabel": "names + server instructions"
+        },
+        {
+          "label": "Claude needs a tool",
+          "sublabel": "tool search"
+        },
+        {
+          "label": "Definition loads",
+          "sublabel": "just that tool"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-tool-search"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-always-load-core-server",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool search",
+    "stem": "With tool search on, Claude Code defers your MCP tools. One small internal server has three tools Claude uses on nearly every turn, and the search step before each use slows things down. Your ten other servers are rarely used. What's the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `ENABLE_TOOL_SEARCH=false` so that those three tools are always visible to Claude",
+        "reason": "That loads every MCP tool upfront with no deferral, including all ten rarely used servers."
+      },
+      {
+        "id": "b",
+        "text": "Set `ENABLE_TOOL_SEARCH=auto` so the three tools load upfront and the rest stay deferred",
+        "reason": "`auto` loads all deferrable tools upfront while they total under a set share of context, or defers all of them; it doesn't pick servers."
+      },
+      {
+        "id": "c",
+        "text": "Set `alwaysLoad: true` on just the internal server's entry in your MCP configuration",
+        "reason": "Correct: that server's tools then load into context regardless of tool search, which suits a few tools Claude needs every turn."
+      },
+      {
+        "id": "d",
+        "text": "Set `alwaysLoad: false` on the internal server's entry so its tools are never deferred",
+        "reason": "`alwaysLoad: false` does the opposite: it keeps all of a server's tools behind tool search."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Exempt only the few tools needed every turn with `alwaysLoad: true`; every upfront tool costs context.",
+    "explanation": "Tool search saves context by deferring tools, but a tool Claude needs constantly pays for a search step each time. The deciding detail is that one small server is used constantly and ten are rarely used, so exempt just that server. Choice a is tempting because it removes the search step, but it loads every server's tools upfront, the cost tool search exists to avoid.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-tool-search"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-reduce-overhead-two-steps",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP context cost",
+    "stem": "Running `/context` in Claude Code shows your MCP servers using more space than you'd like, and you only use some of them. Which two steps does Claude Code's cost guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Disable the servers you aren't actively using, from the `/mcp` menu",
+        "reason": "Correct: run `/mcp` to see your configured servers and disable any you're not actively using."
+      },
+      {
+        "id": "b",
+        "text": "Turn off deferral so every tool definition loads once at session start",
+        "reason": "Definitions are deferred by default so only tool names and instructions enter context; loading them all adds more, not less."
+      },
+      {
+        "id": "c",
+        "text": "Move each server's usage notes into CLAUDE.md so Claude reads them upfront",
+        "reason": "CLAUDE.md loads into context at every session start, so those tokens are present even during unrelated work."
+      },
+      {
+        "id": "d",
+        "text": "Use a CLI tool such as `gh` instead of an MCP server where one is available",
+        "reason": "Correct: CLI tools like `gh`, `aws` and `sentry-cli` are more context-efficient because they add no per-tool listing."
+      },
+      {
+        "id": "e",
+        "text": "Merge all the servers into one, since each server adds a fixed context overhead",
+        "reason": "The guide points at per-tool listings, not per-server overhead; its fixes are disabling unused servers and preferring CLI tools."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Trim MCP overhead by **disabling unused servers** and **preferring CLI tools** like `gh` when they exist.",
+    "explanation": "Connected servers still add tool listings to context, even with full definitions deferred. The guide's two fixes are to turn off servers you don't use and to let Claude run a CLI where one exists, since a CLI adds no per-tool listing. Choice b is tempting because it sounds like a one-time cost, but loading every definition upfront uses more context, not less.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/costs",
+      "title": "Manage costs effectively",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-tool-search",
+      "c-context-window"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-github-pat-unvalidated",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "GitHub MCP server",
+    "stem": "You add GitHub's remote MCP server over HTTP with an `Authorization: Bearer` header, but paste the docs' placeholder instead of your personal access token. `claude mcp add` succeeds, yet `/mcp` shows the server with an ✘ and a 401. What happened?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`claude mcp add` saved it without checking the token, and the server rejected it",
+        "reason": "Correct: a placeholder is accepted when you add the server, but it fails to connect later; bad credentials show an ✘ and a status such as 401."
+      },
+      {
+        "id": "b",
+        "text": "GitHub's MCP server only accepts stdio connections, so it refused the HTTP request",
+        "reason": "GitHub's MCP server is a remote server added over HTTP; the 401 says the credential was rejected, not the transport."
+      },
+      {
+        "id": "c",
+        "text": "The server must be added at project scope before GitHub will accept any token",
+        "reason": "Scope controls which projects load the server and whether it's shared; the failure here is an authentication status."
+      },
+      {
+        "id": "d",
+        "text": "Claude Code is about to fall back to OAuth, so wait for the browser sign-in to open",
+        "reason": "When a configured `Authorization` header is rejected, Claude Code reports the connection as failed instead of falling back to OAuth."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "`claude mcp add` doesn't validate credentials: check `/mcp`, and an ✘ with a 401 means fix the token you configured.",
+    "explanation": "Adding a server only saves its configuration, so a placeholder token goes in without complaint. The deciding clues are the ✘ and the 401 in `/mcp`, which mean the server rejected the credential. Choice d is tempting because many remote servers sign in with OAuth, but a rejected header you configured is reported as a failure, not switched to OAuth.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-mcp-shared-config-pat-env-var",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "GitHub MCP server",
+    "stem": "Your team shares the GitHub MCP server through a committed `.mcp.json`. Each developer authenticates with their own personal access token, and no token may end up in the repository. How should the shared entry pass the token?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste one team token into the entry's `headers`, since `.mcp.json` stays private to each user",
+        "reason": "`.mcp.json` is checked into version control so the whole team gets it, so a pasted token would sit in the repository."
+      },
+      {
+        "id": "b",
+        "text": "Change the entry to stdio, because a server reached that way needs no token at all",
+        "reason": "GitHub's MCP server is remote and authenticates with a personal access token passed as a header."
+      },
+      {
+        "id": "c",
+        "text": "Reference an environment variable that each developer sets, as in `Bearer ${API_KEY}`",
+        "reason": "Correct: `.mcp.json` expands env vars in `headers`, so teams share one config while keeping sensitive values like API keys out of it."
+      },
+      {
+        "id": "d",
+        "text": "Have each developer re-add the server with their token using `--scope project`",
+        "reason": "Project scope writes to the shared `.mcp.json`, which goes into version control, so each token would land in the repository."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Shared scope, private secret: in `.mcp.json`, reference credentials as `${VAR}` and let each developer set the value.",
+    "explanation": "Project scope shares the configuration, so whatever is written in `.mcp.json` reaches everyone through git. The deciding detail is that the entry must be shared but the tokens must not, which env-var expansion in `headers` handles. Choice d is tempting because it uses a scope flag, but project scope writes the token straight into the shared file.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    },
+    "relatedCardIds": [
+      "c-mcp-json",
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
   }
 ]

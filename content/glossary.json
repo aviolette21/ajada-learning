@@ -3548,5 +3548,281 @@
       "title": "Create custom subagents",
       "checkedOn": "2026-10-14"
     }
+  },
+  {
+    "id": "g-default-mode",
+    "term": "default mode",
+    "aliases": [],
+    "definition": "The permission mode labelled **Manual**, config value `default`: only reads run without asking, and Claude Code stops to ask before most actions that edit files, run shell commands or reach the network.",
+    "whyItMatters": "Pick it for sensitive work or unfamiliar code where you want to review every action. Despite the name, recent versions start terminal sessions in auto mode unless you choose otherwise.",
+    "example": "`claude --permission-mode default` (or `manual`); the status bar shows `⏸ manual mode on`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-protected-paths",
+    "term": "protected paths",
+    "aliases": [
+      "protected path",
+      "protected-path"
+    ],
+    "definition": "A small set of paths whose writes Claude Code never auto-approves, except in `bypassPermissions` (and plan mode with bypass available): `.git`, `.claude`, `.vscode`, shell configs like `.bashrc`, `.mcp.json` and more.",
+    "whyItMatters": "They guard repository state and Claude's own configuration: Manual and acceptEdits prompt, auto mode sends them to the classifier, dontAsk denies them. Allow rules don't pre-approve them; bypass removes the guard.",
+    "example": "In acceptEdits mode, Claude edits `src/app.ts` without asking but stops for approval before writing `.claude/settings.json`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-explore-plan-code",
+    "term": "explore-plan-code workflow",
+    "aliases": [
+      "explore-plan-code"
+    ],
+    "definition": "The Claude Code best-practices workflow that separates research from implementation: explore and plan in plan mode, then implement against the approved plan, then commit.",
+    "whyItMatters": "Jumping straight to code can solve the wrong problem. Use it when the approach is uncertain, the change spans files or the code is unfamiliar; skip it when you could describe the diff in one sentence.",
+    "example": "Plan mode: \"read /src/auth and understand how we handle sessions.\" Then: \"implement the OAuth flow from your plan, run the tests and fix failures.\" Then commit and open a PR.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-path-scoped-rule",
+    "term": "path-scoped rule",
+    "aliases": [
+      "rules file",
+      "rules files",
+      ".claude/rules"
+    ],
+    "definition": "A markdown file in `.claude/rules/` whose `paths` frontmatter lists glob patterns. It loads into context only when Claude reads, writes or edits a matching file; a rule without `paths` loads every session.",
+    "whyItMatters": "Put broad project memory in CLAUDE.md and narrow, file-type or directory-specific guidance in path-scoped rules, so that guidance doesn't cost context in every session.",
+    "example": "`.claude/rules/api.md` with `paths: [\"src/api/**/*.ts\"]` loads API conventions only once Claude works on an API file.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-init-command",
+    "term": "/init",
+    "aliases": [],
+    "definition": "A Claude Code command that analyzes your codebase and generates a starter CLAUDE.md with the build commands, test instructions and conventions it discovers. If a CLAUDE.md exists, it suggests improvements instead of overwriting it.",
+    "whyItMatters": "Treat the output as a baseline to review, not a finished file: refine it with instructions Claude wouldn't discover on its own.",
+    "example": "Run `/init` in a repo with no CLAUDE.md, then add the env var the dev server needs, which Claude couldn't infer.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-sessionstart-hook",
+    "term": "SessionStart",
+    "aliases": [
+      "SessionStart hook"
+    ],
+    "definition": "The Claude Code hook event that fires when a session begins or resumes. Plain text the hook's command writes to stdout is added to Claude's context.",
+    "whyItMatters": "Use it for context that has to be generated, such as recent commits; for static context, CLAUDE.md is the better fit. The `compact` matcher re-injects context after every compaction.",
+    "example": "A `SessionStart` hook with matcher `compact` runs `git log --oneline -5` so Claude sees recent commits after compaction.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-stop-hook",
+    "term": "Stop hook",
+    "aliases": [],
+    "definition": "A hook on the `Stop` event, which fires whenever Claude finishes responding (not on user interrupts). It can check a condition and, if it isn't met, give Claude a reason to keep working.",
+    "whyItMatters": "Use it to verify work, such as tests passing, before Claude ends its turn. It fires at the end of every response, not only when the whole task is complete.",
+    "example": "An agent-based `Stop` hook runs the test suite and returns `\"ok\": false` with what still fails, so Claude keeps going.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-guardrail-vs-convention",
+    "term": "guardrail vs convention",
+    "aliases": [],
+    "definition": "A convention is an instruction, such as a CLAUDE.md line, that relies on Claude choosing to follow it. A guardrail, such as a PreToolUse hook that denies a call, is enforced deterministically on every matching call.",
+    "whyItMatters": "A PreToolUse deny blocks the tool even in `bypassPermissions` mode, so policy holds whatever permission mode a user picks. Use conventions for guidance and guardrails for must-never rules.",
+    "example": "\"Never edit `config/production.yaml`\" in CLAUDE.md is a convention; a PreToolUse hook on `Edit|Write` that exits 2 for that path is a guardrail.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-skill-description",
+    "term": "skill description",
+    "aliases": [],
+    "definition": "The `description` in a skill's SKILL.md frontmatter, saying what the skill does and when to use it. It is loaded at startup, and Claude matches each request against it to decide whether to trigger the skill.",
+    "whyItMatters": "Claude may choose from 100+ skills using only names and descriptions, so a vague one (\"Helps with documents\") rarely gets picked. Write it in third person, with specific triggers and key terms.",
+    "example": "`description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-plugin-namespacing",
+    "term": "plugin namespacing",
+    "aliases": [],
+    "definition": "Claude Code gives every skill and agent a plugin provides the plugin's name as a prefix, so a plugin skill runs as `/plugin-name:skill-name`.",
+    "whyItMatters": "Two plugins can each ship a `hello` skill without colliding. Moving a standalone skill into a plugin changes its name: `/deploy` becomes `/my-plugin:deploy`.",
+    "example": "The `hello` skill in a plugin named `my-first-plugin` runs as `/my-first-plugin:hello`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/create",
+      "title": "Create a Claude Code plugin",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-skill-portability",
+    "term": "skill portability",
+    "aliases": [
+      "portable skill"
+    ],
+    "definition": "Designing one skill to work on every surface it will run on. The SKILL.md format is shared, but runtimes differ: API skills get no network access or runtime package installs, while Claude Code skills have the user's network access.",
+    "whyItMatters": "Custom skills don't sync across surfaces, and a skill that assumes local tools, packages or network access can break on the API. Set it up separately on each surface and plan for that surface's constraints.",
+    "example": "A skill that runs `pip install` before each run works in Claude Code but fails on the Claude API, where only pre-installed packages are available.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-mcp-resource",
+    "term": "MCP resource",
+    "aliases": [
+      "MCP resources"
+    ],
+    "definition": "Passive, read-only data an MCP server exposes, such as file contents, database schemas or API docs. Each has a unique URI, and the application retrieves it and provides it to the model as context.",
+    "whyItMatters": "Resources are application-controlled, unlike tools the model decides to call: reach for one when you already know which data belongs in context.",
+    "example": "`calendar://events/2024` is a direct resource with a fixed URI; `weather://forecast/{city}/{date}` is a resource template with parameters.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-mcp-prompt",
+    "term": "MCP prompt",
+    "aliases": [
+      "MCP prompts"
+    ],
+    "definition": "A pre-built, parameterized instruction template an MCP server exposes. Prompts are user-controlled: they require explicit invocation rather than being triggered automatically.",
+    "whyItMatters": "Lets a team run one vetted template by name instead of each user writing their own. Clients can expose prompts as slash commands.",
+    "example": "A `plan-vacation` prompt takes arguments such as `destination`, `duration` and `budget`; users pick it by typing `/`.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-personal-access-token",
+    "term": "personal access token",
+    "aliases": [
+      "PAT"
+    ],
+    "definition": "A token you generate in a service's settings and pass as your credential. GitHub's remote MCP server authenticates with one passed as an `Authorization: Bearer` header.",
+    "whyItMatters": "`claude mcp add` saves the header without validating it, so check `/mcp`: an ✘ with a 401 means the token was rejected.",
+    "example": "Generate a fine-grained GitHub token for the repositories Claude should work with, then add the server with `--header \"Authorization: Bearer <token>\"`.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-credential-rotation",
+    "term": "credential rotation",
+    "aliases": [
+      "key rotation"
+    ],
+    "definition": "Replacing a credential such as an API key with a new one and retiring the old one: periodically, and at once (disable or delete) when you suspect the old one has leaked.",
+    "whyItMatters": "Expiration limits how long a leaked key works but isn't a substitute for hygiene. A key set to never expire is meant for one you store in a secrets manager and rotate yourself.",
+    "example": "Create the new key, deploy it where the integration reads it (the `ANTHROPIC_API_KEY` variable or a secrets-manager entry), confirm requests succeed, then delete the old key.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-env-var-expansion",
+    "term": "environment variable expansion",
+    "aliases": [
+      "env var expansion"
+    ],
+    "definition": "Claude Code replaces `${VAR}` in `.mcp.json` with that environment variable's value, and `${VAR:-default}` falls back to a default, so a shared config can reference secrets without containing them.",
+    "whyItMatters": "It works in `command`, `args`, `env`, `url` and `headers`. In a remote server's `url` and `headers`, your Claude Code and cloud provider credential variables read as empty instead.",
+    "example": "`\"url\": \"${API_BASE_URL:-https://api.example.com}/mcp\"` uses the variable when it's set and the example URL otherwise.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-oauth-redirect-uri",
+    "term": "OAuth redirect URI",
+    "aliases": [
+      "redirect URI",
+      "redirect URIs"
+    ],
+    "definition": "The address the authorization server sends the user back to after sign-in. MCP clients must register it, and authorization servers validate it exactly against the pre-registered values.",
+    "whyItMatters": "Exact matching blocks redirection attacks, but it also means a new host needs its own registered URI: staging working says nothing about production. Redirect URIs must be `localhost` or HTTPS.",
+    "example": "An integration registered only for its staging host fails sign-in from the production host until the production redirect URI is registered too.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+      "title": "Authorization Security Considerations",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-blast-radius",
+    "term": "blast radius",
+    "aliases": [],
+    "definition": "How much damage an agent could do if something goes wrong. As agents grow more capable, so does their potential blast radius.",
+    "whyItMatters": "Cap it with access limits, not instructions: prompts shape only what an agent tends to do, and credentials that never enter the sandbox can't be exfiltrated.",
+    "example": "An agent with read-only database access can be deployed far more broadly than one that writes to prod.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-15"
+    }
+  },
+  {
+    "id": "g-401-challenge",
+    "term": "401 Unauthorized challenge",
+    "aliases": [
+      "401 Unauthorized",
+      "WWW-Authenticate"
+    ],
+    "definition": "An MCP server's reply to a request without a valid token: HTTP 401 with a `WWW-Authenticate` header pointing to its Protected Resource Metadata, where the client finds the authorization server.",
+    "whyItMatters": "401 means authorization is required or the token is invalid or expired; 403 means the token lacks scope or permission. The challenge can include `scope` so the client requests only what it needs.",
+    "example": "`HTTP/1.1 401 Unauthorized` with `WWW-Authenticate: Bearer resource_metadata=\"https://mcp.example.com/.well-known/oauth-protected-resource\", scope=\"files:read\"`.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "title": "Authorization",
+      "checkedOn": "2026-10-15"
+    }
   }
 ]

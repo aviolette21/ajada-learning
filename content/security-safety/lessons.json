@@ -246,5 +246,136 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-enterprise-auth",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "title": "Enterprise integration and secure authentication",
+    "summary": "A prototype that works with one person's credentials on one machine isn't ready for an enterprise. Before deploying, identify the security requirements: who each call acts as, where the secret lives and how it's rotated, what compliance adds, and how risky changes are audited and approved. Pick the auth pattern by service type, and keep credentials out of the config that references them.",
+    "keyPoints": [
+      "**Remote + user identity → OAuth**: the MCP server answers `401 Unauthorized` to signal that authorization is needed, and the client runs the user through sign-in.",
+      "**Remote + service identity → API key** for a service account, read from an environment variable. **Local stdio → no OAuth flow**: credentials come from the environment.",
+      "Keep the secret out of the config: `.mcp.json` holds `${VAR}`, the value comes from the environment or a CI secret. Rotate periodically, and **at once** after a suspected leak.",
+      "Regulated work adds arrangements such as **ZDR**, **HIPAA readiness** (signed BAA; Claude Code isn't covered) and **data residency** (`inference_geo`).",
+      "High-risk change: cap the **blast radius**, log tool calls with a `PostToolUse` hook, gate each phase with plan mode, and register every host's **redirect URI**."
+    ],
+    "sections": [
+      {
+        "heading": "Why a working prototype isn't enterprise-ready",
+        "body": "A prototype often runs on one machine with one person's credentials. An enterprise integration serves many users and workloads, touches data that belongs to specific people, and has to show who did what. Those requirements decide the design, so they need answers before deployment, not after.\n\nMCP's authorization guide says authorization is optional but strongly recommended when a server:\n\n- accesses user-specific data (emails, documents, databases)\n- needs to audit who performed which actions\n- grants access to APIs that require user consent\n- is built for enterprise environments with strict access controls\n- needs rate limiting or usage tracking per user\n\nAnthropic's authentication guide makes the same point about keys: a shared personal key acts as one person and breaks when they leave, so shared or automated workloads (CI, production services) should get their own identity through a service account.\n\nThe course's rule: **enterprise integration requires identifying the security requirements before deployment.**",
+        "example": "A prototype MCP server reads mailboxes with one engineer's token. Rolling it out company-wide raises questions the prototype never had to answer: each employee should see only their own mail (user identity, so OAuth), security wants to know who triggered each action (audit), and the token can't live in the repo (secret storage). Each answer picks a mechanism covered in this lesson."
+      },
+      {
+        "heading": "Pick the auth pattern by service type",
+        "body": "- **Remote service, user identity → OAuth.** MCP follows OAuth 2.1 for HTTP-based servers. A request without a valid token gets `401 Unauthorized` with a `WWW-Authenticate` header pointing to the server's Protected Resource Metadata. The client uses it to find the authorization server, opens a browser for the user to sign in, then sends the access token on every request. In Claude Code, run `/mcp` and log in; tokens are stored securely and refreshed automatically.\n- **Remote service, service identity → API key.** When no user is involved, the workload authenticates as itself: an API key that belongs to a service account, read from an environment variable and sent in a header.\n- **Local service with filesystem access → stdio.** The spec says stdio implementations should not follow the HTTP authorization flow and should retrieve credentials from the environment instead. The boundary becomes what the local process can reach: local servers run with the client's privileges, so launch them with restricted file system access.",
+        "example": "Remote with user identity: `claude mcp add --transport http crm https://mcp.example.com/mcp`, then `/mcp` to sign in. Remote with service identity: the server entry sends `\"Authorization\": \"Bearer ${CRM_SERVICE_KEY}\"`, and the runner sets `CRM_SERVICE_KEY`. Local: `claude mcp add --transport stdio repo-index -- npx repo-index-server`, with no sign-in; the server can reach only what its process is allowed to.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "OAuth to a remote MCP server starts with the server's 401 challenge.",
+          "steps": [
+            {
+              "label": "Request, no token"
+            },
+            {
+              "label": "401 Unauthorized",
+              "sublabel": "WWW-Authenticate"
+            },
+            {
+              "label": "Find auth server",
+              "sublabel": "resource metadata"
+            },
+            {
+              "label": "User signs in",
+              "sublabel": "browser"
+            },
+            {
+              "label": "Request + token"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Managing the secret: separation, storage, rotation",
+        "body": "**Separation.** A credential should never travel with the configuration that references it. Claude Code expands environment variables in `.mcp.json`: `${VAR}` becomes the variable's value, and `${VAR:-default}` falls back to a default. Expansion works in `command`, `args`, `env`, `url` and `headers`, so a team can commit one shared file while each machine supplies its own key. A client secret added with `--client-secret` is stored in the system keychain or a credentials file, not in your config.\n\n**Where the value goes.** In CI, store the key as a pipeline secret and reference it by name, for example `${{ secrets.ANTHROPIC_API_KEY }}` in GitHub Actions. Never commit API keys or OAuth tokens. For the Claude API, Workload Identity Federation goes further and leaves no long-lived key to store.\n\n**Rotation.** Store keys in a secrets manager, rotate them periodically, and disable or delete any key you suspect has leaked. Deleting a CI secret doesn't retire the key it held: delete the key in the Claude Console too. Expiration limits how long a leaked key works, but it isn't a substitute for this hygiene.",
+        "example": "A committed `.mcp.json` entry: `\"url\": \"${API_BASE_URL:-https://api.example.com}/mcp\"` and `\"headers\": {\"Authorization\": \"Bearer ${API_KEY}\"}`. Each developer exports `API_KEY`, and the CI runner sets it from a secret. One guard to know: in a remote server's `url` and `headers`, Claude Code reads credential variables (your Claude Code or cloud provider credentials) as empty, so a cloned repo can't send them to a server it names."
+      },
+      {
+        "heading": "What regulated industries add on top",
+        "body": "Working authentication is the floor. Regulated work usually adds data-handling arrangements, each with its own scope:\n\n- **Zero data retention (ZDR):** Anthropic doesn't store prompts or responses at rest after the API response returns. It's requested through Anthropic's sales team, enabled per organization, and covers eligible features only.\n- **HIPAA readiness:** with a signed BAA and a HIPAA-enabled organization, eligible Claude API features can process PHI. Claude Code isn't covered, and the API returns a 400 error for most non-eligible features.\n- **Data residency:** `inference_geo` (`\"us\"` or `\"global\"`) controls where inference runs on each request; workspace settings can set a default and restrict which geos are allowed.\n- **Audit trail:** record what the agent did with deterministic tooling such as hooks, rather than relying on the model to choose to log it.\n\nFor ZDR and HIPAA, check the feature eligibility table and your contract before assuming a feature is covered."
+      },
+      {
+        "heading": "Scoping high-risk legacy change",
+        "body": "Code modernization applies all of this to changes that can break real systems. Answer three questions before the session starts:\n\n- **Blast radius:** what depends on this code, and what breaks downstream if an edit is wrong? Granularly limiting tool permissions can help limit the blast radius: an agent with read-only database access can be deployed far more broadly than one that writes to prod.\n- **Audit:** is a `PostToolUse` hook logging the agent's tool calls, and does that log satisfy whoever reviews the work? `PostToolUse` fires after a tool call succeeds; a hook with no matcher fires for every call, while a `Bash` matcher sees only shell commands.\n- **Approval:** who signs off each phase? Plan mode separates exploration from execution: Claude reads, explores and writes a plan, and edits stay blocked until you approve it (except in interactive terminal sessions with bypass permissions available). Approving exits plan mode, so re-enter it for the next phase. Who may approve is a rule you define and document.\n\nOne more check before moving environments: authorization servers match OAuth redirect URIs exactly against registered values, so a working staging connection doesn't mean production is configured. Register the new host's redirect URI first.",
+        "example": "Migrating a legacy settlement module: give the session a read-only database credential for dependency mapping; add a `PostToolUse` hook on `Bash` that runs `jq -r '.tool_input.command' >> ~/.claude/command-log.txt`; start with `claude --permission-mode plan` and have the module owner approve each phase's plan before edits begin; and register the production host's redirect URI with the OAuth app before cutover."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-ent-auth-pattern-by-service",
+      "q-ent-secret-separation",
+      "q-ent-redirect-uri-per-host"
+    ],
+    "sources": [
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization",
+        "title": "Understanding Authorization in MCP",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+        "title": "Authorization",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
+        "title": "Authorization Security Considerations",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/security_best_practices",
+        "title": "Security Best Practices",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/mcp",
+        "title": "Connect Claude Code to tools via MCP",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+        "title": "Authentication",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/github-actions",
+        "title": "Claude Code GitHub Actions",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+        "title": "API and data retention",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+        "title": "Data residency",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/hooks-guide",
+        "title": "Automate actions with hooks",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/permission-modes",
+        "title": "Choose a permission mode",
+        "checkedOn": "2026-10-15"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+        "title": "How we contain Claude across products",
+        "checkedOn": "2026-10-15"
+      }
+    ]
   }
 ]
