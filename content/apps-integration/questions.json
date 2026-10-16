@@ -5987,5 +5987,708 @@
       "c-api-key-types"
     ],
     "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-s4eval-what-an-eval-is",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Evals",
+    "stem": "Your team calls a new invoice-extraction feature \"done\" because the demo went well. A reviewer asks for an eval before it ships. What is the reviewer asking for?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A dashboard of usage numbers from production, collected once the feature has launched to real users",
+        "reason": "An eval is a test you run before users see the feature. Numbers collected after launch only show problems once they're already affecting users."
+      },
+      {
+        "id": "b",
+        "text": "A set of input cases, each with grading logic that says what a passing output looks like",
+        "reason": "Correct: an eval gives the AI an input, then applies grading logic to the output. A set of such cases defines what the feature must do."
+      },
+      {
+        "id": "c",
+        "text": "A recording of the feature on its best example, saved so that the team can replay it later",
+        "reason": "One good example shows the feature can work once. It doesn't define or check behavior across the cases the feature must handle."
+      },
+      {
+        "id": "d",
+        "text": "A written note from the engineer explaining why the demo outputs looked right",
+        "reason": "An opinion about one demo isn't grading logic. An eval checks each case's output against a defined standard, so problems show before users meet them."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "An eval is **input cases plus grading logic**: it defines what done means, and you write it before the feature ships.",
+    "explanation": "An eval is a test for an AI system: give it an input, then apply grading logic to the output. A set of these cases turns \"done\" into something you can check, and it surfaces problems before they reach users. Choice a is tempting because it measures the real feature, but it only arrives after launch, once problems already affect users.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-design-doc-budget",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Design document",
+    "stem": "You're writing the design document for a live chat assistant. Its success criteria cover answer accuracy only, but replies must arrive while the customer waits, and finance has set a monthly spend limit. What should the document add?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing yet: speed and spend get tuned after launch, once real traffic shows what they are",
+        "reason": "Anthropic lists latency and price among the common success criteria to define up front, next to accuracy. Left out, no test can ever fail on them."
+      },
+      {
+        "id": "b",
+        "text": "A note that the team will use a smaller model, which makes speed and spend targets unnecessary",
+        "reason": "A model choice is one way to meet a budget, not the budget itself. Without stated targets, you can't tell whether the choice works."
+      },
+      {
+        "id": "c",
+        "text": "A cost and latency budget: a target response time and a spend limit the evals can check",
+        "reason": "Correct: latency (the acceptable response time) and price (your budget for running the model) are success criteria too, so give them measurable targets."
+      },
+      {
+        "id": "d",
+        "text": "A stricter accuracy target, since more accurate replies also come back faster and cost less",
+        "reason": "Accuracy, latency and price are separate criteria. Most use cases need evaluation along several criteria; one doesn't stand in for the others."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Speed and spend are **success criteria** too: the design document gives them a measurable budget, just like accuracy.",
+    "explanation": "Anthropic's eval guide lists latency (acceptable response time) and price (the budget for running the model) among the common success criteria, and most use cases need several criteria at once. The stem's waiting customers and spend limit are exactly those two. Choice b is tempting because a smaller model often is faster and cheaper, but without stated targets nobody can check that it's fast or cheap enough.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria",
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-design-doc-trust-boundary",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Design document",
+    "stem": "A support agent's design document says it reads inbound customer emails and looks up orders in the company database. It never needs to change a record. What should the document's trust boundary section say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Email content is untrusted, and the agent gets only read-only access to the orders database",
+        "reason": "Correct: Anthropic bounds what an agent is able to do with access limits. An agent with read-only database access can be deployed far more broadly than one that writes."
+      },
+      {
+        "id": "b",
+        "text": "The agent gets full database access, and the system prompt tells it never to edit any records",
+        "reason": "Instructions shape what an agent tends to do. Anthropic instead sets a hard boundary on what the agent can reach by enforcing access limits."
+      },
+      {
+        "id": "c",
+        "text": "Emails count as trusted once they pass the spam filter, since customers sent them",
+        "reason": "Anthropic treats any external resource given to an agent as a risk. Content from outside the system stays untrusted, whoever sent it."
+      },
+      {
+        "id": "d",
+        "text": "Nothing: trust boundaries only matter for agents that run code or shell commands on a machine",
+        "reason": "Every external resource an agent reads is a risk, and limiting tool permissions limits the blast radius for any agent with tools, not only code runners."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "The trust boundary names what's untrusted and caps what the feature **can reach**: enforce it with access limits, not instructions.",
+    "explanation": "Anthropic supervises what an agent is able to do, by enforcing access boundaries, rather than what it's told to do. The deciding detail is that the agent never needs to write, so read-only access costs nothing and removes the risk. Choice b is tempting because the prompt does forbid edits, but an instruction shapes behavior; it doesn't remove the access.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-failure-handling-edge-cases",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Building evals",
+    "stem": "The design document's failure-handling section says the FAQ bot should send a short apology and a help link when a message is empty, off-topic, or pages of pasted text. How do you make sure the bot really does this before launch?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rely on the instruction in the system prompt, since a clearly written rule is enough to guarantee it",
+        "reason": "A rule in the prompt says what should happen; only a test shows whether it does. Evals exist to measure performance against your criteria."
+      },
+      {
+        "id": "b",
+        "text": "Test with typical customer questions only, since unusual messages are rare in real traffic",
+        "reason": "Anthropic's guide says evals should mirror the real task distribution and not forget edge cases such as irrelevant or overly long input."
+      },
+      {
+        "id": "c",
+        "text": "Check it by hand on one example of each kind of message, once, before the bot goes live",
+        "reason": "One hand check per case is a thin sample. The guide favors more cases with automated grading over a few hand-graded ones."
+      },
+      {
+        "id": "d",
+        "text": "Add empty, off-topic and very long messages to the eval set, each graded on the expected reply",
+        "reason": "Correct: irrelevant or nonexistent input and overly long input are the guide's own examples of edge cases a task-specific eval should include."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Failure handling in the design document becomes **edge cases in the eval**: empty, irrelevant and overlong inputs get graded too.",
+    "explanation": "An eval should mirror the real task distribution, and Anthropic's guide names irrelevant or nonexistent input and overly long input as edge cases to include. Putting them in the eval set, graded on the reply the design document promises, checks the failure handling on every run. Choice b is tempting because those messages are rare, but rare inputs are exactly where untested behavior breaks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-string-match-key-phrase",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Grading evals",
+    "stem": "Every reply from your returns bot must include the customer's order number, which is stored with each test case. The rest of the wording can vary freely. Which grading method fits this check?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Exact match of each reply against one ideal reply saved for that test case",
+        "reason": "Exact match passes only if the whole output equals the saved answer. Here the wording varies, so correct replies would fail."
+      },
+      {
+        "id": "b",
+        "text": "A string-match check in code that the order number appears somewhere in the reply",
+        "reason": "Correct: string match (`key_phrase in output`) is code-based grading, the fastest and most reliable method, and enough when one known string must appear."
+      },
+      {
+        "id": "c",
+        "text": "An LLM judge that rates each reply's overall quality on a 1–5 scale",
+        "reason": "LLM grading suits complex judgment. Whether one known string appears needs no judgment, and code checks it faster and more reliably."
+      },
+      {
+        "id": "d",
+        "text": "A reviewer who reads every reply and ticks whether the number is in it",
+        "reason": "Human grading is slow and expensive, and the guide says to avoid it if possible. Code can check for a string on every run."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "One known string must appear, whatever else is said? Grade it with **string match** in code: `key_phrase in output`.",
+    "explanation": "Anthropic's guide says to pick the fastest, most reliable, most scalable grading method, and lists string match (`key_phrase in output`) as code-based grading. The deciding detail is that only one known string matters while the rest of the wording varies. Choice a is tempting because it's also code-based, but exact match compares the whole reply, so valid wordings would fail.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-code-graded-json",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Grading evals",
+    "stem": "Your triage prompt must return JSON with a `team` field and a `priority` field set to low, medium or high. You want an eval that catches every reply that breaks this contract. Which grader fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An LLM judge asked whether each reply looks like valid JSON with sensible field values",
+        "reason": "Whether JSON parses and a field holds an allowed value is a rule, not a judgment. Code-based grading checks rules faster and more reliably."
+      },
+      {
+        "id": "b",
+        "text": "Exact match of each reply against the one JSON string saved for that test case",
+        "reason": "Exact match suits one clear-cut, categorical answer. Many different replies satisfy this contract, so it would fail valid ones."
+      },
+      {
+        "id": "c",
+        "text": "Code that parses each reply, checks both fields exist and that `priority` holds an allowed value",
+        "reason": "Correct: code-based grading is fastest, most reliable and extremely scalable, and a rule-based contract like this needs no nuance."
+      },
+      {
+        "id": "d",
+        "text": "An engineer who reviews a sample of the replies by hand before each release",
+        "reason": "Human grading is slow and expensive, and a sample can miss failures. Avoid it when code can check every reply."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Shape and allowed values are rules: grade them with **code**, and save the LLM judge for outputs that need nuance.",
+    "explanation": "Anthropic's guide says to choose the fastest, most reliable, most scalable grading method, and code-based grading is all three when the check is a rule. Parsing JSON and checking for allowed values is exactly that kind of rule. Choice a is tempting because an LLM can read JSON, but it adds cost and inconsistency to a check code makes exactly.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A code-graded check: every step is a rule, so every run gives the same verdict.",
+      "steps": [
+        {
+          "label": "Reply"
+        },
+        {
+          "label": "Parse JSON"
+        },
+        {
+          "label": "Check fields",
+          "sublabel": "team, priority"
+        },
+        {
+          "label": "Pass or fail"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-match-grader-to-output",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Grading evals",
+    "stem": "You're choosing graders for several checks in one app's eval. Which two pairings of output and grading method fit Anthropic's eval guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A free-text article summary, graded by exact match against one saved reference summary",
+        "reason": "A good summary can be worded many ways. Exact match is for clear-cut, categorical answers, so it would fail valid summaries."
+      },
+      {
+        "id": "b",
+        "text": "A sentiment label from a fixed set, graded by exact match against the human label",
+        "reason": "Correct: the guide grades sentiment labels by exact match, a simple, unambiguous metric for clear-cut, categorical answers."
+      },
+      {
+        "id": "c",
+        "text": "Whether a required phrase appears, graded by a person who reads each reply",
+        "reason": "Human grading is slow and expensive; avoid it if possible. A string-match check in code does this job."
+      },
+      {
+        "id": "d",
+        "text": "Whether each reply is valid JSON, graded by an LLM judge for consistency",
+        "reason": "A rule-based check is what code grading does fastest and most reliably. LLM grading is for complex judgment."
+      },
+      {
+        "id": "e",
+        "text": "The tone of customer-service replies, graded by an LLM on a 1–5 scale",
+        "reason": "Correct: the guide grades tone and style with an LLM-based Likert scale, a nuanced judgment that rule-based code can't make."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Fixed answers get **exact match**, rules get **code**, nuance gets an **LLM judge**; people grade only when nothing faster works.",
+    "explanation": "The guide's rule is to choose the fastest, most reliable, most scalable method that can judge the output. A label from a fixed set is clear-cut, so exact match fits; tone is a nuanced judgment, so an LLM-based 1–5 scale fits. Choice a is tempting because the article is fixed, but the summary's wording isn't, so exact match would fail good summaries.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-deterministic-where-possible",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Grading evals",
+    "stem": "An LLM judge checks whether each reply contains your required disclaimer sentence word for word. When you rerun it on the same replies, a few verdicts flip. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace the judge with a code check for the exact sentence, since its presence is a rule",
+        "reason": "Correct: Anthropic recommends deterministic graders where possible and LLM graders where necessary. A fixed sentence is a string check."
+      },
+      {
+        "id": "b",
+        "text": "Run the judge three times on each reply and keep the majority verdict to smooth out the flips",
+        "reason": "Voting can reduce the noise, but it keeps a non-deterministic, costlier grader on a check that code makes exactly."
+      },
+      {
+        "id": "c",
+        "text": "Ask the judge for a 1–5 score instead of pass/fail, so that a small flip matters less overall",
+        "reason": "The check is binary: the sentence is there or it isn't. A scale adds nothing, and the grader stays non-deterministic."
+      },
+      {
+        "id": "d",
+        "text": "Switch to human grading, since a careful reviewer never misses an exact sentence",
+        "reason": "Human grading is expensive and slow. Code-based graders are fast, cheap, objective and reproducible for a fixed string."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Deterministic graders **where possible**, LLM judges **where necessary**: a fixed sentence is a string check, not a judgment.",
+    "explanation": "Code-based graders are fast, cheap, objective and reproducible, while model-based graders are non-deterministic, so Anthropic recommends code where it can do the job. The deciding detail is \"word for word\": that's a rule. Choice b is tempting because it does reduce flips, but it keeps paying for a judge on a check that has an exact answer.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-calibrate-judge",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Judge calibration",
+    "stem": "You've built an LLM judge that grades whether support replies resolve the customer's issue. Before its scores go into the launch review, you want them to be defensible. Which two steps calibrate the judge?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have experts grade a sample of the same replies, and compare their verdicts with the judge's",
+        "reason": "Correct: model-based graders need calibration against human graders, and LLM-as-judge graders should be closely calibrated with human experts."
+      },
+      {
+        "id": "b",
+        "text": "Ask the judge to regrade its own earlier verdicts, and keep only the ones it agrees with again",
+        "reason": "Regrading with the same judge only tests its agreement with itself, not with the expert human judgment it stands in for."
+      },
+      {
+        "id": "c",
+        "text": "Drop human review for good once the judge matches the experts on the first sample",
+        "reason": "Anthropic keeps occasional human review once the system is robust, and says rubrics should be calibrated against expert judgment frequently."
+      },
+      {
+        "id": "d",
+        "text": "Read where the judge and experts disagree, and sharpen the rubric until they rarely diverge",
+        "reason": "Correct: reading transcripts and grades shows whether a grader works, vague rubrics cause inconsistent verdicts, and the aim is rare divergence."
+      },
+      {
+        "id": "e",
+        "text": "Score every reply with three different judge prompts and average them, so no people are needed",
+        "reason": "Several judges are still model grading. Calibration means checking the model's verdicts against human expert judgment."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "A judge is calibrated against **people**: compare with expert grades, fix the rubric where they disagree, keep occasional spot-checks.",
+    "explanation": "Model-based graders are flexible but non-deterministic, so Anthropic calibrates them against human experts until model and human grading rarely diverge. Comparing verdicts on a shared sample finds the gaps, and reading the disagreements shows what the rubric needs to say. Choice c is tempting because one good match feels like proof, but Anthropic keeps occasional human review and recalibrates over time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-judge-per-dimension",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Judge calibration",
+    "stem": "One LLM judge gives each reply a single score covering accuracy, tone and policy compliance. Replies that are accurate but curt get very different scores from run to run. What does Anthropic's evals guidance suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Widen the scale from 1–5 to 1–100 so the single score shows finer differences",
+        "reason": "A finer scale doesn't fix the cause. Vague rubrics produce inconsistent judgments, however many points the scale has."
+      },
+      {
+        "id": "b",
+        "text": "Remove tone and policy from the eval, and keep grading only the accuracy of each reply",
+        "reason": "Tone and policy still matter to the feature. The fix is to grade each dimension separately, not to stop grading them."
+      },
+      {
+        "id": "c",
+        "text": "Replace the judge with exact match against one ideal reply written for each test case",
+        "reason": "Code-based checks are brittle to valid variations and lack nuance. Accuracy and tone can be right in many wordings."
+      },
+      {
+        "id": "d",
+        "text": "Write a clear rubric per dimension, and grade each one with its own isolated judge",
+        "reason": "Correct: Anthropic recommends clear, structured rubrics per dimension, each graded by an isolated LLM-as-judge rather than one judge for all."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Several qualities to grade? **One rubric and one isolated judge per dimension**, not one blended score.",
+    "explanation": "Anthropic's guidance is to write clear, structured rubrics for each dimension of a task and grade each with an isolated judge, because one vague, blended rubric gives inconsistent verdicts. The deciding detail is that one score is trying to cover three different qualities. Choice a is tempting because it sounds more precise, but a finer scale on the same vague rubric is just as inconsistent.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-volume-over-hand-grading",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Building evals",
+    "stem": "Your team has two weeks to build an eval. Option one: 40 cases, each graded carefully by hand. Option two: 800 cases graded automatically by an LLM judge that's slightly noisier. Per Anthropic's eval guide, which is usually the better choice?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The 40 hand-graded cases, because the quality of each grade matters more than the number of cases",
+        "reason": "The guide says the opposite: more questions with slightly lower-signal automated grading is better than fewer high-quality, hand-graded ones."
+      },
+      {
+        "id": "b",
+        "text": "The 40 hand-graded cases now, then growing the set to 800 by grading the rest by hand over time",
+        "reason": "Human grading is slow and expensive, and the guide says to avoid it if possible. Automated grading is what lets the set grow."
+      },
+      {
+        "id": "c",
+        "text": "The 800 auto-graded cases, since broader coverage usually reveals more than perfect grades",
+        "reason": "Correct: prioritize volume over quality. More questions with slightly lower-signal automated grading beat fewer hand-graded ones."
+      },
+      {
+        "id": "d",
+        "text": "Either option, since both sets measure the same success criteria and so give the same signal",
+        "reason": "They don't give the same signal: the guide prefers the larger, automatically graded set, which covers more of the real task distribution."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Coverage beats perfection**: many automatically graded cases usually reveal more than a few hand-graded ones.",
+    "explanation": "Anthropic's eval guide says to prioritize volume over quality: more questions with slightly lower-signal automated grading is better than fewer questions with high-quality human hand-graded evals. The deciding detail is that the judge is only slightly noisier while the set is twenty times larger. Choice a is tempting because careful grades feel more trustworthy, but 40 cases can't cover the inputs that break a feature.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "The larger set tests far more of the real task distribution.",
+      "segments": [
+        {
+          "label": "800 auto-graded",
+          "sublabel": "slightly noisier",
+          "weight": 20,
+          "tone": "success"
+        },
+        {
+          "label": "40",
+          "sublabel": "hand-graded",
+          "weight": 1,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-loop-read-failures",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval-driven loop",
+    "stem": "You run your eval for the first time and 14 of its 200 cases fail. Following the eval-driven loop, what should happen next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add one prompt rule per failing case, then rerun only those 14 cases to confirm that each one passes",
+        "reason": "Rerunning only the failures can't show whether the change broke something else. Anthropic runs regression evals so changes don't cause issues elsewhere."
+      },
+      {
+        "id": "b",
+        "text": "Read the failing transcripts to find the pattern, make a targeted change, then rerun the full eval",
+        "reason": "Correct: reading transcripts shows what actually went wrong, and rerunning everything catches a fix that breaks other cases."
+      },
+      {
+        "id": "c",
+        "text": "Ship now, since most cases already pass, and fix the remaining failures as users report them",
+        "reason": "That's reactive debugging: wait for complaints, reproduce, fix, and hope nothing else regressed. Evals exist to catch problems before users do."
+      },
+      {
+        "id": "d",
+        "text": "Rewrite the whole prompt from scratch, then rerun the eval to see whether the score improves",
+        "reason": "Without reading why cases failed, a rewrite is guess-and-check. Transcripts show whether a failure is the model's mistake or the grader's."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Run, **read the failures**, change, then **rerun everything**: the full rerun shows whether the fix broke something else.",
+    "explanation": "Anthropic says you can't tell what an eval is measuring without reading transcripts and grades, and that regression evals check a change doesn't cause issues elsewhere. So the loop is to read the failures, change something targeted, and rerun the whole set. Choice a is tempting because it confirms each fix, but rerunning only the 14 hides any case the new rules broke.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Rerun the whole set, so a fix that breaks other cases shows up.",
+      "steps": [
+        {
+          "label": "Run eval"
+        },
+        {
+          "label": "Read failures",
+          "sublabel": "transcripts"
+        },
+        {
+          "label": "Make a change"
+        },
+        {
+          "label": "Rerun all cases"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-measurable-success-criteria",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Design document",
+    "stem": "You're drafting the success criteria section of a support bot's design document. Which criterion is written so that an eval can check it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The bot should give customers helpful, high-quality answers to their questions",
+        "reason": "\"Helpful\" and \"high-quality\" aren't measurable. Anthropic's guide asks for specific, measurable criteria instead of vague goals like \"good performance\"."
+      },
+      {
+        "id": "b",
+        "text": "Most customers should feel the bot is noticeably better than the old FAQ page",
+        "reason": "A general feeling with no metric or scale gives an eval nothing to grade. Measurable criteria use numbers or well-defined scales."
+      },
+      {
+        "id": "c",
+        "text": "On a labeled set of real questions, the bot gives the correct policy answer",
+        "reason": "Correct: it's specific and measurable. A labeled test set says what the right answer is for each case, so an eval can grade every reply."
+      },
+      {
+        "id": "d",
+        "text": "The bot should run on the newest model, so its answers stay current",
+        "reason": "That's an implementation choice, not a success criterion. It says nothing about what the bot's answers must achieve."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A success criterion is **done, stated so it can be measured**: a defined test set and what counts as a pass, not \"good answers\".",
+    "explanation": "Anthropic's guide asks for success criteria that are specific and measurable: instead of \"good performance\", say exactly what must be achieved and how it's measured. Choice c names a labeled test set and what counts as a pass, so an eval can grade every case. Choice a is tempting because helpful answers are the real goal, but \"helpful\" and \"high-quality\" give an eval nothing to check.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-claude-generates-cases",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Building evals",
+    "stem": "You've hand-written 25 test cases for a contract-summary prompt and need several hundred, including the edge cases most likely to break it. Writing them all by hand would take weeks. What does Anthropic's eval guide suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give Claude your baseline cases and have it generate more, including the edge cases",
+        "reason": "Correct: the guide's tip is to get Claude to help generate more test cases from a baseline set, and to factor in edge cases."
+      },
+      {
+        "id": "b",
+        "text": "Copy the 25 cases with small wording changes until the set reaches several hundred",
+        "reason": "Near-copies grow the count without covering more of the real task distribution or adding the edge cases that break prompts."
+      },
+      {
+        "id": "c",
+        "text": "Keep the 25 cases, since a small hand-written set gives a cleaner signal than a large one",
+        "reason": "The guide prioritizes volume: more questions with slightly lower-signal automated grading beat fewer hand-graded ones."
+      },
+      {
+        "id": "d",
+        "text": "Use only the typical cases you already have, since edge cases rarely occur in real use",
+        "reason": "The guide says to mirror the real task distribution and not forget edge cases, such as irrelevant, overly long or ambiguous input."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Too many cases to write by hand? Have **Claude generate more** from your baseline set, edge cases included.",
+    "explanation": "Anthropic's guide notes that writing hundreds of test cases by hand is hard and suggests getting Claude to generate more from a baseline set of examples. Asking for the edge cases most likely to break the prompt keeps the set task-specific. Choice b is tempting because it grows the set fast, but near-copies don't test anything new.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s4eval-overstrict-verifier",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Grading evals",
+    "stem": "Your agent's eval reports a low pass rate. Reading the transcripts, you see many \"failed\" answers are correct but formatted differently from the ground truth, such as `$1,200` versus `1200`. What should you fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The agent's prompt, adding formatting rules until every answer matches the ground truth character for character",
+        "reason": "The answers are already correct. Anthropic warns against overly strict verifiers that reject correct responses over spurious differences like formatting."
+      },
+      {
+        "id": "b",
+        "text": "Nothing: low pass rates are normal early on, so keep the grader as it is and wait for the score to rise",
+        "reason": "The transcripts show the score is wrong, not the agent. A grader that rejects correct answers hides the agent's real performance."
+      },
+      {
+        "id": "c",
+        "text": "The test set, removing every case whose ground truth contains a number or a currency symbol",
+        "reason": "Removing cases shrinks coverage and leaves the strict verifier in place for whatever comes next. The cases aren't the problem."
+      },
+      {
+        "id": "d",
+        "text": "The verifier, so that it stops rejecting correct responses over spurious formatting differences",
+        "reason": "Correct: Anthropic advises avoiding overly strict verifiers that reject correct responses due to spurious differences like formatting."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Correct answers marked wrong? The **grader** is the bug: avoid verifiers that fail answers over formatting.",
+    "explanation": "Anthropic's tool-writing guide warns against overly strict verifiers that reject correct responses due to spurious differences like formatting or punctuation. The deciding detail is that the transcripts show the answers are right. Choice a is tempting because it would raise the score, but it bends the agent to fit a broken grader.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
   }
 ]

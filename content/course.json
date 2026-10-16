@@ -128,5 +128,41 @@
         "body": "Match authentication to the service type, keep credentials out of configuration and rotate them, and settle blast radius, audit logging and phase approvals before an agent touches high-risk systems."
       }
     ]
+  },
+  {
+    "id": "section-4",
+    "number": 4,
+    "title": "Production Engineering, Evals & Security",
+    "summary": "Taking a Claude feature to production: defining done with evals and a calibrated judge, testing at the right level and tracing failures to their step, sorting errors into retriable and terminal, choosing and routing models, keeping cost and latency in budget across agents, and defending against prompt injection with enforced boundaries.",
+    "modules": [
+      { "title": "Evals and a calibrated judge", "lessonId": "l-course-evals-judges" },
+      { "title": "Testing and tracing", "lessonId": "l-course-testing-tracing" },
+      { "title": "Surviving production failure", "lessonId": "l-course-failure-handling" },
+      { "title": "Model selection in production", "lessonId": "l-course-model-routing" },
+      { "title": "Cost, latency and orchestration", "lessonId": "l-course-cost-orchestration" },
+      { "title": "Securing against untrusted input", "lessonId": "l-course-injection-defense" }
+    ],
+    "takeaways": [
+      {
+        "title": "Set the standard before you build it.",
+        "body": "Write down what done, safe and affordable mean, then turn it into an eval: input cases, expected behaviors and a grader matched to the output's shape. Calibrate any LLM judge against human grades before trusting its scores."
+      },
+      {
+        "title": "Match the test to the failure, and trace so you know where it happened.",
+        "body": "Unit, functional, integration and end-to-end tests each catch a failure the others miss. Test the shape of Claude's output rather than its exact text, and keep a trace of each step so a bad result points to the step that produced it."
+      },
+      {
+        "title": "Sort every failure, then handle them individually.",
+        "body": "Ask whether waiting and resending the same request could work. Retry what is retriable with backoff, and know what the SDK already retries; fix what is terminal instead of retrying it. When a tool fails, tell Claude with `is_error` rather than returning an empty result."
+      },
+      {
+        "title": "Measure cost and latency per call, and fan out only when a task truly splits.",
+        "body": "Track tokens, latency and errors for every call so you can find the step that drives the bill. Use the levers that fit (model choice, context size, caching, batching) and treat multi-agent orchestration as a trade of many more tokens for parallelism."
+      },
+      {
+        "title": "Treat fetched content as data and enforce the boundary with a hook.",
+        "body": "Anything the agent didn't write can carry injected instructions. Keep it separate from trusted instructions, give tools least privilege, block sensitive actions with hooks that run regardless of what the model was told, and keep sandboxing as the backstop."
+      }
+    ]
   }
 ]

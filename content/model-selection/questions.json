@@ -4160,5 +4160,1154 @@
       "c-thinking-budget"
     ],
     "lessonId": "l-model-tradeoffs"
+  },
+  {
+    "id": "q-s4model-tier-tradeoff",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Capability tiers",
+    "stem": "A product manager asks why your team doesn't simply run every feature on the most capable Claude model. Which statement best describes how the current model family is laid out?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Every tier costs the same per token; the tiers differ only in context window size",
+        "reason": "Prices differ by tier, from Fable at the top down to Haiku, while all current models share the same 1M-token context window."
+      },
+      {
+        "id": "b",
+        "text": "The more capable tiers are slower and cost more per token than the faster tiers",
+        "reason": "Correct: comparative latency runs from slower (Fable) through moderate (Opus) and fast (Sonnet) to fastest (Haiku), and price per token falls in the same order."
+      },
+      {
+        "id": "c",
+        "text": "Only the larger tiers support tool use and vision, so the smaller ones suit plain text",
+        "reason": "All current models support text and image input, vision and tool use. The tiers differ in capability, speed and price."
+      },
+      {
+        "id": "d",
+        "text": "The larger tiers respond faster, because more compute is spent on each request",
+        "reason": "It's the other way round: the overview labels Fable slower and Haiku the fastest in the current lineup."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "The Claude family trades capability against speed and price: higher tiers are more capable but slower and pricier, so the top tier isn't free.",
+    "explanation": "The current lineup is a set of capability tiers: Fable, Opus, Sonnet and Haiku, with comparative latency running from slower to fastest and price falling in the same order. That's why running everything on the top tier has a real cost in latency and spend. Choice c is tempting because smaller models sound more limited, but every current model supports vision and tool use; the tiers differ in capability, speed and price.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-unsure-default",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "Your team is starting a new internal assistant for long-running knowledge work. There's no tight latency budget, no eval yet, and nobody is sure which model fits. Where does the models overview say to start?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Haiku, since the cheapest model is the safest default",
+        "reason": "Haiku is described for high-volume, latency-sensitive tasks such as classification, extraction and routing. The overview's default when you're unsure is Opus."
+      },
+      {
+        "id": "b",
+        "text": "Claude Fable, since the most capable model is the safest default",
+        "reason": "The overview reserves Fable for demanding reasoning and long-horizon agentic work, or for when evals on Opus at higher effort still fall short."
+      },
+      {
+        "id": "c",
+        "text": "Claude Sonnet, since a mid-tier model is the default for every workload",
+        "reason": "Sonnet is described as the best combination of speed and intelligence, but the overview's start when you're unsure is Opus for most workloads."
+      },
+      {
+        "id": "d",
+        "text": "Claude Opus, the overview's suggested start for most workloads",
+        "reason": "Correct: the overview says that if you're unsure which model to use, start with Opus for most workloads. It's built for long-running agentic coding and knowledge work."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "When you're unsure, start with **Opus** for most workloads; reach for Fable only when demanding work or your evals say Opus falls short.",
+    "explanation": "The models overview gives a direct default for the unsure case: start with Opus for most workloads, and its description, long-running agentic coding and knowledge work, matches this assistant. Nothing in the stem points to a special case such as tight latency. Choice b is tempting because the top tier sounds safest, but the overview keeps Fable for demanding reasoning and long-horizon agentic work, or for when evals on Opus at higher effort still fall short.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-match-workload-tier",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "Your company is planning two Claude features: real-time autocomplete in a text editor, where every keystroke waits on the reply, and nuanced contract review, where accuracy outweighs cost. Which starting choices fit Anthropic's model-selection guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Autocomplete: start on the most capable model, since fewer mistakes matter more than speed",
+        "reason": "The guide's efficiency-first start suits applications with tight latency requirements, and here every keystroke waits on the reply."
+      },
+      {
+        "id": "b",
+        "text": "Autocomplete: start efficiency-first on Claude Haiku, and upgrade only for specific gaps",
+        "reason": "Correct: efficiency-first suits applications with tight latency requirements, and you upgrade only if necessary for specific capability gaps."
+      },
+      {
+        "id": "c",
+        "text": "Contract review: start on the cheapest model, since a review can always be redone later",
+        "reason": "Capability-first is for tasks requiring nuanced understanding and applications where accuracy outweighs cost, which is this feature."
+      },
+      {
+        "id": "d",
+        "text": "Contract review: start capability-first on Claude Opus, then optimize down over time",
+        "reason": "Correct: capability-first suits tasks requiring nuanced understanding and applications where accuracy outweighs cost considerations."
+      },
+      {
+        "id": "e",
+        "text": "Both: run one shared model for every feature, so that there's a single default to maintain",
+        "reason": "The guide picks a starting point from each application's needs: efficiency-first and capability-first suit different kinds of work."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Match the starting tier to the workload: **efficiency-first** for tight latency, **capability-first** where accuracy outweighs cost.",
+    "explanation": "The guide offers two starting points and says which work each suits. Autocomplete has a tight latency requirement, which is the efficiency-first case: start on a fast model like Haiku and upgrade only for specific gaps. Contract review needs nuanced understanding and accuracy outweighs cost, which is the capability-first case on Opus. Choice a is tempting because autocomplete mistakes are visible, but the stem's deciding detail is that every keystroke waits on the reply.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-latency-not-just-tier",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Latency trade-offs",
+    "stem": "You moved a chat feature to the fastest model tier, but replies still feel slow. Each request carries a very long prompt, asks for long answers and runs at a high effort level. What does the models overview say about latency?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tier latency is relative; prompt length, output length and effort also drive it",
+        "reason": "Correct: comparative latency is relative to the current lineup, and actual latency depends on prompt length, output length and thinking effort."
+      },
+      {
+        "id": "b",
+        "text": "The tier fixes latency, so slow replies must point to a network problem",
+        "reason": "The overview says actual latency also depends on prompt length, output length and thinking effort, all of which are long or high here."
+      },
+      {
+        "id": "c",
+        "text": "Latency is the same across tiers; only price and capability differ",
+        "reason": "The overview labels comparative latency by tier, from slower (Fable) to fastest (Haiku)."
+      },
+      {
+        "id": "d",
+        "text": "Only the context window size affects latency, so a smaller one would fix it",
+        "reason": "All current models share a 1M-token window. The overview names prompt length, output length and effort as what drives actual latency."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A tier's latency label is relative; actual latency also depends on **prompt length**, **output length** and **effort**.",
+    "explanation": "The overview's latency labels compare tiers with each other, and it adds that actual latency depends on prompt length, output length and thinking effort. The stem stacks all three: long prompts, long answers and high effort, so a faster tier alone can't make replies quick. Choice b is tempting because the fastest tier sounds like a guarantee, but the label is relative to the lineup, not a fixed response time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-effort"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-unattended-accuracy-first",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Latency, cost and quality",
+    "stem": "An overnight job reviews contracts for risky clauses. Nobody waits on it, and a missed clause costs far more than the tokens. A teammate wants Claude Haiku because it's the fastest tier. Which starting point fits Anthropic's model-selection guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Haiku, since the fastest tier is the right choice whenever a job runs unattended",
+        "reason": "Efficiency-first suits tight latency requirements and cost-sensitive work. Nobody waits on this job, and accuracy matters most."
+      },
+      {
+        "id": "b",
+        "text": "Capability-first on Opus, since accuracy outweighs cost and speed barely matters",
+        "reason": "Correct: capability-first suits tasks requiring nuanced understanding and applications where accuracy outweighs cost considerations."
+      },
+      {
+        "id": "c",
+        "text": "Haiku, since efficiency-first is the only starting point the guide recommends",
+        "reason": "The guide offers two starting points; capability-first is for complex tasks where intelligence and advanced capabilities are paramount."
+      },
+      {
+        "id": "d",
+        "text": "Run it twice on Haiku and keep the longer answer, since two fast runs beat one careful one",
+        "reason": "For accuracy-first work the guide starts on a stronger model; it doesn't suggest repeating a fast one and picking by length."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Speed matters when someone is waiting. For unattended work where **accuracy outweighs cost**, start **capability-first**.",
+    "explanation": "The trade-off is capability against speed and cost, and which side wins depends on the workload. This job runs overnight, so latency barely matters, and a missed clause is expensive, which is the capability-first case. Choice a is tempting because Haiku is fast and cheap, but efficiency-first suits tight latency and cost-sensitive work, and neither describes this job.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-eval-like-real-traffic",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Letting evals decide",
+    "stem": "Your model-choice eval set is 40 hand-picked edge cases that tripped up an earlier prototype, scored on pass rate alone. Most real traffic is routine. Which change follows the measuring method in Anthropic's cost-and-intelligence guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more edge cases until the set covers only the hardest requests the team can find",
+        "reason": "The guide says to pull tasks weighted like real traffic, and here most real traffic is routine."
+      },
+      {
+        "id": "b",
+        "text": "Pull tasks from production logs weighted like real traffic, and record cost per task",
+        "reason": "Correct: the method pulls a few tasks from production logs, weighted like real traffic, writes outcome checks for each and records cost per task beside the score."
+      },
+      {
+        "id": "c",
+        "text": "Replace the pass rate with each answer's length, since longer answers show more effort",
+        "reason": "The guide's checks are task outcomes, such as tests pass, ticket closed or row count correct, not answer length."
+      },
+      {
+        "id": "d",
+        "text": "Stop scoring and let the team vote on which model's answers feel better",
+        "reason": "The guide writes an outcome check for each task and records cost beside the score; a vote gives neither."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Choose a model on tasks that look like **real traffic**, with outcome checks and **cost per task** recorded beside each score.",
+    "explanation": "A model choice should reflect what the model will actually see. The guide's method pulls tasks from production logs weighted like real traffic, writes an outcome check for each, and records cost beside the score, so you can see whether a cheaper model holds up. Here the set holds only edge cases while most traffic is routine. Choice a is tempting because hard cases feel rigorous, but a set of only the hardest requests misstates both quality and cost on real traffic.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Measure on your own workload before you pick a tier.",
+      "steps": [
+        {
+          "label": "Pull tasks",
+          "sublabel": "from production logs"
+        },
+        {
+          "label": "Outcome checks",
+          "sublabel": "per task"
+        },
+        {
+          "label": "Score + cost",
+          "sublabel": "per task"
+        },
+        {
+          "label": "Compare tiers",
+          "sublabel": "across effort"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-eval-thresholds"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-capability-first-steps",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Letting evals decide",
+    "stem": "Your team is building a scientific app that solves multistep math problems, and accuracy matters more than cost. Following the capability-first approach in Anthropic's model-selection guide, what's the right sequence?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build on Claude Haiku, and upgrade only after users report wrong answers in production",
+        "reason": "That's closer to efficiency-first, which suits cost-sensitive and latency-bound work. This app is one where accuracy outweighs cost."
+      },
+      {
+        "id": "b",
+        "text": "Build on Claude Fable, since capability-first means the top tier for every task",
+        "reason": "Capability-first starts on Opus. The guide moves to Fable only if evals at `xhigh` or `max` effort still fall short."
+      },
+      {
+        "id": "c",
+        "text": "Build on Claude Opus and stay there for good, since downgrading always lowers accuracy",
+        "reason": "The guide's later step is to consider lowering effort or downgrading models over time, once you've evaluated performance."
+      },
+      {
+        "id": "d",
+        "text": "Opus first, tune prompts, evaluate, then lower effort or downgrade as evals allow",
+        "reason": "Correct: implement with Opus, optimize prompts, evaluate, then consider increasing efficiency by lowering effort or downgrading models over time."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Capability-first: start on **Opus** to set the quality bar, then use evals to see how far effort or the tier can come down.",
+    "explanation": "Capability-first means starting from the strongest starting point for the task, which the guide names as Opus, then optimizing prompts, evaluating, and only then trying lower effort or a cheaper model. Scientific and mathematical applications are on its list for this approach. Choice b is tempting because capability-first sounds like \"use the top tier\", but the guide starts on Opus and moves to Fable only if evals at `xhigh` or `max` effort still fall short.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-efficiency-first-gap",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Letting evals decide",
+    "stem": "You started efficiency-first, with a prototype on Claude Haiku. Testing shows it handles almost every case well but misses one specific kind of multi-step request. What does the guide's efficiency-first approach say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the whole app to the most capable model, since one gap shows Haiku isn't enough",
+        "reason": "Efficiency-first upgrades only for specific capability gaps, and the testing shows Haiku handles almost every case."
+      },
+      {
+        "id": "b",
+        "text": "Ship it as is, because efficiency-first means cost always outranks quality",
+        "reason": "The approach evaluates whether performance meets your requirements, then upgrades if necessary for specific gaps."
+      },
+      {
+        "id": "c",
+        "text": "Upgrade only where testing shows a need: for that one specific capability gap",
+        "reason": "Correct: the approach's last step is to \"upgrade only if necessary for specific capability gaps\"."
+      },
+      {
+        "id": "d",
+        "text": "Stop testing, since efficiency-first assumes the cheapest model is always enough",
+        "reason": "Its steps are to test your use case thoroughly and evaluate the results; the guide says this start is often, not always, sufficient."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Efficiency-first: start fast and cheap, test thoroughly, and upgrade **only** for the specific gaps the tests reveal.",
+    "explanation": "Efficiency-first starts on a fast, low-cost model, tests the use case thoroughly, and upgrades only if necessary for specific capability gaps. The stem's deciding detail is that the gap is narrow: one kind of request, while almost everything else passes. Choice a is tempting because a failure feels like proof the model is too small, but moving everything up pays the higher price for the many cases Haiku already handles.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-default-plus-override",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Routing",
+    "stem": "Your document Q&A service handles mostly quick lookups. Users can also tick a \"deep analysis\" box, and those requests need far more reasoning. You want low cost on the common path without shortchanging the hard cases. Which design is the routing workflow?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Default each request to a fast, low-cost model, and send ticked ones to a more capable model",
+        "reason": "Correct: routing classifies an input and directs it to a specialized follow-up, such as easy questions to smaller, cost-efficient models and hard ones to more capable ones."
+      },
+      {
+        "id": "b",
+        "text": "Send every request to both models, and return whichever answer comes back longer",
+        "reason": "That runs both models on every request, so the common path is never cheap. Routing directs each input to one specialized follow-up task."
+      },
+      {
+        "id": "c",
+        "text": "Send every request to the most capable model, so that deep analysis is never shortchanged",
+        "reason": "That ignores the cost goal. The post's routing example sends easy, common questions to smaller, cost-efficient models."
+      },
+      {
+        "id": "d",
+        "text": "Let the fast model answer everything, and retry on a bigger one when users complain",
+        "reason": "Routing classifies the input first and then directs it. Here the signal, the ticked box, is known before any model runs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Routing = a default model for the common path plus an override to a bigger model when a task signal says the request is hard.",
+    "explanation": "Routing classifies each input and sends it to the follow-up that suits it. Here the classification is simple: the ticked box is a signal known up front, so the common path stays on a fast, low-cost model and flagged requests go to a more capable one. Choice c is tempting because it guarantees quality, but it pays the top price for every quick lookup, which is exactly what the post's easy-to-small, hard-to-capable example avoids.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A default path plus an override on a task signal.",
+      "steps": [
+        {
+          "label": "Request"
+        },
+        {
+          "label": "Classify",
+          "sublabel": "task signal"
+        },
+        {
+          "label": "Default",
+          "sublabel": "fast, low-cost model"
+        },
+        {
+          "label": "Override",
+          "sublabel": "capable model if flagged"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-routing"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-routing-needs-classification",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Routing",
+    "stem": "A team wants to route requests between a small and a large model. In testing, neither an LLM classifier nor a rules-based one can reliably tell their easy requests from hard ones; the categories blur together. What does Building effective agents say about this fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Routing still fits, because the larger model will catch and fix any misrouted request",
+        "reason": "The post's condition is that classification can be handled accurately. Routing sends each input to one follow-up; it doesn't describe a second check."
+      },
+      {
+        "id": "b",
+        "text": "Routing works only with an LLM classifier, so the rules-based one was never an option",
+        "reason": "The post says classification can be handled by an LLM or a more traditional classification model or algorithm."
+      },
+      {
+        "id": "c",
+        "text": "Routing fits any workload that has two models, whatever its categories look like",
+        "reason": "The post limits it to complex tasks with distinct categories that are better handled separately."
+      },
+      {
+        "id": "d",
+        "text": "It fits poorly: routing needs distinct categories and classification that's accurate",
+        "reason": "Correct: routing works well where there are distinct categories better handled separately, and where classification can be handled accurately."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Route only when categories are **distinct** and you can **classify accurately**; a router that can't tell inputs apart sends them the wrong way.",
+    "explanation": "The post gives two conditions for routing: distinct categories that are better handled separately, and classification that can be done accurately, by an LLM or a traditional algorithm. This team fails the second condition, since neither classifier can separate easy from hard. Choice a is tempting because a stronger model feels like a safety net, but routing directs each input to one follow-up, which is why the post makes accurate classification a condition up front.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-routing"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-when-fable",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Capability tiers",
+    "stem": "Your long-horizon research agent runs on Claude Opus. Even after you raise its effort, your evals show it still falls short on the hardest tasks. What does the models overview suggest trying next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Haiku, since faster turns let the agent make more attempts in the same time",
+        "reason": "Haiku is described for high-volume, latency-sensitive tasks such as classification, extraction and routing, not demanding long-horizon work."
+      },
+      {
+        "id": "b",
+        "text": "Claude Sonnet, since it's described as the best combination of speed and intelligence",
+        "reason": "Sonnet balances speed and intelligence. The overview's step when Opus at higher effort still falls short is Fable."
+      },
+      {
+        "id": "c",
+        "text": "Claude Fable, the tier built for demanding reasoning and long-horizon agentic work",
+        "reason": "Correct: use Fable for demanding reasoning and long-horizon agentic work, or when your evals on Opus at higher effort still fall short."
+      },
+      {
+        "id": "d",
+        "text": "Stay on Opus and lower its effort, since less thinking makes long tasks more reliable",
+        "reason": "The overview's step when Opus at higher effort still falls short is to move to Fable, not to lower effort."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Fable** is the step up from Opus: for demanding reasoning and long-horizon agentic work, or when evals on Opus at higher effort fall short.",
+    "explanation": "The overview's default is Opus, with Fable as the step up when the work is demanding or when evals on Opus at higher effort still fall short. The stem has both: a long-horizon agent, and evals that miss even after raising effort. Choice b is tempting because Sonnet is well balanced, but the overview's next step from a struggling Opus is Fable, not Sonnet.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-no-need-to-move-up",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Latency, cost and quality",
+    "stem": "Your support-reply feature runs on Claude Sonnet, and your evals show it comfortably clears your quality bar. A teammate wants to move it to the most capable tier \"just to be safe\". What would that move mainly cost you?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: the most capable tier is also the fastest, so replies would arrive sooner",
+        "reason": "The overview labels the most capable tier, Fable, slower; Sonnet is fast and Haiku the fastest."
+      },
+      {
+        "id": "b",
+        "text": "Tool use and vision, which the top tier gives up in exchange for deeper reasoning",
+        "reason": "All current models support text and image input, vision and tool use."
+      },
+      {
+        "id": "c",
+        "text": "Higher latency and price per token, for quality your evals show you don't need",
+        "reason": "Correct: comparative latency runs from slower (Fable) to fastest (Haiku), and price per token falls in the same order. Your evals already show Sonnet meets the bar."
+      },
+      {
+        "id": "d",
+        "text": "Context, since the most capable tier has a smaller context window than Sonnet",
+        "reason": "All current models share the same 1M-token context window."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Moving up a tier buys capability at the cost of **latency** and **price**; when your evals already pass, that's spend without a gain.",
+    "explanation": "Higher tiers are more capable but slower and pricier per token, so moving up is worth it only when the extra quality matters. The deciding detail is that evals already show Sonnet clears the bar. Choice b is tempting because a top model can sound specialised, but every current model supports vision and tool use; what changes between tiers is capability, speed and price.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-pinned-id-infra-drift",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model versioning",
+    "stem": "Your app has called the same model ID for months. This week you notice small, unexpected differences in its outputs, though your code and prompts haven't changed. According to Anthropic's Model IDs and versioning page, what's the most likely cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A serving-infrastructure update, like new sampling logic, around the same weights",
+        "reason": "Correct: weights are fixed for an ID, but infrastructure such as the request router, safety classifiers and sampling logic can change. That's the most likely cause."
+      },
+      {
+        "id": "b",
+        "text": "Anthropic quietly retrained the weights behind that ID and kept the same model name",
+        "reason": "Anthropic does not update the weights or configuration of an existing model ID. An updated version ships under a new ID."
+      },
+      {
+        "id": "c",
+        "text": "The ID is an evergreen pointer, and it now resolves to the newest model in its line",
+        "reason": "Dateless IDs are pinned snapshots, not evergreen pointers to the latest or best-performing version."
+      },
+      {
+        "id": "d",
+        "text": "The model's knowledge cutoff moved forward, so its answers now reflect newer data",
+        "reason": "The weights for a given ID are fixed, so what the model learned in training doesn't change under that ID."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A pinned model ID keeps its weights for life; small behavior shifts on a stable ID most likely come from **serving-infrastructure** updates.",
+    "explanation": "Pinning a model ID fixes the weights: Anthropic never updates an existing ID, and a new version ships under a new ID. The serving infrastructure around the model, such as the request router, safety classifiers and sampling logic, can still change, and the page names that as the most likely cause of small shifts. Choice c is tempting because dateless IDs look like moving aliases, but the page calls that a common misconception.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-model-alias"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-override-signals",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Routing",
+    "stem": "Your support bot defaults every request to a fast, low-cost model and should send the hard ones to a more capable model. Which signals could reasonably trigger that override?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A classifier, LLM or rules-based, that has tested as reliable at flagging complex requests",
+        "reason": "Correct: routing classifies an input and directs it to a follow-up, and the classification can be done by an LLM or a more traditional model or algorithm, as long as it's accurate."
+      },
+      {
+        "id": "b",
+        "text": "A random sample of one request in ten, so the capable model sees a share of traffic",
+        "reason": "A random pick says nothing about the request. Routing depends on classifying the input itself."
+      },
+      {
+        "id": "c",
+        "text": "A product flag that marks the request as hard, such as a user choosing \"expert review\"",
+        "reason": "Correct: a known flag is a simple, accurate classification of the input, so easy requests stay on the small model and flagged ones go to the capable one."
+      },
+      {
+        "id": "d",
+        "text": "The time of day, so the capable model handles every request during business hours",
+        "reason": "The clock doesn't describe the request. Routing sends hard or unusual questions to more capable models based on what the input is."
+      },
+      {
+        "id": "e",
+        "text": "The bot's overall error rate, so all traffic moves to the capable model when errors rise",
+        "reason": "That moves every request at once, whatever its difficulty. Routing classifies each input and directs it to the follow-up that suits it."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "An override needs a **task signal** about the request itself: an accurate classifier or an explicit flag, not chance or the clock.",
+    "explanation": "Routing classifies each input and sends it to the model that suits it, so the trigger must say something about the request: a classifier that has proven accurate, or a flag that marks it as hard. Random sampling, the time of day and an overall error rate all ignore what the request is. Choice b is tempting because it does send some traffic to the capable model, but not the hard requests in particular.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-routing"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4model-upgrade-shadow",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Upgrading models",
+    "stem": "A newly released model looks promising for your production summarizer. You want to switch without surprising users. Which plan follows the method in Anthropic's cost-and-intelligence guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch all traffic on release day, since a newer model does better on every prompt",
+        "reason": "The guide's numbers drift as models and prices change, which is why it says to measure on your own workload before cutover."
+      },
+      {
+        "id": "b",
+        "text": "Re-run your eval suite on the new model, shadow it on a traffic slice, then cut over",
+        "reason": "Correct: the method ends with \"run the winner in shadow on a traffic slice before cutover, then keep the suite running.\""
+      },
+      {
+        "id": "c",
+        "text": "Change the model ID in production, then retire the eval suite once error rates look normal",
+        "reason": "The guide says to keep the suite running after cutover, and its checks are task outcomes, not error rates."
+      },
+      {
+        "id": "d",
+        "text": "Wait for a public leaderboard result, then switch if the new model ranks higher",
+        "reason": "The guide's method measures on your own workload, using tasks pulled from your production logs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Upgrade like any model change: re-run **your** evals, **shadow** on a traffic slice, cut over, and keep the suite running.",
+    "explanation": "A new model is a new configuration to measure, not an automatic win. The guide's method runs the candidate on your own eval suite, then runs the winner in shadow on a slice of real traffic before cutover, and keeps the suite running afterwards. Choice a is tempting because newer models are often stronger overall, but the guide's whole method exists because results on your workload can differ from general expectations.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Upgrade only after your own evals and a shadow run agree.",
+      "steps": [
+        {
+          "label": "Re-run evals",
+          "sublabel": "new model"
+        },
+        {
+          "label": "Shadow",
+          "sublabel": "traffic slice"
+        },
+        {
+          "label": "Cut over"
+        },
+        {
+          "label": "Keep suite running"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-model-snapshot-id"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-s4cost-agent-observability-signals",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Observability",
+    "stem": "Your Agent SDK agent is about to go to production. You want enough observability to explain afterwards why a run was slow or expensive. Per the SDK's observability guide, what do you need visibility into?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only the final answer of each run, stored in full so that reviewers can read every response later",
+        "reason": "The guide asks for structural, step-level data. Prompt and output content isn't even exported by default; durations, model names and tool names are."
+      },
+      {
+        "id": "b",
+        "text": "Which tools ran, how long each model request took, the tokens spent and where failures occurred",
+        "reason": "Correct: the guide lists exactly these: which tools were called, how long each model request took, how many tokens were spent and where failures occurred."
+      },
+      {
+        "id": "c",
+        "text": "Only the monthly invoice total, since per-request numbers are too noisy to act on in production",
+        "reason": "The guide wants per-request visibility, such as how long each model request took and how many tokens it spent, so you can find the slow or costly step."
+      },
+      {
+        "id": "d",
+        "text": "Only whether each run finished, since the outcome matters far more than the steps that led to it",
+        "reason": "A pass/fail outcome can't explain a slow or costly run; the guide asks for tool calls, request durations, tokens and failure points."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Observability per call means **tokens**, **latency** and **errors** (plus which tools ran), so you can find the step that's slow or costly.",
+    "explanation": "Cost and latency are invisible until you instrument them, so production agents need per-step data: tool calls, how long each model request took, tokens spent and where failures happened. The stem's goal, explaining a slow or expensive run after the fact, needs exactly that step-level view. Choice c is tempting because the invoice does show cost, but a monthly total can't tell you which call or step caused it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel",
+      "c-token-counting"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-find-dominant-step",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cost observability",
+    "stem": "Your Agent SDK pipeline runs a lead agent on Opus that delegates to subagents on Haiku, and the monthly bill is over budget. The team wants to shorten every prompt across the board. What should they do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Trim every prompt by the same share right away, since each step contributes to the bill equally",
+        "reason": "That cuts blindly. The SDK reports per-step usage and a per-model breakdown precisely so you can see where tokens are going before changing anything."
+      },
+      {
+        "id": "b",
+        "text": "Cut the lead agent's prompt first, since the lead model is always where most of the spend goes",
+        "reason": "That's a guess. A flow can look uniformly expensive while one step does most of the spending, so measure per step and per model before deciding what to cut."
+      },
+      {
+        "id": "c",
+        "text": "Break usage down per step and per model, find where the tokens go, then optimize that part",
+        "reason": "Correct: per-step usage and the per-model breakdown (`modelUsage`) show where tokens are going, for example the Haiku subagents versus the Opus lead."
+      },
+      {
+        "id": "d",
+        "text": "Move every step to the smallest model first, then check whether the bill went down",
+        "reason": "Changing models before measuring guesses at the cause; the per-model breakdown tells you which model's tokens actually make up the spend."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Measure before you optimize**: break spend down per step and per model, then put the effort where the tokens actually go.",
+    "explanation": "A flow can look uniformly expensive while one step does most of the spending, so the first move is measurement, not cuts. The SDK's per-step usage and per-model breakdown show where the tokens go in a run that mixes a lead model and subagent models. Choice d is tempting because a smaller model is a real lever, but switching before measuring guesses at the cause.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/cost-tracking",
+      "title": "Track cost and usage",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-token-counting",
+      "c-max-turns-budget"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-latency-tail",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Latency monitoring",
+    "stem": "Your dashboard shows that the average latency of your Claude-backed endpoint looks fine, yet some users report waits far longer than that. How should you track latency so that this problem shows up?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Record latency as a distribution, such as counts bucketed by latency, to expose the slow tail",
+        "reason": "Correct: the SRE book warns against designing around the mean and suggests request counts bucketed by latency, which separates a slow average from a very slow tail."
+      },
+      {
+        "id": "b",
+        "text": "Keep the average, but sample it far more often so that every slow request moves the number sooner",
+        "reason": "A more frequent average is still an average; the SRE book's point is that a mean can hide a tail of very slow requests."
+      },
+      {
+        "id": "c",
+        "text": "Measure only the fastest requests, because they show what the system can really do when it's healthy",
+        "reason": "That hides the problem completely; the slow tail is what users are complaining about, so the measurement has to include it."
+      },
+      {
+        "id": "d",
+        "text": "Stop tracking latency and track the error rate alone, since slow requests eventually become errors",
+        "reason": "Latency and errors are separate golden signals; a request that is slow but succeeds never shows up in an error rate."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A good **average** can hide a slow **tail**: record latency as a distribution, not just a mean.",
+    "explanation": "Latency is one of the core signals to monitor, but a mean blends a few very slow requests into many fast ones. Users reporting long waits while the average looks fine is the classic sign of a slow tail, and bucketed counts (a histogram) make it visible. Choice b is tempting because more data points sound better, but sampling an average more often still averages the tail away.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "title": "Monitoring Distributed Systems",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-latency-levers"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-error-rate-signal",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Observability",
+    "stem": "Your dashboard tracks token usage and latency for every Claude call. Users report that one feature sometimes returns nothing at all, yet both charts look normal. What should you add to your per-call metrics?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The word count of each prompt, since long prompts are the most common reason that calls fail",
+        "reason": "Prompt length already shows up in token usage, and it doesn't tell you how many requests failed."
+      },
+      {
+        "id": "b",
+        "text": "The error rate: the share of calls that fail, tracked per call as a signal of its own",
+        "reason": "Correct: errors, the rate of requests that fail, are one of the four golden signals, tracked alongside latency."
+      },
+      {
+        "id": "c",
+        "text": "A daily average of latency, so slow calls and failed calls blend into a single number",
+        "reason": "Averages hide problems: the SRE book warns against designing monitoring around the mean."
+      },
+      {
+        "id": "d",
+        "text": "Nothing new, since a call that used tokens and returned quickly must have succeeded",
+        "reason": "Requests can fail quickly; the SRE book notes that errors can be served fast, so speed and token use don't prove success."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Per call, track **tokens**, **latency** and **error rate**: a cheap, fast call can still be a failed one.",
+    "explanation": "Tokens and latency show cost and speed, but not whether a call worked, so error rate is the third per-call signal. The stem's clue is a failure that shows up in neither existing chart. Choice d is tempting because a call that used tokens seems to have done its job, but requests can fail quickly and still look normal on cost and latency charts.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "title": "Monitoring Distributed Systems",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-latency-levers",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Budget levers",
+    "stem": "A support widget calls Claude for short answers and feels slow. The quality of its answers is already good, and now you want lower latency. Which two changes does Anthropic's latency guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more background detail to every prompt so that the model never needs to ask a follow-up",
+        "reason": "The guide says the fewer tokens the model has to process and generate, the faster the response, so padding every prompt works against latency."
+      },
+      {
+        "id": "b",
+        "text": "Choose a faster model that fits the task, such as Haiku for a speed-critical application",
+        "reason": "Correct: choosing the right model is one of the most direct ways to cut latency, and the guide points to Haiku for the fastest responses."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens` well above the expected length so that the answers are never cut off",
+        "reason": "`max_tokens` is a hard limit that prevents overly long outputs; raising it doesn't make a short answer arrive any sooner."
+      },
+      {
+        "id": "d",
+        "text": "Keep prompts clear but concise, and ask Claude directly for shorter responses",
+        "reason": "Correct: minimizing input and output tokens is the guide's second strategy, by being clear but concise and asking Claude to curb its chattiness."
+      },
+      {
+        "id": "e",
+        "text": "Switch to the largest model at its highest effort, since stronger models finish their work sooner",
+        "reason": "The guide notes that model size influences latency and recommends the fastest model, at low effort, for speed-critical work."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "The latency levers: a **faster model** for the job, and **fewer tokens** in and out.",
+    "explanation": "Latency depends on the model and on how many tokens are processed and generated, so the guide's first levers are the model and the prompt and output length. The stem says quality is already good, which is the guide's cue to start reducing latency. Choice e is tempting because a stronger model sounds more efficient, but larger models at higher effort are slower, not faster.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-latency-levers",
+      "c-effort"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-batch-not-for-live",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "A product manager wants to route the in-app chat assistant's requests through the Message Batches API to get its discount, since users ask similar questions all day. What is the problem with this plan?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Batches can't carry multi-turn conversations, so a chat history can't be sent as a batch request",
+        "reason": "Almost any Messages API request can be batched, multi-turn conversations included; the blocker is the wait, not the request format."
+      },
+      {
+        "id": "b",
+        "text": "Batches can't be combined with prompt caching, so the repeated questions would end up costing more",
+        "reason": "The batch and prompt caching discounts can stack; in a batch, cache hits are provided on a best-effort basis."
+      },
+      {
+        "id": "c",
+        "text": "Requests in a batch share one context, so users could see parts of each other's chats in the replies",
+        "reason": "Each request in a batch is processed independently, with no data leakage between requests."
+      },
+      {
+        "id": "d",
+        "text": "Batches run asynchronously and can take up to 24 hours, so they only suit work that can wait",
+        "reason": "Correct: batches suit tasks that don't need immediate responses. Most finish within an hour, but a batch can take up to 24 hours."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Batches trade **latency** for a lower bill: right for bulk work that can wait, wrong for anything a user is waiting on.",
+    "explanation": "The Message Batches API halves cost by processing requests asynchronously, so its results aren't immediate. A live chat assistant has a user waiting on every request, which rules out an hour-scale or day-scale wait. Choice b is tempting because it sounds like a real limitation, but caching works inside batches and the two discounts can stack.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-right-size-model",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Budget levers",
+    "stem": "Per-call metrics show that one step of your pipeline takes most of its time. That step only sorts each incoming message into billing, technical or other, and it runs on your largest model. Tests show a smaller, faster model sorts just as accurately. Which change fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the largest model and add more examples, so it sorts each message more confidently",
+        "reason": "More prompt tokens make a response slower, not faster: the guide says the fewer tokens the model has to process, the faster it responds."
+      },
+      {
+        "id": "b",
+        "text": "Raise `max_tokens` for that step, so the model has more room to finish each label quickly",
+        "reason": "`max_tokens` is a hard cap on output length. A higher cap doesn't make a one-word label arrive any sooner."
+      },
+      {
+        "id": "c",
+        "text": "Move every other step onto the largest model as well, so the whole pipeline runs at one speed",
+        "reason": "That slows every step down. The guide says to pick the model that fits each use case's needs for speed and output quality."
+      },
+      {
+        "id": "d",
+        "text": "Switch just that step to the smaller, faster model, since it meets the step's quality bar",
+        "reason": "Correct: choosing the right model is one of the most direct ways to cut latency, picking the one that fits the task's speed and quality needs."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "**Model selection** is a budget lever: when a smaller, faster model meets a step's quality bar, use it for that step.",
+    "explanation": "Choosing the right model for each use case is one of the most direct ways to cut latency, and the measurements already show which step to change. The stem says the smaller model sorts just as accurately, so quality isn't at risk. Choice a is tempting because examples often help quality, but extra prompt tokens make the slow step slower.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-latency-levers"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-cache-varying-content-first",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching",
+    "stem": "Your app caches a long, unchanging system prompt, but the usage numbers show it never reads from the cache. You find that the code adds the current time and the user's name at the very start of the system prompt on every request. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Cache the time and the name on their own, so the changing part is stored apart from the rest",
+        "reason": "A cache entry covers the whole prefix up to its breakpoint, so a value that changes at the start still changes everything after it."
+      },
+      {
+        "id": "b",
+        "text": "Turn caching off, because a prompt that includes any per-request detail can never be cached",
+        "reason": "Per-request detail is fine once it sits after the static part: the guide says to put the breakpoint at the end of the static prefix."
+      },
+      {
+        "id": "c",
+        "text": "Move the time and the name after the unchanging instructions, so every request starts the same",
+        "reason": "Correct: caching reuses an identical prefix. Put static content first, and content that varies, such as timestamps, after the point where caching ends."
+      },
+      {
+        "id": "d",
+        "text": "Tell Claude in the prompt to ignore the time and the name, so the cache can match on the rest",
+        "reason": "The cache matches the prompt's exact content (a hash of the prefix), so an instruction can't make a changed prefix match."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Caching needs a **stable prefix**: put what stays the same first, and anything that changes per request after it.",
+    "explanation": "Prompt caching only reuses work when a request begins with exactly the same content as an earlier one. Putting the time and the user's name at the very start makes the prefix different on every request, so nothing after it can be read from the cache. Choice a is tempting because it isolates the changing part, but a cache entry covers everything up to its breakpoint, so a change at the start still breaks the match.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-cache-agent-loop",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching",
+    "stem": "Your team is deciding where to turn on prompt caching first. Which workload would benefit most from it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A one-off request that summarizes a single short email and is never sent again",
+        "reason": "Caching pays off when a later request reuses the same prefix. A one-off request has nothing to reuse."
+      },
+      {
+        "id": "b",
+        "text": "An agent loop where every step resends the same long instructions and tool definitions",
+        "reason": "Correct: caching resumes from a prefix already processed, which suits prompts with consistent elements and agentic tool use, where each step is a new API call."
+      },
+      {
+        "id": "c",
+        "text": "A stream of short prompts that each start with completely different text and share nothing",
+        "reason": "The cache only helps when requests begin with the same content. Prompts that share nothing never get a hit."
+      },
+      {
+        "id": "d",
+        "text": "A help bot that must give fresh answers, so its earlier replies can't be stored and reused",
+        "reason": "Prompt caching reuses the processing of the prompt's prefix, not Claude's answers. Every response is still generated fresh."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Prompt caching pays off when many requests **start with the same long content**, such as an agent loop resending its instructions and tools.",
+    "explanation": "Prompt caching stores the processing work for a prefix so that later requests starting with the same content can reuse it. An agent loop resends the same instructions and tool definitions on every step, so nearly every request after the first can read from the cache. Choice d is tempting because caching sounds like storing answers, but it reuses prompt processing, and responses are still generated fresh.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-stream-or-batch",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Your product has two Claude features: a chat assistant that customers use live, and a nightly job that re-tags 50,000 old support tickets for a report read the next morning. Cost matters for both. Which setup fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stream the chat replies, and run the nightly re-tagging through the Message Batches API",
+        "reason": "Correct: batches suit work that doesn't need an immediate response, like the nightly job. The chat has a customer waiting, so it stays live and streamed."
+      },
+      {
+        "id": "b",
+        "text": "Run both through the Message Batches API, since cost matters for both and batches cost less",
+        "reason": "Batches run asynchronously and can take up to 24 hours. That suits the nightly job, not a customer waiting in a chat."
+      },
+      {
+        "id": "c",
+        "text": "Run both as live requests, since the batch discount only applies to very small jobs",
+        "reason": "Batches are built for large volumes of requests that don't need immediate responses, and the nightly job is exactly that."
+      },
+      {
+        "id": "d",
+        "text": "Batch the chat replies and stream the nightly job, so that each user sees the fastest result",
+        "reason": "That's reversed: the chat needs immediate responses, while nobody watches the nightly job as it runs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "**Stream** what a person is waiting for; **batch** bulk work that can wait, at a lower cost.",
+    "explanation": "Streaming and batching sit at opposite ends of the latency trade-off. The Message Batches API processes requests asynchronously at a lower cost, which fits a nightly job whose results are read the next morning, while the live chat has a customer waiting on every reply. Choice b is tempting because cost matters for both, but a batch can take hours to finish, which a live chat can't accept.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-streaming"
+    ],
+    "lessonId": "l-course-cost-orchestration"
   }
 ]

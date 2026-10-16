@@ -694,5 +694,97 @@
         "checkedOn": "2026-10-14"
       }
     ]
+  },
+  {
+    "id": "l-course-evals-judges",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "title": "Defining done: evals and a calibrated judge",
+    "summary": "Before a Claude feature ships, write down what done, safe and affordable mean, then turn it into an eval: input cases, expected behaviors and grading logic. Grade each check with the fastest reliable method (code where possible, a calibrated LLM judge where necessary), favor coverage over hand-graded perfection, and improve in a loop: run, read failures, change, rerun.",
+    "keyPoints": [
+      "An **eval** is a set of input cases with grading logic that defines what a feature must do. Write it **before** shipping, edge cases included.",
+      "The course's **design document** states success criteria, failure handling, a **cost and latency budget** and the **trust boundary**.",
+      "Match the grader to the output: **exact or string match** for fixed answers, **code checks** for rules, an **LLM judge** for nuance.",
+      "Calibrate a judge: a clear rubric per dimension, verdicts compared with **expert human grades**, transcripts read, then occasional human review.",
+      "**Volume over quality**: more cases with slightly noisier automated grading beat a few hand-graded ones. Claude can help write the extra cases."
+    ],
+    "sections": [
+      {
+        "heading": "The design document: done, safe, affordable",
+        "body": "Before building, the course has you write a short design document that answers four questions:\n\n- **Success criteria:** what done means, stated so it can be measured. Anthropic's guide asks for criteria that are specific, measurable, achievable and relevant.\n- **Failure handling:** what the feature does with bad input, such as empty, irrelevant or overly long messages.\n- **Cost and latency budget:** Anthropic lists latency (the acceptable response time) and price (your budget for running the model) as success criteria in their own right, so they get targets too.\n- **Trust boundary:** which inputs are untrusted, and what the feature is able to reach. Anthropic supervises what an agent is *able* to do by enforcing access boundaries, not only what it's told: an agent with read-only database access can be deployed far more broadly than one that writes to prod.\n\nEach line should become something an eval can check.",
+        "example": "A returns bot. Success: the correct policy answer on a labeled test set. Failure handling: empty or off-topic messages get a short apology and a help link. Budget: a target response time and a monthly spend limit. Trust boundary: customer messages are untrusted, and the bot gets read-only access to orders, so no instruction is needed to stop it editing them."
+      },
+      {
+        "heading": "An eval defines done before you ship",
+        "body": "An eval is a test for an AI system: give it an input, then apply grading logic to the output. A set of these cases, each with the behavior you expect, defines what the feature must do before it ships. Without one, debugging is reactive: wait for complaints, reproduce, fix, and hope nothing else regressed.\n\nAnthropic's design principles:\n\n- **Be task-specific:** mirror your real-world task distribution, and don't forget edge cases such as irrelevant or nonexistent input, overly long input, and ambiguous cases where even humans would struggle to agree.\n- **Automate when possible:** structure cases for automated grading (multiple-choice, string match, code-graded, LLM-graded).\n- **Get help writing cases:** writing hundreds of test cases by hand is hard, so have Claude generate more from a baseline set. The course adds: ask the model to list the edge cases that could break the current implementation.",
+        "example": "You have 25 hand-written cases for a contract summarizer. Give them to Claude and ask for a few hundred more in the same style, plus the inputs most likely to break the prompt: an empty contract, a very long one, a contract that has nothing to do with the task, and a clause two lawyers would read differently."
+      },
+      {
+        "heading": "Match the grader to the output's shape",
+        "body": "Choose the fastest, most reliable, most scalable method that can judge the output. Anthropic recommends deterministic graders where possible and LLM graders where necessary.\n\n- **Exact match** (`output == golden_answer`): the whole output must equal the answer, typically after normalizing whitespace and case. Ideal for clear-cut, categorical answers such as a sentiment label.\n- **String match** (`key_phrase in output`): one known string must appear, whatever else is said.\n- **Code-graded checks:** rules written in code, such as \"parses as JSON and `priority` holds an allowed value\". Fast, cheap, objective and reproducible, but brittle to valid variations and short on nuance.\n- **LLM-as-judge:** a model grades against a rubric. Fast, flexible and scalable for complex judgment such as tone, but non-deterministic and in need of calibration.\n\nHuman grading is the most flexible and high quality, but slow and expensive: avoid it where you can, and use it to calibrate the judge.",
+        "example": "One support-bot eval, three graders: the routed team name is checked by exact match, the reply must contain the ticket ID (string match), and the tone of the reply is scored 1–5 by an LLM judge against a target tone."
+      },
+      {
+        "heading": "Build and calibrate the judge",
+        "body": "A judge's scores are only defensible if they agree with the people whose judgment the judge stands in for.\n\n- **Clear rubric:** vague rubrics produce inconsistent judgments. With several qualities, write a rubric for each dimension and grade each with an isolated judge, not one judge for everything.\n- **Specific output:** ask for only \"correct\" or \"incorrect\", or a 1–5 score. Purely qualitative comments are hard to assess quickly and at scale.\n- **Reasoning first:** a grader with thinking on reasons before it scores, which improves grading on complex judgments.\n- **A way out:** let the judge return \"Unknown\" when it lacks the information, to reduce hallucinated verdicts.\n- **Calibrate against people:** have experts grade a sample, compare their verdicts with the judge's, and refine until they rarely diverge. Test reliability before you scale; once it's robust, occasional human review is usually enough.\n- **Read transcripts:** they show whether a failure is a real mistake or the grader rejecting a valid answer.\n\nIt's generally best practice to grade with a different model from the one that produced the output.",
+        "example": "Experts and the judge grade the same 100 replies and disagree mostly on partly correct ones. The rubric only said \"resolves the issue\", so you add how a partial answer is graded, recheck the same sample, and scale up only once the verdicts closely agree."
+      },
+      {
+        "heading": "Coverage over perfection, and the loop",
+        "body": "More cases with slightly lower-signal automated grading beat fewer high-quality, hand-graded ones: coverage usually reveals more than a few perfect grades.\n\nThe course puts the pieces together as a loop: set a goal, write an initial prompt, run the eval, read where it failed, apply one prompt-engineering change, and run the eval again. Rerun the whole set, not just the failures, so a fix that breaks other cases shows up.\n\nWhen scores look wrong, suspect the eval too:\n\n- A **0% pass rate** across many trials usually signals a broken task, not an incapable agent. A reference solution, a known output that passes all graders, proves the task is solvable and the graders are configured correctly.\n- **Overly strict verifiers** reject correct responses over spurious differences like formatting. Fix the grader, not the model.",
+        "example": "First run: 14 of 200 cases fail, and the transcripts show most are long contracts where the summary skips the termination clause. You add one instruction about termination terms and rerun all 200: those cases now pass, and nothing that passed before fails.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The course's eval-driven loop: repeat until the eval meets your success criteria.",
+          "steps": [
+            {
+              "label": "Set a goal"
+            },
+            {
+              "label": "Write a prompt"
+            },
+            {
+              "label": "Run the eval"
+            },
+            {
+              "label": "Read failures"
+            },
+            {
+              "label": "One change"
+            },
+            {
+              "label": "Rerun the eval"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s4eval-what-an-eval-is",
+      "q-s4eval-code-graded-json",
+      "q-s4eval-calibrate-judge"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+        "title": "Demystifying evals for AI agents",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+        "title": "Writing effective tools for agents — with agents",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+        "title": "How we contain Claude across products",
+        "checkedOn": "2026-10-16"
+      }
+    ]
   }
 ]

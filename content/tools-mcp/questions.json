@@ -5037,5 +5037,147 @@
       "c-mcp-scopes"
     ],
     "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-s4fail-tool-silent-empty-result",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool errors",
+    "stem": "Your `get_orders` tool queries a database. When the connection fails, your code catches the exception and sends back a `tool_result` with no content. Claude then tells a customer they have no orders. What should that `tool_result` contain instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The error message in `content`, with `is_error: true`, so that Claude knows the lookup failed",
+        "reason": "Correct: when tool execution results in an error, return the message in `content` with `\"is_error\": true`. Claude then incorporates the error into its response."
+      },
+      {
+        "id": "b",
+        "text": "No content, but with `stop_reason` set to `tool_use` so that Claude knows to call the tool again",
+        "reason": "`stop_reason` is a field of Claude's response, not of your `tool_result`. An empty result is valid for a call with no output, so it hides the failure."
+      },
+      {
+        "id": "c",
+        "text": "A placeholder order list, so Claude has something to show the customer while the database recovers",
+        "reason": "Made-up data gives the customer wrong answers. `is_error: true` with the error message is how you tell Claude the tool failed."
+      },
+      {
+        "id": "d",
+        "text": "Nothing at all, leaving out the `tool_result` so that Claude retries the call on its next turn",
+        "reason": "Each `tool_use` needs its `tool_result` immediately after; leaving it out causes an error such as \"tool_use ids were found without tool_result blocks immediately after\"."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A failed tool goes back as a `tool_result` with **`is_error: true`** and the message, never as a silent empty result.",
+    "explanation": "An empty `tool_result` is how a call with no output looks, so Claude had no way to know the lookup failed and answered as if it succeeded. Marking the result with `is_error: true` and including the message lets Claude explain the failure instead. Choice c is tempting because the customer sees something, but it's wrong information.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Tell Claude the tool failed; it can then explain or adapt.",
+      "steps": [
+        {
+          "label": "Tool call fails"
+        },
+        {
+          "label": "tool_result",
+          "sublabel": "is_error: true + message"
+        },
+        {
+          "label": "Claude adapts its reply"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-is-error"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-instructive-error-message",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool errors",
+    "stem": "When your `search_flights` tool fails, it returns a `tool_result` with `is_error: true` and the content \"failed\". Claude often can't tell users what went wrong or what to do next. What should the tool's error content say instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Only the single word \"error\", since a shorter message keeps the conversation's context small",
+        "reason": "A one-word error is as generic as \"failed\". The page asks for what went wrong and what to try next, so Claude can recover or adapt without guessing."
+      },
+      {
+        "id": "b",
+        "text": "Nothing at all: send an empty `tool_result` without `is_error`, so Claude simply moves on",
+        "reason": "An empty result is how a successful call with no output looks, so Claude can't tell that the tool failed."
+      },
+      {
+        "id": "c",
+        "text": "A made-up but plausible flight list, so the user still sees results while search is down",
+        "reason": "Invented data gives users wrong answers. Report the failure with `is_error: true` and a useful message."
+      },
+      {
+        "id": "d",
+        "text": "What went wrong and what to try next, such as \"Rate limit exceeded. Retry after 60 seconds.\"",
+        "reason": "Correct: the page says to write instructive error messages. Instead of generic errors like \"failed\", include what went wrong and what Claude should try next."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Make tool errors **instructive**: say what went wrong and what to try next, not just \"failed\".",
+    "explanation": "Setting `is_error: true` tells Claude the tool failed, but the message is what lets it recover or explain. Naming the problem and the next step gives Claude that context instead of leaving it to guess. Choice a is tempting because short messages save tokens, but a one-word error is just as unhelpful as \"failed\".",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-is-error"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-tool-missing-param-error",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool errors",
+    "stem": "Claude sometimes calls your `get_weather` tool without its required `location`. Your handler raises an exception, and your loop ends the conversation with a generic error page. What does the Handle tool calls page suggest sending instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A plain user text message asking the user to type in their location again before continuing",
+        "reason": "The `tool_use` must be answered by its `tool_result` immediately after. The page suggests a `tool_result` that states the error so Claude can correct the call."
+      },
+      {
+        "id": "b",
+        "text": "A `tool_result` with `is_error: true` naming the missing parameter, so Claude can call again",
+        "reason": "Correct: continue with a `tool_result` indicating the error, and Claude will try the tool again with the missing information filled in, retrying 2-3 times before apologizing."
+      },
+      {
+        "id": "c",
+        "text": "The previous request again, unchanged, since Claude's next attempt will probably include it",
+        "reason": "Resending without saying what was wrong gives Claude nothing to correct; the page suggests returning the error in a `tool_result`."
+      },
+      {
+        "id": "d",
+        "text": "A `tool_result` with a default location filled in, so the user still gets some weather answer",
+        "reason": "Guessing an input hides the problem. The page suggests returning the error with `is_error: true` so Claude retries with the missing information."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "An invalid tool call is an error Claude can fix: report it with **`is_error: true`** and Claude retries with corrections.",
+    "explanation": "A missing parameter is terminal for that exact call, but Claude can send a corrected one if it's told what was wrong. Returning the error as a `tool_result` keeps the conversation going and lets Claude retry. Choice d is tempting because the user gets an answer, but a guessed location gives the wrong one.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-is-error"
+    ],
+    "lessonId": "l-course-failure-handling"
   }
 ]

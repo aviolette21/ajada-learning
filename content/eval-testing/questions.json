@@ -495,5 +495,1253 @@
       "c-agent-sdk-otel"
     ],
     "lessonId": "l-debugging-errors"
+  },
+  {
+    "id": "q-s4test-unit-tool-wrapper",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels",
+    "stem": "Your `search_orders` tool wrapper turns Claude's tool input into a database query string, and a bug in how it formats dates reached production. You want the cheapest test that checks this one function on its own, on every change. What should you write?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An end-to-end test that asks the chat app about last week's orders and checks the reply",
+        "reason": "A full-system run exercises everything, and bringing a system up with its dependencies can take minutes to hours. It also doesn't isolate the wrapper."
+      },
+      {
+        "id": "b",
+        "text": "A unit test that calls the wrapper directly with sample inputs and checks the query it builds",
+        "reason": "Correct: a unit test is the smallest and simplest form of test. It checks one separable piece, such as a function, on its own and usually runs in milliseconds."
+      },
+      {
+        "id": "c",
+        "text": "An integration test that runs the wrapper against the real database with the model in the loop",
+        "reason": "Integration tests verify that an assembled component works correctly. They cost more and aren't the cheapest way to check one function's own logic."
+      },
+      {
+        "id": "d",
+        "text": "A smoke test that starts the whole system and checks that one critical request succeeds",
+        "reason": "Smoke tests are simple system tests of critical behavior. They need the whole system running and don't target the date-formatting logic."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "One function, checked on its own and fast: that's a **unit test**. Parsers and tool wrappers are the classic targets.",
+    "explanation": "A unit test checks one separable piece, such as a function, in isolation, and it usually finishes in milliseconds, which makes it cheap enough to run on every change. The deciding detail is that the bug sits inside one function, the tool wrapper. Choice a is tempting because a full run would eventually hit the bug, but it's slow, costly and doesn't point at the wrapper.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-functional-shape",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Testing model output",
+    "stem": "A test sends one support email to Claude and expects back JSON with `name`, `email` and `plan` fields. You can't predict the exact values Claude will write. Which check makes this test both stable and useful?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check that the API returned HTTP 200, since a successful call means the reply is usable",
+        "reason": "A refusal also comes back with a 200 status code, and its output may not match your schema, so a 200 alone doesn't prove the reply's shape."
+      },
+      {
+        "id": "b",
+        "text": "Check that the words name, email and plan each appear somewhere in the reply text",
+        "reason": "Word matching misses the real failures: invalid JSON syntax, missing required fields and inconsistent data types."
+      },
+      {
+        "id": "c",
+        "text": "Parse the reply as JSON and check each required field is there with the right type",
+        "reason": "Correct: this checks the shape downstream code relies on, catching parse errors, missing required fields and inconsistent data types."
+      },
+      {
+        "id": "d",
+        "text": "Retry the call until the reply parses, then mark the test as passed on that attempt",
+        "reason": "Schema violations that need retries are exactly the failure to catch; passing on a later attempt hides it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Test one Claude call by its **shape**: it parses, the required fields are there, and the types are right.",
+    "explanation": "When you can't predict the exact text, a stable test checks what must hold on every run: the reply is valid JSON with the required fields and types. That catches the failures that break downstream code. Choice a is tempting because a 200 looks like success, but a refusal also returns 200 with output that may not match the schema.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-exact-text-flaky",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Testing model output",
+    "stem": "A test asserts that Claude's summary of a fixed article exactly equals a summary saved last week. With no change to the code or the prompt, it passes on one run and fails on the next. What explains this, and what should the test check instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The article is cached between runs, so clear the cache to give every run identical input",
+        "reason": "Nothing about the input changed between runs. Identical inputs can still produce different outputs across API calls."
+      },
+      {
+        "id": "b",
+        "text": "Temperature 0 makes the output identical every time, so keep the exact-match check",
+        "reason": "Even with temperature set to 0, results aren't fully deterministic, so an exact-text assertion stays flaky."
+      },
+      {
+        "id": "c",
+        "text": "A third-party cloud provider adds the variation, so call Anthropic's own API directly",
+        "reason": "Non-determinism applies both to Anthropic's first-party service and to inference through third-party cloud providers."
+      },
+      {
+        "id": "d",
+        "text": "The same input can vary in output, so check properties of the summary, not its text",
+        "reason": "Correct: identical inputs may produce different outputs across API calls, so a stable test checks what must hold every time, not the exact wording."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude's wording varies run to run, so assert **shape and properties**, never exact text.",
+    "explanation": "Model output is non-deterministic: the same input can come back worded differently on the next call, even at temperature 0. A test that compares exact text will flake with no code change. Choice b is tempting because lowering temperature makes output more conservative, but it doesn't make it fully deterministic.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-integration-handoff",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels",
+    "stem": "In your RAG app, the retrieval function passes its unit tests, and so does the function that builds the prompt. Yet the model never sees the retrieved passages: retrieval returns objects, and the prompt builder expects plain strings. Which test would catch this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An integration test that feeds retrieval's real result into the prompt builder",
+        "reason": "Correct: an integration test runs on assembled components to verify they work correctly together. This bug lives in the handoff, which no unit test exercises."
+      },
+      {
+        "id": "b",
+        "text": "More unit tests for retrieval, covering a wider range of queries and empty results",
+        "reason": "A unit test checks one piece on its own. Retrieval already works by itself, so more unit tests never touch the handoff."
+      },
+      {
+        "id": "c",
+        "text": "A test of one model call with hand-written context, checking the reply's fields",
+        "reason": "Hand-writing the context skips the retrieval step, so the mismatch between the two components never appears."
+      },
+      {
+        "id": "d",
+        "text": "A regression test that replays last month's fixed bugs against the prompt builder",
+        "reason": "Regression tests stop previously fixed bugs from coming back. This is a new bug in how two components connect."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every piece can pass alone while the **handoff** between them is broken; only an **integration test** crosses it.",
+    "explanation": "Unit tests check each piece in isolation, so two components can both pass while disagreeing about the data they exchange. An integration test assembles the pieces and checks they work together, which is where this bug lives. Choice c is tempting because it tests a model call, but writing the context by hand bypasses retrieval entirely.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Each piece passes alone; the integration test covers the handoff between them.",
+      "steps": [
+        {
+          "label": "Retrieval",
+          "sublabel": "unit tests pass"
+        },
+        {
+          "label": "Handoff",
+          "sublabel": "objects vs strings"
+        },
+        {
+          "label": "Prompt builder",
+          "sublabel": "unit tests pass"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-e2e-wiring",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels",
+    "stem": "Every unit and integration test for your chat assistant passes. After release, users who type a question into the web app never see an answer, because the page posts to an outdated backend route. What kind of test would have caught this before release?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A unit test for the function that formats Claude's reply before it's displayed",
+        "reason": "That function can work perfectly. The bug is in how the whole flow is wired, which a test of one function never runs."
+      },
+      {
+        "id": "b",
+        "text": "An end-to-end test that submits a question in the web app and checks for an answer",
+        "reason": "Correct: an end-to-end test runs the whole flow as a user would, from input to output, so a broken route anywhere along it shows up."
+      },
+      {
+        "id": "c",
+        "text": "An integration test of the handoff from the retrieval step into the model call",
+        "reason": "That handoff isn't where the failure is. An integration test covers one connection, not the page-to-backend path a user takes."
+      },
+      {
+        "id": "d",
+        "text": "A larger eval set of prompts sent directly to the model to grade answer quality",
+        "reason": "Calling the model directly skips the web app and the backend route, so it can't see a wiring failure between them."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Only an **end-to-end test** runs the flow the way a user does, so it catches wiring that smaller tests never reach.",
+    "explanation": "The largest-scale test checks the system's end-to-end functionality, from the user's input to the output they see. Here every piece works and the failure is in how the page connects to the backend, so only a full run reaches it. Choice d is tempting because evals feel thorough, but sending prompts straight to the model skips the broken route.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-only-e2e-suite",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels",
+    "stem": "Your team's only tests are end-to-end runs of the whole agent. A run takes about an hour, and when one fails nobody can tell which part broke. Which two additions address this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Unit tests for pieces such as the output parser and each tool wrapper",
+        "reason": "Correct: unit tests check one separable piece on its own and usually finish in milliseconds, so a failure points straight at that piece."
+      },
+      {
+        "id": "b",
+        "text": "More end-to-end cases, so that every feature is covered by at least one full run",
+        "reason": "More full runs add runtime and still don't show which part broke when one fails."
+      },
+      {
+        "id": "c",
+        "text": "Rerunning each failed end-to-end test until it passes before reporting it",
+        "reason": "Rerunning until a pass hides failures instead of locating them, and it adds the cost of more full runs."
+      },
+      {
+        "id": "d",
+        "text": "Integration tests for handoffs, such as a retrieval result passed into the model call",
+        "reason": "Correct: an integration test verifies that an assembled component works, so a failure narrows to that connection without running the whole system."
+      },
+      {
+        "id": "e",
+        "text": "Dropping the end-to-end tests, since smaller tests can catch every failure they find",
+        "reason": "Only the largest-scale test checks the system's end-to-end functionality. Smaller tests complement it; they don't replace it."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Smaller tests make failures **cheap to find and easy to place**; keep the end-to-end run for what only it can see.",
+    "explanation": "An end-to-end run tells you the flow failed, not where, and it's slow. Unit tests isolate single functions and integration tests isolate single handoffs, so a failure in either points at one place and runs fast. Choice e is tempting once smaller tests exist, but the whole-system check still catches failures they can't reach.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-trace-which-step",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tracing",
+    "stem": "An agent that searches, calls two tools and then answers gives a wrong final answer on one eval case. Your logs record only the user's input and the final reply. What would let you see which step produced the bad result?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the failing case ten more times and keep whichever answer appears most often",
+        "reason": "Rerunning shows how often the case fails, not where. You still can't see any step between the input and the output."
+      },
+      {
+        "id": "b",
+        "text": "Log the whole request's total token count and latency alongside the input",
+        "reason": "Totals for the whole request don't separate the steps. A trace breaks a request into spans, one per model request or tool use."
+      },
+      {
+        "id": "c",
+        "text": "Trace the run, so each model request and tool use is recorded as its own step",
+        "reason": "Correct: a trace is the full record of one request through your system, and each span is one step; traces are meant for debugging failed or slow requests."
+      },
+      {
+        "id": "d",
+        "text": "Add the failing case to an end-to-end suite so it's caught before each release",
+        "reason": "That catches the failure again but still records only input and output, so it doesn't show which step went wrong."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A test tells you **that** a case failed; a **trace** tells you **which step** failed.",
+    "explanation": "Input-and-output logs show the symptom but hide everything in between. A trace records each step of the run as its own span, such as each model request and tool use, so you can see where the bad result first appeared. Choice d is tempting because more coverage feels useful, but catching the failure again doesn't explain it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-trace-retrieval-input",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tracing",
+    "stem": "A RAG assistant gave a wrong answer. In the trace, the retrieval step returned three passages, none containing the answer, and the model request's input shows those same passages. The model's response sticks to what it was given. Where should you start fixing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The prompt's wording, since the model should have known the right answer anyway",
+        "reason": "The trace shows the model answered from the context it was given, and that context lacked the answer, so the prompt isn't the first suspect."
+      },
+      {
+        "id": "b",
+        "text": "The model choice, since a more capable model would have found the missing fact",
+        "reason": "The bad result was already in the retrieval step's output, before any model saw it; the trace points upstream of the model."
+      },
+      {
+        "id": "c",
+        "text": "The response parser, since the reply must have changed after the model returned it",
+        "reason": "The trace shows the model's response matched the context it received; nothing points at a step after the model request."
+      },
+      {
+        "id": "d",
+        "text": "The retrieval step, since the right passage never made it into the model's input",
+        "reason": "Correct: reading the steps in order, the first bad output came from retrieval, so that is where the failure originated."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Follow the trace to the **first step whose output is wrong**; that's where the problem began, not where it surfaced.",
+    "explanation": "A trace lets you check each step's input and output in order. Here the model faithfully used what it received, and what it received was already missing the answer, so the problem began at retrieval. Choice a is tempting because the wrong answer came out of the model, but the model wasn't where things first went wrong.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The first wrong output is where the failure began.",
+      "steps": [
+        {
+          "label": "Retrieval",
+          "sublabel": "answer missing"
+        },
+        {
+          "label": "Model request",
+          "sublabel": "uses what it got"
+        },
+        {
+          "label": "Reply",
+          "sublabel": "wrong answer"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-trace-integration-bug",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tracing",
+    "stem": "Some users see \"No answer available\". For those requests, the trace shows the model request returned a correct, well-formed answer, but your application's span right after it records an error while reading that response. Where is the problem?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In your code that handles the model's response, not in the model's output itself",
+        "reason": "Correct: the model's step produced a good result, and the first bad result is your own code reading it, so the fix is in the integration layer."
+      },
+      {
+        "id": "b",
+        "text": "In the model's output, so the prompt needs examples of the expected answer format",
+        "reason": "The trace shows the response was correct and well formed; changing the prompt won't fix code that mishandles it."
+      },
+      {
+        "id": "c",
+        "text": "In the retrieval step, because the model must have answered from missing context",
+        "reason": "The model's answer was correct, so its context was fine; the failure first appears in the step after the model's good response."
+      },
+      {
+        "id": "d",
+        "text": "In the API itself, so wrap every model request in retries with exponential backoff",
+        "reason": "The model request succeeded and returned a correct answer; retrying it repeats a step that already worked."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Good model output followed by an error in your span means an **integration-layer** bug; don't touch the prompt.",
+    "explanation": "Traces show each request inside your application's own spans, so you can see the model's step and your code's step side by side. Here the model returned a correct answer and the error starts in your code reading it, which places the bug in the integration layer. Choice b is tempting because users see a bad answer, but the model's output was fine.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-trace-slow-step",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tracing",
+    "stem": "Your agent sometimes takes minutes to answer a simple question. Your logs record only the total time of each request, so you can't tell where the time goes. What would show you which step is slow?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to a faster model, then compare the new total time with the old one",
+        "reason": "That guesses at the cause. The total time still won't show whether the delay is in a model request or in a tool use."
+      },
+      {
+        "id": "b",
+        "text": "Trace the requests, so each model request and tool use is a span with its timing",
+        "reason": "Correct: a trace breaks one request into spans, one per step such as a model request or a tool use, and traces are meant for debugging failed or slow requests."
+      },
+      {
+        "id": "c",
+        "text": "Add an end-to-end test that fails whenever the total response time is too long",
+        "reason": "That flags slow runs again, but it measures the same total time, so it still doesn't show which step is slow."
+      },
+      {
+        "id": "d",
+        "text": "Raise the request timeout so that slow requests can finish instead of failing",
+        "reason": "A longer timeout hides the symptom. It records nothing about where the time went."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Slow or failing run? A **trace** times each step separately, so you can see which one is the problem.",
+    "explanation": "A total time per request shows that a run is slow, not where. A trace records each step, such as each model request and tool use, as its own span with its own timing, which is why traces are used to debug failed or slow requests. Choice a is tempting because a faster model often helps, but if the delay is in a tool it changes nothing, and you still can't see why.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-grade-outcome-not-path",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Testing agents",
+    "stem": "Your agent test checks that the agent calls `lookup_customer`, then `check_inventory`, then `create_order`, in exactly that order. A new version checks inventory first, creates the correct order, and fails the test. What does Anthropic's guidance on agent evals suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the exact-sequence check, because any change in tool order signals a regression",
+        "reason": "Agents regularly find valid approaches that eval designers didn't anticipate; failing them punishes creativity, not mistakes."
+      },
+      {
+        "id": "b",
+        "text": "Compare the agent's final reply text with the reply the previous version gave",
+        "reason": "Model outputs vary between runs, so matching the reply text is brittle; check the outcome, such as whether the order exists."
+      },
+      {
+        "id": "c",
+        "text": "Grade what the agent produced, such as whether the correct order now exists",
+        "reason": "Correct: it's often better to grade what the agent produced, not the path it took. The outcome is the final state, like a record that really exists."
+      },
+      {
+        "id": "d",
+        "text": "Fix the tool order in the system prompt so that every run follows the same path",
+        "reason": "The guidance is to stop grading the path, not to force one; agents often find valid approaches designers didn't anticipate."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Test an agent by its **outcome**, not by the exact steps it took to get there.",
+    "explanation": "Agents often reach the right result by a route nobody planned for, so a test that demands one exact sequence fails good runs. Grading the outcome, such as whether the order now exists, keeps the test focused on what matters. Choice a is tempting because a changed sequence looks like a regression, but here the result was correct.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-route-deterministic-first",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Routing checks",
+    "stem": "Your support bot's suite has two kinds of checks: code checks (the reply parses, required fields exist, the right tool was called) and a model-graded rubric for tone. You want to keep grading costs down without losing coverage. How should you split the work?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use code checks wherever they can decide the result, and the model grader only for tone",
+        "reason": "Correct: Anthropic recommends deterministic graders where possible and LLM graders where necessary. Code graders are fast and cheap; model graders cost more."
+      },
+      {
+        "id": "b",
+        "text": "Send every check to the model grader so that all results come from one consistent judge",
+        "reason": "Model graders are non-deterministic and more expensive than code, so using them where code can decide adds cost without benefit."
+      },
+      {
+        "id": "c",
+        "text": "Use code checks for tone as well, matching each reply against a list of approved phrases",
+        "reason": "Code graders are brittle to valid variations and lack nuance, so they handle subjective qualities such as tone poorly."
+      },
+      {
+        "id": "d",
+        "text": "Replace both with a human reviewer who reads a sample of replies after every change",
+        "reason": "Manual review is time-intensive and doesn't scale; systematic human review is best kept for calibrating model graders or subjective outputs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Route each check to the cheapest grader that can decide it: **code where possible, a model where necessary**.",
+    "explanation": "Code graders are fast, cheap and reproducible, so they should decide everything they can, like whether the reply parses or the right tool was called. A model grader earns its higher cost only on judgment calls such as tone. Choice b is tempting because one judge sounds consistent, but model graders are themselves non-deterministic and cost more.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-smoke-short-circuit",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Routing checks",
+    "stem": "Your full end-to-end suite calls the live model, takes about an hour and costs money on every run. Many broken builds fail on something basic, such as the service not starting at all. How can you avoid paying for the full run on those builds?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the full suite on every build, but on a random half of its cases",
+        "reason": "That still pays for a long run on every broken build, and it drops coverage on the builds that work."
+      },
+      {
+        "id": "b",
+        "text": "Run the full suite twice on each build and keep the better of the two results",
+        "reason": "That doubles the cost of every run, including the broken builds you wanted to stop early."
+      },
+      {
+        "id": "c",
+        "text": "Replace the end-to-end suite with unit tests, since they catch the same failures",
+        "reason": "Unit tests check pieces in isolation; only a system-level test checks the system's end-to-end functionality."
+      },
+      {
+        "id": "d",
+        "text": "Run a quick smoke test first, and start the full suite only if it passes",
+        "reason": "Correct: smoke tests check very simple but critical behavior, and they serve to short-circuit additional and more expensive testing."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Let a cheap **smoke test** gate the expensive run, so you pay for the full suite only on builds worth testing.",
+    "explanation": "A smoke test checks very simple but critical behavior, such as whether the service starts and answers one request. If it fails, there's no point paying for the hour-long run. Choice c is tempting because unit tests are cheap, but they test pieces in isolation and can't replace a whole-system check.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Cheap checks run first and stop broken builds before the expensive run.",
+      "steps": [
+        {
+          "label": "Unit tests",
+          "sublabel": "milliseconds"
+        },
+        {
+          "label": "Smoke test",
+          "sublabel": "critical path"
+        },
+        {
+          "label": "Full end-to-end",
+          "sublabel": "only if smoke passes"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-multiple-trials",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Testing agents",
+    "stem": "One case in your agent eval passes on some runs and fails on others, with no change to the agent. A teammate wants to delete it as flaky. What does Anthropic's eval guidance suggest instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delete it, because a case that doesn't give the same result every run gives no signal",
+        "reason": "Model outputs vary between runs by nature; that's handled by running multiple trials, not by dropping cases."
+      },
+      {
+        "id": "b",
+        "text": "Keep only the first run's result so that the eval stays fast and reproducible",
+        "reason": "One run of a varying output is a single sample; running multiple trials produces more consistent results."
+      },
+      {
+        "id": "c",
+        "text": "Run several trials of the case and read the transcripts of the ones that fail",
+        "reason": "Correct: because outputs vary between runs, run multiple trials; the transcript shows whether the agent erred or the grader rejected a valid answer."
+      },
+      {
+        "id": "d",
+        "text": "Lower the grader's pass threshold until the case passes on every single run",
+        "reason": "That hides real failures; the transcript tells you whether the agent made a genuine mistake or the grader rejected a valid solution."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A case that passes only sometimes needs **multiple trials and a look at the transcripts**, not deletion.",
+    "explanation": "Because model outputs vary between runs, one run is only a sample; multiple trials show how often the case really fails. Reading the transcripts of the failures then tells you whether the agent made a mistake or the grader was wrong. Choice a is tempting because flaky tests are usually removed, but here the variation is expected and still carries signal.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4test-production-tracing",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Tracing",
+    "stem": "Users report that your research agent sometimes misses obvious information, and rerunning their queries doesn't reproduce it. You can't see why it happens. Which two practices help you find the cause?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rerun the exact prompt until the bug reproduces, since the same input gives the same run",
+        "reason": "Agents make dynamic decisions and are non-deterministic between runs, even with identical prompts."
+      },
+      {
+        "id": "b",
+        "text": "Add full production tracing so that you can diagnose why the agent failed",
+        "reason": "Correct: Anthropic added full production tracing, which let them diagnose why agents failed and fix issues systematically."
+      },
+      {
+        "id": "c",
+        "text": "Add more unit tests for each tool, since the misses must come from a tool bug",
+        "reason": "That assumes the cause before you can see it. A miss could come from poor search queries, weak sources or tool failures; tracing shows which."
+      },
+      {
+        "id": "d",
+        "text": "Wait until enough user reports pile up for the pattern to show on its own",
+        "reason": "The reports said the agent wasn't finding obvious information but couldn't show why; seeing why took tracing."
+      },
+      {
+        "id": "e",
+        "text": "Monitor the agent's decision patterns and how its parts interact",
+        "reason": "Correct: Anthropic monitored agent decision patterns and interaction structures, without reading individual conversations, to find root causes and fix common failures."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "When an agent fails in ways you can't reproduce, **production tracing** of its decisions shows you why.",
+    "explanation": "Agents are non-deterministic, so a reported failure often won't recur on a rerun, and user reports describe what went wrong but not why. For its multi-agent research system, Anthropic added full production tracing plus monitoring of decision patterns and interaction structures, without reading conversation contents. Choice a is tempting because rerunning is the usual way to reproduce a bug, but identical prompts don't guarantee identical runs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-s4fail-401-after-key-rotation",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "Right after your team rotates its API keys, every request from a nightly job fails with `401 authentication_error`. The job's handler retries each failure five times with exponential backoff before giving up. What should happen instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the retry count and stretch the backoff, so the job outlasts the authentication outage",
+        "reason": "A 401 means there's an issue with the API key itself: malformed, revoked or expired. Waiting longer doesn't change the key the request sends."
+      },
+      {
+        "id": "b",
+        "text": "Treat it as terminal: stop retrying and update the job to send the new key from the rotation",
+        "reason": "Correct: 401 means an issue with your API key, for example revoked or expired. Resending the same key fails every time; replacing it fixes the request."
+      },
+      {
+        "id": "c",
+        "text": "Wait for the `retry-after` header on each 401 and retry once that interval has passed",
+        "reason": "The SDK honors `retry-after` on transient failures such as rate limits. A 401 describes a problem with the key, which no wait fixes."
+      },
+      {
+        "id": "d",
+        "text": "Point the job at a different model, since a key is rejected only for the model it was made for",
+        "reason": "The errors page ties a 401 to the API key (malformed, revoked or expired), not to the model a request names."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A **401** is terminal: no amount of waiting fixes a revoked or expired key. Fix the key, then rerun.",
+    "explanation": "Ask whether sending the exact same request again, after a wait, could plausibly work. A 401 says the API key itself is the problem, and the timing right after a rotation points straight at it, so every retry fails the same way. Choice a is tempting because backoff is the right tool for transient failures, but here it only delays the alert.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-400-after-deploy",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "After a deploy, every request from your chat service fails with `400 invalid_request_error`, saying the conversation must end with a user message. Your wrapper retries 400s with backoff, so users wait a minute before seeing an error. What is the right fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep retrying 400s but shorten the backoff, so users see the error sooner while the API recovers",
+        "reason": "Nothing is recovering: a 400 is about the format or content of your request, so the identical request fails on every attempt."
+      },
+      {
+        "id": "b",
+        "text": "Retry each 400 on a different model, since it means this model cannot serve the request right now",
+        "reason": "A 400 points at your request, not at capacity. A temporarily overloaded API returns 529 `overloaded_error` instead."
+      },
+      {
+        "id": "c",
+        "text": "Stop retrying 400s and fix how the new deploy builds the messages array it sends to the API",
+        "reason": "Correct: 400 means an issue with the format or content of your request. The deploy changed the request, so the fix is in your code; retries only add delay."
+      },
+      {
+        "id": "d",
+        "text": "Treat the 400s as a rate limit and slow the service down until the error rate drops",
+        "reason": "A rate limit returns 429 `rate_limit_error`. This 400 carries a validation message about the request itself."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A **400** describes your request: the same request fails the same way, so fix the code instead of retrying it.",
+    "explanation": "The deciding detail is that the failures began with a deploy and the message describes the request's shape. A 400 is terminal: sending the identical request again can't succeed, so retries just make users wait for the same error. Choice a is tempting because it reduces the wait, but it still treats a code bug as something that will pass on its own.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-404-check-path-and-id",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "A worker reads a resource ID that someone pasted into a config file by hand, and every call it makes with that ID returns `404 not_found_error`. A teammate wants to add retries in case the error clears. What does the errors page point you to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry with exponential backoff, since a 404 usually clears once the API's caches refresh",
+        "reason": "The errors page doesn't treat a 404 as transient: it says the resource wasn't found and to check the endpoint path and resource IDs."
+      },
+      {
+        "id": "b",
+        "text": "Contact support with the request ID, since a 404 signals an error inside Anthropic's systems",
+        "reason": "Unexpected errors inside Anthropic's systems are 500 `api_error`. A 404 says the requested resource wasn't found."
+      },
+      {
+        "id": "c",
+        "text": "Rotate the API key, since a 404 means this key is not allowed to see the resource it asked for",
+        "reason": "A key without permission for a resource gets 403 `permission_error`. A 404 means the resource itself was not found."
+      },
+      {
+        "id": "d",
+        "text": "Check the endpoint path and the resource ID in the URL, since the same call keeps failing",
+        "reason": "Correct: 404 means the requested resource was not found, and the errors page says to check the endpoint path and any resource IDs in the URL."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A **404** is terminal: the same path and ID find nothing every time, so check them instead of retrying.",
+    "explanation": "Would the identical request, sent again later, find the resource? Not if the ID or path is wrong, and a hand-pasted ID is the obvious suspect. That makes 404 terminal: fix what the request points at. Choice c is tempting because access problems feel similar, but a missing permission is a 403, not a 404.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-500-retry-then-support",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "A request fails with `500 api_error`. The identical request succeeded a minute earlier, and nothing in your code or configuration has changed since. What does the errors page recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry with exponential backoff, and contact support with the request ID if the error persists",
+        "reason": "Correct: 500 means an unexpected error inside Anthropic's systems. The errors page says to retry with exponential backoff and, if it persists, contact support with the request ID."
+      },
+      {
+        "id": "b",
+        "text": "Fix the request body before retrying, since a 500 means the format or content of the request is invalid",
+        "reason": "That's a 400 `invalid_request_error`. A 500 is an unexpected error inside Anthropic's systems, which is why a retry can succeed."
+      },
+      {
+        "id": "c",
+        "text": "Replace the API key, since a 500 means the key was revoked between the two requests",
+        "reason": "A revoked key returns 401 `authentication_error`. A 500 comes from Anthropic's side, not from your key."
+      },
+      {
+        "id": "d",
+        "text": "Move the call to the Message Batches API, since a 500 means the request ran too long",
+        "reason": "Long requests that time out return 504 `timeout_error`, where streaming or batches are suggested. A 500 calls for a retry with backoff."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A **500** is retriable: back off and retry, and keep the **request ID** for support if it doesn't clear.",
+    "explanation": "An unexpected server-side error is the textbook retriable case: nothing about your request is wrong, so the same request can succeed on a later attempt. The detail that it worked a minute ago and nothing changed rules out a request or key problem. Choice b is tempting because errors often mean a bad request, but that's what a 400 says, not a 500.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-request-id"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-randomized-backoff",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retry policy",
+    "stem": "During a brief overload, each of your 200 workers retries its failed request immediately and keeps retrying in a tight loop. The overload drags on far longer than the original blip. What retry pattern does Google's SRE guidance recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep retrying immediately but from fewer workers, so each request still gets through fast",
+        "reason": "Fewer workers still retry with no wait and in step. The SRE guidance is to always use randomized exponential backoff."
+      },
+      {
+        "id": "b",
+        "text": "Randomized exponential backoff, so waits grow and clients spread out instead of retrying in sync",
+        "reason": "Correct: SRE says to always use randomized exponential backoff. If retries aren't randomly distributed over the retry window, small disturbances can make them synchronize."
+      },
+      {
+        "id": "c",
+        "text": "A fixed one-second delay for every worker, so the retries arrive on a steady, predictable schedule",
+        "reason": "A fixed delay keeps every worker in lockstep. SRE warns that retries not randomly distributed over the retry window can synchronize."
+      },
+      {
+        "id": "d",
+        "text": "Unlimited retries with no delay, so each request succeeds the moment the service is back",
+        "reason": "SRE says to limit retries per request and not to retry a given request indefinitely; no delay is what kept the load piling on."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Retriable doesn't mean retry now: use **randomized exponential backoff** so clients don't retry in sync.",
+    "explanation": "Retrying is right for an overload, but how you retry matters: 200 clients retrying instantly and in step keep the service overloaded. Growing, randomized waits spread the retries out. Choice c is tempting because a delay sounds like backoff, but a fixed delay keeps every worker synchronized.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Each wait grows, and randomizing it keeps clients from retrying in sync.",
+      "steps": [
+        {
+          "label": "Request fails"
+        },
+        {
+          "label": "Short random wait"
+        },
+        {
+          "label": "Retry"
+        },
+        {
+          "label": "Longer random wait"
+        },
+        {
+          "label": "Retry"
+        },
+        {
+          "label": "Limit hit: fail"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+      "title": "Addressing Cascading Failures",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-queue-owns-retries",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "SDK retries",
+    "stem": "Your jobs run on a queue that already retries failed jobs with its own backoff, and you want that to be the only retry layer. Each job calls Claude through the Python SDK with default settings. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing, since the SDK never retries on its own and the queue is already the only retry layer",
+        "reason": "The SDK retries certain errors 2 times by default with a short exponential backoff, so with default settings there are two layers."
+      },
+      {
+        "id": "b",
+        "text": "Raise the client `timeout`, since the SDK retries a request only when that request times out",
+        "reason": "Timed-out requests are retried, but so are connection errors, 408, 409, 429 and >=500 errors. `timeout` doesn't turn retries off."
+      },
+      {
+        "id": "c",
+        "text": "Create the client with `max_retries=0`, which turns off the SDK's own automatic retries",
+        "reason": "Correct: `max_retries` configures or disables the SDK's retries (the default is 2). Setting it to 0 leaves retrying to the queue."
+      },
+      {
+        "id": "d",
+        "text": "Catch `RateLimitError` in every job, since catching it stops the SDK from retrying 429s",
+        "reason": "Catching an exception handles the error your code receives; the option that configures or disables the SDK's own retries is `max_retries`."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Know what the SDK already retries; if another layer owns retries, set **`max_retries=0`** instead of stacking both.",
+    "explanation": "Before adding or keeping a retry layer, check what's already covered: the SDK retries connection errors, 429s and 5xx errors twice by default. To leave retries to the queue, turn the SDK's off with `max_retries=0`. Choice a is tempting because retries are easy to miss when you didn't write them, but the SDK does retry by default.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-connection-error-retriable",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "SDK retries",
+    "stem": "A request from your job fails because the network connection dropped before any response arrived. Nothing about the request, the API key or its permissions has changed. How should you classify and handle this failure?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Terminal: fix the request body, since a failed request means its format or content was invalid",
+        "reason": "An invalid request gets a 400 response describing the problem. Here no response arrived at all, and the request itself hasn't changed."
+      },
+      {
+        "id": "b",
+        "text": "Retriable: retry it with backoff, as the official SDKs already do for connection errors",
+        "reason": "Correct: the SDK automatically retries transient failures, such as connection errors, rate limits and 5xx server errors, with exponential backoff, twice by default."
+      },
+      {
+        "id": "c",
+        "text": "Terminal: replace the API key, since a dropped connection means the key was rejected",
+        "reason": "A rejected key gets a 401 `authentication_error` response. A dropped connection says nothing about the key."
+      },
+      {
+        "id": "d",
+        "text": "Retriable: retry at once in a tight loop until it succeeds, so the job loses no time",
+        "reason": "Retriable doesn't mean retry instantly and forever: the SDK waits with exponential backoff between attempts, and its retries are limited."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A dropped connection is **retriable**: the same request can succeed later, and the official SDKs already retry it with backoff.",
+    "explanation": "Ask whether the identical request could succeed later. A dropped connection is a transient problem outside your request, so it can, and the official SDKs already retry connection errors with exponential backoff, so you may not need retry code of your own. Choice d is tempting because the failure is retriable, but retrying instantly and without a limit piles on load.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-retry-rule-sre",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "Your team is writing one rule for which failed calls the client should retry automatically and which it should surface for a fix. Which rule matches Google's SRE guidance on retries?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry every failure a few times, since most errors clear up if you give them a moment",
+        "reason": "SRE says not to retry permanent errors or malformed requests, because neither will ever succeed; retrying them only adds load."
+      },
+      {
+        "id": "b",
+        "text": "Never retry anything, since every retry adds load to a service that may already be struggling",
+        "reason": "SRE doesn't ban retries: it says to retry with randomized exponential backoff and a limit per request, so transient failures get another chance."
+      },
+      {
+        "id": "c",
+        "text": "Retry failures that a later, identical attempt could fix; surface permanent and malformed ones",
+        "reason": "Correct: SRE says \"don't retry permanent errors or malformed requests in a client, because neither will ever succeed\". Transient failures, retried with backoff, can."
+      },
+      {
+        "id": "d",
+        "text": "Retry only errors caused by your own request, since problems on the server's side never clear",
+        "reason": "That's backwards: a malformed request fails the same way every time, while a transient server-side problem such as an overload can clear."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Ask whether the **identical request** could succeed later: retry transient failures, surface **permanent errors and malformed requests**.",
+    "explanation": "The test is whether sending the same request again could plausibly work. Transient failures can clear, so they're worth a bounded retry with backoff; a permanent error or a malformed request fails every time. Choice a is tempting because many failures are transient, but retrying permanent ones only adds load and delays the fix.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+      "title": "Addressing Cascading Failures",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-cap-retries-per-request",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retry policy",
+    "stem": "Your worker retries `529 overloaded_error` responses with exponential backoff and no limit on attempts. During a long incident, requests keep retrying for hours and nobody is alerted. What change does Google's SRE guidance point to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Limit retries per request, then fail the request and surface the error so it gets fixed",
+        "reason": "Correct: SRE says to limit retries per request and not to retry a given request indefinitely. A server-wide retry budget can cap retries too."
+      },
+      {
+        "id": "b",
+        "text": "Remove the backoff, so retries finish faster and the backlog of requests clears sooner",
+        "reason": "SRE says to always use randomized exponential backoff. Dropping it makes retries arrive faster; it doesn't end the incident sooner."
+      },
+      {
+        "id": "c",
+        "text": "Add a second retry loop around the worker, so requests that run out of retries get another round",
+        "reason": "SRE warns against retrying at multiple levels: total attempts become the product of the attempts at each layer."
+      },
+      {
+        "id": "d",
+        "text": "Keep retrying without a limit, but log every attempt so that someone can trace the problem later",
+        "reason": "Logging doesn't change the underlying problem: SRE says not to retry a given request indefinitely."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Even a retriable error gets a **retry limit**: when it's spent, fail and surface the error instead of retrying forever.",
+    "explanation": "Retrying a 529 with backoff is right, but only up to a point: an unbounded retry hides a long outage and keeps adding load. Capping attempts per request turns a stuck request into a visible failure. Choice d is tempting because logging feels like visibility, but nobody is alerted while the request keeps retrying.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+      "title": "Addressing Cascading Failures",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-403-fix-access",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "A service's calls to one resource fail with `403 permission_error` every time, while its other calls with the same key succeed. An on-call engineer proposes doubling `max_retries` to ride it out. What should the team do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Fix the request body, since a 403 means the request's format is invalid for that resource",
+        "reason": "A malformed request returns 400 `invalid_request_error`. A 403 means the key lacks permission for the resource."
+      },
+      {
+        "id": "b",
+        "text": "Keep retrying with backoff, since a 403 means the resource is temporarily overloaded and will recover",
+        "reason": "A temporary overload is 529 `overloaded_error`. A 403 says the key lacks permission, which waiting doesn't change."
+      },
+      {
+        "id": "c",
+        "text": "Retry after the `retry-after` interval, since a 403 means a rate limit on that one resource",
+        "reason": "A rate limit returns 429 `rate_limit_error` and applies to your organization. A 403 is a permission problem."
+      },
+      {
+        "id": "d",
+        "text": "Check the organization's access and workspace settings, since the key lacks permission for that resource",
+        "reason": "Correct: 403 means your API key doesn't have permission to use the specified resource; check access and workspace settings in the Claude Console."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A **403** is terminal: the key works but lacks permission there, so fix the access instead of retrying.",
+    "explanation": "Would the same request succeed if sent again later? Not while the key lacks permission for that resource, so more retries only delay the fix. The clue is that other calls with the same key work, which rules out a broken key and points at access. Choice b is tempting because 'ride it out' fits overloads, but those are 529s.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-which-retry-unchanged",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retriable vs terminal",
+    "stem": "Your error handler must decide which failures to retry unchanged after a wait and which to surface for a fix. Which failures could plausibly succeed if the exact same request is sent again later?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API is temporarily overloaded during high traffic across all users",
+        "reason": "Correct: that is 529 `overloaded_error`, the API being temporarily overloaded. The same request can succeed once the load passes."
+      },
+      {
+        "id": "b",
+        "text": "The API key in the request was revoked last week, during a key rotation",
+        "reason": "That is a 401 `authentication_error`. The same key fails on every attempt until you replace it."
+      },
+      {
+        "id": "c",
+        "text": "The key does not have permission to use the resource the request names",
+        "reason": "That is a 403 `permission_error`. Fix the organization's access or workspace settings; resending changes nothing."
+      },
+      {
+        "id": "d",
+        "text": "An unexpected error occurred inside Anthropic's systems",
+        "reason": "Correct: that is a 500 `api_error`, and the errors page says to retry it with exponential backoff."
+      },
+      {
+        "id": "e",
+        "text": "The format or content of the messages array in the request is invalid",
+        "reason": "That is a 400 `invalid_request_error`. It describes your request, so the identical request fails the same way."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Overloads and unexpected server errors are **retriable**; a bad key, a missing permission or a malformed request is **terminal**.",
+    "explanation": "The test isn't the number but the question: would waiting and resending the identical request plausibly work? An overload and an unexpected server-side error are both temporary conditions outside your request. A revoked key, a missing permission and a malformed request travel with the request, so they fail every time until you fix them. Choice c is tempting because permission errors can feel temporary, but nothing changes until the access does.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-overloaded-error"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s4fail-own-retry-policy",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retry policy",
+    "stem": "You are writing the retry policy for retriable failures such as 429 rate limits and 5xx server errors. Which behaviors should it include?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Wait with exponential backoff between attempts, so each retry waits longer than the last",
+        "reason": "Correct: the SDK retries transient failures such as rate limits and 5xx errors with exponential backoff."
+      },
+      {
+        "id": "b",
+        "text": "Retry the moment an error arrives, so the request goes through as soon as capacity frees up",
+        "reason": "The SDK waits between attempts with exponential backoff rather than retrying the instant a request fails."
+      },
+      {
+        "id": "c",
+        "text": "When a `retry-after` header is present, wait as long as it says before retrying",
+        "reason": "Correct: the SDK honors the `retry-after` header when present."
+      },
+      {
+        "id": "d",
+        "text": "Apply the same policy to 401 and 403 errors, so that every failure is handled in one place",
+        "reason": "A 401 is a problem with the API key and a 403 a missing permission. Resending the same request can't fix either."
+      },
+      {
+        "id": "e",
+        "text": "Switch to a new API key before each retry, so the retry draws on a fresh rate limit",
+        "reason": "A 429 means your organization has hit a rate limit. The SDK's policy waits and resends the request; it doesn't rotate keys."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Retry transient failures with **exponential backoff**, and honor **`retry-after`** when it's there; that's what the SDKs do.",
+    "explanation": "The official SDKs are a good model: exponential backoff between attempts, and the server's `retry-after` when it gives one. Retrying instantly adds load, and 401 and 403 errors are terminal, so they belong outside the retry path. Choice e is tempting because a new key feels like a fresh start, but rate limits belong to the organization.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-exponential-backoff",
+      "c-retry-after"
+    ],
+    "lessonId": "l-course-failure-handling"
   }
 ]

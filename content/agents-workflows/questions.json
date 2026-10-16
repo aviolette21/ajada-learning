@@ -3485,5 +3485,227 @@
       "c-agentic-memory",
       "c-just-in-time-context"
     ]
+  },
+  {
+    "id": "q-s4cost-multi-agent-tradeoffs",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Multi-agent trade-offs",
+    "stem": "Your team plans to replace a working single-agent research flow with a lead agent that fans out to parallel subagents and then synthesizes what they find. Which two costs should the team plan for?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Each subagent shares the lead agent's context window, so the lead's context fills up much faster",
+        "reason": "Subagents operate in parallel with their own context windows; that separation is what lets them condense their findings for the lead."
+      },
+      {
+        "id": "b",
+        "text": "Much higher token use than a single agent, so the task's value has to justify the spend",
+        "reason": "Correct: multi-agent systems used about 15× more tokens than chats (single agents about 4×), so they need tasks valuable enough to pay for it."
+      },
+      {
+        "id": "c",
+        "text": "Harder coordination between agents, and errors that compound because agents carry state across steps",
+        "reason": "Correct: the post says agents are stateful and errors compound, so minor issues can derail them, and agents aren't yet great at coordinating in real time."
+      },
+      {
+        "id": "d",
+        "text": "A guaranteed slowdown, because parallel subagents always take longer than one agent working serially",
+        "reason": "Running subagents in parallel cut research time by up to 90% for complex queries in Anthropic's system."
+      },
+      {
+        "id": "e",
+        "text": "Subagents can't call tools, so all of the searching must still be done by the lead agent itself",
+        "reason": "In Anthropic's system, subagents iteratively use search tools themselves and return their findings to the lead."
+      }
+    ],
+    "answer": [
+      "b",
+      "c"
+    ],
+    "takeaway": "Orchestrator-worker buys breadth with **tokens** and **coordination risk**; it's worth it only for valuable, truly parallel tasks.",
+    "explanation": "A planning, fan-out and synthesis structure is a deliberate trade-off: parallel subagents bring breadth and speed but multiply token use and add coordination and compounding-error risk. The stem's team already has a working single agent, so these costs decide whether the switch pays off. Choice d is tempting because more agents sounds slower, but parallel subagents actually cut research time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-orchestrator-workers",
+      "c-multi-agent-token-cost"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-dependent-steps-no-fanout",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Multi-agent trade-offs",
+    "stem": "Your coding agent's tasks are tightly linked: each change depends on decisions made in the previous one, and every step needs the full picture of the codebase. A teammate proposes fanning out to parallel subagents to finish faster. What does Anthropic's multi-agent post suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A strong fit, since any task gets faster when more agents work on it at the same time",
+        "reason": "The post says some domains aren't a good fit today, such as those that need one shared context or have many dependencies between agents."
+      },
+      {
+        "id": "b",
+        "text": "A strong fit, as long as every subagent receives a full copy of the lead agent's context window",
+        "reason": "Subagents work with their own context windows, and the post notes that most coding tasks involve fewer truly parallelizable tasks than research."
+      },
+      {
+        "id": "c",
+        "text": "A weak fit only because subagents cost more tokens; once tokens are cheaper it becomes ideal",
+        "reason": "Token cost matters, but the post's concern here is structural: shared context, dependencies between agents, and agents that still coordinate poorly in real time."
+      },
+      {
+        "id": "d",
+        "text": "A weak fit: work that needs one shared context or has many dependencies doesn't suit multi-agent yet",
+        "reason": "Correct: domains that require all agents to share the same context or involve many dependencies between agents aren't a good fit for multi-agent systems today."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Fan out only when the work **splits into independent parts**; dependent steps with shared context belong in one agent.",
+    "explanation": "Parallel subagents help when a task splits into independent parts that can run separately. The stem's work is the opposite: each step depends on the last and needs the same full context, which the post names as a poor fit. Choice c is tempting because cost is a real downside, but the deciding problem here is the dependencies, not the price.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-orchestrator-workers",
+      "c-lead-agent-subagents"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-parallel-subagents-latency",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Multi-agent trade-offs",
+    "stem": "Your research agent gives good answers but is slow: it runs one search, reads the results, then runs the next search, one after another. The searches don't depend on each other. Which change cuts the wait?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run several subagents in parallel, and let each one call several tools in parallel too",
+        "reason": "Correct: the lead spins up 3–5 subagents in parallel rather than serially, and subagents use 3+ tools in parallel, which cut research time by up to 90% for complex queries."
+      },
+      {
+        "id": "b",
+        "text": "Cap each run at a single search so that the agent stops reading results it might not need",
+        "reason": "The post's early agents were slow because they searched sequentially; the fix kept searching and made it parallel rather than cutting it."
+      },
+      {
+        "id": "c",
+        "text": "Put all the source material into one large prompt and let the model answer without any tools",
+        "reason": "The system is built on searching with tools; its speed-up came from parallel subagents and parallel tool calls, not from dropping tools."
+      },
+      {
+        "id": "d",
+        "text": "Make the agent finish each search and analyze it fully before it is allowed to start the next",
+        "reason": "That is the sequential pattern the post describes as painfully slow; the fix was parallelism at two levels."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When the work is independent, **parallel subagents and parallel tool calls** cut wall-clock time, at the price of more tokens.",
+    "explanation": "Sequential searching makes latency add up step by step, while independent searches can run at the same time. Anthropic parallelized at two levels, subagents and their tool calls, and research time dropped sharply on complex queries. Choice d is tempting because it sounds careful, but it is exactly the slow sequential pattern the stem describes.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-lead-agent-subagents",
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-agentic-search-vs-static",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Agentic search",
+    "stem": "Your assistant answers research questions with one retrieval step: it fetches the chunks most similar to the question, then writes its answer. Questions where the first results reveal new leads get poor answers. What would agentic search change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It retrieves many more chunks in that single step, so that the new leads are already included",
+        "reason": "That is still static retrieval done once; the new leads only become visible after the first results have been read."
+      },
+      {
+        "id": "b",
+        "text": "The model searches step by step with tools, adapting each query to what it has found so far",
+        "reason": "Correct: Anthropic contrasts RAG's static retrieval with a multi-step search that dynamically finds relevant information and adapts to new findings."
+      },
+      {
+        "id": "c",
+        "text": "It embeds the documents with a stronger model, so that the one retrieval step is more accurate",
+        "reason": "Better embeddings still give one fixed retrieval pass; agentic search lets the model search again based on what it learned."
+      },
+      {
+        "id": "d",
+        "text": "It precomputes answers to likely questions ahead of time, so that no search is needed at all",
+        "reason": "The point is the opposite: searching at answer time, iteratively, so the model can follow leads that only appear in the results."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Agentic search**: the model searches iteratively with tools, refining its next query from what it found, instead of one static retrieval.",
+    "explanation": "Static retrieval fetches similar chunks once, before the model has seen anything, so it can't follow up on what those chunks reveal. Agentic search puts the model in charge of a search loop, so each query can build on the last results. Choice a is tempting because more chunks sounds more thorough, but it's still a single pass that can't react to new leads.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-just-in-time-context"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-s4cost-cap-subagent-tree",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Multi-agent trade-offs",
+    "stem": "Your Agent SDK orchestrator decides for itself when to spawn subagents, and subagents can spawn their own. A few prompts grew into large trees of agents and ran up big bills. Your system prompt already says to delegate sparingly. What else should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing more: a clear delegation instruction in the system prompt reliably bounds the tree",
+        "reason": "The SDK docs say a delegation instruction only steers Claude, so set the limits as well; Claude Code enforces them however Claude decides to delegate."
+      },
+      {
+        "id": "b",
+        "text": "Remove the Agent tool for good, since subagents always cost more than they could ever save",
+        "reason": "Subagents bring context isolation and parallelism; the docs answer runaway trees by capping them, not by giving up delegation."
+      },
+      {
+        "id": "c",
+        "text": "Set limits on nesting depth, concurrent subagents and total spend, which the runtime enforces",
+        "reason": "Correct: depth, concurrency and spend limits bound how one prompt can grow into a tree of agents, whatever Claude decides."
+      },
+      {
+        "id": "d",
+        "text": "Give every subagent the parent's full conversation, so that they finish sooner and spawn fewer agents",
+        "reason": "A non-fork subagent starts with a fresh context by design, and extra context doesn't bound how many agents spawn; depth, concurrency and spend limits do."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Prompts **steer** delegation; **enforced limits** (depth, concurrency, spend) are what keep a fan-out inside its budget.",
+    "explanation": "Each subagent makes its own API requests, and nested spawning can turn one prompt into a tree whose cost adds up fast. An instruction only influences what Claude chooses, so the budget needs limits the runtime enforces regardless of that choice. Choice a is tempting because the instruction already exists, but the docs say to set the limits as well.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-16"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-lead-agent-subagents"
+    ],
+    "lessonId": "l-course-cost-orchestration"
   }
 ]

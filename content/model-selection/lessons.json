@@ -726,5 +726,274 @@
         "checkedOn": "2026-10-14"
       }
     ]
+  },
+  {
+    "id": "l-course-model-routing",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "title": "Model selection in production",
+    "summary": "Claude comes as a family of capability tiers that trade capability against latency and cost. In production you don't pick a model once: you let evals on your own traffic decide where each workload lands, route hard cases to a bigger model when a task signal says so, pin the model ID you validated, and re-run your evals before every upgrade.",
+    "keyPoints": [
+      "Tiers, most to least capable: **Fable** (slower) → **Opus** (moderate) → **Sonnet** (fast) → **Haiku** (fastest). Price per token falls in the same order.",
+      "If unsure, start with **Opus** for most workloads. Efficiency-first (Haiku) suits tight latency and cost; capability-first (Opus) suits work where accuracy outweighs cost.",
+      "Let evals decide: tasks from production logs weighted like real traffic, outcome checks, **cost per task**, and every tier baselined across effort levels.",
+      "**Routing**: a default model for the common path, plus an override to a more capable model when a task signal marks the request as hard. It needs accurate classification.",
+      "Each model ID is a **pinned snapshot**; aliases can move. To upgrade, re-run your evals, shadow on a traffic slice, then cut over."
+    ],
+    "sections": [
+      {
+        "heading": "The model family and its capability tiers",
+        "body": "The current lineup has four tiers, each a different point on the capability, speed and cost trade-off:\n\n- **Claude Fable 5.1:** demanding reasoning and long-horizon agentic work. Slower; the highest price.\n- **Claude Opus 5.5:** long-running agentic coding and knowledge work. Moderate latency.\n- **Claude Sonnet 5.5:** the best combination of speed and intelligence. Fast.\n- **Claude Haiku 5.5:** high-volume, latency-sensitive tasks such as classification, extraction and routing. Fastest; the lowest price.\n\nWhat they share matters too: all current models support text and image input, vision and tool use, with the same 1M-token context window. So the choice is rarely about whether a tier can do the task at all; it's about how well, how fast and at what price.\n\nIf you're unsure, the models overview says to start with Opus for most workloads, and to use Fable for demanding reasoning and long-horizon agentic work, or when evals on Opus at higher effort still fall short.",
+        "example": "A company runs three Claude features. A real-time ticket classifier fits Haiku's description. An everyday code-generation helper fits Sonnet's row in the selection matrix: speed and capability for everyday coding. A multihour autonomous refactoring agent fits Opus's row: complex agentic coding. None of them starts on Fable unless its evals on Opus at higher effort fall short."
+      },
+      {
+        "heading": "The latency, cost and quality trade-off",
+        "body": "Anthropic's model-selection guide asks you to weigh **capabilities**, **speed** and **cost**, plus **effort** on models that support it. Effort trades intelligence for latency and cost within a single model, and the guide notes that tuning effort is often a better lever than switching models.\n\nTwo cautions keep the trade-off honest:\n\n- **Latency labels are relative.** \"Fastest\" compares tiers with each other. Actual latency also depends on prompt length, output length and thinking effort, so a fast tier with huge prompts and long answers can still feel slow.\n- **More capability costs something.** Building effective agents notes that agentic systems often trade latency and cost for better task performance, and asks you to judge when that trade-off makes sense.\n\nThe guide offers two starting points. **Efficiency-first** begins on a fast, low-cost model such as Haiku, tests thoroughly and upgrades only for specific capability gaps; it suits prototyping, tight latency, cost-sensitive work and high-volume, straightforward tasks. **Capability-first** begins on Opus for complex reasoning, nuanced understanding and work where accuracy outweighs cost, then optimizes down.",
+        "example": "In-editor autocomplete, where every keystroke waits on the reply, starts efficiency-first on Haiku. Contract review, where a missed clause costs more than the tokens, starts capability-first on Opus. Both teams then measure before changing anything."
+      },
+      {
+        "heading": "Let evals decide where each workload lands",
+        "body": "The guide's capability-first sequence is: implement with Opus, optimize your prompts, evaluate whether performance meets your requirements, then consider lowering effort or downgrading models over time. Starting strong gives you a working bar; the evals then show how far down you can go and still meet it. Either way, the guide calls a good evaluation set built from your use case the most important step.\n\nAnthropic's cost-and-intelligence guide spells out how to measure:\n\n- Pull a few tasks from production logs, **weighted like real traffic**, and write outcome checks for each (tests pass, ticket closed, row count correct). Record **cost per task** beside the score.\n- Baseline the model tiers **across effort levels, not only the default**, and plot score against spend. A cheaper tier at higher effort may still clear the bar.\n- Only if the curve shows a gap effort can't close, add a multi-model strategy and re-run the suite.\n- Run the winner in **shadow on a traffic slice** before cutover, then keep the suite running.",
+        "example": "A team's eval set is 40 hand-picked edge cases, while most real traffic is routine. The team rebuilds it from production logs, weighted like real traffic, with cost per task recorded, and baselines Opus and Sonnet across effort levels. If Sonnet at a higher effort level clears the bar at lower spend than Opus, that configuration is the one to run in shadow.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Measure on your own workload, then shadow before cutover.",
+          "steps": [
+            {
+              "label": "Tasks from logs",
+              "sublabel": "weighted like traffic"
+            },
+            {
+              "label": "Outcome checks",
+              "sublabel": "+ cost per task"
+            },
+            {
+              "label": "Baseline tiers",
+              "sublabel": "across effort"
+            },
+            {
+              "label": "Shadow",
+              "sublabel": "traffic slice"
+            },
+            {
+              "label": "Cut over"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Routing: a default model plus an override",
+        "body": "Not every request needs the same tier. **Routing**, in Building effective agents, classifies an input and directs it to a specialized follow-up task. One of its examples sends easy or common questions to smaller, cost-efficient models and hard or unusual questions to more capable ones. In production that becomes a default model for the common path plus an override when a task signal marks a request as hard.\n\nThe signal can come from an LLM classifier or from a more traditional classification model or algorithm, such as a rule on a flag the user set. The post's condition is that routing works well for complex tasks with **distinct categories** better handled separately, where **classification can be handled accurately**. If you can't reliably tell easy from hard, that condition isn't met.\n\nA signal that says nothing about the request, such as a random sample or the time of day, isn't routing: the override has to follow what the input is.",
+        "example": "A document Q&A service defaults every request to Haiku. When a user ticks \"deep analysis\", a simple rule sends that request to Opus instead. The tick box is an accurate signal, so the common path stays fast and cheap while the hard cases get the capable model.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "A default path, with an override on a task signal.",
+          "steps": [
+            {
+              "label": "Request"
+            },
+            {
+              "label": "Classify",
+              "sublabel": "task signal"
+            },
+            {
+              "label": "Default model",
+              "sublabel": "common path"
+            },
+            {
+              "label": "Override",
+              "sublabel": "capable model if hard"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Pinned IDs, aliases and upgrades",
+        "body": "Each Claude model ID identifies a **pinned snapshot**: the model stays constant for the lifetime of that ID, including the dateless IDs used from the 4.6 generation on. Anthropic doesn't update the weights of an existing ID; an updated version ships under a new ID. The serving infrastructure around a model (request router, safety classifiers, sampling logic) can still change, and that's the most likely cause if a stable ID's behavior shifts slightly.\n\n**Aliases** are different: on the Claude API, aliases for models before the 4.6 generation are convenience pointers to the most recent dated snapshot. Use a pinned ID wherever results must stay reproducible.\n\nUpgrading is a deliberate change, not something that happens to you. Migration guides list what to recheck: change the model ID, re-run your effort sweep (levels can be recalibrated between models), re-baseline cost and re-evaluate model-specific prompt instructions. Then re-run your evals, shadow the new model on a traffic slice, and cut over.",
+        "example": "A production summarizer pins `claude-sonnet-5-5` in its config. When a newer model ships, the team runs the eval suite against the new ID, re-runs its effort sweep, runs the winner in shadow on 5% of traffic, and only then changes the configured ID."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s4model-match-workload-tier",
+      "q-s4model-default-plus-override",
+      "q-s4model-upgrade-shadow"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+        "title": "Choosing the right model",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+        "title": "Optimizing for cost and intelligence",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building effective agents",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+        "title": "Model IDs and versioning",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/sonnet-5-5/migration-guide",
+        "title": "Claude Sonnet 5.5 migration guide",
+        "checkedOn": "2026-10-16"
+      }
+    ]
+  },
+  {
+    "id": "l-course-cost-orchestration",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "title": "Cost and orchestration",
+    "summary": "Cost and latency are easy to ignore in development and decisive in production. Instrument every call first (tokens, latency, errors), find where the spend actually goes, then pull the right lever: model, context size, tool calls, streaming or batching, prompt caching. Multi-agent fan-out is a deliberate trade: more tokens and coordination for breadth and speed.",
+    "keyPoints": [
+      "Observability per call: **input and output tokens** (from the response's `usage`), **latency** and **error rate**. Measure per step before you optimize.",
+      "Budget levers: **model**, **prompt and context size**, **number of tool calls**, **streamed vs batched**, and **streaming with tool use**.",
+      "**Prompt caching** reuses the processing of a stable prefix; anything that changes per request belongs after it.",
+      "The **Message Batches API** trades latency for cost: asynchronous, most batches finish within an hour, for work nobody is waiting on.",
+      "**Orchestrator-worker** (plan, parallel fan-out, synthesis) uses far more tokens and adds coordination risk; use it only when the work splits into independent parts."
+    ],
+    "sections": [
+      {
+        "heading": "Observability: measure every call first",
+        "body": "When you run agents in production, you need visibility into which tools they called, how long each model request took, how many tokens were spent and where failures occurred. Every Messages API response carries a `usage` object with `input_tokens` and `output_tokens`, so token counts come with each call. Add the call's latency and whether it failed, and you have the three per-call metrics: **tokens**, **latency** and **error rate**.\n\nTwo monitoring habits from general SRE practice keep those numbers honest:\n\n- Record latency as a distribution, not just a mean. A good average can hide a very slow tail of requests.\n- Track errors as their own signal, and keep the latency of failed requests apart from successful ones. Errors can be served very quickly and make a latency chart look better during an outage.\n\nThen measure before you optimize. A flow can look uniformly expensive while one step does most of the spending. The Agent SDK reports usage per step and a per-model breakdown so you can see where tokens are going; OpenTelemetry tracing for the Claude API lets you debug slow or failed requests and track token spend and latency.",
+        "example": "A pipeline runs an Opus lead agent that delegates to Haiku subagents, and the bill is over budget. Instead of trimming every prompt, the team reads the per-model breakdown on the result message, finds where the tokens actually go, and changes that step first."
+      },
+      {
+        "heading": "Levers: model, context size and tool calls",
+        "body": "Once you know which step dominates, these levers change what it costs:\n\n- **Model selection.** One of the most direct ways to cut latency is choosing the right model for the use case, in speed and output quality; Haiku is the fastest. A smaller model for simple subtasks also costs less.\n- **Prompt and context size.** The fewer tokens the model processes and generates, the faster the response, and token costs scale with context size. Be clear but concise, and ask for shorter answers.\n- **Number of tool calls.** Each time Claude uses tools, another request goes back through the model carrying the tool results. Fewer, more targeted tool calls, and tools that return only what's needed, keep both the round trips and the tokens down.\n\nPerformance comes first: engineer a prompt that works well, then apply latency reductions, so you don't lose sight of what top performance looks like.",
+        "example": "Per-call metrics show that a step which only sorts tickets into billing, technical or other takes most of a pipeline's time, and it runs on the largest model. Tests show a smaller, faster model sorts just as accurately, so that one step moves to it."
+      },
+      {
+        "heading": "Streamed vs batched, and streaming with tool use",
+        "body": "**Streaming** starts sending the response before the full output is complete. That can significantly improve the perceived responsiveness of an app, because users see the output in real time.\n\n**Batching** goes the other way. The Message Batches API processes requests asynchronously at a 50% discount. Most batches finish in less than an hour, but a batch can take up to 24 hours, so it suits bulk work that doesn't need an immediate response: evaluations, content moderation, data analysis, bulk generation. Batching and prompt caching discounts can stack.\n\n**Streaming with tool use** has its own catch. By default the API buffers and validates each tool parameter before streaming it, so a large parameter, such as a whole document, shows nothing until it's complete. **Fine-grained tool streaming** sends the input as Claude generates it, so it arrives sooner, but it may be partial or invalid JSON, so parse it defensively.",
+        "example": "A chat assistant streams every reply because a user is waiting. The nightly job that re-tags 50,000 support tickets goes through the Message Batches API, because nobody needs the results until morning."
+      },
+      {
+        "heading": "Prompt caching: reuse work on a stable prefix",
+        "body": "Prompt caching stores the processing work for a prefix of your prompt, so a later request that starts with the same content resumes from it instead of recomputing it. That significantly reduces processing time and cost for repetitive tasks and prompts with consistent elements: long instructions, many examples, large background documents, long conversations, and agentic tool use, where each step is a new API call.\n\nIt only works on a stable prefix. The cache follows the order `tools` → `system` → `messages`, and a change at one level invalidates that level and everything after it. Put static content first and mark where it ends with `cache_control`; content that changes per request, such as a timestamp, goes after that point.\n\nCheck that it's working through observability: `usage` reports `cache_read_input_tokens` and `cache_creation_input_tokens`. If both stay at zero, nothing is being cached.",
+        "example": "An app's `cache_read_input_tokens` is always zero. The cause: its code writes the current time and the user's name at the top of the system prompt on every request, so no two requests share a prefix. Moving them after the static instructions restores the hits."
+      },
+      {
+        "heading": "Multi-agent orchestration as a deliberate trade-off",
+        "body": "In the **orchestrator-worker** pattern, a lead agent breaks a task into subtasks, delegates them to subagents that work in parallel, each with its own context window, and then synthesizes their results. In code that's three parts: **planning**, a parallel **fan-out**, and **synthesis**.\n\nIt costs on three fronts:\n\n- **Tokens.** In Anthropic's data, agents used about 4× the tokens of chat interactions and multi-agent systems about 15×, so the task's value must justify the spend.\n- **Latency and coordination.** Parallel subagents and parallel tool calls cut research time by up to 90% for complex queries, but a lead that waits for each set of subagents can be held up by the slowest one, and agents aren't yet great at coordinating in real time.\n- **Error rate.** Agents are stateful and errors compound, so a minor issue can derail a run.\n\nIt pays off for valuable, breadth-first work that splits into independent parts. Work that needs one shared context or has many dependencies between agents, like most coding, is a poor fit. In the Agent SDK, a prompt only steers how much Claude delegates; depth, concurrency and spend limits enforce the budget.",
+        "example": "A competitive-research question splits into one independent thread per competitor, so a lead agent fans out to parallel subagents and merges their summaries. A refactor where each change depends on the last stays with a single agent.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Orchestrator-worker: the lead plans, workers run in parallel in their own contexts, the lead synthesizes.",
+          "steps": [
+            {
+              "label": "Lead agent plans",
+              "sublabel": "splits the task"
+            },
+            {
+              "label": "Parallel fan-out",
+              "sublabel": "subagents, own contexts"
+            },
+            {
+              "label": "Subagents search",
+              "sublabel": "tools, in parallel"
+            },
+            {
+              "label": "Synthesis",
+              "sublabel": "lead combines results"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Agentic search",
+        "body": "Traditional RAG uses static retrieval: fetch the chunks most similar to the query once, then answer. **Agentic search** instead lets the model search iteratively with tools, judging each set of results and refining its next query, so it can follow leads that only appear after the first results. Anthropic's research subagents work this way, starting with short, broad queries, evaluating what's available, then narrowing their focus.\n\nClaude Code does the same for code: it drops CLAUDE.md into context up front, and uses `glob` and `grep` to retrieve files just in time, instead of relying on a pre-built index.\n\nThe trade-off: runtime exploration is slower than retrieving pre-computed data, and without proper guidance an agent can waste context misusing tools or chasing dead ends. A hybrid strategy retrieves some data up front for speed and lets the agent explore further at its discretion.",
+        "example": "A research assistant that answers from one similarity lookup misses a lead that only shows up in the first results. With agentic search, the model reads those results, sees the new lead and runs a follow-up search for it."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s4cost-find-dominant-step",
+      "q-s4cost-batch-not-for-live",
+      "q-s4cost-cache-varying-content-first"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+        "title": "Observability with OpenTelemetry",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/cost-tracking",
+        "title": "Track cost and usage",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/working-with-messages",
+        "title": "Using the Messages API",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+        "title": "OpenTelemetry for the Claude API",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+        "title": "Monitoring Distributed Systems",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+        "title": "Reducing latency",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/costs",
+        "title": "Manage costs effectively",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+        "title": "Batch processing",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/fine-grained-tool-streaming",
+        "title": "Fine-grained tool streaming",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+        "title": "Prompt caching",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building effective agents",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+        "title": "How we built our multi-agent research system",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+        "title": "Subagents in the SDK",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+        "title": "Effective context engineering for AI agents",
+        "checkedOn": "2026-10-16"
+      }
+    ]
   }
 ]

@@ -84,5 +84,269 @@
         "checkedOn": "2026-09-27"
       }
     ]
+  },
+  {
+    "id": "l-course-testing-tracing",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "title": "Testing and tracing",
+    "summary": "Tests tell you that something broke; traces tell you where. Four test levels (unit, functional, integration and end-to-end) each catch failures the others miss, and because Claude's output varies between runs, you test its shape and properties, not its exact text. When a case fails, the trace shows the first step that produced a bad result.",
+    "keyPoints": [
+      "**Unit**: one function. **Functional**: one Claude call returns the right shape. **Integration**: a handoff between components. **End-to-end**: the whole flow, as a user runs it.",
+      "Identical inputs can give different outputs, even at temperature 0, so assert **shape and properties** (parses, fields, types), never exact text.",
+      "For agents, grade **what was produced**, not the path taken, and run multiple trials of a case that passes only sometimes.",
+      "A **trace** records each step of a run as a span; find the first step whose output is wrong to tell an integration bug from a model problem.",
+      "Route checks by cost: fast deterministic checks on every change, model graders only where judgment is needed, a **smoke test** before expensive runs."
+    ],
+    "sections": [
+      {
+        "heading": "Four test levels, four kinds of failure",
+        "body": "Traditional testing starts small and builds up. A **unit test** is the smallest and simplest form: it checks one separable piece, such as a function, on its own. An **integration test** runs on an assembled component to verify it works correctly. The largest-scale test checks the system's end-to-end functionality.\n\nFor a Claude app, the course uses four levels:\n\n- **Unit:** one function, such as a parser or a tool wrapper.\n- **Functional:** one Claude call returns the expected shape for a given input: the right fields, the right types, a parseable response.\n- **Integration:** the handoff between two components, for example a retrieval result passed into a model call.\n- **End-to-end:** the whole flow the way a user would run it, from input to output.\n\nEach level catches something the others miss. Two components can both pass their unit tests while disagreeing about the data they exchange; only a test across the handoff sees that. A page that posts to the wrong backend route shows up only when the whole flow runs.",
+        "example": "A RAG assistant: a unit test feeds the function that extracts JSON from a reply a sample string; a functional test sends one question with fixed context and checks the reply parses with `answer` and `sources` fields; an integration test passes real retrieval results into the model call; an end-to-end test types a question into the web app and checks that an answer appears.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Each level covers more of the system and costs more to run.",
+          "steps": [
+            {
+              "label": "Unit",
+              "sublabel": "one function"
+            },
+            {
+              "label": "Functional",
+              "sublabel": "one Claude call"
+            },
+            {
+              "label": "Integration",
+              "sublabel": "a handoff"
+            },
+            {
+              "label": "End-to-end",
+              "sublabel": "the whole flow"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Testing output you can't predict word for word",
+        "body": "Identical inputs may produce different outputs across API calls. Even with temperature set to 0, results aren't fully deterministic. A test that compares Claude's reply with a saved string will flake with no change to your code.\n\nTest what must hold on every run instead. For structured output, that's the shape: the reply parses, required fields are present, types are consistent. Those are the failures structured outputs exists to prevent (invalid JSON, missing required fields, inconsistent data types). Even then, check `stop_reason` first: after a refusal or a `max_tokens` cutoff, the output may not match your schema.\n\nAnthropic's guidance on agent evals adds two rules:\n\n- Agents regularly find valid approaches designers didn't anticipate, so it's often better to grade what the agent produced, not the path it took.\n- Model outputs vary between runs, so run multiple trials of a case instead of trusting one, and read the transcripts of the failures.",
+        "example": "Instead of `assert reply == saved_summary`, assert that the reply parses, that `title` is a non-empty string and that `tags` is a list. For an ordering agent, check that the correct order exists, not that its tools were called in one fixed sequence."
+      },
+      {
+        "heading": "Tracing: finding the step that failed",
+        "body": "A failing test tells you that a case broke, not where. A **trace** is the full record of one request through your system, and a span is one step in it, such as a model request or a tool use. Anthropic's docs list debugging failed or slow requests among their uses.\n\n- With tracing turned on, the Agent SDK records a span per turn of the agent loop, with child spans for each model request (with latency and token counts) and each tool call.\n- The Claude API and SDK can trace Messages API requests and tool uses, and show each request inside your application's own traces.\n- By default, traces record structure, such as timing, status and token counts, not content. Prompts and responses are opt-in, so check that your observability platform may store that data.\n\nAnthropic's research team learned this in production. Users reported agents \"not finding obvious information\", but the team couldn't see why until full production tracing let them diagnose failures and fix issues systematically. Agents are non-deterministic between runs, even with identical prompts, so rerunning a reported case may not reproduce it.",
+        "example": "An agent takes minutes on a simple task. In its trace, one `claude_code.tool` span is long, but its execution child span is short and its permission-wait child span is long. The time went to waiting for approval, not to running the tool."
+      },
+      {
+        "heading": "Integration layer or model output?",
+        "body": "Read the trace in order and find the first step whose output is wrong. That step, not the one where the error surfaced, is where the problem began.\n\n- The model's input already lacks what it needed, because retrieval returned the wrong passages: fix retrieval, not the prompt.\n- The model's response is correct, but your code fails while reading it: the bug is in the integration layer.\n- The model got the right input and still returned a wrong answer: now it's a prompt or model problem, and the trace can become an eval case.\n\nTo see each step's inputs and outputs, the trace needs content turned on. With metadata only, the default on the Claude API, you see timing and status but not why a run failed.",
+        "example": "A user gets \"No answer available\". The trace shows the model request returned a correct, well-formed answer, and the next span, your app's response handler, records an error reading it. Changing the prompt would do nothing; the fix is in your code.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Find the first step whose output is wrong.",
+          "steps": [
+            {
+              "label": "Retrieval",
+              "sublabel": "right passages?"
+            },
+            {
+              "label": "Model request",
+              "sublabel": "right answer?"
+            },
+            {
+              "label": "Your code",
+              "sublabel": "handled correctly?"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Routing: pay for expensive runs only when needed",
+        "body": "Tests differ widely in cost. Unit tests usually finish in milliseconds; bringing up a full system with its dependencies can take from several minutes to multiple hours, and model-graded checks cost more than code checks. So route each check to the cheapest approach that can decide it:\n\n- Run fast, deterministic checks (unit tests, shape checks) on every change. Build systems can run only the tests for changed code.\n- Choose deterministic graders where possible and LLM graders where necessary. Code graders are fast and cheap; model graders are more expensive and need calibration against human graders.\n- Put a smoke test of very simple but critical behavior in front of the expensive suite. Smoke tests serve to short-circuit additional and more expensive testing.\n- When a case fails, read its trace or transcript to find where, before changing anything.\n\nNo single layer catches every issue, so you keep all of them; routing decides when each one runs.",
+        "example": "On every commit: unit tests and code-graded shape checks. Then a smoke test that sends one question through the whole flow. Only if it passes: the full end-to-end suite and the model-graded evals, which also run on each model upgrade."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s4test-integration-handoff",
+      "q-s4test-exact-text-flaky",
+      "q-s4test-trace-retrieval-input"
+    ],
+    "sources": [
+      {
+        "url": "https://sre.google/sre-book/testing-reliability/",
+        "title": "Testing for Reliability",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+        "title": "Glossary",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+        "title": "Structured outputs",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+        "title": "Demystifying evals for AI agents",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+        "title": "OpenTelemetry for the Claude API",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+        "title": "Observability with OpenTelemetry",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+        "title": "How we built our multi-agent research system",
+        "checkedOn": "2026-10-16"
+      }
+    ]
+  },
+  {
+    "id": "l-course-failure-handling",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "title": "Surviving production failure",
+    "summary": "Every production failure starts with one question: would waiting and sending the exact same request again plausibly work? If yes, it's retriable: back off and retry, and let the SDK's built-in retries do most of it. If not, it's terminal: fix the request, the key or the permission. When one of your tools fails, tell Claude with `is_error: true`.",
+    "keyPoints": [
+      "**Retriable**: rate limits (429), overloads (529), transient 5xx errors, connection errors. **Terminal**: 400 bad request, 401 key, 403 permission, 404 not found.",
+      "Retry with **randomized exponential backoff** and a limit per request; when a 429 carries `retry-after`, wait that many seconds.",
+      "The SDKs already retry connection errors, 429s and 5xx errors (**twice by default**): tune `max_retries` instead of stacking your own retry loop.",
+      "Even a retriable failure gets a **retry limit**: when it's spent, fail and surface the error instead of retrying forever.",
+      "A failed tool goes back to Claude as a `tool_result` with **`is_error: true`** and an instructive message, never as a silent empty result."
+    ],
+    "sections": [
+      {
+        "heading": "One question: retriable or terminal?",
+        "body": "When a call fails, don't start from the status code. Ask: **would waiting and sending the exact same request again plausibly work?** If yes, the failure is **retriable**. If no, it's **terminal**: every retry fails the same way until you change something.\n\n- **Retriable:** 429 `rate_limit_error` (your organization hit a rate limit), 529 `overloaded_error` (the API is temporarily overloaded, which can happen during high traffic across all users), 500 `api_error` (an unexpected error inside Anthropic's systems) and other 5xx errors, plus connection errors.\n- **Terminal:** 400 `invalid_request_error` (the format or content of your request), 401 `authentication_error` (the key is malformed, revoked or expired), 403 `permission_error` (the key lacks permission for the resource), 404 `not_found_error` (the resource wasn't found).\n\nGoogle's SRE book puts the terminal side plainly: don't retry permanent errors or malformed requests, because neither will ever succeed. When streaming, an error such as `overloaded_error` can also arrive as an `error` event after a 200 response.",
+        "example": "Right after a key rotation, a nightly job's calls all fail with 401. Would the same request, sent again in a minute, work? No: it carries the same revoked key, so updating the key is the fix and retries only delay the alert. The same job hitting 529 during a traffic spike is the opposite case: the identical request can succeed once the load passes.",
+        "diagram": {
+          "kind": "segmented-bar",
+          "caption": "Would the same request, sent again later, plausibly work?",
+          "segments": [
+            {
+              "label": "Retriable",
+              "sublabel": "429 · 529 · 5xx",
+              "weight": 1,
+              "tone": "accent"
+            },
+            {
+              "label": "Terminal",
+              "sublabel": "400 · 401 · 403 · 404",
+              "weight": 1,
+              "tone": "error"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Retriable: back off, honor retry-after, then stop",
+        "body": "Retrying the instant a call fails, from every client at once, piles more load on a service that is already struggling. Google's SRE guidance:\n\n- Always use **randomized exponential backoff**, so retries spread out instead of synchronizing.\n- **Limit retries per request**: don't retry a given request indefinitely. When the limit is reached, fail and surface the error.\n- Don't retry at **multiple levels**: total attempts become the product of the attempts at each layer.\n\nOn a 429, when the response has a `retry-after` header, wait that many seconds before retrying; earlier retries will fail. If a 500 persists, contact support with the **request ID** from the response. For a 504 `timeout_error` on a long-running request, the errors page suggests the streaming Messages API or the Message Batches API.",
+        "example": "200 workers hit 529s during a brief overload, and each retries in a tight loop, so the overload outlasts the blip. With randomized exponential backoff and a cap of a few attempts per request, the retries spread out, and a request that still fails is surfaced instead of retrying for hours.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Each wait grows, and randomizing it keeps clients from retrying in sync.",
+          "steps": [
+            {
+              "label": "Request fails"
+            },
+            {
+              "label": "Short random wait"
+            },
+            {
+              "label": "Retry"
+            },
+            {
+              "label": "Longer random wait"
+            },
+            {
+              "label": "Retry"
+            },
+            {
+              "label": "Limit hit: fail"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Terminal: fix it, don't retry it",
+        "body": "A terminal error needs a change before the request can succeed, so your handler's job is to surface it quickly, with enough detail to fix:\n\n- **400:** fix the code that builds the request, such as a malformed messages array.\n- **401:** replace the key the service sends.\n- **403:** check the organization's access and workspace settings in the Claude Console.\n- **404:** check the endpoint path and any resource IDs in the request URL.\n\nKeep asking the question rather than memorising codes: most 429s are retriable, but the errors page notes that a 429 from reaching your tier's monthly spend cap keeps failing until access resumes.",
+        "example": "A deploy makes every request fail with a 400 saying the conversation must end with a user message. A wrapper that retries 400s with backoff only makes users wait longer for the same error. Surfacing 400s immediately, and fixing how the deploy builds the messages, solves it."
+      },
+      {
+        "heading": "Know what the SDK already retries",
+        "body": "The official SDKs automatically retry transient failures (connection errors, rate limits and 5xx server errors) with exponential backoff, **twice by default**, honoring `retry-after` when present. The Python SDK also retries 408 and 409 responses, and requests that time out.\n\nSo before you write a retry loop, check what's already covered. Wrapping SDK calls in your own loop stacks a second retry layer, and the attempts multiply. Tune the SDK's `max_retries` option instead: raise or lower it, or set it to 0 to turn the SDK's retries off when another layer, such as a job queue that retries failed jobs, already owns retrying.",
+        "example": "A Python service wraps every call in its own three-try loop, and during an outage it logs far more attempts per failing request than expected: the SDK was already retrying underneath. Removing the loop and tuning `max_retries` on the client leaves a single retry layer."
+      },
+      {
+        "heading": "Tool errors go back to Claude",
+        "body": "When one of your tools fails, Claude needs to know. Send a `tool_result` with the error message in `content` and `\"is_error\": true`, and Claude incorporates the error into its response. An empty `tool_result` is a valid result for a call with no output, so returning one on failure hides the error from Claude.\n\n- Write **instructive** messages: what went wrong and what to try next, such as \"Rate limit exceeded. Retry after 60 seconds.\", not just \"failed\".\n- If Claude's call was invalid, such as a missing required parameter, report that as an error too: Claude retries 2-3 times with corrections before apologizing. `strict: true` on the tool definition prevents invalid inputs.\n- The SDK's **tool runner** already catches a tool's exception and returns it to Claude with `is_error: true`.\n- Errors from **server tools** such as web search are handled by Claude; you don't send `is_error` for them.",
+        "example": "A `get_orders` tool catches a database outage and returns an empty result, and Claude tells a customer they have no orders. Returning `\"content\": \"Database connection failed; order history is temporarily unavailable.\", \"is_error\": true` lets Claude say what happened instead.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Tell Claude the tool failed; it can then explain or adapt.",
+          "steps": [
+            {
+              "label": "Tool call fails"
+            },
+            {
+              "label": "tool_result",
+              "sublabel": "is_error: true + message"
+            },
+            {
+              "label": "Claude adapts its reply"
+            }
+          ]
+        }
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s4fail-400-after-deploy",
+      "q-s4fail-randomized-backoff",
+      "q-s4fail-queue-owns-retries"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/api/errors",
+        "title": "Claude API errors",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/api/rate-limits",
+        "title": "Rate limits",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+        "title": "Python SDK",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+        "title": "Handle tool calls",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-runner",
+        "title": "Tool runner (SDK)",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+        "title": "Streaming messages",
+        "checkedOn": "2026-10-16"
+      },
+      {
+        "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+        "title": "Addressing Cascading Failures",
+        "checkedOn": "2026-10-16"
+      }
+    ]
   }
 ]

@@ -3824,5 +3824,259 @@
       "title": "Authorization",
       "checkedOn": "2026-10-15"
     }
+  },
+  {
+    "id": "g-exact-match-grading",
+    "term": "exact-match grading",
+    "aliases": [
+      "exact match"
+    ],
+    "definition": "A code-based grader that passes an output only if it equals the expected answer (`output == golden_answer`), typically after normalizing whitespace and case.",
+    "whyItMatters": "Ideal for clear-cut, categorical answers such as a sentiment label. If one known phrase must appear, use string match (`key_phrase in output`); for free text, an LLM judge.",
+    "example": "`model_output.strip().lower() == correct_answer.lower()`, run over 1,000 human-labeled tweets for sentiment.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-judge-calibration",
+    "term": "judge calibration",
+    "aliases": [
+      "calibrated judge",
+      "calibrate the judge"
+    ],
+    "definition": "Checking an LLM judge's verdicts against expert human grades on the same sample, and refining its rubric until model and human grading rarely diverge.",
+    "whyItMatters": "Model-based graders are non-deterministic and need calibration before their scores are defensible. Once the system is robust, occasional human review is usually enough.",
+    "example": "Experts and the judge grade the same 100 replies; their disagreements on partly correct answers lead to a sharper rubric and a recheck.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-design-document",
+    "term": "design document",
+    "aliases": [
+      "design doc"
+    ],
+    "definition": "In this course, the short plan written before building a Claude feature: its success criteria, failure handling, cost and latency budget, and trust boundary.",
+    "whyItMatters": "Each line should become an eval check. Anthropic counts latency (acceptable response time) and price (your budget for running the model) as success criteria, so they get targets too.",
+    "example": "Latency: a target response time. Price: a monthly spend limit. Failure handling: empty or off-topic messages get an apology and a help link.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-reference-solution",
+    "term": "reference solution",
+    "aliases": [],
+    "definition": "A known working output for an eval task that passes all of its graders, proving the task is solvable and the graders are configured correctly.",
+    "whyItMatters": "A 0% pass rate across many trials usually signals a broken task, not an incapable agent. A reference solution shows whether the task and grader work.",
+    "example": "Before adding a new task to the suite, run a known-good answer through its graders: if it fails, fix the grader first.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-unit-test",
+    "term": "unit test",
+    "aliases": [],
+    "definition": "The smallest and simplest form of software test: it checks one separable piece, such as a single function or class, on its own.",
+    "whyItMatters": "Unit tests are cheap, usually finishing in milliseconds, so they run on every change. In a Claude app, parsers and tool wrappers are the classic targets.",
+    "example": "Feed the function that extracts JSON from Claude's reply a sample string, and check the object it returns.",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-integration-test",
+    "term": "integration test",
+    "aliases": [],
+    "definition": "A test run on an assembled component, built from units that already passed their own tests, to verify that the pieces work correctly together.",
+    "whyItMatters": "It catches handoff bugs that unit tests miss, such as one component returning objects while the next expects strings.",
+    "example": "Pass real retrieval results into the prompt builder and model call, and check the passages arrive in the prompt.",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-end-to-end-test",
+    "term": "end-to-end test",
+    "aliases": [
+      "E2E test"
+    ],
+    "definition": "A test that runs the whole flow the way a user would, from input to output. It's the largest-scale test, checking the system's end-to-end functionality.",
+    "whyItMatters": "It catches wiring failures no smaller test reaches, but it's the largest and usually slowest test, so let cheaper checks such as a smoke test run first.",
+    "example": "Type a question into the web app and check that an answer appears on the page.",
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-trace",
+    "term": "trace",
+    "aliases": [
+      "tracing"
+    ],
+    "definition": "The full record of one request through your system. Each step in it, such as a model request or a tool use, is a span.",
+    "whyItMatters": "When a case fails, find the first span whose output is wrong. Claude API traces are metadata only by default; full content adds prompts and responses so you can see why a run failed.",
+    "example": "A trace shows retrieval returned the wrong passages before the model request, so the fix is retrieval, not the prompt.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-retriable-vs-terminal-error",
+    "term": "retriable vs terminal error",
+    "aliases": [
+      "retriable error",
+      "terminal error",
+      "retryable error"
+    ],
+    "definition": "Retriable: waiting and sending the exact same request again could plausibly work (rate limits, overloads, transient 5xx errors). Terminal: it fails until you change something (the request, the key, the permission).",
+    "whyItMatters": "Retry retriable errors with backoff and a limit per request (the official SDKs already retry them, twice by default); surface terminal ones (400, 401, 403, 404) for a fix.",
+    "example": "A 529 during a traffic spike: back off and retry. A 401 right after a key rotation: every retry fails the same way until the job sends a valid key.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-tool-execution-error",
+    "term": "tool execution error",
+    "aliases": [
+      "tool error"
+    ],
+    "definition": "A failure while running one of your client tools, such as a network error fetching data. Return it as a `tool_result` with the message in `content` and `is_error: true`.",
+    "whyItMatters": "Claude incorporates the error into its response. Say what went wrong and what to try next, not just \"failed\". Server tool errors are handled by Claude, without `is_error`.",
+    "example": "`\"content\": \"ConnectionError: the weather service API is not available (HTTP 500)\", \"is_error\": true`",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-capability-tier",
+    "term": "capability tier",
+    "aliases": [
+      "capability tiers",
+      "model tier",
+      "model tiers"
+    ],
+    "definition": "A model's place in the Claude family's trade-off between capability, speed and price: Fable (most capable, slower), then Opus, Sonnet and Haiku (fastest, lowest price).",
+    "whyItMatters": "Higher tiers cost more and run slower. All current tiers share vision, tool use and a 1M-token window, so the choice is about how well, how fast and at what price.",
+    "example": "Haiku for high-volume classification; Opus for long-running agentic coding; Fable when evals on Opus at higher effort still fall short.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-observability",
+    "term": "observability",
+    "aliases": [],
+    "definition": "Visibility into what a running system actually did, from the data it emits. For a Claude agent: which tools it called, how long each model request took, how many tokens were spent and where failures occurred.",
+    "whyItMatters": "Cost and latency stay invisible until you instrument them. Per-call tokens, latency and errors show which step is slow or expensive, so you optimize the right one.",
+    "example": "Export OpenTelemetry spans from the Agent SDK, so that each model request carries its latency and token counts.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/observability",
+      "title": "Observability with OpenTelemetry",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-agentic-search",
+    "term": "agentic search",
+    "aliases": [
+      "multi-step search"
+    ],
+    "definition": "Retrieval in which the model itself searches iteratively with tools, judging each set of results and refining its next query, instead of a single static retrieval step before it answers.",
+    "whyItMatters": "Static RAG retrieval fetches similar chunks once, so it can't follow leads that only show up in the results; a multi-step search adapts to what it finds.",
+    "example": "A research subagent starts with a short, broad query, evaluates what's available, then narrows its next searches.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-fan-out",
+    "term": "fan-out",
+    "aliases": [
+      "parallel fan-out"
+    ],
+    "definition": "The step in a multi-agent run where the lead agent hands subtasks to several subagents at once, each working in its own context window; a synthesis step then combines their results.",
+    "whyItMatters": "Fan-out pays off for work that splits into independent parts. Work that needs one shared context or has many dependencies between agents is a poor fit.",
+    "example": "A lead research agent spins up 3–5 subagents in parallel rather than serially, then synthesizes what they report.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-untrusted-content",
+    "term": "untrusted content",
+    "aliases": [
+      "untrusted input",
+      "untrusted data"
+    ],
+    "definition": "Third-party content Claude processes on a user's behalf, such as a fetched web page, an inbound email, OCR text from an uploaded file or a tool result. It's data to read, never instructions to follow.",
+    "whyItMatters": "Deliver it only in `tool_result` blocks, label its source, and tell Claude it can't override the system prompt. Instructions found inside it are reported to the user, not acted on.",
+    "example": "An inbound email body returned as a JSON string inside a `tool_result`, described as coming from an unknown sender.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-trust-boundary",
+    "term": "trust boundary",
+    "aliases": [
+      "security boundary"
+    ],
+    "definition": "A line separating components with different trust levels, such as an agent that processes untrusted content and the credentials or systems it shouldn't reach directly.",
+    "whyItMatters": "If something goes wrong inside the agent's environment, resources outside the boundary stay protected. Keep credentials outside it, for example injected by a proxy the agent can't read.",
+    "example": "A proxy outside the agent's container adds the API key to outgoing requests: the agent can call the API but never sees the key.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-16"
+    }
+  },
+  {
+    "id": "g-data-exfiltration",
+    "term": "data exfiltration",
+    "aliases": [
+      "exfiltration",
+      "exfiltrate"
+    ],
+    "definition": "Getting data out of an environment to a place an attacker controls, for example a prompt-injected agent sending SSH keys or customer records to an outside server.",
+    "whyItMatters": "Network isolation is the control: if commands can reach only allowed hosts, a compromised agent may read a secret but can't send it to an arbitrary server.",
+    "example": "An injected command reads `~/.ssh/id_rsa` and tries to post it out; the host isn't in the sandbox's allowed domains, so in Manual mode it needs your approval.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sandboxing",
+      "title": "Configure the sandboxed Bash tool",
+      "checkedOn": "2026-10-16"
+    }
   }
 ]
