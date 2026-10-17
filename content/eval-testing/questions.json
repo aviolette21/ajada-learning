@@ -1851,5 +1851,52 @@
       "c-api-error-types"
     ],
     "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-code-retry-loop-400",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retrying the wrong errors",
+    "stem": "After a deploy, every call logs `status 400` six times, waits over a minute, then raises \"Claude unavailable\". The error type is `invalid_request_error`. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "def call_claude(req):\n    for attempt in range(6):\n        try:\n            return client.messages.create(**req)\n        except anthropic.APIStatusError as e:\n            log.warning(\"status %s\", e.status_code)\n            time.sleep(2 ** attempt)\n    raise RuntimeError(\"Claude unavailable\")"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Re-raise 400s at once for a fix, and keep backoff for rate limits and 5xx errors",
+        "reason": "Correct: a 400 means an issue with the format or content of your request. Resending it unchanged cannot fix that; retries are for transient failures."
+      },
+      {
+        "id": "b",
+        "text": "Retry more times with a longer base delay, so the API has enough time to recover",
+        "reason": "Nothing on the API side needs to recover. The request itself has a format or content problem, so every attempt fails the same way."
+      },
+      {
+        "id": "c",
+        "text": "Report it to Anthropic support as an outage, including the request ID",
+        "reason": "The errors page suggests contacting support for a 500 `api_error` that persists after backoff. A 400 points at your request."
+      },
+      {
+        "id": "d",
+        "text": "Switch to streaming, because the request is timing out before Claude replies",
+        "reason": "Streaming is the advice for long-running requests and `504 timeout_error`, not for a 400 `invalid_request_error`."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Retry transient errors with backoff; surface a 400 for a fix, because the request itself is what is wrong.",
+    "explanation": "The decision turns on what the status code says about the cause. A 400 `invalid_request_error` means the request's format or content is wrong, and right after a deploy that points at your own change. This loop treats every status error as transient, so it burns six attempts and then misreports the problem as an outage. Choice c is tempting because the failure persists, but support with a request ID is the advice for persistent 500s.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-course-failure-handling"
   }
 ]

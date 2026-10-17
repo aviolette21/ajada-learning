@@ -66,7 +66,10 @@ export function fixtureRaw(): RawContent {
           explanation: 'Why alpha: the gizmo detail in the stem decides it.',
           diagram: { kind: 'flow', caption: 'Alpha flow', steps: [{ label: 'Step one' }, { label: 'Step two' }] },
         }),
-        question('q-alpha-2', 'alpha', 'a1', { relatedCardIds: ['c-alpha-one'], lessonId: 'l-alpha' }),
+        question('q-alpha-2', 'alpha', 'a1', {
+          relatedCardIds: ['c-alpha-one'], lessonId: 'l-alpha',
+          snippet: { language: 'python', code: 'gizmo = make_gizmo()\nif gizmo.on:\n    run(gizmo)' },
+        }),
         question('q-alpha-3', 'alpha', 'a1', { lessonId: 'l-alpha' }),
       ],
       'alpha/cards.json': [

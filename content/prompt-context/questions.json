@@ -4707,5 +4707,147 @@
       "c-prompt-injection"
     ],
     "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-code-so-optional-field",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured outputs",
+    "stem": "This job turns transcribed business cards into sales leads. A few runs crash on the last line with `KeyError: 'email'`, even though `json.loads` succeeds. What is the cause, and the fix?",
+    "snippet": {
+      "language": "python",
+      "code": "SCHEMA = {\n    \"type\": \"object\",\n    \"properties\": {\n        \"name\": {\"type\": \"string\"},\n        \"email\": {\"type\": \"string\"},\n        \"company\": {\"type\": \"string\"},\n    },\n    \"required\": [\"name\", \"company\"],\n    \"additionalProperties\": False,\n}\nresp = client.messages.create(\n    model=\"claude-sonnet-5-5\", max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": card}],\n    output_config={\"format\": {\n        \"type\": \"json_schema\", \"schema\": SCHEMA}},\n)\nif resp.stop_reason in (\"refusal\", \"max_tokens\"):\n    raise Incomplete(resp)\ntext = next(b.text for b in resp.content\n            if b.type == \"text\")\nlead = json.loads(text)\nsend_welcome(lead[\"email\"].lower())"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The reply hit `max_tokens` partway through, so the JSON lost its last field",
+        "reason": "The code already raises on `max_tokens` and `refusal`, and `json.loads` succeeded, so this reply is complete JSON."
+      },
+      {
+        "id": "b",
+        "text": "Structured outputs reorder properties, so `email` comes back under another key",
+        "reason": "The docs' ordering rule moves required properties ahead of optional ones. It changes where a property appears, not its name."
+      },
+      {
+        "id": "c",
+        "text": "The API ignores `required` in a raw schema, so the reply skipped the schema",
+        "reason": "`required` is on the list of supported schema features, and a raw schema in `output_config.format` is a documented way to send it."
+      },
+      {
+        "id": "d",
+        "text": "`email` isn't in `required`, so a valid reply can leave it out; handle the missing key",
+        "reason": "Correct: properties not listed in `required` are optional. A card with no email gives schema-valid JSON without that key, so read it with `.get()` and handle `None`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A schema-valid reply can leave out any property not in `required`, so code must handle optional keys being absent.",
+    "explanation": "Structured outputs make the reply match the schema, and this schema lists only `name` and `company` as required, so `email` is optional. A card without an email produces valid JSON with no `email` key, and `lead[\"email\"]` raises. Choice a is tempting because truncation is the usual way a structured reply breaks, but the code already rejects `max_tokens` stops and the JSON parsed.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-json-outputs",
+      "c-structured-invalid-outputs"
+    ],
+    "lessonId": "l-course-structured-outputs"
+  },
+  {
+    "id": "q-code-so-truncated-unhandled",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured output failures",
+    "stem": "This extractor works on short invoices. On a very long one, `json.loads` raises even though the request uses a JSON schema. What is the most likely cause, and the fix?",
+    "snippet": {
+      "language": "python",
+      "code": "resp = client.messages.create(\n    model=\"claude-sonnet-5-5\",\n    max_tokens=512,\n    messages=[{\"role\": \"user\", \"content\": invoice}],\n    output_config={\"format\": {\n        \"type\": \"json_schema\", \"schema\": SCHEMA}},\n)\nif resp.stop_reason == \"refusal\":\n    raise Refused(resp)\ntext = next(b.text for b in resp.content\n            if b.type == \"text\")\nitems = json.loads(text)\nsave_items(items)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The schema was ignored, because JSON outputs only work through `client.messages.parse()`",
+        "reason": "`parse()` is the recommended helper, but sending a raw schema in `output_config.format` on `create` is documented too."
+      },
+      {
+        "id": "b",
+        "text": "The reply hit `max_tokens`; check for it and retry with a higher limit",
+        "reason": "Correct: at `stop_reason: \"max_tokens\"` the output may be incomplete and miss the schema. The docs say to retry with a higher `max_tokens`."
+      },
+      {
+        "id": "c",
+        "text": "Long inputs make Claude write prose before the JSON; strip everything before the first `{`",
+        "reason": "With JSON outputs, the text block holds JSON matching your schema. The documented cause of incomplete JSON is the token limit."
+      },
+      {
+        "id": "d",
+        "text": "The API had a transient fault; retry the identical request with exponential backoff",
+        "reason": "A `max_tokens` stop isn't an API fault: the reply ran out of room. The same request with the same 512-token limit would stop again."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Schema guarantees hold for complete replies only; check `stop_reason` for `max_tokens` as well as `refusal` before parsing.",
+    "explanation": "The handler checks for a refusal, one documented way a structured reply can miss its schema, but not another: hitting `max_tokens`. A long invoice produces a long JSON array, and 512 tokens isn't enough, so the text ends partway through. Choice d is tempting because the failure is intermittent, but it tracks input length, not chance, and retrying unchanged repeats it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-code-so-cap-in-description",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured outputs",
+    "stem": "Structured outputs don't support numeric bounds such as `maximum`, so your team wrote the refund cap into the field's description. A reply with `amount_cents: 9000` reached `issue_refund`. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "AMOUNT = {\"type\": \"integer\",\n          \"description\": \"Cents, at most 5000\"}\nSCHEMA = {\n    \"type\": \"object\",\n    \"properties\": {\n        \"order_id\": {\"type\": \"string\"},\n        \"amount_cents\": AMOUNT,\n    },\n    \"required\": [\"order_id\", \"amount_cents\"],\n    \"additionalProperties\": False,\n}\nresp = client.messages.create(\n    model=\"claude-sonnet-5-5\", max_tokens=1024,\n    messages=[{\"role\": \"user\", \"content\": ticket}],\n    output_config={\"format\": {\n        \"type\": \"json_schema\", \"schema\": SCHEMA}},\n)\nif resp.stop_reason in (\"refusal\", \"max_tokens\"):\n    raise Incomplete(resp)\nr = json.loads(next(b.text for b in resp.content\n                    if b.type == \"text\"))\nissue_refund(r[\"order_id\"], r[\"amount_cents\"])"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check `amount_cents` against the cap in code before calling `issue_refund`",
+        "reason": "Correct: the API constrains the reply to the supported schema, where `amount_cents` only has to be an integer. The docs leave unsupported constraints to validation in your code."
+      },
+      {
+        "id": "b",
+        "text": "Nothing: a reply that matches the schema also follows every field description",
+        "reason": "A description is text for Claude to read, not a constraint. The schema only requires an integer, and 9000 is one."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens`, so Claude has room to apply the cap from the description",
+        "reason": "The code already rejects `max_tokens` stops, so this reply was complete. The limit on output length doesn't decide which number Claude writes."
+      },
+      {
+        "id": "d",
+        "text": "Move the refund into a tool marked `\"strict\": true`, so its inputs obey the cap",
+        "reason": "Strict tool use makes inputs follow the `input_schema`, and it shares JSON outputs' schema limits, numeric constraints included. A description is still only guidance."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A schema-shaped reply can still carry a wrong value; check business limits in code before acting on it.",
+    "explanation": "The reply is complete, valid JSON that matches the schema, because `amount_cents` only has to be an integer. The cap lives in a description, which Claude reads but the API doesn't enforce, so the one rule that mattered was never checked. It has to be checked in code, between parsing and the side effect. Choice b is the tempting belief that \"matches the schema\" means \"follows every instruction in it\".",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-json-outputs",
+      "c-structured-invalid-outputs",
+      "c-strict-tool-use"
+    ],
+    "lessonId": "l-course-structured-outputs"
   }
 ]

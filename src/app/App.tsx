@@ -12,6 +12,7 @@ import { HistoryPage } from '../features/mock/HistoryPage';
 import { MockExamPage } from '../features/mock/MockExamPage';
 import { MockIntroPage } from '../features/mock/MockIntroPage';
 import { MockResultsPage } from '../features/mock/MockResultsPage';
+import { CodeDrillPage } from '../features/practice/CodeDrillPage';
 import { FocusDrillPage, FocusPage } from '../features/practice/FocusPage';
 import { PracticePage } from '../features/practice/PracticePage';
 import { MistakesPage } from '../features/practice/MistakesPage';
@@ -34,7 +35,7 @@ import { TermsProvider } from './Terms';
 const systemNow = () => new Date();
 
 /** Full-screen flows hide the tab bar. */
-const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes|focus\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
+const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes|code|focus\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
 
 export function Shell() {
   const location = useLocation();
@@ -51,6 +52,7 @@ export function Shell() {
           <Route path="/practice/weak" element={<WeakSpotsPage />} />
           <Route path="/practice/mistakes" element={<MistakesPage />} />
           <Route path="/practice/progress" element={<ProgressPage />} />
+          <Route path="/practice/code" element={<CodeDrillPage />} />
           <Route path="/practice/focus" element={<FocusPage />} />
           <Route path="/practice/focus/:areaId" element={<FocusDrillPage />} />
           {/* Flashcards were replaced by Vocabulary; old links land there. */}

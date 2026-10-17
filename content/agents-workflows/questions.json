@@ -3907,5 +3907,153 @@
       "c-claude-agent-sdk"
     ],
     "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-code-sdk-result-subtype-check",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "Your job runs this Agent SDK loop for each task. Most reports save fine, but some saved reports are `None`, and those runs then end with an exception. Their `ResultMessage` shows `subtype=\"error_max_turns\"`. What explains this, and what is the fix?",
+    "snippet": {
+      "language": "python",
+      "code": "from claude_agent_sdk import (\n    query, ClaudeAgentOptions, ResultMessage)\n\nasync def run(task: str) -> None:\n    options = ClaudeAgentOptions(max_turns=5)\n    async for msg in query(prompt=task,\n                           options=options):\n        if isinstance(msg, ResultMessage):\n            save_report(msg.result)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`ResultMessage` arrives before the agent finishes, so read the report from the last `AssistantMessage` instead",
+        "reason": "`ResultMessage` is the final result message, with cost and usage. On a successful run its `result` already holds the text of the final assistant message."
+      },
+      {
+        "id": "b",
+        "text": "`max_turns` caps output tokens per turn, so the report text was cut down to nothing; raise it to allow longer answers",
+        "reason": "`max_turns` is the maximum number of agentic turns (tool-use round trips), not an output-token cap. The report was not truncated: the run stopped at the turn limit."
+      },
+      {
+        "id": "c",
+        "text": "Each `query()` call forgets earlier runs, so pass `continue_conversation=True` to keep the result",
+        "reason": "That option gives a call memory of previous interactions. It does not fill in `result` on a run that ended in an error."
+      },
+      {
+        "id": "d",
+        "text": "The run hit the turn limit; `result` is `None` on `error_*` subtypes, so check `subtype` before saving",
+        "reason": "Correct: `result` holds the final text only on `subtype=\"success\"` and is `None` on the `error_*` subtypes. A single-shot `query()` that ends this way also raises an exception, so handle that too."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Branch on the result's `subtype`: only `success` carries `result` text, and each `error_*` subtype needs its own handling.",
+    "explanation": "An Agent SDK run ends with a `ResultMessage` whose `subtype` says how it ended. Here `error_max_turns` means the agent hit `max_turns=5` before finishing, so `result` is `None`, and the single-shot `query()` then raises an exception. The code saves `result` without checking, which stores `None`. Choice b is tempting because a limit is involved, but `max_turns` counts tool-use round trips, not output tokens.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/python",
+      "title": "Agent SDK reference - Python",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-max-turns-budget"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-code-sdk-tools-vs-allowed-tools",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "This Agent SDK code reviewer must never edit files or run commands. The logs show Claude still attempting `Edit` and `Bash` calls, which then go through the permission flow. Which two option changes keep `Edit`, `Write` and `Bash` out of Claude's context entirely?",
+    "snippet": {
+      "language": "typescript",
+      "code": "import { query }\n  from \"@anthropic-ai/claude-agent-sdk\";\n\nfor await (const msg of query({\n  prompt: \"Review src/ for unsafe SQL\",\n  options: {\n    allowedTools: [\"Read\", \"Grep\", \"Glob\"],\n  },\n})) {\n  if (msg.type === \"result\") console.log(msg);\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add `tools: []` alongside the current `allowedTools`",
+        "reason": "`tools: []` removes **all** built-in tools, so Claude could use only MCP tools; `Read`, `Grep` and `Glob` would be gone too."
+      },
+      {
+        "id": "b",
+        "text": "Add `tools: [\"Read\", \"Grep\", \"Glob\"]`",
+        "reason": "Correct: `tools` controls availability. Only the listed built-ins stay in Claude's context; unlisted built-ins are removed."
+      },
+      {
+        "id": "c",
+        "text": "Add `disallowedTools: [\"Bash(rm *)\"]` to block destructive commands",
+        "reason": "A scoped rule leaves `Bash` in Claude's context and denies only matching calls, so Claude may still try it, and `Edit` is untouched."
+      },
+      {
+        "id": "d",
+        "text": "Add `disallowedTools: [\"Edit\", \"Write\", \"Bash\"]`",
+        "reason": "Correct: a bare tool name in `disallowedTools` removes that tool from Claude's context, the same as omitting it from `tools`."
+      },
+      {
+        "id": "e",
+        "text": "Change nothing: `allowedTools` already restricts Claude to the tools it lists",
+        "reason": "`allowedTools` works on permission: listed tools run without a prompt, but unlisted tools stay available and their calls go through the permission flow."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "`allowedTools` pre-approves calls; `tools` and bare names in `disallowedTools` decide which tools Claude can see at all.",
+    "explanation": "The SDK separates availability (is the tool in Claude's context?) from permission (is a call approved?). `allowedTools` only changes permission, which is why Claude still sees and attempts `Edit` and `Bash`. Listing only the wanted built-ins in `tools`, or naming the unwanted ones bare in `disallowedTools`, removes them from context. Choice c is tempting, but a scoped rule like `Bash(rm *)` keeps `Bash` visible and blocks only matching calls.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-code-sdk-two-queries-no-memory",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK sessions",
+    "stem": "The first run below prints the name of the failing test. The second run replies that it doesn't know which test is meant, then starts searching from scratch. What explains this, and what's the fix?",
+    "snippet": {
+      "language": "python",
+      "code": "from claude_agent_sdk import query, ResultMessage\n\nasync def main() -> None:\n    async for msg in query(\n        prompt=\"Find the failing test in tests/\"):\n        if isinstance(msg, ResultMessage):\n            print(msg.result)\n\n    async for msg in query(\n        prompt=\"Now fix the test you found\"):\n        if isinstance(msg, ResultMessage):\n            print(msg.result)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`max_turns` defaults to 1, so the first run stopped early; raise it so the run can keep what it found",
+        "reason": "`max_turns` defaults to `None`, and the first run did finish: it printed the failing test. The second run just has no record of it."
+      },
+      {
+        "id": "b",
+        "text": "Each `query()` call starts a new session; pass `continue_conversation=True` on the second call",
+        "reason": "Correct: each call to `query()` starts fresh with no memory of previous interactions unless you pass `continue_conversation=True` or `resume` in its options."
+      },
+      {
+        "id": "c",
+        "text": "The SDK clears context after every `ResultMessage`, so no agent can carry work from one request to the next",
+        "reason": "A result doesn't wipe anything: `continue_conversation` or `resume` continue a `query()` conversation, and `ClaudeSDKClient` reuses one session automatically."
+      },
+      {
+        "id": "d",
+        "text": "Set `resume` to the first prompt's text, so the SDK can look up the earlier conversation by what was asked",
+        "reason": "`resume` takes the session ID to resume, not prompt text, so it can't find a conversation by what was asked."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Each `query()` call is its own session; continue or resume the conversation when a follow-up depends on an earlier run.",
+    "explanation": "The two loops are two separate `query()` calls, and each one starts a new session with no memory of the other. So \"the test you found\" means nothing to the second run. Passing `continue_conversation=True` (or `resume` with the first run's session ID) carries the conversation over. Choice c is tempting, but nothing is cleared after a result; the second call was simply never connected to the first.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/python",
+      "title": "Agent SDK reference - Python",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-agent-construction"
   }
 ]

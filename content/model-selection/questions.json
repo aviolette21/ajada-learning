@@ -5571,5 +5571,201 @@
       "c-model-start-strategy"
     ],
     "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-code-cache-breakpoint-on-varying-block",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cache breakpoints",
+    "stem": "Every request from your support bot looks like this, with a new time and question each time. Usage shows `cache_creation_input_tokens` above 0 on every request and `cache_read_input_tokens` always 0. Which change gets later requests reading the cached guide?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-sonnet-5-5\",\n  \"max_tokens\": 1024,\n  \"system\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"<40-page product guide>\"\n    }\n  ],\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"Now 09:14:07. Q: How do I reset?\",\n      \"cache_control\": {\"type\": \"ephemeral\"}\n    }]\n  }]\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the breakpoint where it is; the cache lookback will walk back and find the guide by itself",
+        "reason": "Lookback finds entries that earlier requests **wrote**, and writes happen only at breakpoints. No request ever wrote an entry at the guide, so there is nothing to find."
+      },
+      {
+        "id": "b",
+        "text": "Move `cache_control` to the system block that holds the guide",
+        "reason": "Correct: put the breakpoint on the last block that stays identical across requests, at the end of the static prefix rather than on the varying block."
+      },
+      {
+        "id": "c",
+        "text": "Add `\"ttl\": \"1h\"` to the current `cache_control` so the entry lives longer",
+        "reason": "Lifetime isn't the problem. The time and question change, so the prefix hash at this breakpoint differs on every request, and each one pays for a fresh write."
+      },
+      {
+        "id": "d",
+        "text": "Move the timestamp to the start of the system prompt, so the user block changes less",
+        "reason": "The prefix runs `tools`, `system`, then `messages`, so a changing value at the start of `system` would change every hash after it, and the question still varies."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Put `cache_control` at the end of the static prefix; a breakpoint on per-request content writes a new entry every time and never reads.",
+    "explanation": "A breakpoint writes one cache entry: a hash of everything up to and including that block. Here it sits on the user block, whose time and question change, so every request writes a fresh entry and none reads one, which is exactly what the usage fields show. Moving it to the guide's system block caches the stable prefix. Choice a is the subtle trap: lookback only finds earlier writes, never stable content on its own.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cache-control",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-code-batch-zip-results",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Batch results",
+    "stem": "This nightly job submits a Message Batch, then writes each summary back once processing has ended. Some products get another product's summary, and the job sometimes crashes partway through the results. Which two changes fix the results loop?",
+    "snippet": {
+      "language": "python",
+      "code": "requests = [\n    Request(\n        custom_id=f\"product-{p.id}\",\n        params=MessageCreateParamsNonStreaming(\n            model=\"claude-haiku-5-5\",\n            max_tokens=512,\n            messages=[{\"role\": \"user\",\n                       \"content\": p.prompt}],\n        ),\n    )\n    for p in products\n]\nbatch = client.messages.batches.create(\n    requests=requests)\n# ...later, once processing has ended:\nresults = client.messages.batches.results(batch.id)\nfor p, r in zip(products, results):\n    msg = r.result.message\n    p.summary = msg.content[0].text"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Look up each product by `r.custom_id` instead of pairing results with `products` by position",
+        "reason": "Correct: results can come back in any order, not necessarily the order of the requests, so match each result to its request with `custom_id`."
+      },
+      {
+        "id": "b",
+        "text": "Check `r.result.type` and read `message` only when it is `\"succeeded\"`; handle `errored` and `expired` results separately",
+        "reason": "Correct: only a `succeeded` result includes the message. For `errored` and `expired` requests no message was created, so branch on the type first."
+      },
+      {
+        "id": "c",
+        "text": "Sort `products` by ID before building the batch, so the results come back in the same order",
+        "reason": "Batch results can be returned in any order, whatever order the requests were in. Always use the `custom_id` field to match them."
+      },
+      {
+        "id": "d",
+        "text": "Use each product's list position, such as `\"0\"` and `\"1\"`, as its `custom_id` so results line up with the list",
+        "reason": "The IDs aren't the problem; ignoring them is. Results arrive in any order, so the loop has to look each one up by its `custom_id`."
+      },
+      {
+        "id": "e",
+        "text": "Read results while the batch is still in progress, so fewer of them go missing",
+        "reason": "You retrieve results once processing has ended for all requests. Reading earlier fixes neither the ordering nor the failed requests."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Join batch results to inputs by `custom_id`, and check `result.type` before reading a message.",
+    "explanation": "Two bugs hide in the last four lines. `zip` assumes results arrive in request order, but they can come back in any order, so the job must look each one up by the `custom_id` it already set. And it reads `.message` from every result, though only `succeeded` results include one. Choice c is tempting, but ordering the requests doesn't order the results.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-custom-id"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-code-batch-errored-resubmit-all",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Batch results",
+    "stem": "Your batch job resubmits failures with the code below. A few requests come back `errored` in every new batch, night after night. What should the job do differently?",
+    "snippet": {
+      "language": "python",
+      "code": "retry = []\nfor r in client.messages.batches.results(batch_id):\n    outcome = r.result\n    if outcome.type == \"succeeded\":\n        save(r.custom_id, outcome.message)\n    elif outcome.type == \"errored\":\n        retry.append(requests_by_id[r.custom_id])\n\nif retry:\n    client.messages.batches.create(requests=retry)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Resubmit the failures in smaller batches, since large batches are more likely to hit errors",
+        "reason": "Each request in a batch is processed independently, so batch size isn't why the same requests fail every time."
+      },
+      {
+        "id": "b",
+        "text": "Stop retrying errored requests: each attempt is billed, so the repeats cost more than they recover",
+        "reason": "Errored requests aren't billed. The real issue is that some of them can never succeed as written."
+      },
+      {
+        "id": "c",
+        "text": "Check `outcome.error.error.type`: fix `invalid_request_error` bodies before resending, and resubmit the rest as they are",
+        "reason": "Correct: an invalid request's body must be fixed before you send it again, while other errors, such as server errors, can be retried directly."
+      },
+      {
+        "id": "d",
+        "text": "Send the failing requests one at a time through the synchronous Messages API instead",
+        "reason": "An invalid request body fails wherever you send it; the batch guide says it must be fixed before re-sending. Switching APIs also gives up the batch discount."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Split `errored` batch results by error type: fix invalid requests, and retry server errors as they are.",
+    "explanation": "An `errored` result can mean an invalid request or an internal server error. This loop resubmits every errored request unchanged, so one with an invalid body fails the same way in every batch. Reading the error type separates the requests to fix from the ones to retry directly. Choice b is tempting as cost control, but errored requests aren't billed; the waste is resending requests that can't succeed.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-code-model-router-swapped",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model routing",
+    "stem": "Your platform picks each task's model with this function. Triage runs about 50,000 times a day and only labels a ticket with one of six queues. Audits run a few times a week as multihour autonomous refactors. Bills are high and the audits are weak. Which change fits Anthropic's model-selection guide?",
+    "snippet": {
+      "language": "python",
+      "code": "def pick_model(task) -> str:\n    if task.kind == \"triage\":\n        # label a ticket with one of 6 queues\n        return \"claude-opus-5-5\"\n    if task.kind == \"audit\":\n        # multihour autonomous refactor\n        return \"claude-haiku-5-5\"\n    raise ValueError(task.kind)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return `claude-opus-5-5` for both kinds, since the guide says most workloads start with Opus 5.5",
+        "reason": "High-volume, straightforward, cost-sensitive tasks like triage are the cases the guide gives for starting with Haiku 5.5, and the bill is already the problem."
+      },
+      {
+        "id": "b",
+        "text": "Swap the return values: `claude-haiku-5-5` for triage and `claude-opus-5-5` for the audits",
+        "reason": "Correct: the guide matches high-volume, cost-sensitive work to Claude Haiku 5.5 and multihour autonomous coding agents to Claude Opus 5.5."
+      },
+      {
+        "id": "c",
+        "text": "Return `claude-haiku-5-5` for both kinds, since starting efficiency-first keeps every task cheapest",
+        "reason": "Efficiency-first means upgrading where there's a capability gap. The guide lists multihour autonomous coding agents under Opus 5.5, and the audits are already weak."
+      },
+      {
+        "id": "d",
+        "text": "Route triage to `claude-fable-5-1`, since a wrong queue label is the costliest mistake here",
+        "reason": "Fable 5.1 is for the highest capability, such as agent sessions that run for hours; labelling tickets at volume is the low-latency, low-price case for Haiku 5.5."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Route by the task: Haiku for high-volume, simple work; Opus for long, complex agentic work.",
+    "explanation": "The function has its two branches backwards. Anthropic's guide points high-volume, cost-sensitive work like ticket triage to Claude Haiku 5.5 and multihour autonomous coding to Claude Opus 5.5, so swapping the return values cuts the bill and strengthens the audits. Choice a is tempting because the guide says most workloads start with Opus 5.5, but triage at this volume is the case it gives for Haiku.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
   }
 ]

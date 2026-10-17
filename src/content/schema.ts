@@ -43,6 +43,23 @@ export const DomainSchema = z.object({
 });
 export const DomainsFileSchema = z.array(DomainSchema).min(1);
 
+/**
+ * A code block shown under a question's stem (a request payload, a tool loop, a hook config…). Lines are capped so a
+ * snippet reads on a phone without much sideways scrolling.
+ */
+export const SNIPPET_LIMITS = { chars: 1200, lines: 22, lineLength: 52 } as const;
+export const SnippetSchema = z.object({
+  language: z.enum(['python', 'typescript', 'json', 'bash', 'yaml', 'text']),
+  code: z
+    .string()
+    .min(1)
+    .max(SNIPPET_LIMITS.chars)
+    .refine((c) => c.split('\n').length <= SNIPPET_LIMITS.lines, { message: `snippet has more than ${SNIPPET_LIMITS.lines} lines` })
+    .refine((c) => c.split('\n').every((l) => l.length <= SNIPPET_LIMITS.lineLength), {
+      message: `snippet has a line longer than ${SNIPPET_LIMITS.lineLength} characters`,
+    }),
+});
+
 export const ChoiceSchema = z.object({ id: ChoiceIdSchema, text: upTo(140), reason: upTo(220) });
 
 /**
@@ -55,6 +72,7 @@ export const QuestionSchema = z.object({
   subSkillId: text,
   topic: text,
   stem: upTo(320),
+  snippet: SnippetSchema.optional(),
   choices: z
     .array(ChoiceSchema)
     .min(4)
@@ -175,6 +193,7 @@ export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
 export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
 export type Diagram = z.infer<typeof DiagramSchema>;
+export type Snippet = z.infer<typeof SnippetSchema>;
 export type SubSkill = z.infer<typeof SubSkillSchema>;
 export type Domain = z.infer<typeof DomainSchema>;
 export type Choice = z.infer<typeof ChoiceSchema>;

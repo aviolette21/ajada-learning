@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useContent } from '../../app/ContentContext';
 import { useTermLinks } from '../../app/Terms';
 import { chosenIds, correctIds, isAnswered, isMultiple, selectInstruction } from '../../content/answers';
-import type { ChoiceId, Chosen, Question } from '../../content/schema';
+import type { ChoiceId, Chosen, Question, Snippet } from '../../content/schema';
 import { IconCheck, IconX } from '../../ui/icons';
 import { renderInline } from '../../ui/inline';
 import { FlagButton } from '../shared/FlagButton';
@@ -10,6 +10,10 @@ import './practice.css';
 
 /** answer: pick, then annotated once revealed · exam: pick/change freely, no feedback · review: read-only, annotated */
 export type QuestionMode = 'answer' | 'exam' | 'review';
+
+const SNIPPET_LABEL: Record<Snippet['language'], string> = {
+  python: 'Python', typescript: 'TypeScript', json: 'JSON', bash: 'Shell', yaml: 'YAML', text: 'Text',
+};
 
 export function QuestionView({ question, chosen, onChoose, mode, revealed, showReportFlag = true }: {
   question: Question;
@@ -36,6 +40,12 @@ export function QuestionView({ question, chosen, onChoose, mode, revealed, showR
         {showReportFlag && <FlagButton itemId={question.id} kind="question" />}
       </div>
       <h2 className="qv-stem">{renderInline(question.stem, links)}</h2>
+      {question.snippet && (
+        <figure className="qv-code">
+          <figcaption>{SNIPPET_LABEL[question.snippet.language]}</figcaption>
+          <pre tabIndex={0}><code>{question.snippet.code}</code></pre>
+        </figure>
+      )}
       {multiple && <p className="qv-select">{selectInstruction(question)}</p>}
       <ol className="qv-choices">
         {question.choices.map((c, i) => {

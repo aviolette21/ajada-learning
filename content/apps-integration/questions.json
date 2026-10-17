@@ -9560,5 +9560,536 @@
       "c-eval-set"
     ],
     "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-code-chat-history-no-assistant",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Multi-turn history",
+    "stem": "Your chatbot answers the first question well. When the user follows up with \"Make that cheaper\", Claude has no idea what \"that\" means. Reading the code, what is wrong?",
+    "snippet": {
+      "language": "typescript",
+      "code": "const history: Anthropic.MessageParam[] = [];\n\nasync function chat(text: string) {\n  history.push({ role: \"user\", content: text });\n  const res = await client.messages.create({\n    model: \"claude-sonnet-5-5\",\n    max_tokens: 1024,\n    system: \"You are a concise travel assistant.\",\n    messages: history,\n  });\n  const block = res.content.find(\n    (b) => b.type === \"text\",\n  );\n  return block?.type === \"text\" ? block.text : \"\";\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The system prompt must be the first entry in `history` instead of a separate field",
+        "reason": "The reference says a system prompt goes in the top-level `system` parameter, which this code already does."
+      },
+      {
+        "id": "b",
+        "text": "Claude's replies are never pushed to `history`, so the next request has no record of them",
+        "reason": "Correct: you pass the prior turns in `messages`. Here two `user` turns arrive in a row and are combined into one, with no trace of Claude's answer."
+      },
+      {
+        "id": "c",
+        "text": "The API keeps the conversation server-side, so the call should pass the last response's `id`",
+        "reason": "The model generates the next message from the prior turns you specify in `messages`; there is no stored conversation to point at."
+      },
+      {
+        "id": "d",
+        "text": "`find` picks the wrong block, so the code should read `res.content[0].text` directly",
+        "reason": "How the reply is read doesn't change what is sent next time. The follow-up fails because Claude's turn never goes into `messages`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "The API sees only the turns you send: append each assistant reply to `messages` before the next user turn.",
+    "explanation": "The model builds each reply from the prior turns you pass in `messages`, alternating `user` and `assistant`. This code pushes only user turns, so on the follow-up Claude sees two user messages combined into one and none of its own earlier answer. Choice c is tempting if you are used to stateful chat services, but here the conversation history lives in your code and must be resent every time.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-alternating-turns",
+      "c-stateless-api"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-code-stop-sequence-newline",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Stop sequences",
+    "stem": "Answers to this request always end after their first line, even though the system prompt asks for several paragraphs. Every response has `stop_reason: \"stop_sequence\"`. What is the cause?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-haiku-5-5\",\n  \"max_tokens\": 2048,\n  \"system\": \"Explain in a few short paragraphs.\",\n  \"stop_sequences\": [\"\\n\", \"</answer>\"],\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"How do vaccines train immunity?\"\n    }\n  ]\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`max_tokens` is too low for several paragraphs, so each reply gets cut short",
+        "reason": "A reply cut off at your limit has `stop_reason: \"max_tokens\"`. These replies report `stop_sequence` instead."
+      },
+      {
+        "id": "b",
+        "text": "Claude judged one line to be enough and ended its turn early on its own",
+        "reason": "A natural finish is `end_turn`. `stop_sequence` means Claude generated one of your custom `stop_sequences`."
+      },
+      {
+        "id": "c",
+        "text": "`\"\\n\"` is in `stop_sequences`, so generation stops at the first line break",
+        "reason": "Correct: when the model generates one of your `stop_sequences`, it stops with `stop_reason: \"stop_sequence\"`, and `stop_sequence` holds the match. Paragraphs need line breaks."
+      },
+      {
+        "id": "d",
+        "text": "The system prompt is too short, so Claude reads it as a one-line format",
+        "reason": "Instructions shape what Claude writes, but `stop_sequence` says a stop sequence ended the reply, not Claude's reading of the prompt."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "When replies end early with `stop_sequence`, read the `stop_sequence` field: one of your own sequences fired.",
+    "explanation": "`stop_sequence` means the reply ended because Claude generated one of the strings in `stop_sequences`, and the response's `stop_sequence` field names the match. A newline is in that list, so every answer stops at its first line break, whatever the system prompt asks for. Choice a is tempting because short output often means a low limit, but a reply cut off by the limit reports `max_tokens`.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/messages/create",
+      "title": "Create a Message",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stop-sequences",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-code-read-tool-use-response",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Reading content blocks",
+    "stem": "Your code ran `print(response.content[0].text)` on this response and crashed. Which two statements about the response are correct?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"type\": \"message\",\n  \"role\": \"assistant\",\n  \"content\": [\n    {\n      \"type\": \"tool_use\",\n      \"id\": \"toolu_01A\",\n      \"name\": \"lookup_order\",\n      \"input\": { \"order_id\": \"A-123\" }\n    }\n  ],\n  \"stop_reason\": \"tool_use\",\n  \"stop_sequence\": null\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The request failed, and the crash is just how the SDK surfaces the underlying API error",
+        "reason": "`stop_reason` is part of every successful response. Failures come back as HTTP 4xx or 5xx errors, not as a message with content."
+      },
+      {
+        "id": "b",
+        "text": "The first block is a `tool_use` block with no `text` field, so pick blocks by `type`",
+        "reason": "Correct: the docs' handlers find the text block by checking its `type` rather than assuming it sits at position 0."
+      },
+      {
+        "id": "c",
+        "text": "Claude finished naturally with an empty reply, so the app should show nothing",
+        "reason": "A natural finish is `end_turn`. Here `stop_reason` is `tool_use`."
+      },
+      {
+        "id": "d",
+        "text": "Claude is calling `lookup_order`, so your code should run it with this `input` and continue",
+        "reason": "Correct: `tool_use` means Claude is calling a tool. The docs' workflow runs it, appends the assistant turn and the results, then calls again."
+      },
+      {
+        "id": "e",
+        "text": "The reply was cut off, so retry it with a higher `max_tokens`",
+        "reason": "A cut-off reply has `stop_reason: \"max_tokens\"`. This one stopped because Claude is calling a tool."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Branch on `stop_reason` and read blocks by `type`; a `tool_use` reply asks your code to act.",
+    "explanation": "This is a successful response: `stop_reason` says why Claude stopped, and `tool_use` means it wants your code to run `lookup_order`. Its only content block is a `tool_use` block, so code that assumes `content[0]` is text breaks. Choice a is tempting because the program crashed, but the crash comes from reading the wrong block type; real API failures arrive as HTTP errors.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-code-else-branch-stop-reasons",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Handling stop reasons",
+    "stem": "In this app, `</answer>` marks the intended end of an answer. For which two `stop_reason` values does the `else` branch wrongly save the text as a finished answer?",
+    "snippet": {
+      "language": "python",
+      "code": "resp = client.messages.create(\n    model=\"claude-sonnet-5-5\",\n    max_tokens=800,\n    stop_sequences=[\"</answer>\"],\n    tools=tools,\n    messages=messages,\n)\nif resp.stop_reason == \"tool_use\":\n    run_tools_and_continue(resp)\nelse:\n    text = next(\n        (b.text for b in resp.content\n         if b.type == \"text\"), \"\")\n    save_final_answer(text)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`end_turn`",
+        "reason": "Claude finished its response naturally, so saving the text as final is right."
+      },
+      {
+        "id": "b",
+        "text": "`max_tokens`",
+        "reason": "Correct: the response reached your `max_tokens` limit, so the text is truncated. Raise `max_tokens` or continue the response."
+      },
+      {
+        "id": "c",
+        "text": "`stop_sequence`",
+        "reason": "Claude emitted one of your `stop_sequences`. Here that is `</answer>`, the end this app designed for."
+      },
+      {
+        "id": "d",
+        "text": "`refusal`",
+        "reason": "Correct: Claude declined to respond. It arrives as a normal HTTP 200, so code must check for it; the docs suggest reading `stop_details` and retrying on a fallback model."
+      },
+      {
+        "id": "e",
+        "text": "`tool_use`",
+        "reason": "This value never reaches the `else` branch: the `if` handles it by running the tools."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Handle each `stop_reason` explicitly; an `else` that treats every non-tool stop as success hides truncation and refusals.",
+    "explanation": "The docs recommend checking `stop_reason` and handling each case explicitly. In this code anything other than `tool_use` gets saved, so a reply cut off at `max_tokens` and a `refusal` both land in storage as if they were finished answers. Choice c is the tempting trap: `stop_sequence` sounds like an early stop, but here `</answer>` is the end marker the app asked for.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stop-reason",
+      "c-stop-sequences"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-code-continue-truncated-text",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Continuing a max_tokens reply",
+    "stem": "Long reports come out with the opening section repeated two or three times. Which change at the `TODO` matches the docs' pattern for continuing a reply that hit `max_tokens`?",
+    "snippet": {
+      "language": "typescript",
+      "code": "let full = \"\";\nlet messages: Anthropic.MessageParam[] = [\n  { role: \"user\", content: prompt },\n];\nfor (let i = 0; i < 3; i++) {\n  const res = await client.messages.create({\n    model: \"claude-opus-5-5\",\n    max_tokens: 4096,\n    messages,\n  });\n  const block = res.content.find(\n    (b) => b.type === \"text\",\n  );\n  if (block?.type === \"text\") full += block.text;\n  if (res.stop_reason !== \"max_tokens\") break;\n  // TODO: continue where it left off\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Accept the first reply as final, since a `max_tokens` stop means the report is long enough",
+        "reason": "`max_tokens` means the response reached your limit, so it is incomplete. The docs say to raise the limit or continue the response."
+      },
+      {
+        "id": "b",
+        "text": "Replace `messages` with one new user turn that says \"Please continue from where you left off\"",
+        "reason": "That turn alone gives Claude neither the original prompt nor the text written so far; the docs' pattern resends both."
+      },
+      {
+        "id": "c",
+        "text": "Push each partial reply onto `messages` as another `user` turn, then call again",
+        "reason": "The partial text is Claude's own output. The docs' pattern sends it back as an `assistant` turn, then a user turn asking Claude to continue."
+      },
+      {
+        "id": "d",
+        "text": "Send the prompt, an `assistant` turn with `full`, then a user turn asking it to continue",
+        "reason": "Correct: that is the docs' continuation pattern. As written, `messages` never changes, so every call starts the report over."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "To continue a `max_tokens` reply, resend the prompt plus the text so far as an assistant turn, then ask Claude to continue.",
+    "explanation": "The loop detects truncation correctly but never changes `messages`, so each call gets the same single prompt and writes the report from the start, and `full` collects the opening again. The docs' fix rebuilds the conversation: the original prompt, the partial reply as an `assistant` turn, then a user turn saying to continue from where it left off. Choice b is tempting because it has the right wording, but on its own it gives Claude nothing to continue from.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-max-tokens",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-code-instanceof-order",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "SDK error classes",
+    "stem": "During a traffic spike, on-call gets paged for every 429, and the rate-limit branch never runs. Why?",
+    "snippet": {
+      "language": "typescript",
+      "code": "try {\n  return await client.messages.create(params);\n} catch (err) {\n  if (err instanceof Anthropic.APIError) {\n    await pageOnCall(err);\n    throw err;\n  } else if (\n    err instanceof Anthropic.RateLimitError\n  ) {\n    await sleep(30_000);\n    return send(params);\n  }\n  throw err;\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`instanceof` cannot tell SDK error classes apart, so the code should compare `err.status`",
+        "reason": "Each status maps to its own class (429 is `RateLimitError`), so `instanceof` works. The problem is which check runs first."
+      },
+      {
+        "id": "b",
+        "text": "The SDK retries a 429 twice, then throws it as an `APIConnectionError`",
+        "reason": "The SDK retries 429s twice by default, but `APIConnectionError` is for failing to reach the API, not for a 429 response."
+      },
+      {
+        "id": "c",
+        "text": "`RateLimitError` is a subclass of `APIError`, so the first check matches every 429",
+        "reason": "Correct: for any 4xx or 5xx response the SDK throws a subclass of `APIError`. Test the specific class first, then the general one."
+      },
+      {
+        "id": "d",
+        "text": "`RateLimitError` is only thrown when `maxRetries` is set to 0",
+        "reason": "`maxRetries` sets how many automatic retries happen, not which class a 429 is thrown as."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Check specific SDK error classes before their parent class, or the general branch catches them first.",
+    "explanation": "All of the SDK's status errors share the parent class `APIError`, and an `if`/`else if` chain stops at the first match. Because the general `APIError` check comes first, a `RateLimitError` matches it and pages on-call before the rate-limit branch is reached. Choice a is tempting, but each status already has its own class, so swapping the order of the checks fixes the bug.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript",
+      "title": "TypeScript SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-error-types"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-code-connection-error-uncaught",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "SDK error classes",
+    "stem": "In the Python SDK, `APIStatusError` is raised when the API answers with a 4xx or 5xx status. The worker's network goes down for a few minutes, and jobs crash the worker with an unhandled exception instead of being requeued or failed. Why?",
+    "snippet": {
+      "language": "python",
+      "code": "def process(job):\n    try:\n        msg = client.messages.create(**job.request)\n    except anthropic.RateLimitError:\n        queue.requeue(job, delay=60)\n        return\n    except anthropic.APIStatusError as e:\n        queue.fail(job, reason=e.status_code)\n        return\n    queue.complete(job, msg)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A network outage surfaces as a 429 that needs a `retry-after` value the code never reads",
+        "reason": "Being unable to reach the API isn't a rate limit. No response arrives at all, so there is no 429 and no header."
+      },
+      {
+        "id": "b",
+        "text": "No status comes back, so the SDK raises `APIConnectionError`, which nothing catches",
+        "reason": "Correct: when the SDK can't connect at all, there is no status code, and it raises `APIConnectionError`. Neither `except` clause covers that, so add a branch for it."
+      },
+      {
+        "id": "c",
+        "text": "The SDK returns `None` when it can't connect, and `queue.complete` crashes on it",
+        "reason": "When the SDK can't connect to the API it raises an error, a subclass of `APIError`; it doesn't return `None`."
+      },
+      {
+        "id": "d",
+        "text": "The SDK retries connection errors forever, so the job never returns",
+        "reason": "Connection errors are retried 2 times by default with a short backoff, then raised. The symptom here is a crash, not a hang."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A failure with no HTTP response raises `APIConnectionError`, which a handler that only catches status errors misses.",
+    "explanation": "The SDK raises two families of errors: `APIStatusError` subclasses when the API answers with a non-success code, and `APIConnectionError` when it can't be reached at all. This handler covers only the first family, so a network outage escapes both `except` clauses once the SDK's own retries run out. Choice d is tempting because the SDK does retry connection errors, but only twice by default before raising.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-sdk-retries"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-code-fetch-unchecked-status",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Error responses",
+    "stem": "This service calls the Messages API with plain `fetch`. During an incident its logs show only `TypeError: Cannot read properties of undefined (reading 'find')`, with no API error details. What should the code do?",
+    "snippet": {
+      "language": "typescript",
+      "code": "async function ask(prompt: string) {\n  const payload = {\n    model: \"claude-haiku-5-5\", max_tokens: 512,\n    messages: [{ role: \"user\", content: prompt }],\n  };\n  const res = await fetch(\n    \"https://api.anthropic.com/v1/messages\",\n    {\n      method: \"POST\",\n      headers: {\n        \"x-api-key\": process.env.ANTHROPIC_API_KEY!,\n        \"anthropic-version\": \"2023-06-01\",\n        \"content-type\": \"application/json\",\n      },\n      body: JSON.stringify(payload),\n    },\n  );\n  const body = await res.json();\n  const block = body.content.find(\n    (b: any) => b.type === \"text\");\n  return block?.text ?? \"\";\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read the body with `res.text()`, because API error responses aren't JSON",
+        "reason": "The errors page says the API always returns errors as JSON, with a top-level `error` object. `res.json()` parsed it fine."
+      },
+      {
+        "id": "b",
+        "text": "Wrap `fetch` in `try`/`catch`, because it throws when the status is 4xx or 5xx",
+        "reason": "The crash happens at `body.content`, after `fetch` returned and the body parsed. The error response is what lacks `content`."
+      },
+      {
+        "id": "c",
+        "text": "Set `stream: true`, so failures arrive as `error` events that are easy to handle",
+        "reason": "Streaming makes this harder: an error can arrive after a 200 response, and then it doesn't follow the standard error handling."
+      },
+      {
+        "id": "d",
+        "text": "Check `res.ok`, and on failure log the body's `error` details and `request_id`",
+        "reason": "Correct: an error body has a top-level `error` object with `type` and `message`, plus a `request_id`, and no `content`. Branch on the status before reading a reply."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Check the HTTP status before reading a reply: error bodies carry `error.type`, `error.message` and `request_id`, not `content`.",
+    "explanation": "An API error still comes back as a JSON body, but with a different shape: a top-level `error` object with `type` and `message`, plus a `request_id`, and no `content`. This code reads `content` without checking the status, so every API error becomes the same `TypeError` and the useful details are lost. Choice b is tempting, but the crash happens after `fetch` returned and the body parsed, so `fetch` did not throw.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-error-types",
+      "c-request-id"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-code-stream-delta-types",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Streaming delta types",
+    "stem": "Some streams crash on the last line with `AttributeError: ... has no attribute 'text'`. Thinking is on for these requests, and Claude sometimes calls tools. What fixes the handler?",
+    "snippet": {
+      "language": "python",
+      "code": "stream = client.messages.create(\n    model=\"claude-opus-5-5\",\n    max_tokens=2048,\n    tools=tools,\n    messages=messages,\n    stream=True,\n)\nreply = \"\"\nfor event in stream:\n    if event.type == \"content_block_delta\":\n        reply += event.delta.text"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Append only when `event.delta.type` is `\"text_delta\"`; other deltas have other fields",
+        "reason": "Correct: thinking arrives as `thinking_delta` (a `thinking` field) and tool input as `input_json_delta` (`partial_json`). Only `text_delta` has `text`."
+      },
+      {
+        "id": "b",
+        "text": "Filter out `ping` events first, because they arrive without a delta",
+        "reason": "The `if` already ignores pings, since they aren't `content_block_delta` events. The crash comes from deltas that aren't text."
+      },
+      {
+        "id": "c",
+        "text": "Read the text from `content_block_start` events, which hold each block's full content",
+        "reason": "A block's content arrives in the `content_block_delta` events that follow its start; the start event doesn't hold the finished block."
+      },
+      {
+        "id": "d",
+        "text": "Turn streaming off, because thinking and tool calls can't be streamed",
+        "reason": "Both stream: thinking through `thinking_delta` events and tool input through `input_json_delta` events."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In a raw stream, check `delta.type`: only `text_delta` carries text, while thinking and tool input use their own delta types.",
+    "explanation": "Every `content_block_delta` updates one block, but the delta's shape depends on the block: `text_delta` has `text`, `thinking_delta` has `thinking`, and `input_json_delta` has `partial_json`. The handler assumes every delta is text, so the first thinking or tool delta crashes it. Choice b is tempting because pings are the classic stray event, but the `if` already filters them out.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stream-event-flow",
+      "c-input-json-delta"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-code-stream-save-on-block-stop",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "When a stream is complete",
+    "stem": "Thinking is on for these requests. Some saved replies are empty, and none record why Claude stopped. Which change fixes when the handler treats the reply as done?",
+    "snippet": {
+      "language": "typescript",
+      "code": "const stream = await client.messages.create({\n  ...params,\n  stream: true,\n});\nlet text = \"\";\nfor await (const event of stream) {\n  if (\n    event.type === \"content_block_delta\" &&\n    event.delta.type === \"text_delta\"\n  ) {\n    text += event.delta.text;\n  } else if (event.type === \"content_block_stop\") {\n    await saveReply(text); // reply is done\n    return;\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Save on `message_start`, which carries the finished message",
+        "reason": "`message_start` holds a `Message` with empty `content`; the content blocks arrive after it."
+      },
+      {
+        "id": "b",
+        "text": "Save on `message_stop`, and read `stop_reason` from the `message_delta` before it",
+        "reason": "Correct: `content_block_stop` ends one block, such as a thinking block at index 0. The message ends at `message_stop`; `stop_reason` comes in `message_delta`."
+      },
+      {
+        "id": "c",
+        "text": "Wait briefly after `content_block_stop`, because text deltas can arrive late",
+        "reason": "Each block's deltas come before its `content_block_stop`. The problem is that more blocks follow, not that deltas arrive late."
+      },
+      {
+        "id": "d",
+        "text": "Save on the first `message_delta` event, because that event is what closes the stream",
+        "reason": "A stream can have one or more `message_delta` events, and the final event is `message_stop`."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A streamed reply is complete at `message_stop`; `content_block_stop` only closes one content block.",
+    "explanation": "A stream is a series of content blocks, each with its own start, deltas and stop, then one or more `message_delta` events and a final `message_stop`. With thinking on, the first block can be a thinking block, so stopping at the first `content_block_stop` saves before any text arrives, and the `stop_reason` in `message_delta` is never read. Choice d is tempting because `message_delta` carries the stop reason, but more than one can arrive.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stream-event-flow",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-streaming-events"
+  },
+  {
+    "id": "q-code-stream-cutoff-partial",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Stream error recovery",
+    "stem": "Your job streams long answers from `claude-opus-5-5`. When the connection drops midway, the `except` branch saves whatever arrived as finished, and users get reports that stop mid-sentence. What should that branch do instead?",
+    "snippet": {
+      "language": "python",
+      "code": "partial = \"\"\ntry:\n    with client.messages.stream(**params) as s:\n        for text in s.text_stream:\n            partial += text\n            ui.show(text)\n    db.save(job_id, partial, done=True)\nexcept Exception:  # stream was cut off\n    db.save(job_id, partial, done=True)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Mark `partial` incomplete, then ask Claude to continue in a user message holding it",
+        "reason": "Correct: the guide's recovery captures the partial response, then sends a continuation request: a user message containing it and an instruction to continue from where it left off."
+      },
+      {
+        "id": "b",
+        "text": "Drop `partial` and show the user an error, since a cut-off stream can't be resumed later",
+        "reason": "The guide describes recovering an interrupted stream: capture what arrived, then send a continuation request instead of starting over."
+      },
+      {
+        "id": "c",
+        "text": "Keep saving it as done, since every token Claude sent before the drop was received",
+        "reason": "The stream was interrupted, so the answer was never finished. The guide treats this as a case to recover from, not a complete response."
+      },
+      {
+        "id": "d",
+        "text": "Re-run the identical request from scratch, then append all of its output to `partial`",
+        "reason": "A fresh request writes the answer from the start, so the saved text would repeat what already arrived. The guide resumes from the partial instead."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Keep a cut-off stream marked partial, then resume it with a continuation request that includes the partial text.",
+    "explanation": "An interrupted stream isn't a finished answer, so marking it done passes a truncated report downstream. The guide's recovery keeps the text that arrived and sends a continuation request: a user message containing the partial response and an instruction to continue from where it left off. Choice d is tempting because it does get a complete answer, but a fresh request starts over, so the saved text repeats what already arrived.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stream-error-recovery"
+    ],
+    "lessonId": "l-swe-foundations"
   }
 ]

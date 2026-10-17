@@ -14,6 +14,22 @@
 .choice:not([aria-disabled='true']):active { transform: scale(0.985); }
 .choice[aria-disabled='true'] { cursor: default; color: var(--text); }
 .choice-multi .choice-letter { border-radius: 6px; }
+/* Snippets keep their line breaks and scroll sideways inside the card, never the page. */
+.qv-code { margin: -4px 0 14px; border-radius: 12px; background: var(--code-bg); overflow: hidden; }
+.qv-code figcaption { padding: 7px 12px 0; font-size: 11.5px; font-weight: 700; letter-spacing: 0.3px; color: var(--muted); }
+.qv-code pre { margin: 0; padding: 6px 12px 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.qv-code pre code {
+  padding: 0; background: none; font-size: 12.5px; line-height: 1.5; font-weight: 400;
+  white-space: pre; overflow-wrap: normal; display: block; width: max-content; min-width: 100%;
+}
+/* On a phone the block runs edge to edge, so a full-width snippet line (52 chars) fits without scrolling. */
+@media (max-width: 480px) {
+  .qv-code { margin-inline: -16px; border-radius: 0; }
+  .panel .qv-code { margin-inline: -14px; }
+  .qv-code figcaption { padding-inline: 10px; }
+  .qv-code pre { padding-inline: 10px; }
+  .qv-code pre code { font-size: 12px; }
+}
 .qv-select { margin: -6px 0 12px; font-size: 13.5px; font-weight: 750; color: var(--accent-text); letter-spacing: 0.2px; }
 .guess-row { display: flex; justify-content: flex-end; margin: -4px 0 -6px; }
 .check-bar { position: sticky; bottom: calc(var(--safe-bottom) + 12px); margin-top: 14px; }

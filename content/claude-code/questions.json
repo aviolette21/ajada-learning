@@ -1993,5 +1993,239 @@
       "c-cc-print-mode"
     ],
     "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-code-cc-deny-broad-allow-narrow",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission rules",
+    "stem": "This is your project's `.claude/settings.json`. A teammate added the allow rule so Claude can list buckets without asking. Claude now runs `aws s3 ls`. What happens?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(aws s3 ls)\"\n    ],\n    \"deny\": [\n      \"Bash(aws *)\"\n    ]\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's blocked: deny is checked first, and an allow can't carve an exception out of it",
+        "reason": "Correct: rules are evaluated deny, then ask, then allow, and the first match decides. `Bash(aws *)` matches, so the narrower allow never gets a say."
+      },
+      {
+        "id": "b",
+        "text": "It runs, because the allow rule names the exact command and the more specific rule wins",
+        "reason": "The docs say rule specificity doesn't change the order: a broad deny like `Bash(aws *)` blocks calls that also match a narrower allow like `Bash(aws s3 ls)`."
+      },
+      {
+        "id": "c",
+        "text": "Claude Code prompts, because two rules that disagree about the same command fall back to asking",
+        "reason": "There's no ask rule here. The first match in the order deny, ask, allow decides, and the deny rule matches, so the call is blocked without a prompt."
+      },
+      {
+        "id": "d",
+        "text": "It runs, because `allow` appears before `deny` in the file and the first listed rule applies",
+        "reason": "Where a list sits in the file doesn't matter. Claude Code always checks deny rules first, then ask, then allow."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Deny rules always win: a narrow allow rule can never punch a hole in a broader deny rule.",
+    "explanation": "Claude Code evaluates permission rules in a fixed order, deny then ask then allow, and the first match decides. `aws s3 ls` matches the deny rule `Bash(aws *)`, so it's blocked even though an allow rule names that exact command. Choice b is tempting because many systems let the most specific rule win, but here specificity doesn't change the order. To allow `aws s3 ls`, narrow the deny rule instead.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-code-cc-compound-command-prompts",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission rules",
+    "stem": "With these project settings, in Manual mode, Claude proposes `npm test && git push origin main`. No other rules apply. What does Claude Code do?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(npm test *)\"\n    ]\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Denies the whole command, since a subcommand that no rule covers counts as denied",
+        "reason": "Nothing denies `git push` here. A Bash command with no matching rule falls back to the normal approval prompt, which Manual mode shows for unapproved commands."
+      },
+      {
+        "id": "b",
+        "text": "Runs it, because the `*` in `Bash(npm test *)` matches the rest of the line, `&& git push` included",
+        "reason": "Claude Code is aware of shell operators: it splits the command at `&&` and checks each subcommand on its own, so the `*` can't swallow the push."
+      },
+      {
+        "id": "c",
+        "text": "Asks for approval, because `git push origin main` is checked on its own and no rule covers it",
+        "reason": "Correct: a rule must match each subcommand independently. `npm test` matches the allow rule, but the push matches nothing, so Claude Code asks first."
+      },
+      {
+        "id": "d",
+        "text": "Runs `npm test` without asking, then asks about the push once the tests have passed",
+        "reason": "A rule like `Bash(npm test *)` doesn't give permission to run `npm test && git push…` as a whole, so the prompt comes before anything runs, not between the steps."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Allow rules match each subcommand of a compound command, so one approved command can't smuggle in another.",
+    "explanation": "Claude Code splits compound commands at operators such as `&&`, `||`, `;` and `|`, and every subcommand must be covered by an allow rule for the whole command to run unprompted. Here `npm test` is covered and `git push origin main` isn't, so Claude Code asks. Choice b is the tempting one: `*` does match any text, but the split happens first, so the wildcard only applies within the `npm test` part.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-settings-scopes",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-code-headless-dontask-no-edit",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Headless permissions",
+    "stem": "A nightly job runs this command, and nothing else sets permissions. In `dontAsk` mode, Claude Code denies any call that would otherwise prompt. The run reports the failing tests but never changes a file, and the log shows each `Edit` call was denied. Why?",
+    "snippet": {
+      "language": "bash",
+      "code": "#!/bin/bash\nclaude -p \"Run the tests and fix any failures\" \\\n  --permission-mode dontAsk \\\n  --allowedTools \"Read,Bash(npm test *)\" \\\n  --output-format json > run.json"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `-p` run can't change files at all; edits need an interactive session with someone there to approve them",
+        "reason": "The headless docs' own example fixes failing tests in a `-p` run by listing `Edit` in `--allowedTools`, which lets Claude edit files without asking."
+      },
+      {
+        "id": "b",
+        "text": "`Edit` isn't covered by `--allowedTools`, so each edit would need a prompt, and `dontAsk` denies it",
+        "reason": "Correct: in `dontAsk` mode, only actions that need no approval, or that `--allowedTools` entries or allow rules cover, still run. Add `Edit` to the list so edits go through."
+      },
+      {
+        "id": "c",
+        "text": "`--allowedTools` limits the run's toolset, so `Edit` was never available to Claude in the first place",
+        "reason": "The flag lets the listed tools run without prompting. The log shows Claude did attempt `Edit`, so the tool was there; its calls were denied."
+      },
+      {
+        "id": "d",
+        "text": "`dontAsk` denies every tool call, so it only suits runs that don't use any tools",
+        "reason": "Actions that need no approval, such as file reads in your working directories, still run in `dontAsk`, and so do the ones `--allowedTools` covers, like `npm test` here."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "In `dontAsk` mode anything not pre-approved is denied, so list every tool an unattended run needs in `--allowedTools`.",
+    "explanation": "`dontAsk` turns every would-be prompt into a denial, so an unattended run can only do what needs no approval or what you pre-approved. Reading files and `npm test` are covered here, but editing files needs approval and `Edit` isn't in `--allowedTools`, so each edit is denied. Choice c is tempting, but the denied `Edit` calls show Claude had the tool; it just had no permission to use it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-code-headless-python-returncode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A nightly job runs this script. One night the `claude` run failed, the script didn't crash, and the team channel got the failure message posted as if it were the summary. What change prevents this?",
+    "snippet": {
+      "language": "python",
+      "code": "import json, subprocess\n\nproc = subprocess.run(\n    [\"claude\", \"-p\", \"Summarize today's failures\",\n     \"--output-format\", \"json\"],\n    capture_output=True, text=True,\n)\nreport = json.loads(proc.stdout)[\"result\"]\npost_to_channel(report)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Wrap `json.loads` in `try`/`except`, since a failed run never prints valid JSON",
+        "reason": "A failure inside the run is printed as the result on stdout, so the JSON can parse fine. That is exactly what happened here."
+      },
+      {
+        "id": "b",
+        "text": "Post only when `proc.stderr` is empty, since failed runs always report there",
+        "reason": "Errors caught before the run starts, like an invalid flag, go to stderr, but a failure inside the run is printed as the result on stdout."
+      },
+      {
+        "id": "c",
+        "text": "Switch to plain text output, so that a failed run leaves nothing on stdout",
+        "reason": "The output format doesn't move failures off stdout: Claude Code prints a failure inside the run as the result there either way."
+      },
+      {
+        "id": "d",
+        "text": "Check `proc.returncode`, and post nothing unless it is 0",
+        "reason": "Correct: Claude Code exits 0 on success and non-zero when the run fails, so scripts should branch on the exit status before using the output."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In scripts, trust `claude -p` output only after the exit status says the run succeeded.",
+    "explanation": "`claude -p` signals success or failure through its exit status: 0 on success, non-zero when the run fails. A failure that happens inside the run, such as missing authentication, still lands on stdout as the result, so the script happily parsed and posted it. Choice a is tempting because it looks defensive, but the failed run's output was valid JSON; only `proc.returncode` tells the two cases apart.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-code-headless-untrusted-pr-config",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "This CI job reviews pull requests from outside contributors. A security reviewer warns that a PR could add its own `.claude/settings.json` hooks or `.mcp.json` servers. What is the concern, and what fixes it?",
+    "snippet": {
+      "language": "bash",
+      "code": "#!/bin/bash\n# Review a contributor's PR branch\ngit fetch origin \"pull/$PR/head:pr\"\ngit checkout pr\nclaude -p \"Review this branch for bugs\" \\\n  --allowedTools \"Read,Grep\" \\\n  --output-format json > review.json"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "No concern: `claude -p` shows a workspace trust dialog first, and nobody is there to accept it",
+        "reason": "A `-p` session shows no workspace trust dialog and no per-server approval prompt, so nothing stands in the way."
+      },
+      {
+        "id": "b",
+        "text": "`--allowedTools` already covers it, since hooks and servers not named in the list can't run",
+        "reason": "That flag lets the listed tools run without prompting. Separately, without `--bare` a `-p` session runs the project's hooks and connects its `.mcp.json` servers."
+      },
+      {
+        "id": "c",
+        "text": "`-p` loads the PR's hooks and `.mcp.json` servers with no prompt; add `--bare`, pass config by flag",
+        "reason": "Correct: without `--bare`, a `-p` run loads them even in a folder you've never trusted. Bare mode skips that discovery, and you pass what you need explicitly."
+      },
+      {
+        "id": "d",
+        "text": "Hooks only run in interactive sessions, so deleting `.mcp.json` before the run removes the whole risk",
+        "reason": "A `-p` session runs the hooks in a project's `.claude/settings.json` as well as connecting its `.mcp.json` servers, so both are a risk."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On untrusted checkouts, `claude -p` would load the repo's own hooks and servers; run it with `--bare` and pass config explicitly.",
+    "explanation": "Without `--bare`, `claude -p` discovers config the way an interactive session does, including a project's `.claude/settings.json` hooks and its `.mcp.json` servers, and it shows no trust dialog or per-server prompt. On a contributor's branch, that means their hooks run on your CI runner. `--bare` skips that discovery, so you pass only what the job needs. Choice b is tempting, but `--allowedTools` only lets listed tools run without prompting; the hooks and servers load either way.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode",
+      "c-hook-workspace-trust"
+    ],
+    "lessonId": "l-cc-operation"
   }
 ]

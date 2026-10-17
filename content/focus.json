@@ -33,7 +33,10 @@
       "q-focus-so-wrong-fit",
       "q-focus-so-unverified-ids",
       "q-focus-so-field-into-sql",
-      "q-cc-print-json"
+      "q-cc-print-json",
+      "q-code-so-optional-field",
+      "q-code-so-truncated-unhandled",
+      "q-code-so-cap-in-description"
     ]
   },
   {
@@ -61,7 +64,10 @@
       "q-focus-headless-routine-log-summary",
       "q-focus-sdk-cli-or-package",
       "q-cc-print-json",
-      "q-cc-stream-json-tokens"
+      "q-cc-stream-json-tokens",
+      "q-code-headless-python-returncode",
+      "q-code-headless-untrusted-pr-config",
+      "q-code-headless-dontask-no-edit"
     ]
   },
   {
@@ -108,7 +114,13 @@
       "q-focus-err-resume-not-restart",
       "q-focus-err-fail-visibly",
       "q-swe-burst-429",
-      "q-s4fail-instructive-error-message"
+      "q-s4fail-instructive-error-message",
+      "q-code-retry-loop-400",
+      "q-code-instanceof-order",
+      "q-code-connection-error-uncaught",
+      "q-code-fetch-unchecked-status",
+      "q-code-stream-cutoff-partial",
+      "q-code-batch-errored-resubmit-all"
     ]
   },
   {
@@ -209,7 +221,9 @@
       "q-focus-mcptr-sort-deployments",
       "q-focus-mcptr-sdk-credentials",
       "q-focus-mcptr-local-http-guard",
-      "q-focus-mcptr-stdio-lifetime"
+      "q-focus-mcptr-stdio-lifetime",
+      "q-code-mcp-json-two-entries",
+      "q-code-mcp-stdio-print-breaks"
     ]
   },
   {
@@ -250,7 +264,14 @@
       "q-course-stream-stop-not-complete",
       "q-course-stream-stop-reason-location",
       "q-mcp-loop-routes-tool-call",
-      "q-focus-loop-end-to-end"
+      "q-focus-loop-end-to-end",
+      "q-code-read-tool-use-response",
+      "q-code-loop-missing-assistant-turn",
+      "q-code-loop-wrong-tool-use-id",
+      "q-code-loop-separate-result-messages",
+      "q-code-loop-skipped-failed-call",
+      "q-code-loop-fill-results-line",
+      "q-code-tool-choice-forced-first-block"
     ]
   },
   {
@@ -284,7 +305,8 @@
       "q-arch-routing-model-size",
       "q-focus-model-orchestrator-fit",
       "q-focus-model-advisor-escalation",
-      "q-focus-scq-live-feature-plan"
+      "q-focus-scq-live-feature-plan",
+      "q-code-model-router-swapped"
     ]
   },
   {
@@ -382,7 +404,11 @@
       "q-s4cost-batch-not-for-live",
       "q-s4cost-stream-or-batch",
       "q-output-refusal-partial-stream",
-      "q-batch-cost-calculation"
+      "q-batch-cost-calculation",
+      "q-code-stream-delta-types",
+      "q-code-stream-save-on-block-stop",
+      "q-code-batch-zip-results",
+      "q-code-batch-errored-resubmit-all"
     ]
   },
   {
@@ -413,7 +439,11 @@
       "q-ext-hook-vs-skill-split",
       "q-ctx-right-mechanism-each-concern",
       "q-ctx-static-context-claude-md",
-      "q-focus-hook-headless-block"
+      "q-focus-hook-headless-block",
+      "q-code-hook-log-and-block-both-run",
+      "q-code-hook-matcher-misses-edit",
+      "q-code-hook-json-deny-exit-0",
+      "q-code-hook-formatter-wrong-event"
     ]
   },
   {
@@ -444,7 +474,10 @@
       "q-focus-sdk-check-result-subtype",
       "q-focus-sdk-stream-progress-outcome",
       "q-focus-sdk-cli-or-package",
-      "q-focus-sdk-input-mode-by-deployment"
+      "q-focus-sdk-input-mode-by-deployment",
+      "q-code-sdk-result-subtype-check",
+      "q-code-sdk-tools-vs-allowed-tools",
+      "q-code-sdk-two-queries-no-memory"
     ]
   }
 ]

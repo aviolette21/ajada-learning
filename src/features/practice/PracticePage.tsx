@@ -17,6 +17,7 @@ export function PracticePage() {
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
   const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const missed = missedQuestionIds(attempts).length;
+  const snippets = questions.filter((q) => q.snippet).length;
   const mocksDone = mockSessions.filter((s) => s.submittedAt).length;
 
   return (
@@ -41,6 +42,12 @@ export function PracticePage() {
       {focus.length > 0 && (
         <Link className="panel panel-link" to="/practice/focus">
           <span className="grow"><h2>Focus areas</h2><span className="muted">{focus.length} topics test takers say the exam leans on · drill one at a time</span></span>
+          <span className="chev"><IconChevron /></span>
+        </Link>
+      )}
+      {snippets > 0 && (
+        <Link className="panel panel-link" to="/practice/code">
+          <span className="grow"><h2>Code & payloads</h2><span className="muted">Read a snippet, request or config and say what it does · {snippets} questions</span></span>
           <span className="chev"><IconChevron /></span>
         </Link>
       )}

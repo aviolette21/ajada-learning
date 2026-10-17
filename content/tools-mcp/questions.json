@@ -6796,5 +6796,730 @@
       "c-stop-reason"
     ],
     "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-mcp-json-two-entries",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": ".mcp.json",
+    "stem": "Your team commits this `.mcp.json` to the root of the repo. Which statements about it are correct?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"mcpServers\": {\n    \"local-db\": {\n      \"type\": \"stdio\",\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"@acme/db-mcp\"],\n      \"env\": { \"DB_URL\": \"${DB_URL}\" }\n    },\n    \"tickets\": {\n      \"type\": \"http\",\n      \"url\": \"https://mcp.acme.example/mcp\",\n      \"headers\": {\n        \"Authorization\": \"Bearer ${TICKETS_TOKEN}\"\n      }\n    }\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Code starts `local-db` as a local process on each developer's machine",
+        "reason": "Correct: stdio servers run as local processes on your machine, launched from the entry's `command` and `args`."
+      },
+      {
+        "id": "b",
+        "text": "`tickets` must also be installed on each laptop, since every listed server runs locally",
+        "reason": "An `http` entry points at a URL. HTTP is the recommended transport for remote servers, so nothing is installed locally for it."
+      },
+      {
+        "id": "c",
+        "text": "Each developer's own `DB_URL` and `TICKETS_TOKEN` fill the `${...}` references, so the file holds no secret",
+        "reason": "Correct: env var expansion lets a team share one config while sensitive values like API keys stay in each machine's environment."
+      },
+      {
+        "id": "d",
+        "text": "Because the file is committed, interactive sessions use both servers without asking first",
+        "reason": "For security, Claude Code asks for approval in interactive sessions before it uses project-scoped servers from `.mcp.json`."
+      },
+      {
+        "id": "e",
+        "text": "The `headers` block is ignored, because `${...}` expansion only works in a stdio `env`",
+        "reason": "Expansion works in `command`, `args`, `env`, `url` and `headers`, so the bearer token reference in `headers` is filled in."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "stdio entries launch a local process, http entries point at a URL, and `${VAR}` keeps each person's secrets out of the committed file.",
+    "explanation": "A stdio entry gives Claude Code a command to launch as a local process; an http entry gives it a URL to reach a remote server. Both can reference `${VAR}` values, including in `headers`, so a committed `.mcp.json` can carry no secrets while each developer supplies their own. Choice d is the tempting one, since committing the file is how a team shares servers, but Claude Code still asks before it uses project-scoped servers in an interactive session.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-json",
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-code-skill-description-holds-procedure",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "This is the frontmatter of a project skill's `SKILL.md`; the body below it is empty. Claude rarely uses the skill on its own, even when someone asks for release notes. What should change?",
+    "snippet": {
+      "language": "yaml",
+      "code": "---\nname: release-notes\ndescription: >\n  Step 1: run git log since the last tag.\n  Step 2: group the commits by type.\n  Step 3: write a summary for each group.\n  Step 4: add a breaking-changes section.\n  Step 5: save it to docs/RELEASE.md.\n---"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make `description` say what the skill does and when to use it, and move the steps into the body",
+        "reason": "Correct: Claude uses the description to decide when to apply a skill, and the body holds the instructions it follows once the skill runs."
+      },
+      {
+        "id": "b",
+        "text": "Move the steps into the body and delete `description`, so Claude reads the full steps before it decides",
+        "reason": "Without a description, Claude Code uses the body's first non-empty line instead, and the body itself loads only when the skill is used."
+      },
+      {
+        "id": "c",
+        "text": "Rename the skill, since Claude matches requests against the skill's `name` alone",
+        "reason": "`name` is the command name shown in the `/` menu. The docs say it is the `description` that Claude uses to decide when to load a skill."
+      },
+      {
+        "id": "d",
+        "text": "Add `disable-model-invocation: true`, so Claude loads it whenever release notes come up",
+        "reason": "That setting does the opposite: it stops Claude from loading the skill automatically, leaving `/release-notes` as the only way in."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A skill's `description` is its trigger, saying what it does and when; the steps go in the body, which loads when the skill is used.",
+    "explanation": "The frontmatter `description` is what Claude reads to decide whether a skill fits the request, so it should say what the skill does and when to use it. The procedure belongs in the body, which loads only when the skill runs. This description is a list of steps that never mentions release notes, so it doesn't help Claude match the request. Choice b is tempting, but the body isn't read before the decision; without a description, Claude Code just uses its first non-empty line.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-code-mcp-definition-from-docstring",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP server primitives",
+    "stem": "A client connects to this MCP server, built with the Python SDK, and lists its tools. What does the client receive for `lookup_order`?",
+    "snippet": {
+      "language": "python",
+      "code": "from mcp.server import MCPServer\n\nmcp = MCPServer(\"orders\")\n\n@mcp.tool()\nasync def lookup_order(order_id: str) -> str:\n    \"\"\"Look up an order's status and ETA.\n\n    Args:\n        order_id: Order number, e.g. A-1042\n    \"\"\"\n    order = await db.get(order_id)\n    return f\"{order.status}, ETA {order.eta}\"\n\nif __name__ == \"__main__\":\n    mcp.run(transport=\"stdio\")"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A definition built from the code: the docstring as its description and a schema with a string `order_id`",
+        "reason": "Correct: `MCPServer` uses Python type hints and docstrings to generate tool definitions automatically, so the docstring and `order_id: str` shape what the client gets."
+      },
+      {
+        "id": "b",
+        "text": "The function's source code, so the model can read exactly what the tool does before calling it",
+        "reason": "The server sends a tool definition generated from the type hints and docstring. The function body is the handler that runs when the tool is called."
+      },
+      {
+        "id": "c",
+        "text": "Only the name `lookup_order`; the description has to be written separately in each client's configuration file",
+        "reason": "The docstring already supplies the description: `MCPServer` builds tool definitions from type hints and docstrings, so no separate description is needed."
+      },
+      {
+        "id": "d",
+        "text": "A schema that accepts any value for `order_id`, because Python ignores type hints at runtime",
+        "reason": "`MCPServer` reads the type hints to generate the tool definition, so `order_id: str` becomes a string parameter in the schema."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In a Python MCP server, the type hints and docstring **are** the tool definition, so write them for the model that will read them.",
+    "explanation": "The Python SDK's `MCPServer` turns each `@mcp.tool()` function into a tool definition automatically, reading the type hints for the input schema and the docstring for the description. That generated definition, not the code, is what the client receives; the body runs only when the tool is called. Choice c is tempting if you have written raw tool schemas before, but here the docstring is the description.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/develop/build-server",
+      "title": "Build an MCP server",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-code-mcp-vague-tool-docstring",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "MCP tool descriptions",
+    "stem": "Your MCP server's SDK turns this docstring into the tool's description. The tool searches your support knowledge base, but Claude rarely calls it for how-to questions, and when it does it passes the user's whole message as `q`. What is the best first fix?",
+    "snippet": {
+      "language": "python",
+      "code": "@mcp.tool()\nasync def search(q: str) -> str:\n    \"\"\"Search.\"\"\"\n    hits = await kb.search(q, limit=5)\n    return \"\\n\\n\".join(h.text for h in hits)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a second tool, `find`, with the same docstring, so Claude has two chances to pick a search",
+        "reason": "Overlap makes it worse: when tools overlap in function or have a vague purpose, agents can get confused about which ones to use."
+      },
+      {
+        "id": "b",
+        "text": "Shorten the docstring to `\"KB.\"`, because every word of a description costs context on each turn",
+        "reason": "The problem is ambiguity, not length. Describe the tool as you would to a new hire; even small refinements to descriptions can yield dramatic improvements."
+      },
+      {
+        "id": "c",
+        "text": "Rewrite the docstring to say what it searches, when to use it and what to pass, and give `q` a clear name",
+        "reason": "Correct: prompt-engineering tool descriptions is one of the most effective ways to improve tools. Explain it as you would to a new hire, and name inputs unambiguously."
+      },
+      {
+        "id": "d",
+        "text": "Raise an exception with the full traceback whenever nothing matches, so Claude can learn what the tool covers",
+        "reason": "Error responses should give specific, actionable guidance rather than opaque error codes or tracebacks, and an error wouldn't change when Claude picks the tool."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "When Claude misuses a tool, fix its description and parameter names first, written as you would brief a new hire.",
+    "explanation": "The description `\"Search.\"` doesn't say what is searched, when the tool fits, or what `q` should hold, so Claude can't match it to how-to questions or fill the input well. Anthropic calls prompt-engineering tool descriptions one of the most effective ways to improve tools, along with unambiguous parameter names like `user_id` instead of `user`. Choice b is tempting as a context saving, but the failure here is ambiguity, not length.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-description"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-code-mcp-stdio-print-breaks",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "This MCP server passes its unit tests, which call `lookup_order` directly. When Claude Code launches it as a local stdio server, the connection breaks as soon as the tool is called. What is the cause?",
+    "snippet": {
+      "language": "python",
+      "code": "mcp = MCPServer(\"orders\")\n\n@mcp.tool()\nasync def lookup_order(order_id: str) -> str:\n    \"\"\"Look up an order's status by order ID.\"\"\"\n    print(f\"lookup_order called: {order_id}\")\n    order = await db.get(order_id)\n    return order.status\n\nif __name__ == \"__main__\":\n    mcp.run(transport=\"stdio\")"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`print()` writes to stdout, which carries the JSON-RPC messages; log to stderr with the `logging` module",
+        "reason": "Correct: on a stdio server, writing to stdout corrupts the JSON-RPC messages and breaks the server. The standard `logging` module writes to stderr instead."
+      },
+      {
+        "id": "b",
+        "text": "The `print()` call needs `flush=True`, so the log line reaches stdout in one piece",
+        "reason": "Any write to stdout corrupts the JSON-RPC messages on a stdio server; flushing just sends the stray text sooner. Keep `print()` out of the server entirely."
+      },
+      {
+        "id": "c",
+        "text": "Tools on a stdio server can't be `async`, so change `async def` to plain `def` so each call returns in time",
+        "reason": "The guide's own stdio weather server defines its tools with `async def`, so async handlers are fine."
+      },
+      {
+        "id": "d",
+        "text": "A stdio tool has to return a dict, so wrap `order.status` in `{\"status\": ...}`",
+        "reason": "The guide's stdio tools return plain strings, so returning a `str` is not the problem."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A stdio MCP server's stdout belongs to the protocol: send every log line to stderr.",
+    "explanation": "On a stdio server, stdout carries the JSON-RPC messages, so the stray `print()` output corrupts them the moment the tool runs. Unit tests that call the function directly never notice. Logging through Python's `logging` module goes to stderr instead and leaves the protocol intact. Choice b is tempting, but flushing only delivers the corrupting text sooner.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/develop/build-server",
+      "title": "Build an MCP server",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-code-mcp-iserror-business-failure",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP tool errors",
+    "stem": "When the requested room is already taken, your MCP server's `book_room` tool sends this response. Your agent's logs count these as successful bookings. What should the server change?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 7,\n  \"result\": {\n    \"resultType\": \"complete\",\n    \"content\": [{\n      \"type\": \"text\",\n      \"text\": \"Room 4B is taken; 3-4pm is free.\"\n    }],\n    \"isError\": false\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return a JSON-RPC `error` object with code `-32602` instead of a result",
+        "reason": "Protocol errors cover problems with the request itself, such as an unknown tool or a malformed request. A taken room is a business logic error, which goes in the result."
+      },
+      {
+        "id": "b",
+        "text": "Add an `outputSchema` to `book_room` so the client can validate the result",
+        "reason": "An output schema lets clients validate the structure of structured results; it doesn't mark a call as failed."
+      },
+      {
+        "id": "c",
+        "text": "Send `notifications/tools/list_changed` so the client lists the tools again",
+        "reason": "That notification tells clients that the list of available tools has changed; it says nothing about the outcome of one call."
+      },
+      {
+        "id": "d",
+        "text": "Keep the message in `content` and set `isError` to `true`",
+        "reason": "Correct: tool execution errors, including business logic errors, are reported in the tool result with `isError: true`, and the message gives the model actionable feedback."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A tool that ran but failed returns a result with `isError: true`; JSON-RPC errors are for problems with the request itself.",
+    "explanation": "MCP has two error channels. Protocol errors (unknown tool, malformed request, server errors) are JSON-RPC `error` objects; tool execution errors such as API failures, input validation errors and business logic errors come back as a normal result with `isError: true`. This response describes a failure but flags it as a success. Choice a is tempting because something did go wrong, but the request itself was fine.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "title": "Tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-is-error",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-code-tool-vague-definition",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool descriptions",
+    "stem": "Your agent uses this tool to read a customer's past invoices. Claude often skips it when it should call it, and when it does call it, `range` arrives in several different date formats. Which two changes to the definition help most?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"name\": \"get_data\",\n  \"description\": \"Gets data.\",\n  \"input_schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"id\": { \"type\": \"string\" },\n      \"range\": { \"type\": \"string\" }\n    },\n    \"required\": [\"id\"]\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Shorten the description further so the tool costs fewer input tokens on every request",
+        "reason": "The docs call detailed descriptions by far the most important factor in tool performance. A shorter one gives Claude even less to go on."
+      },
+      {
+        "id": "b",
+        "text": "Rewrite the description to say what the tool returns, when to use it and when not to",
+        "reason": "Correct: a description should cover what the tool does, when it should (and shouldn't) be used and its caveats, aiming for at least 3 to 4 sentences."
+      },
+      {
+        "id": "c",
+        "text": "Copy the description into the system prompt so Claude also sees it there",
+        "reason": "The API already builds a tool-use system prompt from your tool definitions. The fix is a better description inside the definition itself."
+      },
+      {
+        "id": "d",
+        "text": "Give `id` and `range` their own descriptions, saying what each means and its format",
+        "reason": "Correct: the docs say to explain what each parameter means and how it affects the tool, as the good example does for `ticker` (\"e.g. AAPL\")."
+      },
+      {
+        "id": "e",
+        "text": "Set `tool_choice` to `{\"type\": \"any\"}` so Claude has to call a tool on every turn",
+        "reason": "`any` makes Claude call some tool every turn, even when none fits. It tells Claude nothing about what `range` should look like."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Tool quality rides on the description: what it does, when to use it, and what each parameter means and looks like.",
+    "explanation": "Claude chooses and fills a tool only from its definition. \"Gets data.\" says nothing about invoices or when to reach for the tool, and the bare `range` string gives no format, so Claude guesses. The two fixes put that missing context into the tool and parameter descriptions. Forcing a call with `tool_choice` is tempting because it stops the skipping, but it makes Claude call a tool even when none is needed and still leaves `range` undefined.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-code-tool-def-parameters-key",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool definitions",
+    "stem": "A teammate ported this tool definition from another provider's SDK and added it to the `tools` array of a Messages API request. Which change makes it a valid Claude tool definition?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"name\": \"lookup_order\",\n  \"description\": \"Get one order's status by ID.\",\n  \"parameters\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"order_id\": {\n        \"type\": \"string\",\n        \"description\": \"Order ID, e.g. A-1042\"\n      }\n    },\n    \"required\": [\"order_id\"]\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add `\"strict\": true` so Claude validates its inputs against `parameters`",
+        "reason": "`strict` turns on schema validation for tool inputs, but the schema it checks against is `input_schema`. It doesn't make another key a schema."
+      },
+      {
+        "id": "b",
+        "text": "Wrap the object in `{\"type\": \"function\", \"function\": {...}}` first",
+        "reason": "A user-defined Claude tool is a plain entry in `tools` with `name`, `description` and `input_schema`. There's no function wrapper."
+      },
+      {
+        "id": "c",
+        "text": "Rename the `parameters` key to `input_schema`",
+        "reason": "Correct: a Claude tool definition puts its JSON Schema for the expected parameters in `input_schema`."
+      },
+      {
+        "id": "d",
+        "text": "Move the parameter details into `description` and delete the schema object",
+        "reason": "The description explains the tool, but `input_schema` is the JSON Schema that defines the parameters. Dropping it removes the schema."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A Claude tool is `name`, `description` and `input_schema`; schemas ported from other APIs usually need that key renamed.",
+    "explanation": "The definition is fine except for one key: Claude tools carry their parameter schema in `input_schema`. Other providers' formats use `parameters` or a `function` wrapper, which is why ported definitions trip on this. Adding `strict` is tempting because it sounds like stricter checking, but strict mode validates inputs against `input_schema`, so it doesn't help when that key is missing.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-schemas"
+  },
+  {
+    "id": "q-code-loop-missing-assistant-turn",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "This loop runs the tools Claude asks for, but the API rejects the second request, complaining about the tool results. What is wrong with the code?",
+    "snippet": {
+      "language": "python",
+      "code": "messages = [{\"role\": \"user\", \"content\": question}]\nresp = client.messages.create(\n    model=\"claude-sonnet-5-5\", max_tokens=1024,\n    tools=tools, messages=messages)\nwhile resp.stop_reason == \"tool_use\":\n    results = []\n    for block in resp.content:\n        if block.type == \"tool_use\":\n            out = run_tool(block.name, block.input)\n            results.append({\"type\": \"tool_result\",\n                \"tool_use_id\": block.id,\n                \"content\": out})\n    messages.append(\n        {\"role\": \"user\", \"content\": results})\n    resp = client.messages.create(\n        model=\"claude-sonnet-5-5\", max_tokens=1024,\n        tools=tools, messages=messages)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "It never appends Claude's turn (`resp.content`) before the results",
+        "reason": "Correct: each `tool_result` must come right after the assistant message holding its `tool_use` block. Here that message is missing from the history."
+      },
+      {
+        "id": "b",
+        "text": "`tool_use_id` should be the ID of the whole response message, not of the block",
+        "reason": "`tool_use_id` is the `id` of the `tool_use` block the result answers, which is what `block.id` already is."
+      },
+      {
+        "id": "c",
+        "text": "The results belong in an `assistant` message, because Claude is the one who asked",
+        "reason": "Tool results go in a `user` message; `assistant` messages hold Claude's own content, including its `tool_use` blocks."
+      },
+      {
+        "id": "d",
+        "text": "Each `tool_result` needs a text block before it saying which tool produced it",
+        "reason": "`tool_result` blocks must come first in the user message, with any text after them. A text block in front would cause its own error."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Append Claude's full turn before your tool results: every `tool_result` must directly follow the `tool_use` it answers.",
+    "explanation": "The tool results are formatted correctly. What's missing is the message they answer: the code adds a user message of results to a history that has no assistant turn with those `tool_use` IDs. Appending `{\"role\": \"assistant\", \"content\": resp.content}` before the results fixes it. Choice b is tempting because an ID mismatch gives a similar error, but `block.id` is exactly the right ID.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-loop-wrong-tool-use-id",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "Claude asks for two tools in one response, and this code runs both. The next request fails because the results don't match the tool calls. Which change fixes it?",
+    "snippet": {
+      "language": "typescript",
+      "code": "const res = await client.messages.create({\n  model: \"claude-sonnet-5-5\",\n  max_tokens: 1024,\n  tools,\n  messages,\n});\nmessages.push({\n  role: \"assistant\", content: res.content,\n});\nconst results = [];\nfor (const block of res.content) {\n  if (block.type === \"tool_use\") {\n    const out = await run(block.name, block.input);\n    results.push({\n      type: \"tool_result\",\n      tool_use_id: res.id,\n      content: out,\n    });\n  }\n}\nmessages.push({ role: \"user\", content: results });"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Push the assistant turn after the tool results instead of before them",
+        "reason": "Tool results must come right after the assistant message that holds the `tool_use` blocks, so the current order is already right."
+      },
+      {
+        "id": "b",
+        "text": "Keep `res.id`, and add `is_error: false` to each result to mark it as a success",
+        "reason": "`is_error` is optional and only set to `true` when a tool fails. It doesn't change which call a result answers."
+      },
+      {
+        "id": "c",
+        "text": "Convert `out` to a list of text blocks, since `content` can't be a plain string",
+        "reason": "A `tool_result` `content` may be a plain string such as `\"15 degrees\"`, so the string isn't the problem."
+      },
+      {
+        "id": "d",
+        "text": "Set `tool_use_id` to `block.id` for each result",
+        "reason": "Correct: `tool_use_id` is the `id` of the `tool_use` block. `res.id` is the whole message's ID, and here both results share it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "`tool_use_id` copies the `id` of the `tool_use` block, never the response's message ID.",
+    "explanation": "Each `tool_use` block has its own `id`, and each `tool_result` matches its call by echoing that `id` in `tool_use_id`. The code uses `res.id`, the ID of the whole response, so neither result matches a call, and the two results carry the same ID. The rest of the loop (assistant turn first, results in one user message, string content) is already correct, which is why the other changes don't help.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-loop-separate-result-messages",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Parallel tool use",
+    "stem": "Claude often asks for `get_weather` and `get_time` in the same response, and your loop handles them as shown. As the conversation goes on, Claude makes fewer and fewer parallel calls. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "messages.append({\"role\": \"assistant\",\n                 \"content\": resp.content})\nfor block in resp.content:\n    if block.type != \"tool_use\":\n        continue\n    out = run_tool(block.name, block.input)\n    messages.append({\"role\": \"user\", \"content\": [\n        {\"type\": \"tool_result\",\n         \"tool_use_id\": block.id,\n         \"content\": out}]})\nresp = client.messages.create(\n    model=\"claude-sonnet-5-5\", max_tokens=1024,\n    tools=tools, messages=messages)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the tools concurrently with `asyncio.gather` instead of one after another",
+        "reason": "The API leaves execution order to you, so sequential runs are fine. The problem is how the results are laid out in the history."
+      },
+      {
+        "id": "b",
+        "text": "Send all the `tool_result` blocks together in one user message",
+        "reason": "Correct: return one `tool_result` per `tool_use`, all together in the next user message. A separate message per result \"teaches\" Claude to avoid parallel calls."
+      },
+      {
+        "id": "c",
+        "text": "Put a short text block before each `tool_result` saying which tool produced it",
+        "reason": "Every `tool_result` must come before any text in the user message, and `tool_use_id` already ties each result to its call."
+      },
+      {
+        "id": "d",
+        "text": "Leave the assistant turn out of the history, since each result already names its call",
+        "reason": "The results answer the `tool_use` blocks in that assistant turn, so it has to stay in the history right before them."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Parallel calls get their results back together: one user message holding every `tool_result`.",
+    "explanation": "Each result here is correct on its own, with the right `tool_use_id`. The trouble is the shape of the history: one user message per result. The docs name this as the most common reason parallel tool use fades, because the history shows Claude a pattern of one call at a time. Choice a is tempting because it sounds like \"more parallel\", but how you run the tools doesn't matter to Claude; how you return the results does.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/parallel-tool-use",
+      "title": "Parallel tool use",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-loop-skipped-failed-call",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool errors",
+    "stem": "Claude asks for three tools in one turn, and one of them raises an exception in this code. Which two statements about the code, and how to fix it, are correct?",
+    "snippet": {
+      "language": "python",
+      "code": "results = []\nfor block in resp.content:\n    if block.type != \"tool_use\":\n        continue\n    try:\n        out = run_tool(block.name, block.input)\n    except Exception:\n        continue  # skip failed calls\n    results.append({\"type\": \"tool_result\",\n                    \"tool_use_id\": block.id,\n                    \"content\": out})\nmessages.append({\"role\": \"assistant\",\n                 \"content\": resp.content})\nmessages.append({\"role\": \"user\",\n                 \"content\": results})"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The next request can fail, because one `tool_use` block now has no matching `tool_result`",
+        "reason": "Correct: every `tool_use` needs its `tool_result` right after it. The docs quote the error \"tool_use ids were found without tool_result blocks immediately after\"."
+      },
+      {
+        "id": "b",
+        "text": "Claude treats the missing result as an empty success and carries on with the other two",
+        "reason": "An empty result is a `tool_result` sent without `content`. Leaving the result out altogether breaks the pairing the API expects."
+      },
+      {
+        "id": "c",
+        "text": "In the `except` branch, add a `tool_result` for that ID with the error text and `\"is_error\": true`",
+        "reason": "Correct: when a tool throws, return the error message in `content` with `\"is_error\": true`, and Claude can work the failure into its reply."
+      },
+      {
+        "id": "d",
+        "text": "Mark the failure by setting `is_error` on Claude's `tool_use` block in the assistant turn",
+        "reason": "`is_error` is a field of the `tool_result` block you send back, not of Claude's `tool_use` block."
+      },
+      {
+        "id": "e",
+        "text": "Use `\"content\": \"failed\"` for the error, since more detail would only distract Claude",
+        "reason": "The docs say to write instructive errors: what went wrong and what to try next, such as \"Rate limit exceeded. Retry after 60 seconds.\""
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "A failed tool still gets a `tool_result`: the error text with `is_error: true`, never a skipped block.",
+    "explanation": "Skipping the failed call leaves a `tool_use` with nothing answering it, which is the formatting error the docs warn about. The fix is to answer it anyway, with `is_error: true` and an error message that says what went wrong, so Claude can explain the failure or try something else. Choice b is the tempting assumption that silence means \"no output\", but no result and an empty result are different things.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-is-error",
+      "c-parallel-tool-use"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-loop-fill-results-line",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use loop",
+    "stem": "This loop keeps calling Claude until it stops asking for tools. Which line belongs at `# ???`?",
+    "snippet": {
+      "language": "python",
+      "code": "while True:\n    resp = client.messages.create(\n        model=\"claude-sonnet-5-5\", max_tokens=1024,\n        tools=tools, messages=messages)\n    messages.append({\"role\": \"assistant\",\n                     \"content\": resp.content})\n    if resp.stop_reason != \"tool_use\":\n        break\n    results = [\n        {\"type\": \"tool_result\",\n         \"tool_use_id\": b.id,\n         \"content\": run_tool(b.name, b.input)}\n        for b in resp.content\n        if b.type == \"tool_use\"\n    ]\n    # ???"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`messages.append({\"role\": \"tool\", \"content\": results})`",
+        "reason": "The Claude API has no `tool` role. Tool results travel inside the ordinary `user` and `assistant` message structure."
+      },
+      {
+        "id": "b",
+        "text": "`messages.append({\"role\": \"assistant\", \"content\": results})`",
+        "reason": "`assistant` messages hold Claude's own content and `tool_use` blocks. Your tool results belong to the other side of the conversation."
+      },
+      {
+        "id": "c",
+        "text": "`messages.append({\"role\": \"user\", \"content\": results})`",
+        "reason": "Correct: tool results go back in a new `user` message, right after the assistant turn that called the tools."
+      },
+      {
+        "id": "d",
+        "text": "`messages[0][\"content\"] += str(results)`",
+        "reason": "Results must immediately follow their `tool_use` blocks as `tool_result` blocks. Pasting them into the first message breaks that."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Tool output goes back as `tool_result` blocks in a `user` message, right after Claude's tool-calling turn.",
+    "explanation": "The loop already saves Claude's turn, stops when there's nothing left to run and builds well-formed `tool_result` blocks. The missing step is sending them: a new `user` message, so the next `create` call sees the call and its result side by side. Choice a is the tempting carry-over from APIs that use a dedicated `tool` or `function` role; Claude's API doesn't have one.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-code-tool-choice-forced-first-block",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "This request forces Claude to call `record_summary`. The `print` line then fails because `content[0]` has no `text`. Why?",
+    "snippet": {
+      "language": "python",
+      "code": "resp = client.messages.create(\n    model=\"claude-haiku-5-5\",\n    max_tokens=1024,\n    tools=[record_summary_tool],\n    tool_choice={\"type\": \"tool\",\n                 \"name\": \"record_summary\"},\n    messages=[{\"role\": \"user\", \"content\": doc}],\n)\nprint(resp.content[0].text)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A forced call starts the response with the `tool_use` block, no text first",
+        "reason": "Correct: with `tool` or `any`, the API prefills the turn so Claude won't write text before the `tool_use` block. Read `input` from that block."
+      },
+      {
+        "id": "b",
+        "text": "Claude ran `record_summary` itself, so `content[0]` holds the tool's output",
+        "reason": "The response holds a `tool_use` block with the `input` Claude chose for the call, not the result of running the tool."
+      },
+      {
+        "id": "c",
+        "text": "Naming one tool is only a hint, so Claude declined and returned a refusal block",
+        "reason": "`{\"type\": \"tool\"}` forces Claude to always use that tool. It isn't a suggestion Claude can turn down."
+      },
+      {
+        "id": "d",
+        "text": "`max_tokens` is too low, so the reply stopped before Claude wrote its text",
+        "reason": "A cut-off reply reports `stop_reason: \"max_tokens\"`. With a forced call, there is no text before the `tool_use` block at all."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "With a forced `tool_choice`, expect no preamble: find the `tool_use` block by type and read its `input`.",
+    "explanation": "Forcing a tool (`tool` or `any`) makes the API prefill Claude's turn so it goes straight into the tool call: no text explanation first, even if you ask for one. So `content[0]` is the `tool_use` block, which has `input` but no `text`. Choice b is tempting because the tool is named, but the API doesn't run your tool: the block carries the `input` Claude chose, and your code runs it. Find blocks by `type`, not by position.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-choice",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-code-tool-choice-any-small-talk",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "Your support bot sends requests like this one. Even for small talk such as \"Thanks, bye!\", Claude calls `lookup_order` instead of simply replying. Real order questions should still use the tool. Which change fixes it?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-haiku-5-5\",\n  \"max_tokens\": 1024,\n  \"tool_choice\": { \"type\": \"any\" },\n  \"tools\": [{\n    \"name\": \"lookup_order\",\n    \"description\": \"Look up an order's status.\",\n    \"input_schema\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"order_id\": { \"type\": \"string\" }\n      },\n      \"required\": [\"order_id\"]\n    }\n  }],\n  \"messages\": [\n    { \"role\": \"user\", \"content\": \"Thanks, bye!\" }\n  ]\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `tool_choice` to `{\"type\": \"none\"}`, so Claude stops calling tools it doesn't need",
+        "reason": "`none` stops Claude using any tools, so real order questions could no longer call `lookup_order` either."
+      },
+      {
+        "id": "b",
+        "text": "Set `tool_choice` to `{\"type\": \"auto\"}`, so Claude decides whether a tool is needed",
+        "reason": "Correct: `auto` lets Claude choose whether to call a tool, and it's the default when tools are provided. `any` requires a tool call every time."
+      },
+      {
+        "id": "c",
+        "text": "Set `tool_choice` to `{\"type\": \"tool\", \"name\": \"lookup_order\"}` to narrow it",
+        "reason": "`tool` forces Claude to always use that tool, so small talk would still trigger a lookup."
+      },
+      {
+        "id": "d",
+        "text": "Keep `any`, and tell Claude in the system prompt to skip tools for small talk",
+        "reason": "With `any`, the API prefills the turn to force a tool call, so a prompt instruction can't turn that call off."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "`any` means \"always call some tool\"; `auto` lets Claude decide, which is what a chat assistant needs.",
+    "explanation": "The request sets `tool_choice` to `any`, which tells Claude it must use one of the provided tools on every response. A message that needs no lookup still gets one. `auto` restores Claude's judgment. Option d is tempting because prompts usually steer tool use, but with `any` the API forces the tool call before Claude writes anything.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-choice"
+    ],
+    "lessonId": "l-tool-implementation"
   }
 ]
