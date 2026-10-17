@@ -1794,37 +1794,37 @@
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
     "topic": "Tool descriptions",
-    "stem": "In code review, a teammate asks you to cut every tool description to one short line, because the `tools` array counts toward input tokens. What does Anthropic's Define tools guide recommend?",
+    "stem": "Your `get_stock_price` tool's description reads \"Gets the stock price for a ticker.\" Claude sometimes calls it for questions it can't answer, such as company news. Which rewrite of the description best follows Anthropic's Define tools guide?",
     "choices": [
       {
         "id": "a",
-        "text": "One line per tool, with the detail moved into `input_examples` instead",
-        "reason": "Descriptions are what matter most; `input_examples` is an extra for complex inputs, not a replacement for them."
+        "text": "Gets the stock price for a ticker, for example AAPL or MSFT. Pass the ticker symbol as a string.",
+        "reason": "An example ticker helps a little, but it still doesn't say when to use the tool, what it returns or what it won't provide."
       },
       {
         "id": "b",
-        "text": "One line per tool; Claude picks tools from their names, so long descriptions add cost without effect",
-        "reason": "The guide calls detailed descriptions by far the most important factor in tool performance."
+        "text": "Stock price, share price, quote, ticker, market value, NYSE, NASDAQ, equity and stock lookup tool.",
+        "reason": "A string of keywords isn't an explanation: the guide asks what the tool does, when to use it, what each parameter means and its limits."
       },
       {
         "id": "c",
-        "text": "Move the tool details into the system prompt and keep each description to a few words",
-        "reason": "The guide asks for the detail in each tool's description: what it does, when to use it, parameters and caveats."
+        "text": "Calls our market-data vendor's REST API over HTTPS, retries on failure and caches each response briefly to save cost.",
+        "reason": "Internal plumbing doesn't help Claude decide when to call the tool or what the ticker must be, and it says nothing about what's not returned."
       },
       {
         "id": "d",
-        "text": "Aim for at least 3–4 sentences per description, more if the tool is complex",
-        "reason": "Correct: the guide sets this target, because detailed descriptions are by far the most important factor."
+        "text": "Returns the latest USD price for a valid US ticker. Use for current-price questions; gives no other company data.",
+        "reason": "Correct: like the guide's good example, it says what the tool does, what the ticker must be, what it returns, when to use it and what it won't provide."
       }
     ],
     "answer": "d",
-    "takeaway": "Tool descriptions are the biggest lever on tool performance: aim for 3–4+ sentences each.",
-    "explanation": "Tool definitions do cost input tokens, but the guide ranks detailed descriptions as by far the most important factor in how well Claude uses tools. The decisive detail is that the trade-off goes against brevity. Choice a sounds like a compromise, but examples supplement descriptions for complex inputs; they don't replace them.",
+    "takeaway": "A good tool description says what the tool does, **when to use it (and not)**, what its parameters mean and its limits.",
+    "explanation": "The guide calls detailed descriptions by far the most important factor in tool performance, and lists what they should cover: what the tool does, when it should and shouldn't be used, what each parameter means, and caveats such as what it doesn't return. Only D says the tool gives no other company data, which is exactly what stops calls for news. Option A is tempting because examples feel concrete, but it still leaves those questions open.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
       "title": "Define tools",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-tool-description"
@@ -5101,37 +5101,37 @@
     "domainId": "tools-mcp",
     "subSkillId": "tool-implementation",
     "topic": "Tool errors",
-    "stem": "When your `search_flights` tool fails, it returns a `tool_result` with `is_error: true` and the content \"failed\". Claude often can't tell users what went wrong or what to do next. What should the tool's error content say instead?",
+    "stem": "Your `search_flights` tool calls a partner API that is down. Your agent loop lets the exception escape, and a wrapper retries the whole Messages API call with backoff, so the tool fails again each time and users wait minutes for a generic error page. What should the loop do instead?",
     "choices": [
       {
         "id": "a",
-        "text": "Only the single word \"error\", since a shorter message keeps the conversation's context small",
-        "reason": "A one-word error is as generic as \"failed\". The page asks for what went wrong and what to try next, so Claude can recover or adapt without guessing."
+        "text": "Keep retrying the Messages call, with a longer backoff so the partner API can recover",
+        "reason": "The Messages call didn't fail; your tool did. The page says to report a tool execution error to Claude in a `tool_result`."
       },
       {
         "id": "b",
-        "text": "Nothing at all: send an empty `tool_result` without `is_error`, so Claude simply moves on",
-        "reason": "An empty result is how a successful call with no output looks, so Claude can't tell that the tool failed."
+        "text": "Send an empty `tool_result` without `is_error`, so the conversation carries on",
+        "reason": "An empty result is how a successful call with no output looks. Setting `is_error: true` is what marks a failed execution."
       },
       {
         "id": "c",
-        "text": "A made-up but plausible flight list, so the user still sees results while search is down",
-        "reason": "Invented data gives users wrong answers. Report the failure with `is_error: true` and a useful message."
+        "text": "End the turn and send the user a plain text message from your code instead",
+        "reason": "Each `tool_use` needs its `tool_result` immediately after it; no other message can come between them."
       },
       {
         "id": "d",
-        "text": "What went wrong and what to try next, such as \"Rate limit exceeded. Retry after 60 seconds.\"",
-        "reason": "Correct: the page says to write instructive error messages. Instead of generic errors like \"failed\", include what went wrong and what Claude should try next."
+        "text": "Catch it and return a `tool_result` with `is_error: true` saying what went wrong",
+        "reason": "Correct: return the error message in `content` with `is_error: true`, and Claude incorporates the error into its response to the user."
       }
     ],
     "answer": "d",
-    "takeaway": "Make tool errors **instructive**: say what went wrong and what to try next, not just \"failed\".",
-    "explanation": "Setting `is_error: true` tells Claude the tool failed, but the message is what lets it recover or explain. Naming the problem and the next step gives Claude that context instead of leaving it to guess. Choice a is tempting because short messages save tokens, but a one-word error is just as unhelpful as \"failed\".",
-    "difficulty": "easy",
+    "takeaway": "A tool failure isn't an API failure: **report it in a `tool_result`** with `is_error: true` and let Claude respond.",
+    "explanation": "When a client tool throws, the Messages API call itself worked. The Handle tool calls page says to return the error message in the `tool_result` content with `is_error: true`, and Claude then works the error into its reply, for example telling the user the service isn't available and to try again later (D). Retrying the API call (A) is the tempting reflex, but it repeats the same failing tool call while users wait. B hides the failure, and C breaks the rule that each `tool_use` gets its `tool_result` right after it.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
       "title": "Handle tool calls",
-      "checkedOn": "2026-10-16"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-is-error"

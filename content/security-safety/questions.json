@@ -2668,45 +2668,45 @@
     "domainId": "security-safety",
     "subSkillId": "secrets-keys",
     "topic": "OAuth redirect URIs",
-    "stem": "Your OAuth-authenticated MCP integration works in staging. After you deploy the same client to the production host, sign-in fails with a redirect URI mismatch. Nothing else changed. What's the fix?",
+    "stem": "Each time your team adds a new environment, sign-in to your OAuth-protected MCP server fails with a redirect URI mismatch until that environment's URI is registered. A teammate proposes having the authorization server accept any redirect URI on your domain. What's the right response?",
     "choices": [
       {
         "id": "a",
-        "text": "Loosen the redirect URI match on the authorization server so any of your hosts is accepted",
-        "reason": "Authorization servers must validate exact redirect URIs against pre-registered values to prevent redirection attacks."
+        "text": "Accept it, because PKCE already protects the flow, so loose redirect matching adds no risk",
+        "reason": "PKCE protects the code exchange, but the spec separately requires servers to validate exact redirect URIs against registered values to prevent redirection attacks."
       },
       {
         "id": "b",
-        "text": "Rotate the OAuth client secret, because staging and production share it",
-        "reason": "The error is about where the user is sent back after sign-in, not about the client's credential."
+        "text": "Accept it, but only for plain HTTP callbacks on internal hosts that outsiders can't reach",
+        "reason": "Redirect URIs must be either `localhost` or HTTPS, so plain HTTP callbacks on internal hosts aren't allowed."
       },
       {
         "id": "c",
-        "text": "Use a plain HTTP callback on the production host to avoid certificate trouble",
-        "reason": "Redirect URIs must be either `localhost` or HTTPS, so a plain HTTP production callback isn't allowed."
+        "text": "Reject it, and stop checking the state parameter so a new host's first sign-in can't fail",
+        "reason": "Clients should use and verify the state parameter and discard mismatched results; dropping it weakens the flow and doesn't fix a URI mismatch."
       },
       {
         "id": "d",
-        "text": "Register the production host's redirect URI with the OAuth app, then retry",
-        "reason": "Correct: clients must have redirect URIs registered, and the server matches them exactly, so the staging registration doesn't cover production."
+        "text": "Reject it: exact matching against registered URIs blocks redirection attacks, so register each new URI",
+        "reason": "Correct: clients must have redirect URIs registered, and servers must validate exact URIs against them to prevent redirection attacks."
       }
     ],
     "answer": "d",
-    "takeaway": "Redirect URIs are matched **exactly**, so register each new host's URI before moving an OAuth integration there.",
-    "explanation": "OAuth sends the user back to a redirect URI, and the authorization server accepts only exact matches against pre-registered values. A new host means a new URI, so the working staging connection says nothing about production. Choice b is tempting because credentials are the usual suspect in auth failures, but a mismatch error points at the unregistered URI, not the secret.",
+    "takeaway": "Redirect URIs are matched **exactly** for a reason: register each new environment's URI instead of loosening the match.",
+    "explanation": "An attacker can craft malicious redirect URIs to send users to phishing sites, so the MCP spec requires authorization servers to validate exact redirect URIs against pre-registered values. A new environment therefore needs its URI registered (D), not a looser match. Option A is the tempting trap: PKCE does protect the code exchange, but the spec requires both, not one in place of the other. Plain HTTP callbacks (B) break the localhost-or-HTTPS rule, and dropping the state check (C) only weakens the flow.",
     "difficulty": "medium",
     "diagram": {
       "kind": "segmented-bar",
-      "caption": "Each host's redirect URI needs its own registration.",
+      "caption": "Each environment's redirect URI needs its own registration.",
       "segments": [
         {
-          "label": "Staging URI",
+          "label": "Existing URI",
           "sublabel": "registered",
           "weight": 1,
           "tone": "success"
         },
         {
-          "label": "Production URI",
+          "label": "New environment's URI",
           "sublabel": "not registered",
           "weight": 1,
           "tone": "error"
@@ -2716,7 +2716,7 @@
     "source": {
       "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization/security-considerations",
       "title": "Authorization Security Considerations",
-      "checkedOn": "2026-10-15"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-mcp-transports"

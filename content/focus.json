@@ -32,7 +32,8 @@
       "q-focus-so-handler-rules",
       "q-focus-so-wrong-fit",
       "q-focus-so-unverified-ids",
-      "q-focus-so-field-into-sql"
+      "q-focus-so-field-into-sql",
+      "q-cc-print-json"
     ]
   },
   {
@@ -58,7 +59,9 @@
       "q-focus-headless-output-format-by-consumer",
       "q-focus-headless-check-exit-before-using",
       "q-focus-headless-routine-log-summary",
-      "q-focus-sdk-cli-or-package"
+      "q-focus-sdk-cli-or-package",
+      "q-cc-print-json",
+      "q-cc-stream-json-tokens"
     ]
   },
   {
@@ -103,7 +106,9 @@
       "q-course-stream-drop-in-thinking",
       "q-output-refusal-partial-stream",
       "q-focus-err-resume-not-restart",
-      "q-focus-err-fail-visibly"
+      "q-focus-err-fail-visibly",
+      "q-swe-burst-429",
+      "q-s4fail-instructive-error-message"
     ]
   },
   {
@@ -322,7 +327,9 @@
       "q-course-agent-tradeoff-cost-latency",
       "q-focus-scq-what-you-give-up",
       "q-focus-scq-caching-vs-smaller-model",
-      "q-focus-scq-live-feature-plan"
+      "q-focus-scq-live-feature-plan",
+      "q-batch-cost-calculation",
+      "q-batch-custom-id-rules"
     ]
   },
   {
@@ -374,7 +381,8 @@
       "q-batch-results-after-ended",
       "q-s4cost-batch-not-for-live",
       "q-s4cost-stream-or-batch",
-      "q-output-refusal-partial-stream"
+      "q-output-refusal-partial-stream",
+      "q-batch-cost-calculation"
     ]
   },
   {

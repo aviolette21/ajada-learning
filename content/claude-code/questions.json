@@ -151,37 +151,37 @@
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
     "topic": "Non-interactive mode",
-    "stem": "A CI step runs Claude Code to list the names of failing tests, and a later step must parse them as JSON that follows a fixed schema. How should the CI step invoke Claude Code?",
+    "stem": "A CI step runs `claude -p` to list the names of failing tests, and the next step parses that list as JSON that must follow a fixed schema. Which kind of output should the CI step ask Claude Code for?",
     "choices": [
       {
         "id": "a",
-        "text": "`claude -p \"...\"` with the default text output, asking for JSON matching the schema in the prompt",
-        "reason": "The default `text` format returns plain text output; nothing checks the reply against your schema."
+        "text": "Plain text, with the prompt asking Claude to reply in JSON that matches the schema",
+        "reason": "Plain text output is just text; asking for JSON in the prompt leaves nothing checking the reply against your schema."
       },
       {
         "id": "b",
-        "text": "`claude -p \"...\" --output-format json --json-schema '<schema>'`, read `structured_output`",
-        "reason": "Correct: with `--json-schema`, the response includes request metadata plus output conforming to your schema in the `structured_output` field."
+        "text": "One JSON result whose output is held to your schema, in a field of its own",
+        "reason": "Correct: JSON output with a schema returns request metadata plus output conforming to your schema in its own `structured_output` field."
       },
       {
         "id": "c",
-        "text": "`claude -p \"...\" --output-format stream-json`, then parse each newline-delimited event",
-        "reason": "`stream-json` is newline-delimited JSON for real-time streaming; it doesn't hold the test names to your schema."
+        "text": "A live stream of JSON events, one per line, that the next step parses as they arrive",
+        "reason": "Streamed JSON is newline-delimited events for real-time output; it doesn't hold the test names to your schema."
       },
       {
         "id": "d",
-        "text": "Run `claude` interactively and copy the test names into a JSON file by hand",
-        "reason": "A CI step needs non-interactive `-p` mode; copying output by hand isn't automated and nothing checks the schema."
+        "text": "An interactive session whose output someone copies into a JSON file by hand",
+        "reason": "A CI step needs non-interactive `-p` mode; copying output by hand isn't automated, and nothing checks the schema."
       }
     ],
     "answer": "b",
-    "takeaway": "In scripts, use `-p` with `--output-format json`, and add **`--json-schema`** when the output must follow a schema.",
-    "explanation": "The later CI step needs JSON that follows a **fixed schema**, so something must hold the output to that schema. `--json-schema` does, putting conforming output in `structured_output` (B). Asking for JSON in the prompt (A) isn't checked, `stream-json` (C) streams events for real time without enforcing a schema, and an interactive session (D) doesn't fit CI.",
+    "takeaway": "When a script needs output in a fixed shape, ask `claude -p` for **JSON held to a schema**, not just JSON requested in the prompt.",
+    "explanation": "The next CI step needs JSON that follows a **fixed schema**, so something must hold the output to that schema. Claude Code can return a single JSON result with schema-conforming output in its own field (B). Option A is tempting because Claude usually follows the prompt, but nothing checks plain text against the schema. A live event stream (C) is for real-time progress, and an interactive session (D) doesn't fit CI.",
     "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
       "title": "Run Claude Code programmatically",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-cc-print-mode"
@@ -361,37 +361,37 @@
     "domainId": "claude-code",
     "subSkillId": "cc-operation",
     "topic": "Non-interactive mode",
-    "stem": "Your CI dashboard should show Claude Code's response token by token while a `claude -p` job runs, rather than all at once at the end. Which output option gives you that?",
+    "stem": "Your CI dashboard should show Claude Code's response token by token while a `claude -p` job runs, rather than all at once at the end. Which kind of output gives you that?",
     "choices": [
       {
         "id": "a",
-        "text": "The default `text` output, printed when the run finishes",
-        "reason": "`text` returns plain text output at the end of the run, not a live stream."
+        "text": "Plain text, printed once the run has finished",
+        "reason": "Plain text output arrives at the end of the run, not as a live stream."
       },
       {
         "id": "b",
-        "text": "`--output-format json`, which returns one structured result",
-        "reason": "`json` returns one structured result with session ID and metadata, not a live stream of tokens."
+        "text": "One JSON result with the answer, the session ID and the run's metadata",
+        "reason": "The single JSON result arrives when the run ends; it suits scripts that need the answer and metadata, not live tokens."
       },
       {
         "id": "c",
-        "text": "`--output-format json --json-schema '<schema>'`",
-        "reason": "`--json-schema` puts schema-conforming output in `structured_output`; it doesn't stream tokens."
+        "text": "One JSON result whose output is held to a schema you supply",
+        "reason": "A schema shapes the final output into a field of its own; it doesn't stream tokens while the run works."
       },
       {
         "id": "d",
-        "text": "`--output-format stream-json`, with `--verbose` and `--include-partial-messages`",
-        "reason": "Correct: this combination streams newline-delimited JSON events, so you receive tokens as they're generated."
+        "text": "A live stream of JSON events, with partial messages as tokens arrive",
+        "reason": "Correct: streamed JSON is newline-delimited events for real-time output, and with partial messages included you receive tokens as they're generated."
       }
     ],
     "answer": "d",
-    "takeaway": "For live output from `claude -p`, use **`stream-json`** (with `--verbose --include-partial-messages` for tokens).",
-    "explanation": "Only `stream-json` streams events while the run is going, and the docs pair it with `--verbose` and `--include-partial-messages` to receive tokens as they're generated (D). `text` (A) and `json` (B) both arrive at the end, and `--json-schema` (C) shapes the final output rather than streaming it.",
+    "takeaway": "For live progress from `claude -p`, ask for **streamed JSON events**; plain text and single JSON results arrive only at the end.",
+    "explanation": "The dashboard needs output **while the run is going**, and only the streamed JSON option delivers events as they happen; with partial messages included, those events carry tokens as they're generated (D). Option B is tempting because it is structured JSON too, but it is one result delivered at the end. Plain text (A) also arrives at the end, and a schema (C) shapes the final output rather than streaming it.",
     "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/headless",
       "title": "Run Claude Code programmatically",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-cc-print-mode"

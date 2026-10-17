@@ -1327,41 +1327,41 @@
     "domainId": "eval-testing",
     "subSkillId": "debugging-errors",
     "topic": "Retriable vs terminal",
-    "stem": "A request fails with `500 api_error`. The identical request succeeded a minute earlier, and nothing in your code or configuration has changed since. What does the errors page recommend?",
+    "stem": "Your provisioning script's create request timed out with no response, so the script sent it again. The retry fails with `409 conflict_error`, saying a value that must be unique is already in use. What should the script do next?",
     "choices": [
       {
         "id": "a",
-        "text": "Retry with exponential backoff, and contact support with the request ID if the error persists",
-        "reason": "Correct: 500 means an unexpected error inside Anthropic's systems. The errors page says to retry with exponential backoff and, if it persists, contact support with the request ID."
+        "text": "Check the resource's state, since the first try may have created it, then resolve and retry",
+        "reason": "Correct: a 409 means the request conflicts with the resource's current state, and the errors page says to resolve the conflict, then retry."
       },
       {
         "id": "b",
-        "text": "Fix the request body before retrying, since a 500 means the format or content of the request is invalid",
-        "reason": "That's a 400 `invalid_request_error`. A 500 is an unexpected error inside Anthropic's systems, which is why a retry can succeed."
+        "text": "Retry the identical request with exponential backoff until the conflict clears",
+        "reason": "Backoff suits transient errors such as a 500. While the unique value is still in use, the same request keeps conflicting; resolve it first."
       },
       {
         "id": "c",
-        "text": "Replace the API key, since a 500 means the key was revoked between the two requests",
-        "reason": "A revoked key returns 401 `authentication_error`. A 500 comes from Anthropic's side, not from your key."
+        "text": "Contact support with the request ID, since a 409 means an error inside Anthropic's systems",
+        "reason": "That's the advice for a 500 `api_error` that persists. A 409 is about your request and the resource's current state."
       },
       {
         "id": "d",
-        "text": "Move the call to the Message Batches API, since a 500 means the request ran too long",
-        "reason": "Long requests that time out return 504 `timeout_error`, where streaming or batches are suggested. A 500 calls for a retry with backoff."
+        "text": "Check the key's organization and workspace access, since a 409 means that permission was denied",
+        "reason": "Missing permission is 403 `permission_error`. A 409 is a conflict with the resource's state, such as a unique value already in use."
       }
     ],
     "answer": "a",
-    "takeaway": "A **500** is retriable: back off and retry, and keep the **request ID** for support if it doesn't clear.",
-    "explanation": "An unexpected server-side error is the textbook retriable case: nothing about your request is wrong, so the same request can succeed on a later attempt. The detail that it worked a minute ago and nothing changed rules out a request or key problem. Choice b is tempting because errors often mean a bad request, but that's what a 400 says, not a 500.",
-    "difficulty": "easy",
+    "takeaway": "A **409** is neither retry-as-is nor give-up: reconcile with the resource's current state, then retry.",
+    "explanation": "A 409 `conflict_error` means the request conflicts with the current state of a resource, for example because a value that must be unique is already in use, and the errors page says to resolve the conflict, then retry (A). The stem's clue is the timed-out first attempt: it may have gone through, so look before sending again. B is tempting because retrying with backoff is right for a 500, but an unchanged request keeps hitting the same conflict. C is the 500 advice, and D describes a 403.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
-      "checkedOn": "2026-10-16"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-api-error-types",
-      "c-request-id"
+      "c-exponential-backoff"
     ],
     "lessonId": "l-course-failure-handling"
   },
@@ -1604,41 +1604,42 @@
     "id": "q-s4fail-403-fix-access",
     "domainId": "eval-testing",
     "subSkillId": "debugging-errors",
-    "topic": "Retriable vs terminal",
-    "stem": "A service's calls to one resource fail with `403 permission_error` every time, while its other calls with the same key succeed. An on-call engineer proposes doubling `max_retries` to ride it out. What should the team do instead?",
+    "topic": "Error handling",
+    "stem": "Your service wraps every failed Claude call in one generic `AIUnavailable` exception and discards the original error. When one resource starts returning `403 permission_error`, on-call spends hours restarting the service and waiting for an \"outage\" to end. What change would have shown them the cause?",
     "choices": [
       {
         "id": "a",
-        "text": "Fix the request body, since a 403 means the request's format is invalid for that resource",
-        "reason": "A malformed request returns 400 `invalid_request_error`. A 403 means the key lacks permission for the resource."
+        "text": "Have the wrapper retry every failure with backoff, so only lasting errors reach on-call",
+        "reason": "A 403 means the key lacks permission for the resource. Retrying only delays the alert, and the wrapper still hides the cause."
       },
       {
         "id": "b",
-        "text": "Keep retrying with backoff, since a 403 means the resource is temporarily overloaded and will recover",
-        "reason": "A temporary overload is 529 `overloaded_error`. A 403 says the key lacks permission, which waiting doesn't change."
+        "text": "Rotate the API key whenever the generic exception shows up in the logs",
+        "reason": "Rotating fixes problems with the key itself, which are 401s. A 403 points at the organization's access and workspace settings."
       },
       {
         "id": "c",
-        "text": "Retry after the `retry-after` interval, since a 403 means a rate limit on that one resource",
-        "reason": "A rate limit returns 429 `rate_limit_error` and applies to your organization. A 403 is a permission problem."
+        "text": "Restart the service automatically on the generic exception, so nobody is paged",
+        "reason": "Restarting changes nothing about the key's permission, and hides the failure further. A 403 says to check access and workspace settings."
       },
       {
         "id": "d",
-        "text": "Check the organization's access and workspace settings, since the key lacks permission for that resource",
-        "reason": "Correct: 403 means your API key doesn't have permission to use the specified resource; check access and workspace settings in the Claude Console."
+        "text": "Keep the error's type, message and request ID, and branch on the SDK's typed exceptions",
+        "reason": "Correct: every API error carries a `type` and `message` plus a `request_id`; catching the typed classes lets the handler tell a 403 from an outage."
       }
     ],
     "answer": "d",
-    "takeaway": "A **403** is terminal: the key works but lacks permission there, so fix the access instead of retrying.",
-    "explanation": "Would the same request succeed if sent again later? Not while the key lacks permission for that resource, so more retries only delay the fix. The clue is that other calls with the same key work, which rules out a broken key and points at access. Choice b is tempting because 'ride it out' fits overloads, but those are 529s.",
-    "difficulty": "easy",
+    "takeaway": "Don't flatten API errors: keep the **type, message and request ID**, so a 403 reads as an access problem, not an outage.",
+    "explanation": "API errors arrive as JSON with an `error` object holding a `type` and `message`, plus a `request_id` for support, and the SDK raises typed exceptions for them. The wrapper threw all of that away, so a 403, which means the key lacks permission for that resource, looked like a passing outage. Keeping those details and catching the typed classes (D) would have pointed on-call at access and workspace settings. A is tempting because retries smooth over blips, but they only delay the signal here. B fixes a 401, and C changes nothing.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
-      "checkedOn": "2026-10-16"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-api-error-types"
+      "c-api-error-types",
+      "c-request-id"
     ],
     "lessonId": "l-course-failure-handling"
   },

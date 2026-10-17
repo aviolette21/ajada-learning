@@ -2063,32 +2063,32 @@
     "domainId": "prompt-context",
     "subSkillId": "prompt-engineering",
     "topic": "Zero- and one-shot",
-    "stem": "An Anthropic research post reports that one model could do a task zero-shot, while another model managed it only with one-shot prompting. What was different about the one-shot prompts?",
+    "stem": "Your instructions-only prompt works well on one model, but another model keeps getting the task wrong. A teammate suggests making the prompt \"one-shot\" instead of zero-shot. What change is that?",
     "choices": [
       {
         "id": "a",
-        "text": "The model got a single attempt at the task instead of several tries",
-        "reason": "A \"shot\" here is an example in the prompt, not an attempt: the post's one-shot runs add a single example to the prompt."
+        "text": "Let the model make a single attempt at the task instead of several tries",
+        "reason": "A \"shot\" is an example in the prompt, not an attempt: one-shot prompting adds a single example of the task to the prompt."
       },
       {
         "id": "b",
-        "text": "Thinking was switched off so the model answered in a single pass",
-        "reason": "The post treats secret thinking as a separate condition; one-shot means the prompt includes one example."
+        "text": "Switch thinking off so the model answers in a single pass",
+        "reason": "Thinking is a separate setting from the number of examples; one-shot means the prompt includes one example."
       },
       {
         "id": "c",
-        "text": "The prompt was sent at temperature 0 to get repeatable output",
+        "text": "Send the prompt at temperature 0 so the output is repeatable",
         "reason": "Zero-shot versus one-shot is about whether the prompt includes an example, not about sampling settings."
       },
       {
         "id": "d",
-        "text": "A single example of the task was added to the prompt",
-        "reason": "Correct: the post optionally adds a single example to the prompt (one-shot); zero-shot means doing the task without an example."
+        "text": "Add one worked example of the task to the prompt",
+        "reason": "Correct: one-shot prompting adds a single example to the prompt; zero-shot means the model does the task without an example."
       }
     ],
     "answer": "d",
     "takeaway": "A **shot** is an example in the prompt: zero-shot has none, one-shot has one.",
-    "explanation": "In prompting, a shot is an example of the task placed in the prompt. The post describes one model doing the task without an example (zero-shot) and another only when given a single example (one-shot), so the difference is that added example (D). Option A is the tempting everyday reading of \"one shot\" as one try, but the post means one example. Thinking (B) and temperature (C) are separate settings.",
+    "explanation": "In prompting, a shot is an example of the task placed in the prompt. Going from zero-shot to one-shot means adding a single example, which can let a model do a task it couldn't manage from instructions alone (D). Option A is the tempting everyday reading of \"one shot\" as one try, but it means one example. Thinking (B) and temperature (C) are separate settings.",
     "difficulty": "easy",
     "diagram": {
       "kind": "flow",
@@ -2107,7 +2107,7 @@
     "source": {
       "url": "https://alignment.anthropic.com/2025/automated-researchers-sandbag/",
       "title": "Automated Researchers Can Subtly Sandbag",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-few-shot-prompting"
@@ -2787,37 +2787,37 @@
     "domainId": "prompt-context",
     "subSkillId": "prompt-engineering",
     "topic": "Few-shot prompting",
-    "stem": "A teammate's ticket-labeling prompt has short instructions plus an `<examples>` block holding four labeled tickets, each in its own `<example>` tag. What does Anthropic's prompting guide call this technique?",
+    "stem": "You're triaging four prompt problems. For which one is adding a few well-crafted examples to the prompt (few-shot prompting) the best first fix?",
     "choices": [
       {
         "id": "a",
-        "text": "Role prompting",
-        "reason": "Role prompting sets a role in the system prompt to focus behavior and tone; it doesn't add examples."
+        "text": "Answers about a long contract are weak, and the contract is pasted below the question",
+        "reason": "The guide's fix here is placement: put long documents near the top of the prompt, above the query, instructions and examples."
       },
       {
         "id": "b",
-        "text": "Prefilling the response",
-        "reason": "Prefilling starts Claude's reply with your own text; it isn't a set of examples in the prompt."
+        "text": "Claude mixes up which parts of a long plain-text prompt are instructions and which are input data",
+        "reason": "That's what XML tags are for: wrapping instructions, context and inputs in their own tags reduces misinterpretation."
       },
       {
         "id": "c",
-        "text": "Chain-of-thought prompting",
-        "reason": "Chain-of-thought asks Claude to think through a problem before answering; it isn't about including examples."
+        "text": "A request for an analytics dashboard returns a bare-bones version, and you wanted a full-featured one",
+        "reason": "The guide says to request \"above and beyond\" behavior explicitly rather than hope the model infers it from a vague prompt."
       },
       {
         "id": "d",
-        "text": "Few-shot (multishot) prompting",
-        "reason": "Correct: the guide calls a few well-crafted examples in the prompt few-shot or multishot prompting."
+        "text": "Labels come back in a different structure and wording on each run, though the format is described",
+        "reason": "Correct: examples are one of the most reliable ways to steer output format, tone and structure, and they improve consistency."
       }
     ],
     "answer": "d",
-    "takeaway": "Several examples in the prompt is **few-shot (multishot)** prompting: one of the most reliable ways to steer output.",
-    "explanation": "The guide's \"Use examples effectively\" section says a few well-crafted examples, known as few-shot or multishot prompting, improve accuracy and consistency, and recommends wrapping them in `<example>` tags inside `<examples>` (D). The other choices are separate techniques from the same guide: a role in the system prompt (A), a prefilled reply (B) and step-by-step reasoning (C). C is the likeliest mix-up, since both are prompting techniques that change how the reply comes out.",
-    "difficulty": "easy",
+    "takeaway": "Reach for **few-shot examples** when the output's format or style won't stay consistent; other problems have their own fixes.",
+    "explanation": "The prompting guide says a few well-crafted examples improve accuracy and consistency and steer format, tone and structure, so drifting label formats (D) are the classic fit. Each other problem maps to a different technique in the same guide: long documents go at the top (A), XML tags separate instructions from data (B), and ambitious output should be asked for explicitly (C). B is the likeliest mix-up, since examples also use tags, but the problem there is parsing, not consistency.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
       "title": "Prompting best practices",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-few-shot-prompting",

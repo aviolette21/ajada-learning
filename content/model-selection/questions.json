@@ -577,42 +577,42 @@
     "id": "q-tech-unknown-events",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
-    "topic": "Streaming events",
-    "stem": "Your hand-written stream parser throws whenever it sees an event type that isn't in its switch statement, and it has started crashing on some responses. What does the streaming guide say your code should do?",
+    "topic": "Client SDKs",
+    "stem": "Your Python chat backend streams replies through a hand-written SSE parser. It keeps breaking on events it didn't plan for, such as `ping` events and newly added event types. The official Python SDK is available to you. What does the streaming guide recommend?",
     "choices": [
       {
         "id": "a",
-        "text": "Treat any unrecognized event type as a protocol error and retry the whole request",
-        "reason": "An unfamiliar event isn't an error: under the versioning policy, new event types may be added."
+        "text": "Keep the parser and freeze its event list, since event types are fixed for an API version",
+        "reason": "Under the versioning policy, new event types may be added, so a frozen list keeps breaking; code should handle unknown types gracefully."
       },
       {
         "id": "b",
-        "text": "Treat `ping` events as a sign that the connection has stalled, and reconnect when one arrives",
-        "reason": "Streams may include any number of `ping` events; they are a normal part of the stream."
+        "text": "Move the stream to WebSockets, which carry one fixed message format",
+        "reason": "Messages API streaming is delivered as server-sent events (SSE); the guide offers no WebSocket transport to switch to."
       },
       {
         "id": "c",
-        "text": "Handle unknown event types gracefully, because new event types may be added",
-        "reason": "Correct: in line with the versioning policy, new event types may be added, and your code should handle unknown types gracefully."
+        "text": "Stream through the SDK; handle raw events yourself only in a direct API integration",
+        "reason": "Correct: the guide says to use the client SDKs when streaming; only if you build a direct API integration do you handle the events yourself."
       },
       {
         "id": "d",
-        "text": "Turn off streaming, since unexpected event types mean the stream itself is corrupted",
-        "reason": "Unknown event types are expected over time, not a sign of corruption; the guide says to handle them gracefully."
+        "text": "Turn streaming off and show each reply only once it is complete",
+        "reason": "That gives up the incremental reply a chat needs; the guide's answer is to let the SDK handle the stream."
       }
     ],
     "answer": "c",
-    "takeaway": "Parsers must **tolerate** `ping` and unknown event types: new ones may be added.",
-    "explanation": "The streaming guide says new event types **may be added** under the versioning policy, so a parser must handle unknown types gracefully (C) instead of throwing. The crashes started because the parser treats anything outside its switch as fatal. Option A is the tempting reflex, treating the unfamiliar event as a protocol error and retrying, but an unknown event isn't an error at all. `ping` events (B) are a normal part of the stream, and turning off streaming (D) misreads expected change as corruption.",
+    "takeaway": "Where an official SDK exists, **let it handle the stream**; raw event handling is the cost of a direct API integration.",
+    "explanation": "The streaming guide recommends the client SDKs for streaming and says only a direct API integration has to handle the events itself (C). A hand-written parser takes on every detail of the event stream, including `ping` events and the new event types that may be added under the versioning policy. Option A is the tempting quick fix, but freezing the list means the next new type breaks it again. B swaps in a transport the API doesn't use, and D throws away streaming to dodge a parser bug.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
       "title": "Streaming messages",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-stream-event-flow",
-      "c-api-versioning"
+      "c-client-sdks",
+      "c-stream-event-flow"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -620,42 +620,42 @@
     "id": "q-tech-final-message",
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
-    "topic": "Streaming",
-    "stem": "A Python job sets a very large `max_tokens` for long reports. It doesn't need text as it arrives, only the finished `Message`, but large non-streaming calls risk HTTP timeouts. What's the recommended approach?",
+    "topic": "Long requests",
+    "stem": "Your report generator runs on a network that drops long-lived connections at random. Each report uses a large `max_tokens`, and nobody reads the reports until the next morning. Which approach does the errors page suggest for coping with the unreliable network?",
     "choices": [
       {
         "id": "a",
-        "text": "Call `.stream()` and then `.get_final_message()` to get the complete `Message`",
-        "reason": "Correct: the SDK streams internally, keeping the connection alive, and returns a `Message` identical to what `.create()` returns."
+        "text": "Submit the reports as a Message Batch and poll for the results later",
+        "reason": "Correct: the Message Batches API lets you poll for results rather than requiring an uninterrupted network connection."
       },
       {
         "id": "b",
-        "text": "Set `\"stream\": true` and read the response body as one JSON `Message`",
-        "reason": "With `\"stream\": true` the response arrives as server-sent events, not one JSON body, so you'd have to handle the events."
+        "text": "Stream each report instead, since a stream needs no lasting connection",
+        "reason": "A stream arrives over a connection that has to stay up; batches let you poll for results instead of depending on it."
       },
       {
         "id": "c",
-        "text": "Stream, but parse every server-sent event by hand to rebuild the `Message`",
-        "reason": "Possible, but unnecessary: the SDKs already accumulate the events and return the final `Message` for you."
+        "text": "Keep non-streaming calls and raise the client timeout a lot",
+        "reason": "Some networks drop idle connections however long the client waits, so the page warns against large `max_tokens` without streaming or batches."
       },
       {
         "id": "d",
-        "text": "Split the report into many small requests so that none needs a large `max_tokens`",
-        "reason": "The guide's answer for large `max_tokens` values is streaming, which the SDKs require for these requests to avoid HTTP timeouts."
+        "text": "Cut `max_tokens` well below the reports' length so calls end sooner",
+        "reason": "That truncates the reports. The page's answer for long requests is streaming or the Message Batches API, not shorter output."
       }
     ],
     "answer": "a",
-    "takeaway": "Large `max_tokens` means **stream**, and `.get_final_message()` / `.finalMessage()` gives you the whole `Message` anyway.",
-    "explanation": "The constraint is a **very large `max_tokens`** with no need for incremental text. Large non-streaming calls risk HTTP timeouts, so the guide's answer is to stream, and `.stream()` with `.get_final_message()` (A) streams internally while returning the same `Message` that `.create()` would. Option C works but is unnecessary, since the SDK already accumulates events for you. Option B fails because `\"stream\": true` returns server-sent events, not one JSON body, and splitting the report (D) dodges the recommended fix.",
+    "takeaway": "When the network is unreliable and nobody is waiting, **batch and poll**: the results don't depend on one connection staying up.",
+    "explanation": "For long requests the errors page suggests streaming or the Message Batches API, and it singles out batches for unreliable networks: you poll for results rather than needing an uninterrupted connection (A). Nobody needs the reports until morning, so batching costs nothing in speed. B is the tempting choice because streaming is the usual fix for long outputs, but a stream still depends on its connection. C ignores that networks drop idle connections, and D just shortens the reports.",
     "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
-      "title": "Streaming messages",
-      "checkedOn": "2026-09-27"
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-sdk-final-message",
-      "c-client-sdks"
+      "c-message-batches"
     ],
     "lessonId": "l-technical-fundamentals"
   },
@@ -1267,37 +1267,37 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "topic": "Environment config",
-    "stem": "Integration tests should send the app's Claude calls to a local mock server at `http://localhost:8083`. The app builds its client with a bare `Anthropic()`, and you don't want to change that code. What should the test environment set?",
+    "stem": "Integration tests must send the app's Claude calls to a local mock server, while production keeps calling the real API. Both run the same code, which builds its client with a bare `Anthropic()`. How should the test setup redirect the calls?",
     "choices": [
       {
         "id": "a",
-        "text": "`ANTHROPIC_LOG=debug`, so the SDK sends its requests through a local debug server",
-        "reason": "`ANTHROPIC_LOG` (`debug` or `info`) turns on the SDK's logging through Python's `logging` module; it doesn't change where requests go."
+        "text": "Turn on the SDK's debug logging in tests, which routes requests through a local server",
+        "reason": "Debug logging turns on the SDK's log output through Python's `logging` module; it doesn't change where requests go."
       },
       {
         "id": "b",
-        "text": "`ANTHROPIC_API_KEY=localhost:8083`, since the key's value picks the host to call",
-        "reason": "`ANTHROPIC_API_KEY` is the default source of the API key the client sends, not of the host it calls."
+        "text": "Put the mock server's address in the test environment's API key setting",
+        "reason": "The API key setting supplies the key the client sends, not the host it calls."
       },
       {
         "id": "c",
-        "text": "A `default_headers` entry that replaces `anthropic-version` with the mock's address",
-        "reason": "Default headers change request headers, and the SDK warns that overriding them can cause undefined behaviour; they don't change the URL."
+        "text": "Override a default request header in tests so that it carries the mock's address",
+        "reason": "Default headers change request headers, and the SDK warns that overriding them can cause undefined behavior; they don't change the URL."
       },
       {
         "id": "d",
-        "text": "`ANTHROPIC_BASE_URL=http://localhost:8083`, which the client uses for `base_url`",
-        "reason": "Correct: the client's `base_url` can come from the `ANTHROPIC_BASE_URL` env var, so the unchanged `Anthropic()` call targets the mock server."
+        "text": "Set the client's base URL in the test environment's config; leave the code as it is",
+        "reason": "Correct: the client's `base_url` can come from the `ANTHROPIC_BASE_URL` environment variable, so the unchanged `Anthropic()` call targets the mock."
       }
     ],
     "answer": "d",
-    "takeaway": "Point the SDK at another host with **`ANTHROPIC_BASE_URL`** (or `base_url`); `ANTHROPIC_API_KEY` supplies the key.",
-    "explanation": "The constraint is **no code change**: the bare `Anthropic()` call has to be redirected from outside. The client's `base_url` can come from the `ANTHROPIC_BASE_URL` env var, so setting it to the mock's address does it (D). Option A is tempting because it sounds like a test setting, but `ANTHROPIC_LOG` only turns on logging and doesn't change where requests go. `ANTHROPIC_API_KEY` (B) supplies the key, not the host, and `default_headers` (C) change headers, not the URL.",
+    "takeaway": "Keep one codebase and let **each environment's config** say where the client sends requests.",
+    "explanation": "The constraint is the same code in tests and production, so the difference has to live in each environment's configuration. The client's base URL can be read from the environment, so the test setup points it at the mock and the bare `Anthropic()` call follows (D). Option A is tempting because it sounds like a test setting, but logging doesn't change where requests go. The API key (B) isn't the host, and headers (C) don't change the URL.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
       "title": "Python SDK",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-anthropic-api-key-env",
@@ -1310,37 +1310,37 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "topic": "Environment config",
-    "stem": "A production Python service intermittently misbehaves when calling Claude. You want the SDK's own log output, without editing any code. What should you set before the service starts?",
+    "stem": "A production Python service intermittently misbehaves when calling Claude. You want to see the SDK's own log output, but you can't change the code, only how the service is started. What should you do?",
     "choices": [
       {
         "id": "a",
-        "text": "`ANTHROPIC_BASE_URL`, pointed at a logging proxy that ships inside the SDK",
-        "reason": "`ANTHROPIC_BASE_URL` sets the base URL requests go to; the SDK's logging is turned on with `ANTHROPIC_LOG`."
+        "text": "Point the client's base URL at a logging proxy that ships inside the SDK",
+        "reason": "The base URL only sets where requests go, and the SDK has no built-in logging proxy; its logging is switched on separately."
       },
       {
         "id": "b",
-        "text": "`ANTHROPIC_LOG=debug`, which turns on the SDK's logging via Python's `logging`",
-        "reason": "Correct: the SDK uses the standard library `logging` module, and setting `ANTHROPIC_LOG` to `debug` or `info` enables it."
+        "text": "Turn on the SDK's built-in logging with its environment variable at startup",
+        "reason": "Correct: the SDK logs through Python's standard `logging` module, and setting `ANTHROPIC_LOG` to `debug` or `info` turns it on."
       },
       {
         "id": "c",
-        "text": "`max_retries=0` on the client, so the SDK prints each failure it would have retried",
-        "reason": "`max_retries` configures or disables automatic retries; it isn't a logging switch, and it means editing code."
+        "text": "Set the client to make no retries, so the SDK prints each failure it would have retried",
+        "reason": "The retry setting configures or disables automatic retries; it isn't a logging switch, and changing it means editing code."
       },
       {
         "id": "d",
-        "text": "A `default_headers` value asking the API to include debug details in each response",
-        "reason": "Default headers set request headers, and the SDK warns that overriding them can cause undefined behaviour; logging uses `ANTHROPIC_LOG`."
+        "text": "Add a default header that asks the API to include debug details in every response",
+        "reason": "Default headers only set request headers, and the SDK warns that overriding them can cause undefined behavior; they don't enable logs."
       }
     ],
     "answer": "b",
-    "takeaway": "Turn on the Python SDK's logs with **`ANTHROPIC_LOG=debug`** (or `info`); no code change needed.",
-    "explanation": "The Python SDK logs through the standard library `logging` module, and setting the **`ANTHROPIC_LOG`** env var to `debug` or `info` turns it on with no code change (B). Option A is the tempting distractor because it is also an env var, but `ANTHROPIC_BASE_URL` only sets the base URL requests go to. Option C is ruled out twice: `max_retries` isn't a logging switch and it means editing code. `default_headers` (D) set request headers and don't enable SDK logs.",
+    "takeaway": "The SDK can be configured **from the environment**: turn on its built-in logs at startup without touching code.",
+    "explanation": "The constraint is no code change, so the answer has to be something set from outside the program. The Python SDK logs through the standard `logging` module and turns that on from an environment variable (B). Option A is tempting because the base URL can also come from the environment, but it only changes where requests go. Retries (C) aren't logging and need code, and default headers (D) change requests, not logs.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
       "title": "Python SDK",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-client-sdks"
@@ -2516,41 +2516,42 @@
     "id": "q-course-carry-back-rules",
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
-    "topic": "Preserving thinking blocks",
-    "stem": "You're writing your team's rules for handling thinking blocks in an agent that uses tools. Which rule matches Anthropic's documentation?",
+    "topic": "Thinking and context",
+    "stem": "A long-running agent on Claude Opus 5.5 passes every thinking block back, as the guide recommends. Late in long sessions its context fills much faster than the team's estimate, which counted only messages and tool results. What explains this, and what fits?",
     "choices": [
       {
         "id": "a",
-        "text": "Reorder thinking blocks freely, as long as every one of them is returned",
-        "reason": "The sequence must match what the model generated: you can't rearrange, edit or partially drop them."
+        "text": "Thinking is billed as output only, so it can never be what is filling up the context",
+        "reason": "Thinking passed back in the conversation stays in context: it counts toward the window and is billed as input, like other history."
       },
       {
         "id": "b",
-        "text": "Within a tool-use turn, pass the thinking blocks back unchanged with the `tool_use` block",
-        "reason": "Correct: when you return tool results, the thinking blocks from that assistant message are required, complete and unmodified."
+        "text": "Earlier thinking passed back stays in context; clearing old thinking reclaims space",
+        "reason": "Correct: on this model, prior turns’ thinking is kept, so long sessions accumulate it. Thinking block clearing reclaims that space."
       },
       {
         "id": "c",
-        "text": "Parse the `signature` to log Claude's full reasoning for audits",
-        "reason": "The `signature` is opaque and encrypted: don't interpret or parse it. Its job is to let the API verify the block."
+        "text": "Drop the thinking blocks from the current tool-use turn before sending back the results",
+        "reason": "Within a tool-use turn, passing thinking blocks back complete and unmodified is required, not optional."
       },
       {
         "id": "d",
-        "text": "Shorten long thinking blocks before sending them back, to save input tokens",
-        "reason": "Thinking blocks must go back complete and unmodified; editing them breaks the turn."
+        "text": "Raise `max_tokens` so the thinking fits without filling the context",
+        "reason": "`max_tokens` caps the output of one response. It doesn’t make earlier thinking take less room in the context window."
       }
     ],
     "answer": "b",
-    "takeaway": "Inside a tool-use turn, send thinking blocks back **complete, unmodified and in order**.",
-    "explanation": "When you return tool results, the thinking blocks from that assistant message must go back with it, complete and unmodified (B). Reordering (A) and editing (D) both break that rule, and the `signature` (C) is opaque, so it can't be parsed for the reasoning.",
+    "takeaway": "On keep-all models, past thinking is **ordinary history**: budget context for it, and use thinking block clearing to reclaim space.",
+    "explanation": "Whether earlier thinking stays in context is per-model. Claude Opus 5.5 is a keep-all model, so previous turns' thinking blocks remain in context, count toward the window and are billed as input, and long agentic sessions accumulate them (B). Thinking block clearing, a context-editing strategy, reclaims that space. A is the tempting trap: current-turn thinking is billed as output, but on keep-all models it then stays on as history. C breaks the tool-use rule, and D changes only what you see.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-thinking-blocks-unchanged"
+      "c-thinking-blocks-unchanged",
+      "c-context-window"
     ],
     "lessonId": "l-course-extended-thinking"
   },
@@ -3678,41 +3679,41 @@
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
     "topic": "Message Batches",
-    "stem": "An overnight job sends 20,000 requests through the Message Batches API instead of the synchronous Messages API. How does its price compare with sending the same requests synchronously?",
+    "stem": "A team runs a weekly job that tags thousands of archived documents for a report. They're deciding whether to move it from synchronous Messages calls to the Message Batches API for its lower price. Which question should decide it?",
     "choices": [
       {
         "id": "a",
-        "text": "The same price; batching only raises how many requests you can send",
-        "reason": "Batch usage is charged at 50% of standard API prices."
+        "text": "Whether the requests use tools or images, since batches accept only plain text prompts",
+        "reason": "Almost any Messages API request can be batched, including vision, tool use and multi-turn conversations, so this doesn't rule batches out."
       },
       {
         "id": "b",
-        "text": "About half: batch usage is charged at 50% of standard prices",
-        "reason": "Correct: the Message Batches API charges 50% of standard prices, for input and output tokens alike."
+        "text": "Whether the results can wait, since batches trade immediate responses for the lower price",
+        "reason": "Correct: batches are processed asynchronously (most finish within an hour, up to 24 hours) and suit work that doesn't need immediate responses."
       },
       {
         "id": "c",
-        "text": "Half price on input tokens only; output stays at the full rate",
-        "reason": "The 50% batch discount applies to input tokens, output tokens and any special tokens."
+        "text": "Whether the prompts already use caching, since the batch discount can't be combined with it",
+        "reason": "Batches support prompt caching, and the two pricing discounts can stack for even greater savings."
       },
       {
         "id": "d",
-        "text": "Free, because you pay only for the requests that return errors",
-        "reason": "Batches are billed for their usage, at half the standard price; they are not free."
+        "text": "Whether each result must be matched to its request, since batch results carry no identifier",
+        "reason": "Each batch request has a `custom_id`; results may come back in any order, and you match them to requests by that field."
       }
     ],
     "answer": "b",
-    "takeaway": "Message Batches cost **50% of standard prices**, on input and output alike.",
-    "explanation": "The Message Batches API trades immediate responses for price: usage is charged at 50% of standard prices (B), and the discount covers input, output and any special tokens (not just input, C). Batching does lower the price (A), but it isn't free (D).",
+    "takeaway": "Batching is worth it when the work **can wait**: you give up immediate responses in exchange for the lower price.",
+    "explanation": "The Message Batches API's lower price comes with one real cost: requests are processed asynchronously, so results arrive later rather than immediately. For a weekly report job that can wait, that trade is easy (B). Option C is the tempting worry, but batch and caching discounts stack rather than compete. Batches also handle tools and images (A), and `custom_id` matches each result to its request (D).",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-message-batches",
-      "c-price-per-mtok"
+      "c-batch-vs-realtime"
     ],
     "lessonId": "l-course-batch-multimodal"
   },
@@ -3764,40 +3765,41 @@
     "domainId": "model-selection",
     "subSkillId": "cost-tokens",
     "topic": "Message Batches",
-    "stem": "Your nightly batch job writes each result back to the database row whose position matches the result’s line number in the results file. Some rows now hold another row’s output, though every request succeeded. What should the job do?",
+    "stem": "A nightly Message Batch of 20,000 requests ends with 19,600 `succeeded` and 400 `errored`. The 400 failed validation because of a bad input format, which you've now fixed. Nobody needs results until morning. A teammate wants to rerun the whole batch to be safe. What's the most cost-effective plan?",
     "choices": [
       {
         "id": "a",
-        "text": "Resubmit the batch until its results come back in request order",
-        "reason": "Batch results can be returned in any order on every run, so resubmitting can’t make line position a reliable key."
+        "text": "Rerun the whole batch, since one failed request can affect the others' results",
+        "reason": "The failure of one request in a batch doesn't affect the processing of the others, and rerunning pays again for 19,600 good results."
       },
       {
         "id": "b",
-        "text": "Submit smaller batches, since order is only kept for batches under 1,000 requests",
-        "reason": "The guide says results can come back in any order; it sets no batch size below which order is kept."
+        "text": "Resubmit the 400 failed requests unchanged in a new batch, since errors often clear",
+        "reason": "These failed as invalid requests, which need the fix applied first. Sent unchanged, they would fail validation again."
       },
       {
         "id": "c",
-        "text": "Switch the job to the synchronous Messages API so outputs arrive in order",
-        "reason": "That gives up the batch discount for a problem that has a direct fix: matching on `custom_id`."
+        "text": "Send the 400 corrected requests through the synchronous Messages API to finish sooner",
+        "reason": "Nobody needs them before morning, so this pays standard prices instead of the batch's 50% discount for no benefit."
       },
       {
         "id": "d",
-        "text": "Give each request a unique, meaningful `custom_id` and match results on it",
-        "reason": "Correct: batch results can be returned in any order, so always use the `custom_id` field to match each result to its request."
+        "text": "Resubmit only the 400, corrected, in a new batch, matching results on `custom_id`",
+        "reason": "Correct: you aren't billed for errored requests, the succeeded ones are done, and `custom_id` ties each new result back to its record."
       }
     ],
     "answer": "d",
-    "takeaway": "Batch results come back in **any order**: give each request a unique, meaningful `custom_id` and match results on it.",
-    "explanation": "The job assumes results come back in request order, and the batch guide says they don't. The stem's clue is that every request succeeded yet outputs landed on the wrong rows, a matching bug, not a model bug. A unique, meaningful `custom_id` per request fixes it (D). Option C is tempting because synchronous calls feel ordered, but it throws away the batch discount when `custom_id` already solves the problem.",
+    "takeaway": "After a partly failed batch, **fix and resubmit only the failures**: errored requests aren't billed, and the successes are already paid for.",
+    "explanation": "Each request in a batch is processed independently, so 400 invalid requests don't spoil the 19,600 that succeeded, and you aren't billed for the errored ones. The cheapest plan is to resubmit only the corrected requests in a new batch and match their results on `custom_id` (D). Rerunning everything (A) is the tempting \"safe\" choice, but it pays a second time for results you already have. B skips the fix, and C gives up the batch discount when nobody is waiting.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-message-batches"
+      "c-message-batches",
+      "c-custom-id"
     ],
     "lessonId": "l-course-batch-multimodal"
   },

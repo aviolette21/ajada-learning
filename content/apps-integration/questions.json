@@ -1345,37 +1345,37 @@
     "domainId": "apps-integration",
     "subSkillId": "swe-foundations",
     "topic": "Rate limits",
-    "stem": "Your organization's limit is 60 requests per minute. A cron job fires 50 requests within the same second and gets several 429 errors, though it stays under 60 for the minute. Why?",
+    "stem": "A cron job fires all of its requests at the same instant and gets several 429 errors, although its total for the whole minute stays under your per-minute limit. What explains it, and what helps?",
     "choices": [
       {
         "id": "a",
-        "text": "A 429 in this case means the API as a whole is overloaded for all users",
+        "text": "The API is overloaded for all users; wait for it to recover before rerunning",
         "reason": "A 429 describes which of **your** rate limits was exceeded; it isn't a general overload signal."
       },
       {
         "id": "b",
-        "text": "The limit resets only at the start of each clock minute, not continuously",
+        "text": "The limit resets only at the top of each clock minute; start the job just after the reset",
         "reason": "The API uses a token bucket: capacity is continuously replenished up to your maximum, not reset at fixed intervals."
       },
       {
         "id": "c",
-        "text": "Each request's `max_tokens` is counted against the output-tokens-per-minute limit up front",
-        "reason": "`max_tokens` does not factor into OTPM calculations; OTPM counts only the output tokens actually generated."
+        "text": "Each request's `max_tokens` is reserved against the output limit up front; lower it",
+        "reason": "`max_tokens` does not factor into output-token rate limits; they count only the output tokens actually generated."
       },
       {
         "id": "d",
-        "text": "Limits can apply over shorter intervals: 60 RPM may be enforced as 1 request per second",
-        "reason": "Correct: a rate of 60 RPM might be enforced as 1 request per second, and short bursts can exceed the limit."
+        "text": "Limits can apply over shorter intervals, so the burst trips them; spread requests out",
+        "reason": "Correct: a per-minute limit may be enforced over shorter intervals, and short bursts of requests can exceed it."
       }
     ],
     "answer": "d",
     "takeaway": "Rate limits bite over **short intervals** too: spread requests out rather than bursting them.",
-    "explanation": "A per-minute limit is not just a per-minute total: limits can be enforced over **shorter intervals**, so 60 RPM may be applied as 1 request per second, and 50 requests in one second exceed that even though the minute total stays under 60. Option B is the tempting explanation, but it is wrong in the other direction: the token bucket replenishes continuously rather than resetting each minute. A 429 is about your own limits, not general overload (A), and `max_tokens` doesn't factor into OTPM (C).",
+    "explanation": "A per-minute limit is not just a total for the minute: the API may enforce it over shorter intervals, so a burst at one instant can exceed it even when the minute's total is fine. Spreading the requests out fixes that (D). Option B is the tempting explanation, but it is wrong in the other direction: the token bucket replenishes continuously rather than resetting each minute. A 429 is about your own limits, not general overload (A), and `max_tokens` doesn't count against output-token limits (C).",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/rate-limits",
       "title": "Rate limits",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-token-bucket"
@@ -3831,37 +3831,37 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "topic": "Claude in Microsoft Foundry",
-    "stem": "In Microsoft Foundry you deployed Claude Opus 5.5 under the custom deployment name `support-opus`. Requests that send `\"model\": \"claude-opus-5-5\"` to your resource's endpoint fail with a deployment-not-found error. What should `model` contain?",
+    "stem": "Your team moves an app from the Claude API to Claude in Microsoft Foundry, where it deploys Claude under a custom name of its own. Requests that still send the Claude API model ID now fail with a deployment-not-found error. What's the fix?",
     "choices": [
       {
         "id": "a",
-        "text": "`support-opus`, the deployment name you chose in the Foundry portal",
-        "reason": "Correct: the deployment name becomes the value you pass in `model`. It defaults to the model ID, but a custom name like `support-opus` replaces it."
+        "text": "Send your deployment's name as the model, since Foundry routes requests to deployments you create",
+        "reason": "Correct: in Foundry, deployments are the model instances you call, and the deployment name you choose becomes the value you pass as the model."
       },
       {
         "id": "b",
-        "text": "`anthropic.claude-opus-5-5`, the provider-prefixed ID cloud platforms use",
-        "reason": "Foundry doesn't take a provider-prefixed ID: the deployment name becomes the `model` value, and the default name is the plain model ID."
+        "text": "Add the provider prefix that cloud platforms put in front of Claude model IDs",
+        "reason": "Foundry doesn't use a provider-prefixed ID: the model value is your deployment name, which defaults to the plain model ID."
       },
       {
         "id": "c",
-        "text": "The Target URI shown on the Details tab of the deployment",
-        "reason": "The Target URI is your endpoint URL; the `model` parameter should contain your deployment name."
+        "text": "Put the deployment's endpoint URL in the model field, since Foundry identifies models by URL",
+        "reason": "The Target URI is your endpoint URL; the model parameter should contain your deployment name."
       },
       {
         "id": "d",
-        "text": "`claude-opus-5-5@foundry`, the model ID plus a platform suffix",
-        "reason": "Foundry uses no such suffix: the deployment name you choose becomes the value you pass in `model`."
+        "text": "Use a Claude Console API key, since Foundry checks Claude API credentials before the model",
+        "reason": "Foundry authenticates with Azure-issued API keys or Entra ID tokens, and this error is about the deployment, not credentials."
       }
     ],
     "answer": "a",
-    "takeaway": "On Foundry, `model` is your **deployment name**, which matches the model ID only if you kept the default name.",
-    "explanation": "On Foundry, the **deployment name** becomes the value you pass in `model`. It defaults to the model ID, which is why `claude-opus-5-5` would work only with the default name; here you chose `support-opus`, so that's what `model` needs. Option B is tempting because provider-prefixed IDs feel platform-correct, but Foundry doesn't use one. The Target URI (C) is the endpoint URL, and no `@foundry` suffix exists (D).",
+    "takeaway": "On Foundry you call a **deployment you created**, so the model value is that deployment's name.",
+    "explanation": "Foundry organizes Claude into resources that hold security and billing, and deployments that are the model instances you call. The model value names your deployment, which matches the Claude API model ID only if you kept the default name; with a custom name, send that name (A). Option B is tempting because prefixed IDs feel platform-correct, but Foundry doesn't use one. The endpoint URL (C) isn't the model, and credentials (D) aren't what this error is about.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
       "title": "Claude in Microsoft Foundry",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-model-snapshot-id"
@@ -5263,37 +5263,37 @@
     "subSkillId": "api-mechanics",
     "lessonId": "l-course-api-substrate",
     "topic": "SDK retries",
-    "stem": "Your Python service wraps every Claude call in its own loop that retries 429 and 5xx errors three times. You use the official SDK with default settings. During an outage, logs show far more attempts per request than you expected. What explains this, and what should you do?",
+    "stem": "Your chat endpoint's Python SDK client sets a 20-second timeout so that users see an error message rather than waiting on a stuck call. During a slowdown, users wait far longer than 20 seconds before the error appears. What explains this, and what fits?",
     "choices": [
       {
         "id": "a",
-        "text": "The SDK never retries, so the extra attempts must come from the API itself",
-        "reason": "The SDK does retry certain errors automatically: 2 times by default, with a short exponential backoff."
+        "text": "The API decides when to give up, so the client's timeout has no effect",
+        "reason": "The client timeout does apply: when it's reached, the SDK throws an `APITimeoutError` instead of waiting on."
       },
       {
         "id": "b",
-        "text": "The SDK retries only connection errors, so keep your loop for 429s",
-        "reason": "By default the SDK also retries 408, 409, 429 and >=500 errors, not only connection errors."
+        "text": "The SDK enforces a long minimum timeout and ignores shorter values",
+        "reason": "The default timeout is long, but the `timeout` option sets a shorter one for the client or for a single request."
       },
       {
         "id": "c",
-        "text": "The SDK already retries these; tune `max_retries` instead of looping",
-        "reason": "Correct: connection errors, 408, 409, 429 and >=500 are retried by default, and `max_retries` configures or disables this."
+        "text": "The SDK retries timed-out calls on its own; allow fewer retries here",
+        "reason": "Correct: the SDK retries requests that time out, so one call can sit through several timeouts before the error appears. Retries can be lowered per request."
       },
       {
         "id": "d",
-        "text": "Lower the client `timeout` so failed calls give up before any retry",
-        "reason": "Requests that time out are also retried twice by default, so a lower timeout doesn't remove the SDK's retries."
+        "text": "Wrap the call in your own retry loop so that the error comes back sooner",
+        "reason": "Your loop adds attempts on top of the SDK’s own retries, so users would wait even longer, not less."
       }
     ],
     "answer": "c",
-    "takeaway": "The client SDKs **retry automatically** (twice by default, with backoff) on connection errors, 429 and 5xx; tune `max_retries` instead of stacking your own loop.",
-    "explanation": "Client SDKs include built-in retry logic: the Python SDK retries connection errors, 408, 409, 429 and >=500 errors **2 times by default** with exponential backoff. Wrapping that in your own three-retry loop multiplies the attempts per request. B is the tempting trap because it underestimates what the SDK covers. Use `max_retries` to tune or disable the SDK's retries instead (C).",
+    "takeaway": "A client timeout applies per attempt: the SDK’s automatic retries multiply the wait, so lower retries where a user is waiting.",
+    "explanation": "The timeout is real, but the SDK also retries timed-out requests automatically, so a user can wait through several attempts before seeing the error. On a latency-sensitive path, lower the retry count along with the timeout. Choice d is tempting, but your own loop stacks on top of the SDK’s retries and makes the wait longer.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
       "title": "Python SDK",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-sdk-retries",
@@ -5306,41 +5306,41 @@
     "subSkillId": "api-mechanics",
     "lessonId": "l-course-api-substrate",
     "topic": "Batch results",
-    "stem": "Your nightly job submits a Message Batch of 5,000 product descriptions and writes each result into the row at the same position as its request. Some products end up with another product's description. What should the job do?",
+    "stem": "Your nightly Message Batch asks Claude to research each company with the web search tool, and your code stores every `succeeded` result as a finished report. Some stored reports stop mid-research, and those results show `stop_reason: \"pause_turn\"`. What should the job do?",
     "choices": [
       {
         "id": "a",
-        "text": "Give each request a meaningful `custom_id` and match results on it",
-        "reason": "Correct: batch results can come back in any order; always use the `custom_id` field to match results with requests."
+        "text": "Send a follow-up request with the paused assistant content to continue each turn",
+        "reason": "Correct: a batch result with `pause_turn` means the turn did not finish; continue it by submitting the paused assistant content in a follow-up request, batch or synchronous."
       },
       {
         "id": "b",
-        "text": "Sort the results by completion time, then write them back by position",
-        "reason": "Completion order isn't request order either; results may not match the order the requests were created in."
+        "text": "Treat those results as `errored` and resubmit the original requests unchanged",
+        "reason": "They aren't errors: the turn paused unfinished. Resubmitting the original request starts the research over instead of continuing it."
       },
       {
         "id": "c",
-        "text": "Submit 5,000 one-request batches so each result maps to one request",
-        "reason": "Unnecessary: inside one batch, each request's unique `custom_id` already identifies its result."
+        "text": "Raise `max_tokens`, because `pause_turn` means the reply hit its output token limit",
+        "reason": "`pause_turn` isn't about output length: it comes back when the server-side tool loop has run its iterations for the turn and paused unfinished."
       },
       {
         "id": "d",
-        "text": "Stream the batch, which returns results in the order you sent them",
-        "reason": "Batches aren't streamed; you poll for the batch's status and retrieve results once processing has ended."
+        "text": "Move the job to synchronous calls, which run more tool iterations per turn",
+        "reason": "It's the reverse: with no open connection to maintain, the batch loop runs more iterations per turn than a synchronous request."
       }
     ],
     "answer": "a",
-    "takeaway": "Batch results **don't keep input order**: give every request a unique `custom_id` and match results on it.",
-    "explanation": "Batch requests are processed independently and their results can be returned **in any order**, so writing them back by position mixes them up. The guide says to always match results with requests through `custom_id` (A). B is the tempting trap, but completion order is still not request order. C works around a problem the ID already solves, and D misreads how batch results are delivered.",
-    "difficulty": "easy",
+    "takeaway": "`succeeded` isn't always finished: a batch result with `pause_turn` needs a **follow-up request** to continue the turn.",
+    "explanation": "A batch result's type says whether the request ran, not whether Claude's turn ended. With server tools such as web search, the batch worker runs the same server-side loop as the Messages API, and a `pause_turn` result means that loop paused before the turn finished. Continue it by sending the paused assistant content in a follow-up request (A). B is tempting because the reports look broken, but starting over throws away the work already done. C confuses `pause_turn` with an output limit, and D has the iteration difference backwards.",
+    "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
       "title": "Batch processing",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-custom-id",
-      "c-message-batches"
+      "c-message-batches",
+      "c-stop-reason"
     ]
   },
   {
@@ -5519,38 +5519,38 @@
     "domainId": "apps-integration",
     "id": "q-api-thinking-preserve-blocks",
     "subSkillId": "api-mechanics",
-    "topic": "Thinking with tool use",
-    "stem": "Your agent runs with thinking on. Claude returns `thinking` and `tool_use` blocks, and to save tokens your code keeps only the `tool_use` block in the assistant turn before sending the `tool_result`. What does the thinking guide say?",
+    "topic": "Preserving thinking blocks",
+    "stem": "Your support chat runs with thinking on and uses no tools. Its history store keeps only each turn's text, so earlier turns' thinking blocks are never sent back. A code reviewer flags this as a bug that will break requests. What does the thinking guide say?",
     "choices": [
       {
         "id": "a",
-        "text": "Pass the thinking blocks back, complete and unmodified, with the `tool_use` block",
-        "reason": "Correct: within a tool-use turn you must pass thinking blocks back unchanged, because Claude continues the same response from them."
+        "text": "Allowed: outside tool use you may omit earlier thinking, though passing it back is recommended",
+        "reason": "Correct: passing thinking back is required within a tool-use turn and recommended across turns; outside tool use, omitting prior turns' thinking is allowed."
       },
       {
         "id": "b",
-        "text": "Dropping them is fine, since thinking blocks are only for display and logging",
-        "reason": "The thinking blocks carry the reasoning that led to the tool request; passing them back is required within a tool-use turn."
+        "text": "It's a bug: every request must carry every earlier thinking block, or the API returns a 400",
+        "reason": "Sending thinking blocks back is strictly necessary only when using tools with thinking; otherwise you can omit them from previous turns."
       },
       {
         "id": "c",
-        "text": "Send a short summary of the reasoning in place of the original thinking blocks",
-        "reason": "Thinking blocks must be passed back complete and unmodified; you can't edit, rearrange or partially drop them."
+        "text": "It's required: old thinking blocks must be stripped, as the API rejects them in later turns",
+        "reason": "The API accepts them: pass all thinking blocks back and it filters them automatically, keeping the blocks needed for the model's reasoning."
       },
       {
         "id": "d",
-        "text": "Copy the thinking text into the `tool_result` content so Claude can still read it",
-        "reason": "Thinking blocks go back in the assistant turn alongside the `tool_use` block they accompanied, unmodified, not inside a tool result."
+        "text": "It's fine only if each turn's thinking is copied into that turn's text as a short summary",
+        "reason": "Nothing asks for this. Thinking goes back as complete, unmodified blocks, and outside tool use you may simply leave it out."
       }
     ],
     "answer": "a",
-    "takeaway": "A tool-use loop is one assistant turn: pass its **thinking blocks back unchanged** with the `tool_use` block.",
-    "explanation": "When Claude calls a tool, it pauses one response and continues it once you return the result, so its earlier reasoning must still be there. Within a tool-use turn, **thinking blocks must go back complete and unmodified** alongside the `tool_use` block. Option C is the tempting token saver, but edited or summarized blocks aren't allowed. Dropping them (B) breaks reasoning continuity, and D puts them in the wrong place.",
+    "takeaway": "Passing thinking back is **required inside a tool-use turn**, recommended across turns, and optional outside tool use.",
+    "explanation": "The thinking guide grades the rule by situation: within a tool-use turn you must pass thinking blocks back, across turns it recommends passing everything back, and outside tool use omitting prior turns' thinking is allowed (A). B is the tempting overreach: it applies the strict tool-use rule to a chat that uses no tools. C has it backwards, since the API filters the blocks you send, and D invents a requirement to rewrite thinking as text.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
       "title": "Thinking",
-      "checkedOn": "2026-10-14"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-thinking-blocks-unchanged"
