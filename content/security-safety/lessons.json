@@ -511,5 +511,137 @@
         "checkedOn": "2026-10-16"
       }
     ]
+  },
+  {
+    "id": "l-course-trust-boundaries",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "title": "Trust boundaries across components",
+    "summary": "A Claude application is often several components: an app on the Claude API, a Claude Code task, an MCP server. Map what each one reads, what it can do and as whom before you connect them. Every place data moves between them is a trust boundary: content stays untrusted as it crosses, and least privilege applies to each part and each seam.",
+    "keyPoints": [
+      "**Map first**: for each component, what untrusted content it ingests, what it can do and on whose behalf, its blast radius, and what you can observe.",
+      "A **trust boundary** separates components with different trust levels. Content keeps its author's trust level as it crosses: a summary of customer text is still customer text.",
+      "**Tool output is an attack surface even when the tool is trusted**, and one component's model output is the next one's input: validate it as you would a user's.",
+      "**Least privilege** applies per component and per seam: only the tools and downstream rights each part needs, minimal token scopes, credentials outside the agent's boundary.",
+      "At MCP seams a server accepts only tokens issued **to it** (no token passthrough), and a hosted server you approved can change later, so approval doesn't make it trusted."
+    ],
+    "sections": [
+      {
+        "heading": "Map which component does what",
+        "body": "Some Claude applications coordinate several deployments. A typical integration map has three kinds of component:\n\n- **First-party API app:** your code calling the Claude API, often the customer-facing part.\n- **Claude Code task:** Claude Code running unattended, for example a GitHub Action that reviews or opens pull requests.\n- **MCP server:** the piece that gives Claude access to a system such as a CRM or database.\n\nBefore you connect them, map each one. Anthropic's CISO guide puts every agentic use case through four questions:\n\n- What untrusted content does it ingest? What can an attacker plausibly write or alter?\n- What actions can it take, and on whose behalf? Does it only read, or also write, run code or reach the network?\n- What is the blast radius if it's misaligned?\n- What observability do you have? Can you tell agent actions from user actions?\n\nThe answers differ for each use case, and they show where the boundaries go. If nothing a component reads can be written by an attacker, the guide says its agent-specific risk is near zero and you should move quickly. The guide's closing step: define your trust boundary by writing down what counts as untrusted content in your environment.",
+        "example": "A retailer's build has three parts. The support app (Claude API) reads email from the public, which attackers can write, and it can reply to customers. The Claude Code task (CI) reads the internal repo and opens pull requests. The MCP server reads and updates the CRM. Written down, the map shows the risky spot at once: the one component that reads outside content is also one that can send messages out."
+      },
+      {
+        "heading": "The trust boundary is where data moves",
+        "body": "Anthropic's secure-deployment guide defines a security boundary as a line separating components with different trust levels. In a multi-component build, that line sits wherever data passes from one component to another: a tool result entering Claude's context, one deployment's output becoming another's input, a request leaving for an outside service.\n\nTwo rules follow:\n\n- **Content keeps its origin.** Anthropic's containment post says tool output is an attack surface even when the tool is trusted, and an audited connector isn't the same as audited data. Any external resource is two risks at once: supply-chain code execution and prompt injection.\n- **Model output is input to the next component.** OWASP says to treat the model as any other user, with a zero-trust approach: validate responses going to backend functions, and use parameterized queries for database operations involving model output.\n\nSo a summary your own app wrote from customer tickets still carries what customers wrote, and the component that receives it treats it that way.",
+        "example": "The support app summarizes customer tickets into GitHub issues, and a Claude Code task turns each issue into a pull request. Your own Claude deployment wrote the issue, but its content came from customers, so the task treats it as untrusted and its pull requests get a person's review before merge. In the other direction, when the support app's answer feeds a backend that looks up orders, the backend validates it and uses a parameterized query.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Content stays untrusted as it crosses each seam; guard the next component's actions.",
+          "steps": [
+            {
+              "label": "Customer ticket",
+              "sublabel": "untrusted"
+            },
+            {
+              "label": "Support app",
+              "sublabel": "Claude API"
+            },
+            {
+              "label": "GitHub issue",
+              "sublabel": "still untrusted"
+            },
+            {
+              "label": "Claude Code task",
+              "sublabel": "opens a PR"
+            },
+            {
+              "label": "Human review",
+              "sublabel": "before merge"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Least privilege across the whole application",
+        "body": "Each component can pass its own review and the application can still be over-privileged, for example when all three share one powerful account. Apply least privilege to every part and every seam:\n\n- **Tools:** offer each agent only what it needs. The CISO guide's principle of least agency is to grant the narrowest capability that still completes the task; the tool list is a finer boundary than the connector.\n- **Downstream rights:** OWASP says to give each extension's identity only the rights it needs, act in the user's context, and enforce authorization in the downstream system, not in the model.\n- **CI tasks:** the GitHub Actions guide says never to commit keys, to store them as GitHub Secrets, to grant the workflow only the permissions it needs, and to review Claude's changes before merging.\n- **Credentials:** keep them outside the agent's boundary. With the proxy pattern, a proxy adds credentials to outgoing requests and the agent never sees them; the containment post adds that credentials that never enter the sandbox can't be exfiltrated.\n- **Identity:** give an automated agent its own single-purpose, least-privilege service identity, so its actions are distinguishable from people's.",
+        "example": "The reporting agent's database identity can read the sales tables and nothing else. The CRM's MCP server acts as the signed-in rep, so it can change only that rep's accounts. The pull-request review workflow asks for read access to contents, pull requests and issues, and its API key sits in a GitHub secret. Nightly ticket triage runs as its own service account, and its actions reach the SIEM labelled as the agent's, not the on-call lead's."
+      },
+      {
+        "heading": "MCP seams: tokens, scopes and changing servers",
+        "body": "An MCP server is itself a seam: it takes requests from a client and acts on a downstream system. MCP's security best practices name the failure modes:\n\n- **Token passthrough** is forbidden. A server must not accept any token that wasn't explicitly issued for it. Forwarding client tokens downstream can create a **confused deputy**, where the downstream API trusts the token as if the MCP server had validated it; it also bypasses controls like rate limiting and muddles the audit trail.\n- **Scope minimization:** start with a minimal scope set for low-risk reads, and elevate when a privileged operation is first attempted. Broad scopes granted up front widen the blast radius of a stolen token; wildcard or omnibus scopes are a common mistake.\n- **Local servers** run with the same privileges as the client, so sandbox them with minimal privileges and guard them against use by other local processes.\n\nTrust also dates. The containment post warns that a remote tool, such as a hosted MCP server, can change behavior at any point after you've approved it, so your install-time trust decision may no longer apply. Treat it as untrusted, and try it on fake data first in a contained environment. Claude Code's security docs add that Anthropic doesn't security-audit MCP servers: write your own or use ones from providers you trust.",
+        "example": "Your billing MCP server used to forward each client's token straight to the billing API. Now it rejects any token not issued to it and never passes client tokens on. Its first sign-in asks only for a read scope, and a write scope is requested the first time a user tries to issue a refund. The vendor's hosted search server, approved last quarter, is still treated as untrusted rather than trusted on the strength of that review: its results get the same screening as web content.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "The client's token stops at the MCP server; it isn't passed through to the API.",
+          "steps": [
+            {
+              "label": "MCP client",
+              "sublabel": "sends its token"
+            },
+            {
+              "label": "MCP server",
+              "sublabel": "accepts only its own tokens"
+            },
+            {
+              "label": "Downstream API",
+              "sublabel": "never gets the client's token"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Mark every seam as a boundary",
+        "body": "The module's rule is to mark every seam as a boundary, including the ones that look internal. Some are easy to miss:\n\n- **Egress allowlists.** The containment post says every function reachable through an allowlisted domain is attack surface: in one case an approved API domain let an attacker upload files to their own account. Treat each allowed domain as a capability grant.\n- **One-way actions.** The CISO guide requires human review for any destructive or one-way decision when an agent reads untrusted input, for example email that's never sent externally without a person's review.\n- **Model upgrades.** New capabilities can appear within an agent's existing boundaries. After a model upgrade with nothing else changed, Anthropic's incident-response agent asked another agent to write a fix; a human reviewed the pull request before it reached production. The guide's lesson: limit access and actions, not around what you believe today's model limits are.\n\nThen make the boundaries hold without relying on the model. The containment post's rule is to design containment at the environment layer first, then steer behavior at the model layer, and the CISO guide warns that controls built on prompts get cut out of agents as models improve.",
+        "example": "Before launch, the team walks the map seam by seam. Customer email into the support app: untrusted, so replies are drafts a person sends. Issue into the Claude Code task: untrusted, so pull requests get review. Agent to CRM: the MCP server acts as the user with minimal scopes. Sandbox to the internet: the allowlist names only the hosts the job needs, each checked for what an attacker could do through it."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5trust-map-before-connecting",
+      "q-s5trust-own-tool-output",
+      "q-s5trust-seam-between-deployments"
+    ],
+    "sources": [
+      {
+        "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+        "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+        "title": "How we contain Claude across products",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+        "title": "Securely deploying AI agents",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+        "title": "Security Best Practices",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+        "title": "LLM05:2025 Improper Output Handling",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+        "title": "LLM06:2025 Excessive Agency",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/github-actions",
+        "title": "Claude Code GitHub Actions",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/security",
+        "title": "Security",
+        "checkedOn": "2026-10-17"
+      }
+    ]
   }
 ]

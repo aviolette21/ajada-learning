@@ -158,6 +158,19 @@ export const CourseSectionSchema = z.object({
 });
 export const CourseFileSchema = z.array(CourseSectionSchema);
 
+/**
+ * An area test takers report the exam leans on (content/focus.json). Each one drills its own hand-picked questions,
+ * which may come from any domain.
+ */
+export const FocusAreaSchema = z.object({
+  id: slug,
+  title: upTo(60),
+  /** What the exam asks about it, in a sentence or two. */
+  summary: upTo(240),
+  questionIds: z.array(z.string()).min(1),
+});
+export const FocusFileSchema = z.array(FocusAreaSchema);
+
 export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
 export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
@@ -171,6 +184,7 @@ export type LessonSection = z.infer<typeof LessonSectionSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
 export type GlossaryTerm = z.infer<typeof GlossaryTermSchema>;
 export type CourseSection = z.infer<typeof CourseSectionSchema>;
+export type FocusArea = z.infer<typeof FocusAreaSchema>;
 
 export interface Content {
   domains: Domain[];
@@ -179,6 +193,7 @@ export interface Content {
   lessons: Lesson[];
   glossary: GlossaryTerm[];
   course: CourseSection[];
+  focus: FocusArea[];
   domainById: Map<string, Domain>;
   questionById: Map<string, Question>;
   cardById: Map<string, Card>;

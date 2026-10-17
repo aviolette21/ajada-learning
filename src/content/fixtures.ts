@@ -52,6 +52,7 @@ export function fixtureRaw(): RawContent {
         takeaways: [{ title: 'Takeaway title', body: 'Takeaway body' }],
       },
     ],
+    focus: [{ id: 'gizmos', title: 'Gizmo handling', summary: 'Gizmo summary', questionIds: ['q-alpha-1', 'q-beta-1'] }],
     domains: [
       { id: 'alpha', name: 'Alpha Domain', shortName: 'Alpha', weight: 60, order: 0, subSkills: [{ id: 'a1', name: 'Alpha One', weight: 60, official: true }] },
       { id: 'beta', name: 'Beta Domain', shortName: 'Beta', weight: 40, order: 1, subSkills: [{ id: 'b1', name: 'Beta One', official: false }] },

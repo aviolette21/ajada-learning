@@ -786,5 +786,606 @@
         "checkedOn": "2026-10-16"
       }
     ]
+  },
+  {
+    "id": "l-course-deployment-versioning",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "title": "Deployment platforms and version pinning",
+    "summary": "Where a Claude workload runs is usually settled by the customer's cloud: the Claude API, Amazon Bedrock, Google Cloud's Agent Platform, Microsoft Foundry and other options. Each brings its own sign-in, residency controls and feature set, so check all three before committing. Then pin the model version you ship, so an upstream release can't become a silent production change.",
+    "keyPoints": [
+      "**The customer's cloud** usually picks the platform: its identity, billing, cost tracking and audit logs already live there.",
+      "**Identity follows the platform:** use the cloud's own identity (IAM roles, Google Cloud credentials, Entra ID) with least privilege, not static keys copied into config.",
+      "**Data residency is set differently on each platform**: a request or workspace setting on the Claude API, the endpoint or deployment on the clouds. Configure it where you deploy.",
+      "**Features differ by platform.** Verify every feature your design depends on for the exact platform before you commit.",
+      "**Pin what ships.** A pinned model ID stays fixed and aliases move, so production changes only when you change the pin. Pinned IDs still retire, so plan migrations."
+    ],
+    "sections": [
+      {
+        "heading": "The customer's cloud usually picks the platform",
+        "body": "Claude is served from several platforms. Some are operated by Anthropic (the Claude API, Claude Platform on AWS, Microsoft Foundry), and some by the cloud provider (Amazon Bedrock by AWS, Google Cloud's Agent Platform by Google).\n\nClaude Code's enterprise deployment guide sums up the fit: Bedrock for AWS-native deployments, Agent Platform for GCP-native ones, Foundry for Azure-native ones. A customer already on one cloud has its identity, billing, cost tracking and audit logs there, so that cloud's platform is usually the starting point. With no cloud to anchor the choice, the guide's default for most organizations is Claude for Teams or Enterprise.\n\nMoving between platforms is mostly client setup, not a rewrite: credentials, region and the platform's form of the model ID. Bedrock, for example, uses the same Messages API request shape as the first-party API.",
+        "example": "A retailer runs everything on Azure: Entra ID for sign-in, one Azure bill, Azure Monitor for operations. Rolling out Claude Code and a support assistant, it starts from Microsoft Foundry, so developers sign in with Entra ID, usage lands on the Azure bill, and Azure's own tools track usage and cost. An AWS-native bank would start from an AWS option for the same reasons.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Start from the customer's cloud, then confirm identity, residency and features before committing.",
+          "steps": [
+            {
+              "label": "Customer's cloud",
+              "sublabel": "AWS, GCP, Azure"
+            },
+            {
+              "label": "Identity",
+              "sublabel": "its own sign-in"
+            },
+            {
+              "label": "Residency",
+              "sublabel": "where inference runs"
+            },
+            {
+              "label": "Features",
+              "sublabel": "availability table"
+            },
+            {
+              "label": "Platform"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Identity: use the platform's own sign-in",
+        "body": "Each platform authenticates with the identity system the customer already runs: AWS IAM on Bedrock, Google Cloud credentials on Agent Platform, Azure-issued keys or Microsoft Entra ID on Foundry. On the first-party Claude API, shared or automated workloads get a service account rather than one person's key, and a workload that already has a cloud identity can federate it instead of storing a Claude API key.\n\nTwo habits apply everywhere:\n\n- **Let the workload use the identity it already has**, with short-lived credentials, rather than a static secret copied into config.\n- **Scope access to what the workload needs.** On Bedrock, for example, an IAM role can be limited to only the allowed Claude models.\n\nFederation and short-lived tokens aren't a complete guarantee on their own: the trust chain is only as strong as your identity provider's configuration.",
+        "example": "A claims service runs in the customer's AWS account and calls Claude in Amazon Bedrock. Instead of long-term access keys in a config file, the team gives it an IAM role scoped to the one Claude model it uses, and AWS issues temporary credentials. When an engineer leaves, nothing breaks, because no one's personal credentials were ever involved."
+      },
+      {
+        "heading": "Data residency: where inference runs",
+        "body": "A residency rule says where inference may run. Every platform can honor one, but each sets it in a different place:\n\n- **Claude API:** a per-request inference geo (US or global), with a workspace default and an allowed list so the rule holds even when code forgets it.\n- **Amazon Bedrock and Google Cloud:** the endpoint you call. Global endpoints route anywhere with capacity; multi-region endpoints or inference profiles stay within a geography such as the US or EU; regional endpoints stay in one region.\n- **Microsoft Foundry:** the deployment type you choose.\n\nWhere inference runs and where data is stored at rest are separate controls, so check both.\n\nGlobal routing gives the most availability and is the right default when residency is flexible. When it isn't, meet the rule first, then get availability within it, for example by routing across several regions inside the geography. Residency usually costs a premium over global routing, so apply it where a rule requires it.",
+        "example": "A consultancy ships one app to two clients that both need US-only inference. The Claude API client gets a workspace whose default and only allowed geo is the US, so a request that omits the setting still runs in the US. The Bedrock client calls a US endpoint or inference profile, because there the endpoint decides. One shared request setting wouldn't have covered both."
+      },
+      {
+        "heading": "Check feature availability before you commit",
+        "body": "Not every feature exists on every platform. Anthropic's features overview lists, for each feature, the platforms that offer it, with a label where it's still in beta there. The same model can therefore come with a different feature set on each platform, and some platforms have hosting options with their own differences.\n\nMake it a habit: list the features your design depends on (batch processing, server-side tools, file uploads, structured outputs and so on) and check each one for the exact platform and option you'll deploy. A missing feature means a different design, so find it before you commit, not in production.",
+        "example": "An AWS-native insurer's design runs a nightly batch job and uses a server-side tool to build reports. Before committing, the architect checks both features against the availability list for each AWS option, shortlists the one that offers them, and reviews with the security team who operates that option's inference."
+      },
+      {
+        "heading": "Pin what ships",
+        "body": "Every Claude model ID is a pinned version: the model behind it stays constant for the ID's lifetime. From the 4.6 generation on, IDs are dateless, such as `claude-opus-5-5`, and a dateless ID is not an evergreen pointer. Anthropic doesn't update an existing ID's weights or configuration; an updated version ships under a new ID.\n\n**Aliases** are the moving pointers. On the Claude API they exist only for models before 4.6. In Claude Code, `opus`, `sonnet` and `haiku` point to the recommended version for your provider and update over time, so its docs say to pin specific versions on cloud providers: pinning lets you control when users move.\n\nThree limits to remember:\n\n- Weights are fixed, but serving infrastructure can change, so small behavior differences on a stable ID are possible.\n- Every ID has its own deprecation and retirement schedule, and requests to a retired model fail.\n- Cloud partners such as Bedrock and Google Cloud set their own retirement dates.",
+        "example": "A support app ships with `claude-sonnet-5-5` in its config, not a moving pointer. When a newer Sonnet is released, production stays on the same model. Weeks later the team sees slightly different phrasing with no change on its side; with the weights fixed, the likely cause is a serving-infrastructure update, not a new model. Its Claude Code fleet pins full model names the same way.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "An upstream release never changes a pinned ID; production moves only when you change the pin.",
+          "steps": [
+            {
+              "label": "Updated model",
+              "sublabel": "upstream release"
+            },
+            {
+              "label": "New model ID"
+            },
+            {
+              "label": "Your pinned ID",
+              "sublabel": "unchanged"
+            },
+            {
+              "label": "You move the pin",
+              "sublabel": "when you choose"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Moving the pin on purpose",
+        "body": "Pinning turns an upgrade into a deliberate change you can test first. Anthropic's migration guides recommend these steps when moving to a newer model:\n\n- Swap the model ID, in the platform's own form.\n- Re-tune settings such as effort on your own evals instead of carrying over values tuned for the old model.\n- Re-evaluate model-specific prompt instructions, which may no longer be needed.\n- Test in a development environment before switching production traffic.\n\nFor a Claude Code fleet, update the pinned model settings to the new version and redeploy them, so everyone moves together.\n\nDeprecations force the same move on a schedule. Anthropic notifies customers with active deployments ahead of a retirement. Deprecated models still work but are likely less reliable, so test the replacement well before the retirement date and migrate all usage before it.",
+        "example": "A team pinned to `claude-opus-5` moves to Claude Opus 5.5. It swaps the ID on a branch, runs its eval suite and re-runs an effort sweep instead of reusing the old setting. It drops a prompt instruction written for an Opus 5 habit, tests in the development environment, then changes the production pin. Nothing reached users until that last change."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5deploy-pin-why",
+      "q-s5deploy-pinned-still-retires",
+      "q-s5deploy-migrate-pinned-model"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/third-party-integrations",
+        "title": "Enterprise deployment overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/overview",
+        "title": "Features overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+        "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws",
+        "title": "Claude Platform on AWS",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
+        "title": "Claude on Google Cloud",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
+        "title": "Claude in Microsoft Foundry",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+        "title": "Authentication",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+        "title": "Data residency",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+        "title": "Model IDs and versioning",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/model-config",
+        "title": "Model configuration",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+        "title": "Claude Opus 5.5 migration guide",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+        "title": "Model deprecations",
+        "checkedOn": "2026-10-17"
+      }
+    ]
+  },
+  {
+    "id": "l-course-accelerator-packaging",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "title": "Packaging a build for reuse",
+    "summary": "The course calls a build packaged for reuse an accelerator: the next engagement starts from a working foundation instead of a blank repository. Keep the parts that generalize, expose customer-specific values as parameters with documented defaults, and ship the assumptions, the eval suite and the audit logging with the code. Package while the build is fresh.",
+    "keyPoints": [
+      "An **accelerator** keeps the reusable core and turns what varies per customer (endpoints, credentials, thresholds) into **parameters with documented defaults**.",
+      "Parameterize only what **varies between customers**. A secret is a parameter with **no default**: each customer supplies their own, and it never ships in the package.",
+      "Asset types package differently: **agent template** (one versioned config), **MCP server package** (server, dependencies, manifest), **eval suite** (cases plus graders).",
+      "Document the code **and the assumptions**: required packages, the environment, why each value was chosen, the models you tested, workarounds for model behavior.",
+      "Ship the **eval suite** and the **audit logging** inside the package, so every reuse can be checked and keeps its record from the first session.",
+      "**Package while the build is fresh**: right after the work, while you still remember which context and choices were customer-specific."
+    ],
+    "sections": [
+      {
+        "heading": "What an accelerator is",
+        "body": "In the course's terms, an accelerator is a solution packaged so future engagements start from a working foundation rather than from a blank repository. You make one by taking a working build, separating out the parts that are customer-specific, and exposing those as parameters with documented defaults.\n\nThe split follows a long-standing rule from the Twelve-Factor App: config is whatever varies between deploys, such as database handles, credentials for external services and per-deploy hostnames, and it's kept strictly separate from code, because config varies substantially across deploys and code does not. In an agent build, the workflow, tool definitions and error handling are usually the reusable code. The customer's endpoints, credentials and business thresholds are the parameters.\n\nTiming matters. Anthropic's skill guide describes the same move for skills: complete a task, then identify the context you provided that would be useful for similar future tasks. That's easiest straight after the work, which is why the course says to package while the build is fresh.",
+        "example": "A claims-triage agent was built for one insurer. Reusable: the triage steps, the tool definitions for looking up claims, the retry handling and the eval cases. Customer-specific: the insurer's claims database URL, its document-service credentials, and the payout amount above which a person must review a claim. The accelerator keeps the first list as code and turns the second into parameters, each with a description and, where one value suits most customers, a default.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "An accelerator starts from a working build, not a blank repository.",
+          "steps": [
+            {
+              "label": "Working build",
+              "sublabel": "one customer"
+            },
+            {
+              "label": "Separate",
+              "sublabel": "customer-specific parts"
+            },
+            {
+              "label": "Parameters",
+              "sublabel": "documented defaults"
+            },
+            {
+              "label": "Accelerator",
+              "sublabel": "next engagement starts here"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Parameters with documented defaults",
+        "body": "A parameter is only useful if the next team knows what it's for and what happens if they leave it alone. So each one needs two things:\n\n- **A description** saying what the value controls.\n- **A default** wherever one value suits most customers, so the common case needs no setup.\n\nMost packaging formats have fields for exactly this. A Claude Code plugin, for example, declares options that Claude Code prompts for when the plugin is enabled; each has a description shown as help text, an optional default used when the user provides nothing, and can be marked sensitive so the value goes to secure storage.\n\nTwo limits keep parameters honest. A **secret gets no default**: credentials vary per deploy, so each customer supplies their own and none ships in the package. And **only what varies becomes a parameter**: internal configuration that is the same for every customer, such as how the modules connect, stays in the code.\n\nDocument the reason for each value too. Anthropic's skill guide warns against \"voodoo constants\": configuration parameters should be justified and documented, because if you don't know the right value, Claude can't work it out either.",
+        "example": "The triage accelerator exposes three parameters. The claims API URL is described as the customer's claims endpoint and defaults to the vendor's standard one. The review threshold is described as the payout above which a person reviews a claim, with a note on why the first value was chosen. The API token has no default, so each customer enters their own. The triage steps themselves stay in the code: every customer gets the same workflow."
+      },
+      {
+        "heading": "Three asset types, three ways to package",
+        "body": "Most reusable work falls into a few asset types, and each packages differently:\n\n- **Agent template.** On Claude Managed Agents, an agent is a reusable, versioned configuration that bundles the model, system prompt, tools, MCP servers and skills. You create it once and reference it by ID when you start each session, and an update that changes it generates a new version. A single session can override the model, system prompt, tools, MCP servers or skills without changing the agent.\n- **MCP server package.** The server travels with everything it needs to run, plus a manifest saying what it needs from the user and where it runs. An MCP Bundle, for example, is a zip archive holding a local MCP server with its dependencies and a manifest that declares the user configuration it needs and the platforms and runtimes it supports, so people without developer tools can install it with a click.\n- **Eval suite.** A collection of tasks that measure specific capabilities or behaviors, each with defined inputs and success criteria, plus graders that score the result. Ship the cases and graders, not just your scores. Mocking the external tools the suite calls lets it run before a new customer connects their real systems.",
+        "example": "From the triage build, the team packages three assets. The agent template is one versioned agent configuration; a pilot customer's sessions override only the system prompt, and the shared agent stays as it is. The claims-lookup MCP server ships as a bundle with its dependencies, and its manifest asks each user for their own API key. The eval suite ships with mocked claims tools, so a new customer can run it before connecting their own system.",
+        "diagram": {
+          "kind": "segmented-bar",
+          "caption": "Three common asset types, each packaged its own way.",
+          "segments": [
+            {
+              "label": "Agent template",
+              "sublabel": "one versioned config",
+              "weight": 1,
+              "tone": "accent"
+            },
+            {
+              "label": "MCP server package",
+              "sublabel": "server, deps, manifest",
+              "weight": 1,
+              "tone": "success"
+            },
+            {
+              "label": "Eval suite",
+              "sublabel": "cases plus graders",
+              "weight": 1,
+              "tone": "neutral"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Document the code and the assumptions",
+        "body": "A README that explains the code is necessary but not enough. The next team also needs to know what the build assumed, because assumptions are what break when the setting changes:\n\n- **Dependencies and environment.** Anthropic's skill guide says not to assume packages are installed: list the required packages and verify they're available where the skill runs. Environments differ; on the Claude API, for example, skills run with no network access and no runtime package installation.\n- **Why each value was chosen.** No unexplained constants.\n- **Which models it was tested with.** A skill's effectiveness depends on the underlying model, so the guide says to test with every model you plan to use.\n- **Workarounds for model behavior.** Anthropic's Managed Agents post notes that harnesses encode assumptions about what Claude can't do on its own, and that those assumptions can go stale as models improve. In its example, context resets added for one model's behavior had become dead weight on a later model. A workaround that's written down is one the next team can re-test.\n\nAvoid time-sensitive instructions as well. A note like \"before August, use the old API\" becomes wrong, so the guide puts legacy details in an old-patterns section.",
+        "example": "The triage accelerator's assumptions section reads: needs the `pypdf` package, verified in the environment where the skill runs; tested on Sonnet 5.5 and Haiku 5.5; `review_threshold` defaults to the first customer's value, so set it from each customer's own policy; the harness clears old tool results because the first build ran into context limits, so re-check whether that's still needed on newer models."
+      },
+      {
+        "heading": "Bundle the eval suite and the audit log",
+        "body": "Two things help the next team trust a reused build: a way to check its behavior, and a record of what it did.\n\n**The eval suite.** Ship the cases and graders, not just your scores. Claude Code's plugin evals measure how reliably a plugin leads Claude to the right outcome and catch regressions when you change the plugin or a new model is released. A schema check of the plugin's files finds syntax and schema errors, not behavior problems. Anthropic also calls an eval suite a living artifact that needs ongoing attention and clear ownership, so say who owns it after handover.\n\n**The audit log.** If the original deployment had to record what the agent did, package that logging with the asset instead of leaving each team to rebuild it. Put it somewhere that always runs: in Claude Code, hooks give deterministic control, so certain actions always happen rather than relying on the model to choose them. A hook bundled in a plugin travels with the plugin, while one in your personal user settings stays on your machine. On Managed Agents, session event history is persisted server-side and can be fetched in full.",
+        "example": "The first insurer's compliance team asked for a record of every shell command the agent ran, and the original developer had put that logging hook in their own user settings. When the build becomes a plugin, the hook moves into the plugin itself. The next customer enables the plugin and has command logging from the first session, and the shipped eval suite, with a named owner, lets them confirm the triage behavior on their own configuration before go-live."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5pack-which-values-become-parameters",
+      "q-s5pack-documented-default",
+      "q-s5pack-bundle-audit-hook"
+    ],
+    "sources": [
+      {
+        "url": "https://12factor.net/config",
+        "title": "The Twelve-Factor App: III. Config",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+        "title": "Skill authoring best practices",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugins-reference",
+        "title": "Plugin manifest reference",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
+        "title": "Define your agent",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+        "title": "Claude Managed Agents overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/desktop-extensions",
+        "title": "Claude Desktop Extensions: One-click MCP server installation for Claude Desktop",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugin-evals",
+        "title": "Test plugins with evals",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+        "title": "Demystifying evals for AI agents",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/managed-agents",
+        "title": "Scaling Managed Agents: Decoupling the brain from the hands",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/hooks-guide",
+        "title": "Automate actions with hooks",
+        "checkedOn": "2026-10-17"
+      }
+    ]
+  },
+  {
+    "id": "l-course-platform-comparison",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "title": "Comparing deployment platforms",
+    "summary": "When a customer could run Claude on more than one platform, compare them on the dimension that decides the placement. Compliance often settles it outright, so check it first. Latency has to be measured from the customer's region with realistic prompts, and total cost depends on residency premiums, available discounts, long inputs and tool charges, not just the per-token rate.",
+    "keyPoints": [
+      "**Compliance often decides**: a hard requirement removes platforms outright, so check it before benchmarking anything.",
+      "Compliance terms follow the **data processor**: Anthropic on its own platforms, the cloud provider on platforms it operates. Re-check them on the target.",
+      "**Measure latency from the customer's region** with prompts and replies like theirs, on the same model, timing what users feel.",
+      "Features differ by platform. Confirm the features and discounts your design and estimate depend on before you commit.",
+      "**Total cost** goes beyond the per-token rate: residency premiums, which discounts apply, long inputs, the input/output mix and tool charges."
+    ],
+    "sections": [
+      {
+        "heading": "Measure the dimension that decides",
+        "body": "A platform comparison can turn into a long table: latency, price, features, compliance, billing. Anthropic's guidance on success criteria says most use cases need evaluation along several criteria, and that good criteria are specific, measurable and relevant to the application's purpose and users. Relevance is the filter here: the dimensions worth measuring are the ones that can change where the workload goes.\n\nA practical order:\n\n- **Requirements the customer can't waive.** A compliance or residency rule removes platforms outright, so benchmark only what's left.\n- **Features the design depends on.** A platform without them needs a different design, not a better score.\n- **Then measure what still separates the candidates**, usually latency from the customer's region and total cost on the customer's real workload.\n\nAveraging scores across every row hides a deciding requirement. A platform that wins on speed but can't meet a mandate isn't a candidate at all.",
+        "example": "A European insurer wants a claims assistant. Its regulator requires inference to stay in the EU, agents on calls need answers to start appearing quickly, and there's a monthly budget. The EU rule is pass/fail, so only options that can keep inference in the EU stay on the list. Among those, you run the insurer's real prompts from its own region and price its actual traffic. If latency comes out tied, cost decides. The placement follows from those measurements, not from a 40-row score sheet.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Filter on what can't be waived, then measure what still separates the options.",
+          "steps": [
+            {
+              "label": "Hard requirements",
+              "sublabel": "compliance, residency"
+            },
+            {
+              "label": "Required features"
+            },
+            {
+              "label": "Measure what's left",
+              "sublabel": "latency, total cost"
+            },
+            {
+              "label": "Place the workload"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Compliance often decides the platform",
+        "body": "Some requirements are pass/fail, and they come before any benchmark. A certification, a regulator's rule or a policy about who may process the data removes platforms outright; there's no point timing an option that can't be used. Anthropic's docs give an example: organizations that need FedRAMP High, IL4, IL5 or HIPAA-ready compliance on AWS, or AWS as the sole data processor, are pointed to Claude in Amazon Bedrock.\n\nThe reason platforms differ is **who processes the data**. On the Claude API and the other Anthropic-operated platforms, Anthropic is the data processor and Anthropic's data retention documentation applies. On Amazon Bedrock and Google Cloud the cloud provider is the data processor, and its own retention and compliance documentation applies.\n\nSo arrangements don't automatically travel with a workload. Before moving a regulated workload, check what the target platform offers for that requirement.",
+        "example": "A hospital group on AWS wants Claude to summarize clinical notes that contain PHI. Engineers favor one platform because new features reach it quickly, but the first step is checking which candidates support the arrangement PHI needs. Only the platforms that do go on to latency and cost testing. The compliance check narrowed the field before anyone ran a benchmark."
+      },
+      {
+        "heading": "Measure latency from the customer's region",
+        "body": "Latency is the time the model takes to process a prompt and generate output. Anthropic lists several influences: the size of the model, the complexity of the prompt, and the underlying infrastructure supporting the model and point of interaction. The models overview adds that actual latency depends on prompt length, output length and thinking effort.\n\nSo a number measured somewhere else, with other prompts or another model, doesn't transfer. A fair comparison:\n\n- runs from where the customer's application will run\n- sends the customer's real prompts and expects replies of realistic length\n- uses the same model on every platform, so only the platform changes\n- records the metric users feel: **time to first token** for streamed replies, **baseline latency** (the full response time) for callers that wait for the whole answer\n\nTest the routing you'll actually deploy, since global and regional routing reach different infrastructure.",
+        "example": "Your team in Chicago benchmarks two platforms for a retailer whose users and servers are in Frankfurt, using one-line prompts, and one platform looks clearly faster. Rerun from a host in the retailer's region with a sample of its real support prompts, streaming as production will, and record time to first token and the full reply. If the gap disappears, latency wasn't the deciding dimension after all, and the choice falls to compliance or cost.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "A latency number only transfers if it was measured on the customer's path and workload.",
+          "steps": [
+            {
+              "label": "Customer's region",
+              "sublabel": "where the app runs"
+            },
+            {
+              "label": "Real prompts",
+              "sublabel": "realistic replies"
+            },
+            {
+              "label": "Deployed endpoint type"
+            },
+            {
+              "label": "TTFT and full reply"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Features differ by platform",
+        "body": "The same model can come with a different feature set on each platform. Anthropic's features overview lists, for each feature, the platforms that offer it, and features such as batch processing, file uploads, structured outputs and server-side tools aren't offered everywhere.\n\nThis matters twice in a comparison. A design that depends on a missing feature needs reworking, and a cost estimate that assumes a discount, such as batch processing, is only valid where that feature exists. Check both against the exact platform before you present a recommendation.",
+        "example": "An app on the Claude API uses JSON structured outputs, the web search tool and nightly batches. A compliance review moves it to another platform. Listing those three dependencies and checking each against the target's availability before the move turns a surprise into a planned redesign, and keeps the cost estimate honest."
+      },
+      {
+        "heading": "What drives total cost beyond the per-token rate",
+        "body": "Two platforms can list the same base price per million tokens and still produce different bills. Anthropic's pricing page names several drivers:\n\n- **Residency choices.** Regional and multi-region endpoints on the cloud platforms, and US-only inference on the Claude API, cost more than global routing. Apply residency where a rule requires it.\n- **Which discounts apply.** Prompt cache reads cost a fraction of base input and batch requests are discounted, but only for traffic that can use them, and batch processing isn't offered on every platform.\n- **Long inputs.** Every request pays for all its input tokens. A big document sent with every request costs far more than one cached or trimmed to what's needed.\n- **The input and output mix.** Input and output are priced separately, and output costs more.\n- **Tools.** Tool definitions count as input tokens, and server-side tools such as web search add usage charges.\n\nCost the comparison on the customer's real traffic: prompt sizes, how much is cacheable, how much can wait for a batch, and which tools run.",
+        "example": "Two proposals price the same model identically per token. Proposal A uses regional routing for a residency rule, can't batch its nightly reports on its platform, and relies on web search. Proposal B uses global routing, batches the nightly work and caches a long shared system prompt. Without any arithmetic, B will usually cost less for the same work, and the gap comes from things the per-token rate doesn't show. If the residency rule is real, though, A is the only valid option, and the difference is the cost of compliance."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5platform-measure-from-customer-region",
+      "q-s5platform-fedramp-decides",
+      "q-s5platform-cost-beyond-token-rate"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+        "title": "Reducing latency",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/models/overview",
+        "title": "Models overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws",
+        "title": "Claude Platform on AWS",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+        "title": "API and data retention",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+        "title": "Data residency",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+        "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
+        "title": "Claude on Google Cloud",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/overview",
+        "title": "Features overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+        "title": "Pricing",
+        "checkedOn": "2026-10-17"
+      }
+    ]
+  },
+  {
+    "id": "l-course-requirements-lifecycle",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "title": "Requirements and the systems lifecycle",
+    "summary": "A Claude app starts as a business problem. Turn it into functional requirements (what the app must do), derive the infrastructure requirements they imply, and record each decision with its context and trade-offs so it can be defended. Then carry the app through a lifecycle that loops: Requirements, Design, Build, Test, Deploy, Operate, Iterate.",
+    "keyPoints": [
+      "**Functional** requirements decide whether the app performs its task; **nonfunctional** ones (latency, availability, scalability) decide how well. Both shape the design.",
+      "Outline an ideal interaction, then break it into every task Claude must perform, so each task can be prompted and evaluated.",
+      "Each function implies infrastructure: **real-time** data such as an account balance needs a lookup tool, because embedding-based RAG is not sufficient for it.",
+      "Justify every design decision with a business requirement, and record it in an **ADR**: context, options considered, decision, trade-offs, status.",
+      "Requirements become test cases. Defining eval tasks stress-tests whether requirements are concrete enough to start building.",
+      "The lifecycle is a loop: ship in short, gated releases, and let what Operate reveals feed the next cycle’s requirements."
+    ],
+    "sections": [
+      {
+        "heading": "From business problem to functional requirements",
+        "body": "A business problem is not yet something you can build or test. The first step is to say what the app must do. Microsoft's architecture guidance draws the line this way:\n\n- **Functional requirements** determine whether the application performs its task.\n- **Nonfunctional requirements** determine how well it performs, such as its scalability, availability and latency.\n\nAnthropic's customer support guide shows how to reach functional requirements. First outline an ideal customer interaction: how and when the customer interacts with Claude, and how Claude should respond. That outline helps determine the technical requirements of your solution. Then break the interaction into every task you want Claude to perform, such as greeting, answering product questions, staying on topic and generating a quote. Listing the tasks ensures you can prompt and evaluate Claude for every one, and shows the range of interactions your test cases must cover.\n\nIf the app automates work people already do, study how they do it today, as the ticket-routing guide advises: which rules exist, where they fail, and how edge cases are handled.",
+        "example": "Business problem: \"Our agents spend too long on car-insurance questions and quotes.\" Ideal interaction: greet, answer questions about electric-vehicle coverage, steer off-topic questions back, ask the questions a quote needs, call the quote API, present the quote. Functional requirements, one per task: answer coverage questions from the insurer's own information; redirect off-topic questions; collect quote details and submit them to the quote API; present the result. Each line is now something to prompt for and write test cases against."
+      },
+      {
+        "heading": "Deriving infrastructure requirements",
+        "body": "Each functional requirement carries infrastructure with it. Anthropic's support guide gives two cases:\n\n- Product information Claude must know has to be in its context, which might imply a RAG integration. With large amounts of context, putting everything in the prompt can mean high costs, slower responses and context-window limits.\n- Real-time information, such as account balances or policy details, can't come from embedding-based RAG. It needs tool use, which brings live data into Claude's response.\n\nThe systems you connect to shape the design too. For ticket routing, a push-based integration (the ticketing system calls your service through a webhook) is more web-scalable but needs a public endpoint. A pull-based one (your code fetches tickets on a schedule) is easier, but polling too often makes unnecessary calls and polling too rarely makes routing slow. The choice depends on what APIs the ticketing system provides.\n\nNonfunctional targets come from the business, and they can differ per flow: different user, data or system flows often have different requirements for availability and scalability. Compliance can add more, such as controlling where inference runs and where data is stored at rest (data residency).",
+        "example": "A bank's assistant must \"tell signed-in customers their current balance.\" That requirement implies a tool Claude can call to read the live balance from the bank's account system. A nightly embedding index of account data would not meet it, however good the retrieval, because embedding-based RAG is not sufficient for real-time information. A second requirement, \"answer questions about our savings products\", implies something different: product information in Claude's context, which might mean a RAG integration.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Each layer is derived from the one before it.",
+          "steps": [
+            {
+              "label": "Business problem",
+              "sublabel": "what the business needs"
+            },
+            {
+              "label": "Functional requirements",
+              "sublabel": "what the app must do"
+            },
+            {
+              "label": "Infrastructure requirements",
+              "sublabel": "what it runs on and connects to"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Documenting requirements so a decision can be defended",
+        "body": "Every design decision must be justified by a business requirement. Objectives such as recovery time and acceptable outage should inform the architecture: if the business can tolerate a longer outage, adding redundancy might add cost for no business benefit.\n\nWrite requirements so results can be judged against them. Success criteria should be specific and measurable, and an evaluation needs clear thresholds, such as a target accuracy and a cost reduction against the current method. With thresholds set, you can tell with impartial empiricism which approach is best.\n\nThen record the decision. An architecture decision record (ADR) documents key decisions, including the alternatives you ruled out. Each record holds:\n\n- The problem statement and its context\n- The options considered\n- The decision, with its important trade-offs and confidence level\n- A status, such as Proposed, Accepted or Superseded\n\nAlways include the rationale: without it, stakeholders can't tell whether a decision still applies when circumstances change. The log is append-only. If a decision changes, write a new record that supersedes the old one and link the two. Keep records short, and link longer design material instead of turning a record into a design guide.",
+        "example": "ADR-007, Accepted. Context: tickets must be routed within moments at high volume, for less per ticket than the current rules engine. Options: Claude Haiku 5.5, Claude Opus 5.5, keep the rules engine. Decision: Haiku 5.5 at low effort. Trade-off: less headroom for deep reasoning, accepted because routing is a simple, high-volume classification. Confidence: medium. Evidence: the eval met the agreed accuracy and cost thresholds. If categories later multiply and accuracy falls, a new record supersedes this one, and both stay in the log."
+      },
+      {
+        "heading": "The lifecycle, phase by phase",
+        "body": "NIST defines a system development life cycle as the scope of activities for a system, from initiation through development and acquisition, implementation, operation and maintenance, to its eventual disposal. Applied to a Claude application, the course names seven phases:\n\n- **Requirements:** functional and infrastructure requirements, with success criteria and ways to test them.\n- **Design:** components, integrations and model choice. Find the simplest solution possible and add complexity only when needed.\n- **Build:** prompts, tools and the service around them.\n- **Test:** evals against the success criteria. Early on, product requirements naturally translate into test cases.\n- **Deploy:** move changes through stages to production, with gates and approvals.\n- **Operate:** monitor, maintain and troubleshoot in production, including tracking model deprecations.\n- **Iterate:** feed what you learn back into the requirements.\n\nThe order matters. Anthropic's prompt engineering overview assumes the first phase is done before prompt work starts: a clear definition of success criteria, some ways to empirically test against them, and a first draft prompt. If they're missing, establish them first.",
+        "example": "A claims-intake assistant through the loop. Requirements: extract the policy number and incident date, reply within seconds, meet the agreed accuracy threshold. Design: a fixed extraction workflow with one lookup tool, not an autonomous agent. Build: the prompt, the tool and an API service. Test: an eval set of real emails, edge cases included. Deploy: through staging, with an approval gate. Operate: telemetry, alerts and a watch on the model's deprecation status. Iterate: a new claim type appears in production, so it becomes a new requirement and new test cases.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Seven phases, and Iterate leads back to Requirements.",
+          "steps": [
+            {
+              "label": "Requirements"
+            },
+            {
+              "label": "Design"
+            },
+            {
+              "label": "Build"
+            },
+            {
+              "label": "Test"
+            },
+            {
+              "label": "Deploy"
+            },
+            {
+              "label": "Operate"
+            },
+            {
+              "label": "Iterate"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Test, deploy and operate: closing the loop",
+        "body": "Build evals early. Anthropic's evals post says they are especially useful at the start of development to explicitly encode expected behavior: two engineers reading the same initial spec can come away with different interpretations, and an eval suite resolves this. Defining eval tasks is one of the best ways to stress-test whether requirements are concrete enough to start building. Evals get harder to build the longer you wait; wait too long and you're reverse-engineering success criteria from a live system.\n\nDeploy in small steps. DevOps guidance favors shorter release cycles, because incremental progress makes planning and risk management easier and reduces the impact on stability. Delivery uses a release management process with clear manual approval stages, and automated gates between stages.\n\nOperate with visibility. Continuous monitoring collects telemetry and sets alerts, and its insights help the team see how to improve the application in future development cycles. Models have a lifecycle too: once a model is deprecated, migrate all usage before the retirement date, and test with the replacement well before it.\n\nThen iterate. A gap that monitoring reveals is a requirements gap, so it goes back to the start of the loop.",
+        "example": "Three months after launch, alerts show a growing share of chats about a new product line, and the bot handles them poorly. The team doesn't patch the production prompt on the spot. They add the product line to the requirements, write eval tasks for it, change the prompt and the retrieved content, run the evals and ship through the same gated release. Later, the model the app uses is deprecated; the same eval suite tests the replacement well before the retirement date."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5req-ideal-interaction-tasks",
+      "q-s5req-realtime-data-needs-tool",
+      "q-s5req-decision-record-defend"
+    ],
+    "sources": [
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat",
+        "title": "Customer support agent",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+        "title": "Ticket routing",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+        "title": "Build for business needs",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+        "title": "Data residency",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+        "title": "Define success criteria and build evaluations",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record",
+        "title": "Maintain an architecture decision record (ADR)",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://csrc.nist.gov/glossary/term/system_development_life_cycle",
+        "title": "System Development Life Cycle (SDLC)",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/building-effective-agents",
+        "title": "Building Effective AI Agents",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+        "title": "Prompt engineering overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+        "title": "Demystifying evals for AI agents",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://learn.microsoft.com/en-us/devops/what-is-devops",
+        "title": "What is DevOps?",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+        "title": "Model deprecations",
+        "checkedOn": "2026-10-17"
+      }
+    ]
   }
 ]

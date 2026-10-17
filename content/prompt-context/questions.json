@@ -4368,5 +4368,344 @@
       "c-prompt-injection"
     ],
     "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-focus-so-truncated-object",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured output failures",
+    "stem": "Your service extracts line items from long invoices with a JSON schema and writes each reply straight to the database. On one very long invoice the reply has `stop_reason: \"max_tokens\"`, and its JSON ends partway through the items array. What should the code do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Close the open brackets so the JSON parses, then save the items that came through",
+        "reason": "A cut-off reply may be incomplete and not match the schema. Patching the brackets saves a partial record that looks complete to everything downstream."
+      },
+      {
+        "id": "b",
+        "text": "Treat the reply as incomplete, don't save it, and retry with a higher `max_tokens`",
+        "reason": "Correct: the guide says a `max_tokens` cut-off may be incomplete and not match your schema, and to retry with a higher `max_tokens` to get the complete structured output."
+      },
+      {
+        "id": "c",
+        "text": "Save it as is, since the schema guarantees that every reply is valid and parseable",
+        "reason": "The guarantee holds in most cases, not all: the guide lists a `max_tokens` cut-off as one case where the output may not match your schema."
+      },
+      {
+        "id": "d",
+        "text": "Retry the identical request with backoff, since the cut-off was a transient API error",
+        "reason": "The response came back normally, with `stop_reason: \"max_tokens\"`; it isn't an API error. The guide's fix is a higher `max_tokens`, not an unchanged retry."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Check `stop_reason` before trusting structured output: a `max_tokens` cut-off is incomplete, so retry with more room instead of saving it.",
+    "explanation": "Structured outputs guarantee schema compliance in most cases, but a reply cut off at `max_tokens` may be incomplete and miss the schema. The detail that decides it is the stop reason in the stem: the reply ended because it ran out of room, so the fix is more room, not repair. Choice a is tempting because it rescues some data, but it writes a partial record that downstream code will treat as the whole invoice.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A cut-off reply never reaches the database.",
+      "steps": [
+        {
+          "label": "Reply arrives"
+        },
+        {
+          "label": "Check stop_reason",
+          "sublabel": "before parsing"
+        },
+        {
+          "label": "max_tokens",
+          "sublabel": "don't save"
+        },
+        {
+          "label": "Retry",
+          "sublabel": "higher max_tokens"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs",
+      "c-max-tokens"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-focus-so-valid-but-wrong",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Validating model output",
+    "stem": "Claude turns refund requests into JSON that matches your schema every time, and your code sends each refund straight to the payments API. In testing, one well-formed reply asks to refund more than the order's total. Where should a value like this be caught?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nowhere new: a reply that matches the schema has been checked already, so it's safe",
+        "reason": "Matching a schema doesn't make a value right or safe. OWASP's guidance is zero trust: treat the model like any other user and validate its responses."
+      },
+      {
+        "id": "b",
+        "text": "Only in the payments system, after the request is sent, since your code just passes it on",
+        "reason": "OWASP says to validate model responses before they reach backend functions. Leaving it to the payments system lets the bad refund leave your service first."
+      },
+      {
+        "id": "c",
+        "text": "In your code, by checking rules such as amount against order total before the API call",
+        "reason": "Correct: treat the model like any other user and apply validation to its responses before they reach backend functions such as the payments API."
+      },
+      {
+        "id": "d",
+        "text": "In the prompt, by telling Claude never to ask for more than the order total",
+        "reason": "An instruction isn't validation. OWASP's mitigation is to validate the model's responses in code before they are used by backend functions."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Treat model output like untrusted user input: check its values against your rules before it reaches a backend.",
+    "explanation": "OWASP lists improper output handling as a top risk for LLM apps: model output passed to backend functions without enough validation. The reply in the stem is well-formed but wrong, so only a check on the values, made before the payments call, stops it. Choice a is tempting because the reply passed the schema, but a correct shape is not a correct amount.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "title": "LLM05:2025 Improper Output Handling",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs",
+      "c-json-outputs"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-focus-so-required-invents",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Validating model output",
+    "stem": "Your sales-lead schema marks `phone` as a required string. Many emails include no phone number, and in those replies Claude fills in a plausible-looking one. Sales is now calling numbers nobody gave you. Which change best addresses this at the source?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Let `phone` be null, and tell Claude to use null when an email gives no number",
+        "reason": "Correct: explicitly giving Claude permission to admit it doesn't know can drastically reduce false information. A null value is that way out for a field the email lacks."
+      },
+      {
+        "id": "b",
+        "text": "Add a stricter phone format to the schema so that invented numbers fail to match",
+        "reason": "An invented number can be perfectly well-formed. A format check tests the shape of the value, not whether the email ever contained it."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens` so Claude has room to search each email more carefully",
+        "reason": "Output length isn't the problem: these emails have no number to find. What's missing is a sanctioned way for Claude to say so."
+      },
+      {
+        "id": "d",
+        "text": "Keep `phone` required, and retry each reply until its number looks like a real one",
+        "reason": "Retrying can't produce a number the email doesn't contain. It only gives Claude more chances to invent one that looks convincing."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "If a field can be missing from the source, give Claude a legitimate way to say so, such as null, instead of forcing a value.",
+    "explanation": "A required string must be filled on every reply, so when the email has no number, Claude has nothing true to put there. Anthropic's hallucination guide says explicitly allowing Claude to admit uncertainty can drastically reduce false information, and a nullable field is how a schema allows it. It reduces rather than eliminates the problem, so still validate critical fields. Choice b is tempting, but a made-up number can be perfectly well-formed, so a format check lets it through.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-allow-uncertainty",
+      "c-json-outputs"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-focus-so-handler-rules",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured output failures",
+    "stem": "You're writing the handler for a ticket-routing request whose JSON schema has a `priority` enum of `low`, `medium` and `high`. Downstream, a router switches on `priority` to pick a queue. Which two rules should the handler follow?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat any reply with HTTP 200 as schema-valid and pass it on to the router",
+        "reason": "A refusal also returns a 200 status code, with `stop_reason: \"refusal\"`, and its output may not match your schema."
+      },
+      {
+        "id": "b",
+        "text": "Check `stop_reason` first, and handle a refusal apart from normal replies",
+        "reason": "Correct: when Claude refuses, the response has `stop_reason: \"refusal\"` and the refusal takes precedence over the schema, so it can't be routed like a normal reply."
+      },
+      {
+        "id": "c",
+        "text": "If `priority` fails to parse, set it to `low` and send the ticket on",
+        "reason": "A silent default hides the failure: an urgent ticket whose reply failed would quietly land in the low-priority queue."
+      },
+      {
+        "id": "d",
+        "text": "Compare `priority` with the enum values case-insensitively before routing",
+        "reason": "Correct: structured outputs don't guarantee the capitalization of string `enum` values, and the guide says to compare them case-insensitively."
+      },
+      {
+        "id": "e",
+        "text": "Drop the schema checks, since constrained decoding means violations can't occur",
+        "reason": "Compliance holds in most cases, not all: the guide lists refusals and `max_tokens` cut-offs as cases where output may not match the schema."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Before passing structured output on, check `stop_reason` and normalize enum casing; a 200 status alone doesn't mean the reply fits.",
+    "explanation": "Structured outputs guarantee schema compliance in most cases, but your handler still meets the exceptions: a refusal arrives as a normal 200 response, and enum capitalization isn't guaranteed. The router in the stem switches on `priority`, so either one would misroute tickets if left unhandled. Choice c is tempting because it keeps tickets moving, but it silently sends failed replies to the wrong queue.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-enum-casing",
+      "c-structured-invalid-outputs",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-focus-so-wrong-fit",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "When to use structured outputs",
+    "stem": "Your team wants to add a JSON output schema (`output_config.format`) to every Claude feature you run. For which two features is a JSON output schema the wrong tool?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A help-desk chat whose replies stream to customers as prose and are never parsed",
+        "reason": "Correct: structured outputs exist to give code valid, parseable output for downstream processing. A reply that only people read has nothing downstream to parse."
+      },
+      {
+        "id": "b",
+        "text": "Pulling the vendor, date and total out of each invoice into a database",
+        "reason": "Extracting structured data from unstructured text is one of the guide's common use cases for structured outputs."
+      },
+      {
+        "id": "c",
+        "text": "Sorting each incoming support ticket into one of a fixed set of categories",
+        "reason": "Classifying content into structured categories is one of the guide's common use cases."
+      },
+      {
+        "id": "d",
+        "text": "An agent that decides mid-task to open a ticket in your tracker, then carries on",
+        "reason": "Correct: acting on a system mid-task is a tool call. JSON outputs control what Claude says; strict tool use validates how Claude calls your functions."
+      },
+      {
+        "id": "e",
+        "text": "Building the response body that another service's API expects to receive",
+        "reason": "Generating API-ready responses is one of the guide's common use cases for structured outputs."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Use JSON outputs when code parses Claude's answer; plain text suits replies people read, and tools suit actions.",
+    "explanation": "JSON outputs shape what Claude says so downstream code can parse it. What decides each case is who consumes the output: the chat reply is read by people, and the agent needs to act mid-task, which a tool call does (with strict tool use when its inputs must be valid). The other three are the guide's own use cases: data extraction, classification and API response formatting.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-json-outputs",
+      "c-strict-tool-use"
+    ],
+    "lessonId": "l-course-structured-outputs"
+  },
+  {
+    "id": "q-focus-so-unverified-ids",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Validating model output",
+    "stem": "Your research assistant answers from documents you retrieve and returns JSON with an answer plus a `source_ids` list. Every reply matches the schema, but audits find some IDs point to no document you supplied. Which approach best keeps unsupported claims from reaching users?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give the schema a stricter ID format, so every source ID has to look like a real one",
+        "reason": "A made-up ID can look exactly like a real one. A format check can't tell you whether a supplied document actually supports the claim."
+      },
+      {
+        "id": "b",
+        "text": "Trust the replies, since an ID that matches the schema must refer to a real document",
+        "reason": "The schema fixes the format only. The guide notes that even advanced models can produce text inconsistent with the context they were given."
+      },
+      {
+        "id": "c",
+        "text": "Remove `source_ids` from the schema, so Claude has no way to cite something wrong",
+        "reason": "Dropping citations makes answers harder to audit. The guide recommends having Claude cite sources for each claim, not removing them."
+      },
+      {
+        "id": "d",
+        "text": "Restrict Claude to your documents, require a supporting quote per claim, check IDs",
+        "reason": "Correct: the guide recommends restricting Claude to provided documents, backing each claim with a quote and retracting claims without one, and validating critical information."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A well-formed citation can still be unsupported: ground Claude in the supplied documents and verify each reference.",
+    "explanation": "A schema fixes a reply's shape, not whether its references exist. The guide's grounding techniques target exactly this: restrict Claude to the supplied documents, make each claim cite a supporting quote, retract claims that lack one, and still validate critical information yourself. Choice a is tempting, but an invented ID can be perfectly well-formed, so a format check lets it through.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-verify-with-citations",
+      "c-allow-uncertainty"
+    ],
+    "lessonId": "l-output-handling"
+  },
+  {
+    "id": "q-focus-so-field-into-sql",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Validating model output",
+    "stem": "Claude reads sales emails and returns schema-valid JSON with a `company` string. Your code builds a SQL lookup by pasting `company` into the query text. A tester sends an email whose company name is written to end the query and add a command of its own. What protects the database?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pass `company` to the query as a bound parameter, not pasted into the SQL text",
+        "reason": "Correct: OWASP says to use parameterized queries or prepared statements for all database operations involving LLM output, and to treat the model like any other user."
+      },
+      {
+        "id": "b",
+        "text": "Nothing extra, since a field that matches the schema can only hold a safe string",
+        "reason": "A string field can hold any text, SQL included. OWASP lists LLM-generated SQL run without proper parameterization as a path to SQL injection."
+      },
+      {
+        "id": "c",
+        "text": "Tell Claude in the system prompt to remove any SQL from the fields it returns",
+        "reason": "OWASP notes that LLM output can be controlled by prompt input, as this email shows. Its fix sits in your code: parameterized queries for database work with LLM output."
+      },
+      {
+        "id": "d",
+        "text": "Log each reply that contains SQL keywords, so the team can review it afterwards",
+        "reason": "OWASP recommends monitoring LLM output for unusual patterns, but alongside parameterized queries, not instead. By the time anyone reads the log, the query has run."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Schema-valid strings are still untrusted input: bind them as query parameters, never paste them into SQL.",
+    "explanation": "OWASP's improper output handling risk is model output passed downstream without enough validation, and LLM-generated SQL run without parameterization is one of its named examples. A schema fixes the reply's shape, not what a string field says, so the email's crafted text reaches the query intact. Choice c is tempting because it states the rule, but output the input can steer can't be trusted to follow it. A bound parameter keeps the text as data whatever it says.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "title": "LLM05:2025 Improper Output Handling",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-structured-invalid-outputs",
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-output-handling"
   }
 ]

@@ -4078,5 +4078,225 @@
       "title": "Configure the sandboxed Bash tool",
       "checkedOn": "2026-10-16"
     }
+  },
+  {
+    "id": "g-mcp-registry",
+    "term": "MCP Registry",
+    "aliases": [],
+    "definition": "The official, centralized catalog of metadata for publicly accessible MCP servers. It records where to find each server and how to run it, not the code itself, and verifies that publishers own their namespace.",
+    "whyItMatters": "It's the channel for a public MCP server's metadata. It doesn't support private servers, and it leaves security scanning to package registries and downstream aggregators.",
+    "example": "A public weather server's code lives on npm; its registry entry points to that package, so MCP marketplaces can discover it.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/registry/about",
+      "title": "The MCP Registry",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-contribution-readiness",
+    "term": "contribution readiness",
+    "aliases": [
+      "contribution-ready"
+    ],
+    "definition": "Whether an asset is ready for a channel someone else maintains: it carries a license, its README says what it runs, sends or fetches, and its source is readable enough for a reviewer to check.",
+    "whyItMatters": "A maintainer accepts what they can verify: a license settles rights, the README discloses behavior, and readable source lets a reviewer check it.",
+    "example": "Before submitting, add a `LICENSE`, document the hook's analytics call in the README, and replace a minified script with readable source.",
+    "source": {
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-developer-certificate-of-origin",
+    "term": "Developer Certificate of Origin",
+    "aliases": [
+      "DCO"
+    ],
+    "definition": "A short statement contributors certify when they sign off a contribution: they created it, or it's based on suitably licensed work, and they have the right to submit it under the project's license.",
+    "whyItMatters": "It puts rights before review: you sign off only once you know the work is yours to contribute, for example code first written for a customer.",
+    "example": "A shared skills repository asks for a DCO sign-off on each commit, so you sign off only after confirming the client agreement lets you share the code.",
+    "source": {
+      "url": "https://developercertificate.org/",
+      "title": "Developer Certificate of Origin",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-deployment-platform",
+    "term": "deployment platform",
+    "aliases": [],
+    "definition": "Where your Claude requests are served: the Claude API, Amazon Bedrock, Google Cloud, Microsoft Foundry or Claude Platform on AWS. Some are operated by Anthropic, others by the cloud provider.",
+    "whyItMatters": "The customer's cloud usually picks it, and it decides sign-in, billing, residency controls and which features you get. Check the features your design needs on that platform.",
+    "example": "An Azure-native company starts from Microsoft Foundry, so its developers sign in with Entra ID and usage lands on its Azure bill.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/third-party-integrations",
+      "title": "Enterprise deployment overview",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-mcp-bundle",
+    "term": "MCP Bundle",
+    "aliases": [
+      "MCPB",
+      ".mcpb",
+      "Desktop Extension",
+      "Desktop Extensions"
+    ],
+    "definition": "A zip archive that packages a local MCP server with all its dependencies and a manifest.json declaring its details, tools, user configuration and runtime requirements, so it installs in one click. Formerly Desktop Extensions (.dxt).",
+    "whyItMatters": "The fit when people without developer tools must install a local MCP server: no terminal, no hand-edited config files, no dependency conflicts.",
+    "example": "A team ships its ticketing MCP server as a bundle: analysts install it with a click, and the manifest asks each of them for their own API key.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/desktop-extensions",
+      "title": "Claude Desktop Extensions: One-click MCP server installation for Claude Desktop",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-regression-eval",
+    "term": "regression eval",
+    "aliases": [
+      "regression evals"
+    ],
+    "definition": "An eval that asks whether an agent still handles all the tasks it used to. Capability evals instead ask what the agent can do well.",
+    "whyItMatters": "The eval to rerun after a configuration change or a model upgrade, including when another team reuses your build.",
+    "example": "Before a new customer's settings go live, the team reruns the accelerator's regression evals to confirm the existing tasks still pass.",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-baseline-latency",
+    "term": "baseline latency",
+    "aliases": [],
+    "definition": "The time the model takes to process the prompt and generate the response, without considering input and output tokens per second. It gives a general idea of the model's speed.",
+    "whyItMatters": "A caller that waits for the whole answer feels this, not time to first token. Latency also depends on the infrastructure and point of interaction, so measure where the app will run.",
+    "example": "A back-end job that waits for a full, non-streamed summary is judged on baseline latency; a streaming chat window on time to first token.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-data-processor",
+    "term": "data processor",
+    "aliases": [
+      "inference data processor"
+    ],
+    "definition": "The party that processes a platform's model inputs and outputs: Anthropic on the platforms it operates, such as the Claude API, and the cloud provider on platforms it operates, such as Amazon Bedrock and Google Cloud.",
+    "whyItMatters": "It decides whose retention and compliance terms apply. Anthropic's arrangements cover the platforms where Anthropic processes the data; elsewhere, use the cloud provider's own controls.",
+    "example": "Before moving a regulated workload from the Claude API to Google Cloud, the team checks Google Cloud's retention controls, since Google is the data processor there.",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+      "title": "API and data retention",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-functional-requirement",
+    "term": "functional requirement",
+    "aliases": [],
+    "definition": "A requirement that determines whether an application performs its task: what it must do, such as extracting fields from a claim email or presenting a quote.",
+    "whyItMatters": "Scenarios ask you to tell it apart from a nonfunctional requirement: \"extract the policy number\" is functional, while \"reply within seconds\" is nonfunctional.",
+    "example": "\"Classify each support ticket into one of our intent categories\" is functional; how fast and how reliably it does so is not.",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-nonfunctional-requirement",
+    "term": "nonfunctional requirement",
+    "aliases": [],
+    "definition": "A requirement that determines how well an application performs its task, such as its scalability, availability or latency, rather than which task it performs.",
+    "whyItMatters": "These requirements influence design decisions and technology choices, and they come from the business: how much traffic to expect and what level of outage is acceptable.",
+    "example": "A live chat needs fast replies and high availability; a nightly summary job in the same app can tolerate delay, so each flow gets its own targets.",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-architecture-decision-record",
+    "term": "architecture decision record",
+    "aliases": [
+      "ADR",
+      "decision record"
+    ],
+    "definition": "An append-only log of key design decisions. Each entry holds the context, the options considered (including rejected ones), the decision, its trade-offs and a status such as Accepted or Superseded.",
+    "whyItMatters": "It lets you defend a decision later. Without the rationale, stakeholders can't tell whether a decision still applies when circumstances change.",
+    "example": "Record why a classifier runs on a smaller model. When volume grows and you switch, write a new record that supersedes the old one and link the two.",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record",
+      "title": "Maintain an architecture decision record (ADR)",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-system-development-life-cycle",
+    "term": "system development life cycle",
+    "aliases": [
+      "SDLC",
+      "systems development life cycle"
+    ],
+    "definition": "The scope of activities for a system, from its initiation through development and acquisition, implementation, operation and maintenance, to its eventual disposal.",
+    "whyItMatters": "It is a reminder that launch is not the end: operation and maintenance are phases of their own, and a system is managed until it is finally disposed of.",
+    "example": "A Claude support bot runs from the business case through build and launch, then years of operation and maintenance, and finally its retirement.",
+    "source": {
+      "url": "https://csrc.nist.gov/glossary/term/system_development_life_cycle",
+      "title": "System Development Life Cycle (SDLC)",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-token-passthrough",
+    "term": "token passthrough",
+    "aliases": [
+      "token pass-through"
+    ],
+    "definition": "An MCP anti-pattern where a server accepts a client's token without checking it was issued to the server, then forwards it unchanged to a downstream API. The MCP authorization spec forbids it.",
+    "whyItMatters": "It breaks the boundary at the seam: the downstream API may trust the token as if the server validated it, controls like rate limiting are bypassed, and logs show the wrong identity.",
+    "example": "An MCP server in front of a billing API rejects any token that wasn't issued to the server itself, and never forwards a client's token to the API.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "title": "Security Best Practices",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-confused-deputy",
+    "term": "confused deputy",
+    "aliases": [
+      "confused deputy problem"
+    ],
+    "definition": "A flaw where an intermediary with its own authority is tricked into acting for someone it shouldn't. In MCP, a proxy server to a third-party API can let a malicious client get authorization without the user's consent.",
+    "whyItMatters": "MCP proxy servers must get per-client consent before forwarding to third-party authorization. Forwarding unvalidated tokens downstream can cause the same problem.",
+    "example": "A consent cookie from an earlier sign-in lets a crafted link skip the third-party consent screen, and the authorization code goes to the attacker's redirect URI.",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "title": "Security Best Practices",
+      "checkedOn": "2026-10-17"
+    }
+  },
+  {
+    "id": "g-proxy-pattern",
+    "term": "proxy pattern",
+    "aliases": [
+      "credential-injecting proxy"
+    ],
+    "definition": "Running a proxy outside the agent's security boundary that adds credentials to outgoing requests, so the agent can call an API without ever seeing the credential.",
+    "whyItMatters": "The proxy can also enforce an allowlist of permitted endpoints and log every request, and credentials sit in one secure place instead of in each agent.",
+    "example": "A git MCP server forwards the agent's commands to a git proxy on the host, which adds authentication before contacting the remote repository.",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-17"
+    }
   }
 ]

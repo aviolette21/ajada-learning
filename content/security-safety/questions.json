@@ -3505,5 +3505,765 @@
       "c-prompt-injection"
     ],
     "lessonId": "l-course-injection-defense"
+  },
+  {
+    "id": "q-s5trust-map-before-connecting",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Integration map",
+    "stem": "Your team will connect three pieces for one customer: a support app on the Claude API, a Claude Code task that runs in CI, and an MCP server in front of the CRM. Before wiring them together, what should the team do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Connect everything in staging, then run a penetration test to discover the boundaries",
+        "reason": "Testing comes later. The CISO guide starts each use case by asking what untrusted content it reads and what it can do, so you know which boundaries a test has to prove."
+      },
+      {
+        "id": "b",
+        "text": "Map each component: what content it reads, what it can do, and under whose identity",
+        "reason": "Correct: the guide's questions for each use case are what untrusted content it ingests, what actions it can take and on whose behalf, its blast radius, and what you can observe."
+      },
+      {
+        "id": "c",
+        "text": "Give all three one shared admin account so access errors don't block the integration",
+        "reason": "The guide's principle of least agency is to grant the narrowest capability that still completes the task, and every action should run under an identity you can name."
+      },
+      {
+        "id": "d",
+        "text": "Write each component's allowed data into its system prompt and rely on that",
+        "reason": "The guide warns that controls built on prompts get cut out of agents as models improve. It puts the boundaries in identity, tool lists, sandboxing and egress controls."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Before connecting components, map what each one reads, what it can do and **as whom**; the trust boundaries come from that map.",
+    "explanation": "A multi-component build is reviewed one component at a time: what untrusted content it ingests, what actions it can take and on whose behalf, its blast radius, and what you can observe. That map shows where the trust boundaries go before any data moves. Choice a is tempting because testing matters, but a test can only confirm boundaries you've already defined.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "For each component, write down what it reads, what it can do, and as whom.",
+      "steps": [
+        {
+          "label": "Support app",
+          "sublabel": "reads customer email"
+        },
+        {
+          "label": "MCP server",
+          "sublabel": "reaches the CRM"
+        },
+        {
+          "label": "Claude Code task",
+          "sublabel": "opens PRs in CI"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-own-tool-output",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Tool output",
+    "stem": "Your team wrote its own MCP server that searches the company's shared drive and returns file contents to a Claude API app. An engineer argues that because the server is internal and trusted, its results can skip the injection screening used for web content. What's wrong with that argument?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: a tool your own team wrote and audited only returns content you can trust",
+        "reason": "Anthropic's containment post says an audited connector isn't the same as audited data: in its example, a connector that passed malware checks still loaded a poisoned README."
+      },
+      {
+        "id": "b",
+        "text": "Only the server's code is a risk, so auditing its dependencies covers everything",
+        "reason": "The post says any external resource is two risks at once: supply-chain code execution and prompt injection. Dependency auditing covers only the first."
+      },
+      {
+        "id": "c",
+        "text": "Screening only matters once the app also has a web browsing tool turned on",
+        "reason": "The risk comes from the content this tool returns, not from which other tools are enabled. The post treats tool output as an attack surface in its own right."
+      },
+      {
+        "id": "d",
+        "text": "The files can hold text written by anyone with drive access, so results stay untrusted",
+        "reason": "Correct: the post says tool output is an attack surface even when the tool is trusted. The server is yours; the content it carries isn't."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Trusting a tool's code isn't trusting its data: **tool output** is an attack surface even when you wrote the tool.",
+    "explanation": "The boundary sits where data moves, not where code was written. Your server is trusted, but the files it returns were written by many people, so the content crossing into Claude's context is still untrusted. Choice a is the tempting one: an audit tells you the connector is safe, not that everything it loads is.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-output-screen",
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-token-passthrough",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Token passthrough",
+    "stem": "Your MCP server fronts an internal billing API. To save work, it takes the access token each MCP client sends and forwards that same token to the billing API unchanged. A reviewer flags this. What does MCP's security guidance require?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Accept only tokens issued to the MCP server, and never forward client tokens",
+        "reason": "Correct: token passthrough is explicitly forbidden. MCP servers must not accept any tokens that weren't explicitly issued for the MCP server."
+      },
+      {
+        "id": "b",
+        "text": "Keep forwarding, as long as the billing API also checks each token's signature",
+        "reason": "A genuine token can still be meant for another service. The downstream API may trust it as if the MCP server had validated it, which is the confused deputy problem."
+      },
+      {
+        "id": "c",
+        "text": "Keep forwarding, and add rate limiting on the MCP server to contain any misuse",
+        "reason": "The guidance lists bypassed controls, such as rate limiting and request validation, as a risk of passthrough itself. The fix is to stop accepting tokens not issued to the server."
+      },
+      {
+        "id": "d",
+        "text": "Forwarding is allowed while the server is a pure proxy with no tools of its own",
+        "reason": "The page says even a server that starts as a pure proxy should separate token audiences from the start, which makes adding security controls later easier."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "An MCP server accepts only tokens issued **to it** and never passes a client's token through to a downstream API.",
+    "explanation": "Token passthrough is an anti-pattern MCP explicitly forbids: the server accepts tokens without checking they were issued to it and forwards them downstream. That can create a confused deputy, bypass controls such as rate limiting, and leave downstream logs showing the wrong identity. Choice b is tempting, but a genuine signature doesn't show the token was meant for the MCP server.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The client's token stops at the MCP server; it isn't passed through to the API.",
+      "steps": [
+        {
+          "label": "MCP client",
+          "sublabel": "sends its token"
+        },
+        {
+          "label": "MCP server",
+          "sublabel": "accepts only its own tokens"
+        },
+        {
+          "label": "Billing API",
+          "sublabel": "never gets the client's token"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "title": "Security Best Practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-scope-minimization",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Scope minimization",
+    "stem": "Your remote MCP server lists every scope it supports, including broad admin and write-all scopes, and clients request them all at first sign-in so users are never prompted again. Most sessions only read data. What does MCP's security guidance recommend instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the broad scopes, but shorten token lifetimes so a stolen token expires sooner",
+        "reason": "That leaves the risk the page names: a stolen broad token enables unrelated tool and resource access, an expanded blast radius, for as long as it lives."
+      },
+      {
+        "id": "b",
+        "text": "Merge every permission into one full-access scope so the consent screen is simpler",
+        "reason": "The page lists wildcard or omnibus scopes, such as `*`, `all` or `full-access`, among the common mistakes."
+      },
+      {
+        "id": "c",
+        "text": "Start with a minimal read scope; ask for more when a privileged action is tried",
+        "reason": "Correct: the page recommends a progressive, least-privilege model: a minimal initial scope set, with incremental elevation when a privileged operation is first attempted."
+      },
+      {
+        "id": "d",
+        "text": "Grant the broad scopes, and rely on the model to call only the read-only tools",
+        "reason": "The model choosing well doesn't shrink the token. If it's stolen, broad scopes still allow lateral data access and privilege chaining."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Least privilege applies to tokens too: start with a **minimal scope** and elevate only when a privileged operation needs it.",
+    "explanation": "Scopes granted up front define what a stolen token can do, so MCP's guidance starts clients with a minimal set for low-risk reads and asks for more only when a privileged operation is first attempted. The detail that decides it is that most sessions only read. Choice a is tempting because short lifetimes help, but the token is still over-scoped while it lives.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "title": "Security Best Practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-ci-task-permissions",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "CI task permissions",
+    "stem": "Your Claude Code GitHub Action reviews pull requests and posts comments. Its workflow file grants write access to everything, and the Claude API key is pasted directly into that file. Which change follows the GitHub Actions guide?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the key in the workflow file, but make the repository private",
+        "reason": "The guide's rule is never to commit API keys or OAuth tokens directly to the repository at all. It says to store them as GitHub Secrets."
+      },
+      {
+        "id": "b",
+        "text": "Keep broad write access so Claude never fails a review on a missing permission",
+        "reason": "The guide says to grant the workflow only the permissions it needs. Its review example asks for read access to contents, pull requests and issues."
+      },
+      {
+        "id": "c",
+        "text": "Move the key into `CLAUDE.md` so Claude reads it only when it's needed",
+        "reason": "`CLAUDE.md` holds project standards that Claude reads on every run. It's still a committed file, and the guide says keys go in GitHub Secrets."
+      },
+      {
+        "id": "d",
+        "text": "Store the key as a GitHub secret and grant only the permissions the job needs",
+        "reason": "Correct: the guide says to store keys as GitHub Secrets and reference them in the workflow, grant only the permissions it needs, and review Claude's changes before merging."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A Claude Code task in CI is one more component: its key lives in **secrets**, and its workflow gets only the permissions its job needs.",
+    "explanation": "The Claude Code task is a component with its own credential and its own reach into the repository, so least privilege applies to it like any other part. The guide is direct: never commit keys, keep them in GitHub Secrets, and grant the workflow only what it needs. Choice a is tempting because a private repo feels safer, but the key would still sit in a committed file.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/github-actions",
+      "title": "Claude Code GitHub Actions",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-least-privilege-whole-app",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Least privilege",
+    "stem": "Your application has three parts: a chat app on the Claude API, a reporting agent that reads sales data, and an MCP server that updates the CRM. Each part passed its own review. Which two changes apply least privilege across the whole application?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give the reporting agent the CRM server's write tools too, so the parts can cover for each other",
+        "reason": "That's excessive functionality. OWASP says to offer an agent only the extensions it needs, and the reporting agent only reads."
+      },
+      {
+        "id": "b",
+        "text": "Give the reporting agent's database identity read-only rights to the tables it reports on",
+        "reason": "Correct: OWASP says to limit the permissions an extension has on downstream systems to the minimum needed, for example a database identity that can only read the table the agent uses."
+      },
+      {
+        "id": "c",
+        "text": "Run all three parts under one shared high-privilege account, since each passed review",
+        "reason": "A shared powerful identity gives every part the rights of the most privileged one. OWASP says each extension's downstream permissions should be minimal."
+      },
+      {
+        "id": "d",
+        "text": "List in each component's system prompt the actions it must never take",
+        "reason": "OWASP says to enforce authorization in downstream systems rather than rely on the LLM to decide whether an action is allowed."
+      },
+      {
+        "id": "e",
+        "text": "Have the CRM server act as the signed-in user, so it can change only what that user may",
+        "reason": "Correct: OWASP says to run extensions in the user's context with minimal privileges, so actions on downstream systems are authorized as that specific user."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Least privilege is per component **and** per seam: each part gets only its own tools and downstream rights, and acts as the user where it can.",
+    "explanation": "Parts that each pass review can still add up to an over-privileged application, usually through shared identities and borrowed tools. Least privilege holds when every component's downstream identity has only the rights its own job needs, and actions on users' data are authorized as that user. Choice c is tempting because each part looked safe, but one shared account erases the boundaries between them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06:2025 Excessive Agency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-seam-between-deployments",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Seams between components",
+    "stem": "A support app on the Claude API summarizes customer tickets into GitHub issues. A Claude Code task in CI then picks up each issue and opens a pull request with a fix. Customers write the tickets. Which two controls belong at the seam where the summary reaches the Claude Code task?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat the issue text as untrusted content, since customers can shape what it says",
+        "reason": "Correct: the CISO guide's first question is what an attacker can plausibly write or alter. Customers write the tickets, so their text can carry instructions into the summary."
+      },
+      {
+        "id": "b",
+        "text": "Trust the issue text, since your own Claude deployment wrote the summary",
+        "reason": "Who formatted the text doesn't change who wrote its content. The summary carries customer-written material across the seam, so it's still something an attacker can alter."
+      },
+      {
+        "id": "c",
+        "text": "Give the Claude Code task broad repository rights so it can handle any request",
+        "reason": "The guide's principle of least agency is to grant the narrowest capability that still completes the task."
+      },
+      {
+        "id": "d",
+        "text": "Require a person to review each pull request before it's merged",
+        "reason": "Correct: the guide requires human review for destructive or one-way decisions, and Anthropic's own agent-written code gets a human review before anything lands."
+      },
+      {
+        "id": "e",
+        "text": "Turn off the task's logging so customer text isn't stored in another system",
+        "reason": "The guide asks what observability you have and wants agent actions distinguishable in the system where you investigate. Removing logs leaves you blind at this seam."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Content stays untrusted as it crosses components: a summary of customer text is still customer text, so guard what the next component can do.",
+    "explanation": "The seam between two Claude deployments is a trust boundary, and what crosses it keeps the trust level of whoever wrote it. Customers wrote the tickets, so the Claude Code task treats the issue as untrusted and its pull requests wait for a person. Choice b is the tempting one: your own app produced the issue, but it only passed the customers' words along.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Content stays untrusted as it crosses each seam; guard the next component's actions.",
+      "steps": [
+        {
+          "label": "Customer ticket",
+          "sublabel": "untrusted"
+        },
+        {
+          "label": "Support app",
+          "sublabel": "Claude API"
+        },
+        {
+          "label": "GitHub issue",
+          "sublabel": "still untrusted"
+        },
+        {
+          "label": "Claude Code task",
+          "sublabel": "opens a PR"
+        },
+        {
+          "label": "Human review",
+          "sublabel": "before merge"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-tool-output-screen"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-model-output-to-backend",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Model output as input",
+    "stem": "In your application, Claude's answer from one component is passed to a backend service that builds a database query from it. A teammate says the text is safe because it came from your own model, not from a user. Which approach does OWASP recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat the model as any other user: validate output, use parameterized queries",
+        "reason": "Correct: OWASP says to adopt a zero-trust approach to the model, validate responses going to backend functions, and use parameterized queries for database operations."
+      },
+      {
+        "id": "b",
+        "text": "Trust the output, since injection can only arrive through user input fields",
+        "reason": "OWASP's guidance is to treat the model as any other user, not as a trusted insider, because its output flows into downstream systems."
+      },
+      {
+        "id": "c",
+        "text": "Add a system prompt rule telling Claude to write only safe database queries",
+        "reason": "OWASP puts the defense in the backend that receives the output: input validation and parameterized queries, not an instruction to the model."
+      },
+      {
+        "id": "d",
+        "text": "HTML-encode the output before it reaches the database service",
+        "reason": "OWASP says to encode for where the output is used: HTML encoding for web content, SQL escaping or parameterized queries for database operations."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "One component's model output is the next component's **input**: validate it there, as you would a user's.",
+    "explanation": "Data crossing from one component to another crosses a trust boundary, even when the sender is your own model. OWASP's rule is zero trust: treat the model as any other user and validate what it sends to backend functions, with parameterized queries for databases. Choice d is tempting because encoding is part of the advice, but the encoding has to match where the output is used.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "title": "LLM05:2025 Improper Output Handling",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-remote-tool-after-approval",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Remote MCP servers",
+    "stem": "Last quarter your security team reviewed and approved a vendor's hosted MCP server, and your agent has used it ever since. A teammate says that review settled the server's trust for good. What does Anthropic's containment post suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Agree: once a hosted server is approved, its behavior is fixed by that review",
+        "reason": "The post warns that a remote tool, such as a hosted MCP server or cloud connector, can change behavior at any point after you've approved it."
+      },
+      {
+        "id": "b",
+        "text": "Keep treating it as untrusted, since a hosted server can change after review",
+        "reason": "Correct: a remote tool can change behavior at any point after approval, so install-time trust may no longer apply. The post says to treat it as untrusted and try it on fake data in a contained environment."
+      },
+      {
+        "id": "c",
+        "text": "Run a local copy of the server instead, since local servers carry no risk",
+        "reason": "A local, pinned copy can't change under you, but the post says any external resource is still two risks at once: supply-chain code execution and prompt injection. It isn't risk-free."
+      },
+      {
+        "id": "d",
+        "text": "Review the server again only if its tool names or descriptions change",
+        "reason": "The post's warning is that a remote tool can change behavior at any point after approval, so waiting for a visible trigger like renamed tools can miss it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Approving a remote tool is a snapshot: a hosted MCP server can change after review, so keep treating it as **untrusted** and contain what it can reach.",
+    "explanation": "The seam to a hosted MCP server is a boundary you don't control: the vendor can change what's behind it after your review, so install-time trust may no longer apply. The post says to treat such tools as untrusted and to run them against fake data first, in an environment where a malicious tool's blast radius is contained. Choice d is tempting because it sounds like monitoring, but a behavior change doesn't have to show up in the tool list.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-mcp-connector"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-allowlist-capability",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Egress allowlists",
+    "stem": "Your agent reads untrusted documents and runs in a sandbox whose egress allowlist permits only your company's cloud file-storage provider. The security lead says data exfiltration is now impossible. Why would Anthropic's containment post push back?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Allowlists never hold up, so allow all traffic and log every request instead",
+        "reason": "The post keeps egress controls as part of containment. Its point is that an allowlist grants capabilities, so each allowed domain has to be chosen with care."
+      },
+      {
+        "id": "b",
+        "text": "A sandbox can't change what the model wants to do, so it adds no protection",
+        "reason": "The post designs containment at the environment layer first, because that deterministic boundary is what holds when probabilistic defenses miss."
+      },
+      {
+        "id": "c",
+        "text": "An allowed domain may let an attacker's own account receive data, so it's attack surface",
+        "reason": "Correct: the post says every function reachable through an allowlisted domain is attack surface. In one case an approved API domain let an attacker upload files to their own account."
+      },
+      {
+        "id": "d",
+        "text": "Exfiltration needs stolen credentials, and the documents hold none, so the claim is right",
+        "reason": "Data doesn't need to be a credential to leak. An injected agent could send the documents themselves to an attacker's account on the allowed provider."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "An egress allowlist is a **capability grant**: anything reachable through an allowed domain, including an attacker's account there, is attack surface.",
+    "explanation": "The sandbox's edge is a seam too, and an allowlist decides what crosses it. Allowing a domain allows everything that domain lets a caller do, which can include uploading to an account the attacker controls. Choice d is tempting because keeping credentials out is a real control, but here the documents themselves are the data at risk.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/how-we-contain-claude",
+      "title": "How we contain Claude across products",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-mcp-server-provenance",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "MCP server trust",
+    "stem": "A developer wants to add a community MCP server to Claude Code that fetches web pages and summarizes them. It's popular, but nobody on the team knows who maintains it. What does Claude Code's security guidance suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use a server you wrote, or one from a provider you trust, and set permissions for it",
+        "reason": "Correct: the guide encourages writing your own MCP servers or using servers from providers you trust, and says you can configure Claude Code permissions for MCP servers."
+      },
+      {
+        "id": "b",
+        "text": "Install it, since Anthropic security-audits MCP servers once they become popular",
+        "reason": "Anthropic reviews connectors against its listing criteria for the Directory, but doesn't security-audit or manage any MCP server."
+      },
+      {
+        "id": "c",
+        "text": "Commit it to `.mcp.json` so the repository's review process approves it for everyone",
+        "reason": "Committing the server spreads it to the whole team; it doesn't tell you who maintains it. The guide's advice is servers you wrote or from providers you trust."
+      },
+      {
+        "id": "d",
+        "text": "Install it, since Claude Code's built-in protections make a server's origin irrelevant",
+        "reason": "The guide says no system is completely immune to all attacks, and still asks you to choose MCP servers you wrote or from providers you trust."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Anthropic doesn't security-audit MCP servers: connect ones you **wrote** or from **providers you trust**.",
+    "explanation": "An MCP server is a component you're adding to the application, and its trust is yours to establish. Claude Code's security guide encourages writing your own servers or using ones from providers you trust, and notes that Anthropic doesn't security-audit MCP servers. Choice b is tempting because a Directory listing sounds like a review, but listing criteria aren't a security audit.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/security",
+      "title": "Security",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-agent-own-identity",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Agent identity",
+    "stem": "Your nightly triage agent closes and relabels tickets using the on-call lead's own account. After a bad batch of closures, auditors can't tell which changes the lead made and which the agent made. What does Anthropic's CISO guide point to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the lead's account, but have the agent add a note to each change it makes",
+        "reason": "A note the agent writes is a convention, not an identity. The guide wants agent actions distinguishable from user actions in the system where you already investigate."
+      },
+      {
+        "id": "b",
+        "text": "Give the agent an admin account of its own so its changes stand out in the logs",
+        "reason": "The guide's model for agents like ticket triage is a single-purpose, least-privilege service account, not admin rights: grant the narrowest capability that completes the task."
+      },
+      {
+        "id": "c",
+        "text": "Rotate the lead's password after each run so the agent's access is short-lived",
+        "reason": "Rotation doesn't separate who did what. Every action still runs under the lead's identity, the ambiguous accountability the guide warns makes incidents unexplainable."
+      },
+      {
+        "id": "d",
+        "text": "Give the agent its own least-privilege service identity, logged to your SIEM",
+        "reason": "Correct: the guide describes single-purpose, least-privilege service accounts for agents like ticket triage, and says agent actions must be distinguishable from user actions, with telemetry in your SIEM."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Every action runs under an identity: give an automated agent **its own**, so its actions are scoped and distinguishable from people's.",
+    "explanation": "Mapping a component includes asking on whose behalf it acts. An agent borrowing a person's account blurs that boundary, so neither its permissions nor its actions can be told apart from the person's. Choice b is tempting because a separate account does make changes stand out, but admin rights break least privilege; the guide's answer is a single-purpose service identity.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-where-attackers-write",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Integration map",
+    "stem": "You're reviewing three components before launch: an agent that reads inbound email from the public, a Claude Code task that reads only an internal repo staff maintain, and an MCP server over an inventory database only staff update. Where should prompt-injection scrutiny focus first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "On the Claude Code task, since it's the one component that can run commands",
+        "reason": "Its capabilities matter for blast radius, but the guide's injection question is what an attacker can plausibly write. Only staff write that repo."
+      },
+      {
+        "id": "b",
+        "text": "Equally on all three, since every one of them runs on the same Claude model",
+        "reason": "The guide applies its questions per use case and the answers differ. A component that reads nothing attackers can write has near-zero agent-specific risk."
+      },
+      {
+        "id": "c",
+        "text": "On the email agent, since anyone on the internet can write what it reads",
+        "reason": "Correct: the guide's first question is what an attacker can plausibly write or alter. Public inbound email is exactly that."
+      },
+      {
+        "id": "d",
+        "text": "On the MCP server, since databases are where injection attacks usually happen",
+        "reason": "Prompt injection rides in content Claude reads, and here staff, not outsiders, write the inventory data. The public email is what attackers control."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Start with what attackers can **write**: the component that ingests outside content is where injection risk enters the application.",
+    "explanation": "The integration map tells you where untrusted content enters. The CISO guide's first question is what an attacker can plausibly write or alter, and if the answer is nothing, the agent-specific risk is near zero. Only the email agent reads content outsiders write. Choice a is tempting because running commands raises the stakes, but stakes are blast radius, not where the attack gets in.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-direct-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-draft-not-send",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Human review",
+    "stem": "Your support app on the Claude API reads inbound customer email and can reply through an email MCP server. You worry a crafted email could make it send something harmful. Which control does Anthropic's CISO guide suggest for an agent that reads untrusted input?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Let it send freely, then scan the sent mail for risky keywords afterwards",
+        "reason": "A scan after sending finds the problem once the email has gone. The guide requires human review for any destructive or one-way decision when an agent reads untrusted input."
+      },
+      {
+        "id": "b",
+        "text": "Let it draft replies only, and have a person review and send each one",
+        "reason": "Correct: the guide says email should never be sent externally, automatically, without human review, and one-way decisions need a person when untrusted input is involved."
+      },
+      {
+        "id": "c",
+        "text": "Add a system prompt rule saying it must never send anything harmful",
+        "reason": "The guide warns that controls built on prompts get cut out of agents as models improve. It limits actions through the tool list and human review instead."
+      },
+      {
+        "id": "d",
+        "text": "Send its replies from a separate address so harmful ones are easy to spot",
+        "reason": "A different sender address doesn't stop the harmful email going out. The guide's control is to keep irreversible actions behind human review."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When an agent reads untrusted input, keep **irreversible** actions, like sending email, behind a person's review.",
+    "explanation": "The support app sits on a seam where public, untrusted email comes in, and sending a reply can't be undone. The CISO guide's answer for that combination is human review: let the agent draft, and have a person send. Choice c is tempting because it names the harm directly, but a prompt rule shapes what Claude tends to do rather than limiting what it can do.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-s5trust-access-not-model-limits",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Least privilege",
+    "stem": "A teammate argues the reporting agent can keep its broad write access to production systems, because the current model has never tried to use it. You plan to upgrade the model next quarter. Which lesson from Anthropic's CISO guide applies?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Limit access to what the job needs, not to what today's model happens to attempt",
+        "reason": "Correct: after a model upgrade alone, Anthropic's incident agent did something new inside its existing boundaries. The guide says to limit access and actions, not around what you believe today's model limits are."
+      },
+      {
+        "id": "b",
+        "text": "Keep the access, since an upgrade doesn't change behavior while permissions stay the same",
+        "reason": "The guide's case study is exactly that situation: a model upgrade, nothing else changed, and the agent independently reached out to another agent mid-incident."
+      },
+      {
+        "id": "c",
+        "text": "Keep the access, but add a system prompt line that forbids any writes",
+        "reason": "The guide warns that controls built on prompts get cut out of agents as models improve. Removing the write access is the boundary that holds."
+      },
+      {
+        "id": "d",
+        "text": "Remove the access only after the upgraded model has actually misused it",
+        "reason": "That waits for the incident. The guide says to design for where the model will be in six months, not only for what you've seen so far."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Scope access for the model you'll have, not the one you've seen: **new capabilities** can appear inside existing boundaries.",
+    "explanation": "Least privilege is set by what a component needs, not by what its current model happens to attempt. Anthropic's CISO guide reports an agent that, after a model upgrade alone, did something new inside the access it already had. Choice b is tempting because unchanged permissions feel like an unchanged system, but the case study shows the model is part of what can change.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/blog/ciso-guide-to-agentic-ai",
+      "title": "Zero risk isn't the job: a CISO's guide to agentic AI",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-focus-hook-headless-block",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hooks in unattended runs",
+    "stem": "A nightly CI job runs `claude -p` to fix failing tests, with Bash pre-approved so it can run the suite, and it loads the team's settings. Nobody watches the run. Security needs any Bash command that names the production database host blocked every time, however Claude is instructed. What fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Count on the permission prompt to catch it, since a reviewer would deny the command",
+        "reason": "Nobody is watching this run to answer a prompt, so a rule that depends on a person deciding in the moment can't hold here."
+      },
+      {
+        "id": "b",
+        "text": "A `PreToolUse` hook in those settings that denies Bash commands naming the host",
+        "reason": "Correct: `PreToolUse` hooks fire before any permission-mode check, in every mode, and a `deny` blocks the tool even in `bypassPermissions` mode, so no person is needed."
+      },
+      {
+        "id": "c",
+        "text": "A line in CLAUDE.md that tells Claude never to touch the production database",
+        "reason": "An instruction leaves it to the model to comply. Hooks give deterministic control, so the rule is enforced rather than left for the LLM to choose."
+      },
+      {
+        "id": "d",
+        "text": "A `PostToolUse` hook that alerts security whenever such a command has been run",
+        "reason": "`PostToolUse` fires after the tool executes, so the command against production would already have run by the time the alert goes out."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "In unattended runs nobody answers prompts, so hard limits belong in a `PreToolUse` hook, which fires in every permission mode.",
+    "explanation": "A headless run has no one to approve or deny actions, and pre-approving Bash means its commands never ask. A `PreToolUse` hook runs before the tool and before any permission-mode check, so its `deny` holds however the run is configured, as long as the run loads the settings that define it. Choice c is tempting because it states the rule clearly, but an instruction is advisory, and other text Claude reads could push the other way.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-pretooluse-hook",
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-claude-hooks"
   }
 ]

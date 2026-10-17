@@ -49,6 +49,7 @@
 .terms-list dt { font-weight: 700; color: var(--text); }
 .terms-list dd { margin: 2px 0 0; }
 .topic-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border-soft); }
+.topic-row:first-child { border-top: 0; padding-top: 0; }
 .topic-main { display: flex; flex: 1; flex-direction: column; gap: 4px; min-width: 0; }
 .topic-name { font-weight: 650; }
 .topic-row .muted { font-size: 12.5px; }

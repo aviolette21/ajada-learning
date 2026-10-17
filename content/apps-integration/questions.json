@@ -6690,5 +6690,2875 @@
       "c-eval-grading-methods"
     ],
     "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-s5deploy-azure-shop-foundry",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Deployment platforms",
+    "stem": "A company runs all its infrastructure on Azure. It's rolling out Claude Code to its developers, wants them to sign in with Microsoft Entra ID, and wants the usage to land on its Azure bill. Which deployment option fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Amazon Bedrock, since it is the option built for enterprise deployments",
+        "reason": "Bedrock is the fit for AWS-native deployments: it bills through AWS and signs in with an API key or AWS credentials, not Entra ID."
+      },
+      {
+        "id": "b",
+        "text": "Google Cloud's Agent Platform, since it has the widest choice of regions",
+        "reason": "Agent Platform is the fit for GCP-native deployments: it bills through GCP and authenticates with GCP credentials."
+      },
+      {
+        "id": "c",
+        "text": "Microsoft Foundry, which bills through Azure and supports Entra ID",
+        "reason": "Correct: the comparison table lists Foundry as best for Azure-native deployments, billed through Azure, with an API key or Microsoft Entra ID for sign-in."
+      },
+      {
+        "id": "d",
+        "text": "The Anthropic Console, since every developer can create an API key there",
+        "reason": "The Console is listed as best for individual developers, with no enterprise features, and its billing doesn't run through Azure."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Start from the customer's cloud: its identity, billing and audit tools already live there, so the platform on that cloud is usually the fit.",
+    "explanation": "Claude Code's enterprise deployment guide matches each cloud provider option to a customer: Bedrock for AWS-native deployments, Agent Platform for GCP-native, Foundry for Azure-native. The deciding details in the stem are Entra ID sign-in and an Azure bill, which only Foundry offers. Choice d is tempting because Console keys are quick to hand out, but it's aimed at individual developers and leaves the company's identity and billing systems out.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/third-party-integrations",
+      "title": "Enterprise deployment overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-pin-why",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model versioning",
+    "stem": "You're preparing a Claude feature for production and deciding what goes in its model setting. Why is a specific model ID, such as `claude-sonnet-5-5`, the safe thing to ship?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It picks up improved weights automatically whenever Anthropic updates that model",
+        "reason": "The opposite: Anthropic doesn't update the weights or configuration of an existing model ID. An updated version ships under a new ID."
+      },
+      {
+        "id": "b",
+        "text": "The model behind the ID stays fixed; an updated version ships under a new ID",
+        "reason": "Correct: each model ID is a pinned version, constant for its lifetime, so an upstream release can't change production until you change the ID."
+      },
+      {
+        "id": "c",
+        "text": "It guarantees identical behavior forever, since nothing around the model can change",
+        "reason": "Weights are fixed, but serving infrastructure such as the router, safety classifiers and sampling logic can change and cause minor differences."
+      },
+      {
+        "id": "d",
+        "text": "It keeps the model available indefinitely, since pinned IDs are never retired",
+        "reason": "Every model ID, dated or dateless, has its own deprecation and retirement schedule. Pinning fixes the version, not its lifetime."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Pin what ships**: a model ID's model never changes under you, so moving to a new model is a change you make on purpose.",
+    "explanation": "Anthropic's versioning page says each model ID identifies a pinned version that stays constant for the ID's lifetime, and updated versions ship under new IDs. That makes a specific ID the way to stop an upstream release from becoming a silent production change. Choice c is tempting because pinning does fix the weights, but the page notes that infrastructure updates can still cause minor observable differences, and choice d confuses a fixed version with a permanent one.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "An upstream release never changes a pinned ID; production moves only when you change the pin.",
+      "steps": [
+        {
+          "label": "Updated model",
+          "sublabel": "upstream release"
+        },
+        {
+          "label": "New model ID"
+        },
+        {
+          "label": "Your pinned ID",
+          "sublabel": "unchanged"
+        },
+        {
+          "label": "You move the pin",
+          "sublabel": "when you choose"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-model-alias"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-pinned-still-retires",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model deprecation",
+    "stem": "After a surprise model change last year, your team now pins every production app to a specific model ID. A lead says: \"Now we never have to plan a model migration again.\" What's wrong with that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: a pinned model ID stays available for as long as the app needs it",
+        "reason": "Anthropic regularly retires older models as new ones launch, and the status table gives each model its own retirement date."
+      },
+      {
+        "id": "b",
+        "text": "At retirement, requests are rerouted to the replacement, which may behave differently",
+        "reason": "There's no rerouting. Requests to a model past its retirement date fail, which is why usage must move to the replacement first."
+      },
+      {
+        "id": "c",
+        "text": "Deprecation stops a pinned model working at once, so the pin breaks with no warning",
+        "reason": "A deprecated model is still functional, and customers get notice before retirement. Only a **retired** model stops working."
+      },
+      {
+        "id": "d",
+        "text": "Pinned models still get deprecated and retired, and requests to a retired one fail",
+        "reason": "Correct: pinning fixes which model you run, not how long it's offered. Deprecated models get a retirement date, and migration must finish before it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Pinning controls **which** model you run, not **how long** it exists: watch deprecation notices and migrate before the retirement date.",
+    "explanation": "The deprecations page describes a lifecycle every model goes through: Active, Legacy, Deprecated (still works, has a replacement and a retirement date) and Retired (requests fail). A pin stops surprise changes, but it doesn't stop that lifecycle. Choice b is tempting because a replacement is always named, but the API doesn't swap it in for you: the retired ID simply fails.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-lifecycle",
+      "c-model-snapshot-id"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-port-to-bedrock",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Claude in Amazon Bedrock",
+    "stem": "A working app makes plain Messages API calls with tool use and prompt caching against the first-party Claude API. The customer wants it moved to Claude in Amazon Bedrock. What has to change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Client setup: AWS credentials and region, plus the Bedrock form of the model ID",
+        "reason": "Correct: Bedrock uses the same Messages API request body shape, so the work is AWS authentication, the region and the `anthropic.`-prefixed model ID."
+      },
+      {
+        "id": "b",
+        "text": "Every request, because Bedrock expects its own request format instead of Messages",
+        "reason": "Claude in Amazon Bedrock serves the Messages API with the same request body shape as Anthropic's first-party API. Tool use and prompt caching are supported."
+      },
+      {
+        "id": "c",
+        "text": "Nothing: the existing Claude API key and model string work on Bedrock as-is",
+        "reason": "Bedrock authenticates through AWS (a service role, assumed IAM roles or bearer tokens), and its model IDs carry an `anthropic.` provider prefix."
+      },
+      {
+        "id": "d",
+        "text": "The prompts, because Bedrock serves a separately trained version of each model",
+        "reason": "Bedrock serves the same Claude models: the page points to the Models overview for their capabilities and behaviors, under prefixed IDs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Moving clouds is mostly **client setup** (identity, region, platform model ID), not a rewrite, as long as the platform supports the features you use.",
+    "explanation": "The Bedrock guide says Claude in Amazon Bedrock uses the same Messages API shape as the first-party API, and lists tool use and prompt caching as supported. What changes is the platform layer: AWS credentials and region, and a model ID with an `anthropic.` prefix. Choice c is tempting because the request body really is the same, but identity and model IDs are platform-specific. The stem limits the app to supported features; one that relied on, say, structured outputs would need more work.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-model-snapshot-id"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-migrate-pinned-model",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model migration",
+    "stem": "Your production app pins `claude-opus-5`, and you've decided to move it to Claude Opus 5.5. Which **two** steps does the migration guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Test the change in a development environment before switching production traffic",
+        "reason": "Correct: the guide's recommended changes end with testing in a development environment before production traffic moves."
+      },
+      {
+        "id": "b",
+        "text": "Keep every model-specific prompt instruction exactly as it is, since the new model behaves the same",
+        "reason": "The guide says to re-evaluate model-specific instructions: ones tuned for Claude Opus 5's behavior may no longer be needed."
+      },
+      {
+        "id": "c",
+        "text": "Keep the old model ID in your config, since Claude Opus 5.5 is served under it",
+        "reason": "Migration starts with swapping the model ID; the guide's own tooling applies that swap across your code. The old ID keeps naming the old model."
+      },
+      {
+        "id": "d",
+        "text": "Re-tune settings such as effort on your own evals rather than reusing the old values",
+        "reason": "Correct: the guide says to re-run your effort sweep on your own evals instead of carrying over a setting tuned for an earlier model."
+      },
+      {
+        "id": "e",
+        "text": "Move all production traffic at once, then roll back if users start to complain",
+        "reason": "This skips the guide's step of testing in a development environment before production traffic is switched."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Moving the pin is a release: swap the ID, re-tune on your evals, re-check model-specific prompts, and test before production traffic moves.",
+    "explanation": "A pinned app changes model only when you change the ID, and the migration guide treats that change as work to verify. Its recommended steps include re-running the effort sweep on your own evals, re-evaluating instructions written for the old model, and testing in a development environment first. Choice e is tempting because a rollback plan sounds safe, but it makes users the test, which is exactly what pinning lets you avoid.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
+      "title": "Claude Opus 5.5 migration guide",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-effort",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-foundry-entra",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Claude in Microsoft Foundry",
+    "stem": "Your company's Azure security team wants access to Claude in Microsoft Foundry managed through Azure role-based access control and your corporate identity, with no API keys for developers to handle. How should requests authenticate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy the Foundry resource's API key into each developer's environment",
+        "reason": "Azure-issued keys work, but they're secrets every developer must keep safe, which is what the team wants to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Create a Claude Console API key for each developer and send it to Foundry",
+        "reason": "Foundry authenticates with Azure-issued API keys or Entra ID tokens, both on Azure-hosted endpoints, not Claude Console keys."
+      },
+      {
+        "id": "c",
+        "text": "Enable Microsoft Entra ID authentication and send Entra ID tokens",
+        "reason": "Correct: Entra ID lets you manage access with Azure RBAC, integrate your organization's identity management, and avoid handling API keys manually."
+      },
+      {
+        "id": "d",
+        "text": "Put the resource in a private network so requests need no authentication",
+        "reason": "A private network restricts network access to the resource. Requests still authenticate with an API key or an Entra ID token."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "On a cloud platform, use the cloud's own identity: on Foundry that's **Entra ID** with Azure RBAC rather than shared keys.",
+    "explanation": "The Foundry guide offers two authentication methods: Azure-issued API keys and Microsoft Entra ID tokens. Entra ID is the one that manages access with Azure RBAC, ties into the organization's identity management, and avoids handling keys manually. Choice d is tempting because a private network is a real security control, but it limits where requests can come from, not who is making them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-microsoft-foundry",
+      "title": "Claude in Microsoft Foundry",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types",
+      "c-anthropic-api-key-env"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-aws-security-boundary",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Claude in Amazon Bedrock",
+    "stem": "A company that runs on AWS wants Claude for a sensitive internal app. Its security team wants inference inside the AWS security boundary on AWS-managed infrastructure, with AWS-native authentication and billing. Which option fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The first-party Claude API, using a service account key kept in AWS",
+        "reason": "Storing the key in AWS doesn't move inference there. The first-party API is Anthropic's own service, not AWS-managed infrastructure."
+      },
+      {
+        "id": "b",
+        "text": "Claude in Amazon Bedrock, which runs on AWS-managed infrastructure",
+        "reason": "Correct: Bedrock runs on AWS-managed infrastructure with zero operator access, so sensitive apps can be built entirely inside the AWS security boundary."
+      },
+      {
+        "id": "c",
+        "text": "Any option billed through AWS, since AWS billing means AWS runs inference",
+        "reason": "Billing doesn't tell you who runs inference. The page itself points to an Anthropic-operated option on AWS that also bills through AWS Marketplace."
+      },
+      {
+        "id": "d",
+        "text": "Google Cloud's Agent Platform, called from the company's AWS services",
+        "reason": "That sends inference to Google's infrastructure, outside the AWS security boundary the team wants to stay inside."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "On AWS, ask who **operates** inference, not who sends the bill: Bedrock keeps it on AWS-managed infrastructure inside the AWS security boundary.",
+    "explanation": "The Bedrock guide says Claude in Amazon Bedrock runs on AWS-managed infrastructure with zero operator access, so sensitive apps can be built entirely inside the AWS security boundary. The deciding detail is that the security team cares where inference runs, not just where the bill lands. Choice c is tempting because AWS billing sounds like AWS infrastructure, but an option can bill through AWS while someone else operates its inference.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-alias-moved-under-you",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model pinning",
+    "stem": "Your team's shared Claude Code setup selects the `opus` alias. After a routine Claude Code update, reviewers notice the model's style has changed, though nobody touched the team's configuration. What explains this, and what's the fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A pinned model was quietly retrained, so the team should report it as a bug",
+        "reason": "Nothing here was pinned. The setup used an alias, and the page says aliases update over time while a full model name stays on one version."
+      },
+      {
+        "id": "b",
+        "text": "The update corrupted the configuration, so reinstall the previous release",
+        "reason": "The configuration is working as written: it asks for the alias, and the alias now resolves to a newer recommended version."
+      },
+      {
+        "id": "c",
+        "text": "Model behavior drifts at random, so the only option is to re-test monthly",
+        "reason": "The change has a clear cause: the alias moved to a new version. A full model name keeps the version fixed until you change it."
+      },
+      {
+        "id": "d",
+        "text": "The alias now points to a newer version; pin a full model name instead",
+        "reason": "Correct: aliases point to the recommended version for your provider and update over time. To stay on one version, use the full model name, such as `claude-opus-5-5`."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An alias is a moving pointer. When you need to choose when the model changes, pin a full model name.",
+    "explanation": "Aliases such as `opus` point to the recommended version and update over time, so a tool update can move them with no change to your config. The deciding detail is that the setup used an alias, not a full model name. Choice a is tempting because the behavior did change, but nothing was pinned: a full model name would have stayed on the same version until the team changed it.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "An alias follows new releases; a full model name stays put until you change it.",
+      "steps": [
+        {
+          "label": "Alias in config",
+          "sublabel": "opus"
+        },
+        {
+          "label": "New version released"
+        },
+        {
+          "label": "Alias resolves to it"
+        },
+        {
+          "label": "Behavior changes",
+          "sublabel": "no config change"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/model-config",
+      "title": "Model configuration",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-alias",
+      "c-model-snapshot-id"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-verify-features-first",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Feature availability",
+    "stem": "An architect's working design on the Claude API relies on batch processing, a server-side tool and file uploads. The customer is AWS-native, so the workload will move to an AWS platform. The team assumes everything carries over because the model is the same. What should happen before the design is committed?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check each feature the design uses against that platform's availability",
+        "reason": "Correct: the features overview lists, for each feature, the platforms that offer it, so the same model can come with a different feature set on each platform."
+      },
+      {
+        "id": "b",
+        "text": "Nothing, because a platform serving the same model offers the same features",
+        "reason": "The overview lists availability per feature and per platform, and many features appear on only some of the platforms."
+      },
+      {
+        "id": "c",
+        "text": "Launch on the new platform and fix missing features as users report errors",
+        "reason": "Availability is documented up front in the features overview, so there's no reason to discover a gap in production."
+      },
+      {
+        "id": "d",
+        "text": "Pick the AWS option with the lowest token price, then adapt the design to it",
+        "reason": "Price doesn't tell you whether the design's features exist there. The availability list does, and this design depends on several features."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Same model doesn't mean same features: verify every feature your design depends on, on the exact platform, before you commit.",
+    "explanation": "Anthropic's features overview lists, for each feature, the platforms that offer it, with a label where a feature is still in beta there. The deciding detail is that the design relies on several specific features and the team is assuming they all carry over. Choice b is tempting because the model really is the same, but availability belongs to the platform, so each dependency has to be checked.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/overview",
+      "title": "Features overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-eu-residency-routing",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Data residency",
+    "stem": "A European bank's regulator requires model inference to stay inside the EU. The bank runs on Google Cloud and wants as much availability as the rule allows. A developer proposes the global endpoint because it's the recommended default. What's the right call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use the global endpoint, since the most available option is always the best",
+        "reason": "Global endpoints route to any region with capacity. The guide recommends them where data residency is flexible, and here it isn't."
+      },
+      {
+        "id": "b",
+        "text": "Use the global endpoint and keep the bank's request logs in an EU region",
+        "reason": "Where logs are stored doesn't control where inference runs. The rule is about inference, so the routing itself has to stay in the EU."
+      },
+      {
+        "id": "c",
+        "text": "Route only within the EU, using several EU regions for availability",
+        "reason": "Correct: multi-region endpoints route within a geography such as the EU, giving data residency there with higher availability than a single region."
+      },
+      {
+        "id": "d",
+        "text": "Choose a model version built in Europe, since the model decides where it runs",
+        "reason": "The model ID names the model. On Google Cloud, the endpoint you call decides where requests are routed."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Meet the residency rule first, then get availability inside it: route only where the data is allowed to go.",
+    "explanation": "Global routing gives the most availability but can run anywhere, so it suits apps whose residency is flexible. The deciding detail is the regulator's EU-only rule. Choice a is tempting because global is the recommended default, but a hard residency requirement overrides it; routing across several EU regions keeps the rule and still adds availability.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Satisfy the residency rule first, then add availability inside it.",
+      "steps": [
+        {
+          "label": "Residency rule",
+          "sublabel": "EU only"
+        },
+        {
+          "label": "Routing that stays in the EU"
+        },
+        {
+          "label": "Several EU regions",
+          "sublabel": "for availability"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai",
+      "title": "Claude on Google Cloud",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-scoped-cloud-role",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Platform identity",
+    "stem": "Your service will call Claude in Amazon Bedrock from the customer's AWS account. The security team asks how the service should get access. Which setup fits the platform's guidance best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An IAM role limited to the Claude models it needs, with temporary credentials",
+        "reason": "Correct: the page describes an IAM role scoped to your Claude models, granting access only on the allowed models, with temporary credentials issued by AWS STS."
+      },
+      {
+        "id": "b",
+        "text": "Long-term AWS access keys pasted into the service's configuration file",
+        "reason": "Long-lived static keys are what the page steers away from: it even shows how to block long-term keys in favor of short-term ones."
+      },
+      {
+        "id": "c",
+        "text": "An administrator role over all of Bedrock, to avoid permission errors later",
+        "reason": "That grants far more than the service needs. The page scopes the role's permissions to only the allowed Claude models."
+      },
+      {
+        "id": "d",
+        "text": "One developer's personal AWS credentials, shared with the service",
+        "reason": "That ties a production service to one person's identity. The page's paths are a Bedrock service role, an IAM role or short-term tokens."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Use the platform's own identity with least privilege: a role scoped to the models the service needs, with short-lived credentials.",
+    "explanation": "On Amazon Bedrock, access runs through AWS identity: a Bedrock service role, or an IAM role scoped to the allowed Claude models with temporary credentials. The deciding detail is that the service lives in the customer's AWS account, so it should use that account's identity controls. Choice c is tempting because it avoids access errors, but it grants far more than the service needs.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-gcp-native-start",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Deployment platforms",
+    "stem": "A retailer runs on Google Cloud: its developers sign in with Google identities, its spend is tracked in GCP Billing and its audit logs live there. A consultant who knows the first-party API best suggests using it for the retailer's Claude Code rollout. Which option should you start from?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The first-party Claude API, since the consultant already knows it well",
+        "reason": "Familiarity isn't the deciding factor. It leaves sign-in, billing and audit outside the GCP tools the retailer already runs."
+      },
+      {
+        "id": "b",
+        "text": "Amazon Bedrock, since it is the option built for large enterprises",
+        "reason": "The deployment guide lists Bedrock as best for AWS-native deployments, billed through AWS."
+      },
+      {
+        "id": "c",
+        "text": "Microsoft Foundry, since its Entra ID sign-in suits any organization",
+        "reason": "Foundry is listed for Azure-native deployments, billed through Azure. This retailer's identity and billing are on GCP."
+      },
+      {
+        "id": "d",
+        "text": "Google Cloud's Agent Platform, billed through GCP with GCP credentials",
+        "reason": "Correct: the guide lists Agent Platform as best for GCP-native deployments, billed through GCP, with GCP credentials, IAM roles and Cloud Audit Logs."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Start from the customer's cloud, not your team's habits: that's where its identity, billing and audit tools already live.",
+    "explanation": "The enterprise deployment guide matches each cloud option to a customer: Bedrock for AWS-native, Agent Platform for GCP-native, Foundry for Azure-native. The deciding detail is that the retailer's identity, billing and audit logs all live on Google Cloud. Choice a is tempting because the consultant is productive there, but it would leave the retailer's existing GCP sign-in, billing and audit tools out of the picture.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/third-party-integrations",
+      "title": "Enterprise deployment overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-residency-two-clients",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Data residency",
+    "stem": "Your consultancy ships one app to two clients: one calls the first-party Claude API, the other Amazon Bedrock. Both require US-only inference. Which two statements are correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Setting US-only once in the shared code covers both, since every platform reads it alike",
+        "reason": "Platforms set residency in different places. On Bedrock the endpoint or inference profile decides, so a Claude API request setting doesn't apply there."
+      },
+      {
+        "id": "b",
+        "text": "Each platform needs its own residency setting, so confirm and configure it on both",
+        "reason": "Correct: on the Claude API a request setting or workspace default controls the inference geo; on Bedrock the endpoint or inference profile you call decides the region."
+      },
+      {
+        "id": "c",
+        "text": "The model ID decides where inference runs, so both clients pick a US-only model",
+        "reason": "The model ID names the model. Where inference runs is set by each platform's own residency control."
+      },
+      {
+        "id": "d",
+        "text": "Global routing meets the rule, since a US request is usually served nearby",
+        "reason": "Global routing may run inference in any available geography. Only a US-only setting guarantees US-based infrastructure."
+      },
+      {
+        "id": "e",
+        "text": "Where inference runs and where data is stored at rest are separate settings",
+        "reason": "Correct: the data residency page describes two independent controls, inference geo for where inference runs and workspace geo for where data is stored at rest."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Meet a residency rule on each platform with that platform's own control, and check storage separately from where inference runs.",
+    "explanation": "Residency is a requirement you meet per platform: the Claude API uses a request setting or workspace default, while Bedrock decides by the endpoint or inference profile. Where inference runs and where data rests are also separate controls. Choice a is tempting because shared code feels uniform, but a Claude API request setting doesn't apply on Bedrock, where the endpoint decides.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+      "title": "Data residency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-operate-in-customer-cloud",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Deployment platforms",
+    "stem": "Claude Code now runs for 200 engineers through Amazon Bedrock in the customer's AWS account. Finance wants the spend in the same view as the rest of its AWS costs, and security wants an audit trail. Where should both come from?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A shared spreadsheet where each engineer logs their weekly Claude usage",
+        "reason": "Self-reported usage is neither complete nor auditable, and the account's own tools already record it."
+      },
+      {
+        "id": "b",
+        "text": "The AWS account's own tools, such as Cost Explorer and CloudTrail",
+        "reason": "Correct: the deployment guide lists AWS Cost Explorer for cost tracking, and IAM policies with CloudTrail as the enterprise features of a Bedrock deployment."
+      },
+      {
+        "id": "c",
+        "text": "The Anthropic Console's usage dashboard, which reports every platform",
+        "reason": "The guide lists the usage dashboard for Anthropic's own options. For Bedrock, cost tracking is AWS Cost Explorer."
+      },
+      {
+        "id": "d",
+        "text": "Nowhere, since cloud deployments don't record usage; estimate it per seat",
+        "reason": "They do record it: the guide lists AWS Cost Explorer for cost and CloudTrail among the enterprise features of a Bedrock deployment."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Operate on the customer's cloud with that cloud's tools: its cost tracking and audit logs already cover the deployment.",
+    "explanation": "When Claude runs through the customer's cloud, usage is billed and logged in that account, so the customer's existing tools already see it. The guide lists AWS Cost Explorer and CloudTrail for Bedrock. Choice c is tempting because the Console does have a usage dashboard, but the guide lists it for Anthropic's own options, not for a Bedrock deployment.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/third-party-integrations",
+      "title": "Enterprise deployment overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5deploy-no-cloud-anchor",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Deployment platforms",
+    "stem": "A 40-person startup has no cloud provider yet. It wants Claude Code for its engineers with single sign-on, central billing and no infrastructure to set up. Which deployment option fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude for Teams, a subscription with SSO and centralized billing",
+        "reason": "Correct: the guide says Claude for Teams or Enterprise gives most organizations the best experience, and Teams is self-service with SSO, billing management and no infrastructure setup."
+      },
+      {
+        "id": "b",
+        "text": "Amazon Bedrock, since a cloud platform is the more enterprise choice",
+        "reason": "Bedrock is the fit for AWS-native deployments. With no AWS estate, it adds the infrastructure setup the startup wants to avoid."
+      },
+      {
+        "id": "c",
+        "text": "Individual Console API keys, one per engineer, each paid separately",
+        "reason": "The Console is listed for individual developers with no enterprise features, so there is no SSO or central management."
+      },
+      {
+        "id": "d",
+        "text": "Microsoft Foundry, since Entra ID gives every team single sign-on",
+        "reason": "Foundry is the fit for Azure-native deployments. Adopting Azure just for sign-in adds the infrastructure the startup wants to skip."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "With no existing cloud to anchor the choice, the guide's default for most organizations, Claude for Teams or Enterprise, is the simplest fit.",
+    "explanation": "The customer's cloud usually decides the platform, but this startup has none. The guide says Claude for Teams or Enterprise gives most organizations the best experience, and Teams is self-service with SSO, billing management and no infrastructure to set up. Choice b is tempting because cloud platforms sound enterprise-ready, but Bedrock fits AWS-native deployments, and this team has no AWS estate to build on.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/third-party-integrations",
+      "title": "Enterprise deployment overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-s5pack-which-values-become-parameters",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Accelerator parameters",
+    "stem": "You're turning a claims-triage agent built for one insurer into an accelerator for future clients. Which two parts should become parameters that each new client sets, rather than staying fixed in the package?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The insurer's claims database connection URL",
+        "reason": "Correct: a handle to a backing resource such as a database is config. Config varies between deploys and code does not, so it's kept separate from the code."
+      },
+      {
+        "id": "b",
+        "text": "The order of the triage steps the agent follows",
+        "reason": "The workflow is the reusable core that every client starts from. It's code, which stays the same across deploys; only config varies."
+      },
+      {
+        "id": "c",
+        "text": "The retry logic that handles failed tool calls",
+        "reason": "Retry handling is generic engineering that every deploy shares, so it belongs in the reusable code rather than in per-client settings."
+      },
+      {
+        "id": "d",
+        "text": "The insurer's credentials for its document service",
+        "reason": "Correct: credentials for external services are config that changes per deploy, and they must stay out of the code."
+      },
+      {
+        "id": "e",
+        "text": "The tool definitions the agent uses to look up claims",
+        "reason": "The tool interface is the same for every deploy. Only the service it points at changes per client, and that address is the parameter."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Config varies between deploys and code doesn't: connection handles and credentials become parameters, and the workflow stays in the package.",
+    "explanation": "An accelerator keeps the reusable parts and exposes the customer-specific ones as parameters. The Twelve-Factor test is whether a value varies between deploys, and the insurer's database URL (a) and its credentials (d) do. The triage workflow (b) is the tempting wrong pick because a client might want tweaks, but it's the reusable core the next engagement should start from.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "The shared code travels as it is; the per-client values become parameters.",
+      "segments": [
+        {
+          "label": "Reusable code",
+          "sublabel": "workflow, tools, retries",
+          "weight": 3,
+          "tone": "success"
+        },
+        {
+          "label": "Parameters",
+          "sublabel": "URLs, credentials",
+          "weight": 1,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://12factor.net/config",
+      "title": "The Twelve-Factor App: III. Config",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-ship-eval-suite",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval suites",
+    "stem": "You're handing a code-review plugin accelerator to another team. They'll customize its configuration now and move to a newer Claude model later. What gives them the best way to confirm it still behaves as intended after each change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A report of your final eval scores, so they know what good looks like",
+        "reason": "A past score can't be rerun on their configuration or on a new model. They need the cases and graders themselves."
+      },
+      {
+        "id": "b",
+        "text": "A schema check of the plugin's files, run after every change",
+        "reason": "A schema check finds syntax and schema errors in the files, not behavior. Evals measure how reliably the plugin leads Claude to the right outcome."
+      },
+      {
+        "id": "c",
+        "text": "Unit tests for the plugin's helper scripts, run in their CI",
+        "reason": "Script tests don't exercise Claude at all. An eval case is a realistic prompt graded on what Claude produced."
+      },
+      {
+        "id": "d",
+        "text": "The eval suite itself, with its cases and graders, inside the plugin",
+        "reason": "Correct: a plugin can keep its eval suite in an `evals/` directory, and evals catch regressions when the plugin changes or a new model is released."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Ship the **eval suite**, not just your scores: the next team reruns it after every config change and model upgrade.",
+    "explanation": "Plugin evals exist to measure how reliably a plugin leads Claude to the right outcome and to catch regressions when the plugin changes or a new model ships. Only the suite itself can be rerun on the new team's configuration. Choice b is tempting because it runs on every change, but it checks the files' syntax, not what Claude does with them.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The shipped suite turns every change into something the next team can check.",
+      "steps": [
+        {
+          "label": "Change",
+          "sublabel": "config or model"
+        },
+        {
+          "label": "Rerun eval suite",
+          "sublabel": "same cases, graders"
+        },
+        {
+          "label": "Compare scores"
+        },
+        {
+          "label": "Ship or fix"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugin-evals",
+      "title": "Test plugins with evals",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-eval-mock-mcp",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval suites",
+    "stem": "Your accelerator plugin's skills call a ticketing system through an MCP server. The next customer wants the plugin's eval suite running in CI from day one, but won't grant access to their ticketing system for several weeks. How can the suite still run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Point the eval cases at the first customer's ticketing system for now",
+        "reason": "That sends one customer's test traffic into another customer's live system. Mocks let the suite run without any real service behind it."
+      },
+      {
+        "id": "b",
+        "text": "Mock the MCP tools, so cases run without the real service",
+        "reason": "Correct: a mock file per tool answers in place of the real server, and eval runs don't start the plugin's real MCP servers unless you ask."
+      },
+      {
+        "id": "c",
+        "text": "Run only a schema check of the plugin until access is granted",
+        "reason": "A schema check finds file errors, not behavior problems, so weeks of changes would go unmeasured. Mocks let the evals run now."
+      },
+      {
+        "id": "d",
+        "text": "Delete the cases that use the MCP server, since CI can't run them",
+        "reason": "Those cases test the plugin's main job. Mocking the tools keeps them in the suite."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "An eval suite that ships with an accelerator can **mock** the MCP tools it calls, so it runs before the customer's real systems are connected.",
+    "explanation": "Plugin evals can test skills that call MCP tools without the real service behind them: mock files stand in for each tool, and the real servers aren't started. That lets the suite run in CI before the new customer connects anything. Choice c is tempting because it still checks something, but schema validation can't tell you whether Claude handles tickets correctly.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugin-evals",
+      "title": "Test plugins with evals",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-document-dependencies",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Documenting assumptions",
+    "stem": "A skill from your accelerator worked at the first customer. At the next one it runs through the Claude API and fails, because a package it uses isn't available there. What should the package's documentation have included?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A longer skill description, so Claude chooses the skill more often",
+        "reason": "The description decides when Claude picks the skill. It doesn't change which packages exist where the skill runs."
+      },
+      {
+        "id": "b",
+        "text": "Sample outputs the skill produced for the first customer",
+        "reason": "Examples show the style and detail you want, but they don't tell the next team the skill depends on a package their environment may lack."
+      },
+      {
+        "id": "c",
+        "text": "The packages it needs, checked against the environments it runs in",
+        "reason": "Correct: list required packages and verify they're available. On the Claude API, skills have no network access and no runtime package installation."
+      },
+      {
+        "id": "d",
+        "text": "A note that the usual packages can be assumed, as at the first site",
+        "reason": "The guide says the opposite: don't assume packages are available, and be explicit about dependencies."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Document what the build **assumes** about its environment, starting with required packages, and check them where it will run.",
+    "explanation": "Code that worked in one environment carries assumptions about that environment. Anthropic's skill guide says to list required packages and verify they're available, because environments differ, and the Claude API offers no network access or runtime package installation. Choice d is tempting because it worked last time, but an unstated assumption is exactly what broke here.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-justify-constants",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Documenting assumptions",
+    "stem": "Your accelerator's routing script contains `CONFIDENCE_THRESHOLD = 0.82` with no comment. The next team can't tell whether it's safe to change for their data. What should the package have done?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Explain in a comment why the value was chosen and what it protects",
+        "reason": "Correct: configuration parameters should be justified and documented, so there are no \"voodoo constants\" whose reason nobody knows."
+      },
+      {
+        "id": "b",
+        "text": "Remove the threshold and let Claude pick a cutoff on each request",
+        "reason": "The guide asks: if you don't know the right value, how will Claude determine it? Removing the number doesn't answer that."
+      },
+      {
+        "id": "c",
+        "text": "Move the number to a separate file that only maintainers can edit",
+        "reason": "Moving a value doesn't explain it. The next team still can't tell whether 0.82 suits their data."
+      },
+      {
+        "id": "d",
+        "text": "Round it to 0.8, so it looks like an obvious standard choice",
+        "reason": "A rounder number is still unexplained. The point is that every value is justified, not that it looks tidy."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every value in a reusable package needs a stated reason; an unexplained constant can't be safely changed by the next team.",
+    "explanation": "Anthropic's skill guide warns against \"voodoo constants\": configuration values should be justified and documented. A team reusing the build needs to know what 0.82 protects before tuning it for their data. Choice b is tempting because it removes the mystery number, but if the authors didn't know the right value, Claude can't determine it either.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-record-model-assumptions",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Documenting assumptions",
+    "stem": "Your agent's harness includes a workaround for how the current model behaves as its context fills up. You're packaging the build for teams that may run it on later models. How should the package treat that workaround?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delete it, since later models will probably make it unnecessary",
+        "reason": "You don't know that yet, and on the model you built with it fixes a real behavior. Record it so the next team can test whether it's still needed."
+      },
+      {
+        "id": "b",
+        "text": "Keep it without comment, since safeguards like this never lose value",
+        "reason": "Anthropic found a similar context-reset fix had become dead weight once a newer model no longer showed the behavior."
+      },
+      {
+        "id": "c",
+        "text": "Pin every future deployment to the model you built with, so it stays valid",
+        "reason": "Freezing the model to protect one workaround gives up improvements. The lesson is to question such assumptions as models improve."
+      },
+      {
+        "id": "d",
+        "text": "Document it as an assumption about the model, so later teams re-check it",
+        "reason": "Correct: harnesses encode assumptions about what Claude can't do on its own, and those assumptions can go stale as models improve."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Write down what the build assumes about the model: those assumptions can go stale, and the next team needs to know to re-check them.",
+    "explanation": "Anthropic notes that harnesses encode assumptions about what Claude can't do, and that these need questioning because they go stale as models improve. A documented workaround is something the next team can test on their model. Choice a is tempting because it anticipates that staleness, but it removes a fix the current model still needs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/managed-agents",
+      "title": "Scaling Managed Agents: Decoupling the brain from the hands",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-managed-agents"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-bundle-audit-hook",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Audit logging",
+    "stem": "The first customer's compliance team required a log of every shell command the agent ran. You did it with a hook in your personal Claude Code user settings. Now you're packaging the build as a plugin for the next engagement. How should the audit logging travel?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a line to the skill telling Claude to log each command it runs",
+        "reason": "An instruction relies on Claude choosing to log. Hooks give deterministic control: the logging always happens."
+      },
+      {
+        "id": "b",
+        "text": "Move the logging hook into the plugin's hooks file, so it ships with it",
+        "reason": "Correct: a plugin's hooks are bundled with it and active whenever it's enabled, and a `PostToolUse` hook on `Bash` can log each command that ran."
+      },
+      {
+        "id": "c",
+        "text": "Leave it in your user settings and remind each new team to copy it",
+        "reason": "User settings are local to your machine and aren't shared. Each reuse starts with no record until someone remembers to copy the hook."
+      },
+      {
+        "id": "d",
+        "text": "Drop it from the package, since each customer sets its own audit rules",
+        "reason": "Then each reuse starts with no record of what the agent ran. Shipping the hook keeps logging on from the first session."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Bundle the audit logging with the asset: a hook in the plugin travels with it, while one in your user settings stays on your machine.",
+    "explanation": "The course says to bundle the audit log as part of the package. In Claude Code, a plugin's hooks file is bundled with the plugin and runs whenever it's enabled, and hooks run deterministically rather than when Claude decides to. Choice c is tempting because the hook already works, but user settings are local to your machine, so the logging never reaches the next team.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-package-while-fresh",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Accelerator timing",
+    "stem": "Your team just finished a successful engagement. A colleague suggests waiting to package the build for reuse until a second customer asks for something similar. What does good practice suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Wait for the second customer, so you know which parts really repeat",
+        "reason": "By then the context you supplied during the build may be hard to recall. The guide captures the reusable pattern right after completing the task."
+      },
+      {
+        "id": "b",
+        "text": "Write a fully generic version first, before looking back at the build",
+        "reason": "A generic design anticipates requirements that may never materialize. Start from what the working build actually needed."
+      },
+      {
+        "id": "c",
+        "text": "Package it now, while you still know what context and choices you supplied",
+        "reason": "Correct: after completing a task, identify the context you provided that would be useful for similar future tasks, and capture it."
+      },
+      {
+        "id": "d",
+        "text": "Archive the repository as it is, and let the next team decide what to reuse",
+        "reason": "The step is for the people who did the work: they know what context they provided. An unsorted repo leaves that to people who don't."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "**Package while the build is fresh**: right after the work, you still remember which context and choices were specific to this customer.",
+    "explanation": "Anthropic's skill guide describes the same move as packaging an accelerator: complete the task, then identify which of the context you provided would help with similar tasks. That's easiest straight after the work. Choice a is tempting because a second request proves demand, but by then the details of what was customer-specific have faded.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-what-ships-with-skill",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Documenting assumptions",
+    "stem": "Before sharing a skill from your accelerator with other teams, you check what should ship alongside its instructions and scripts. Which two belong in the package?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Notes such as \"before August, use the old API; after that, the new one\"",
+        "reason": "Time-sensitive notes become wrong. The guide moves legacy details into an \"old patterns\" section instead."
+      },
+      {
+        "id": "b",
+        "text": "Evaluations of the gaps it fills, compared with a baseline run without it",
+        "reason": "Correct: the guide's checklist asks for at least three evaluations, and its method measures Claude without the skill first as a baseline."
+      },
+      {
+        "id": "c",
+        "text": "Constants left unexplained, so each team can tune them freely",
+        "reason": "The checklist rules out \"voodoo constants\": every value should be justified."
+      },
+      {
+        "id": "d",
+        "text": "Which models it was tested with, since results depend on the model",
+        "reason": "Correct: a skill's effectiveness depends on the underlying model, so the guide says to test with every model you plan to use."
+      },
+      {
+        "id": "e",
+        "text": "A note that it needs no more testing, since it worked at the first site",
+        "reason": "The checklist includes testing with real usage scenarios and with the models you plan to use. One site's success doesn't cover the next."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "A shareable skill ships with its **evaluations** and a record of the **models it was tested on**, not just its instructions.",
+    "explanation": "Anthropic's checklist for sharing a skill goes beyond the instructions: evaluations built against a no-skill baseline (b) and testing across the models you plan to use (d). Both let the next team check the skill in their own setting. Choice e is tempting because the skill already worked once, but one customer's success says nothing about the next customer's models or data.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+      "title": "Skill authoring best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-accelerator-packaging"
+  },
+  {
+    "id": "q-s5pack-secret-no-default",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "config-management",
+    "topic": "Accelerator parameters",
+    "stem": "Your accelerator calls each customer's document service with an API key. During the first build you kept that customer's key in the code so the demo would run. How should the packaged version handle the key?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the first customer's key as the default, so the package runs right after install",
+        "reason": "Every new customer would run on someone else's credential, and the key would travel to everyone who gets the package. Defaults are for shared values, not secrets."
+      },
+      {
+        "id": "b",
+        "text": "Leave the key in the code, and ask each new customer to replace it before go-live",
+        "reason": "Credentials are config, which varies between deploys and is kept strictly separate from code. A key left in the code reaches everyone who receives the package."
+      },
+      {
+        "id": "c",
+        "text": "Make it a required parameter with no default, so each customer brings their own",
+        "reason": "Correct: credentials to external services are config that varies per deploy. Kept out of the code, the package could be shared without exposing anyone's credentials."
+      },
+      {
+        "id": "d",
+        "text": "Put the first customer's key in the README example, so new teams can see the format",
+        "reason": "The README ships with the package too, so the key is exposed just the same. Every file in the package reaches every team that receives it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A secret is a parameter with **no default**: each customer supplies their own, and it never ships in the package.",
+    "explanation": "Credentials are config: they vary between deploys and are kept strictly separate from code. The Twelve-Factor test is whether the codebase could be made public without compromising any credentials, and only c passes it. Choice a is tempting because a default makes the first run work, but defaults are for values customers share, not for one customer's secret.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://12factor.net/config",
+      "title": "The Twelve-Factor App: III. Config",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env"
+    ]
+  },
+  {
+    "id": "q-s5pack-documented-default",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "config-management",
+    "topic": "Accelerator parameters",
+    "stem": "Your accelerator calls a reporting API. Most customers use the vendor's standard endpoint, but a few run their own. How should the package expose the endpoint?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As a parameter with a description, defaulting to the standard endpoint",
+        "reason": "Correct: the description tells users what the value is for, and the default is used when they provide nothing, so most customers have nothing to set."
+      },
+      {
+        "id": "b",
+        "text": "As a required parameter with no default, so every customer types one in",
+        "reason": "A required value can't be left empty, so the many customers on the standard endpoint would all have to type it. A default covers them."
+      },
+      {
+        "id": "c",
+        "text": "Hard-coded to the standard endpoint, with a fork for customers who run their own",
+        "reason": "A fork per customer bakes customer-specific values back into code and multiplies the copies to maintain. One parameter serves both groups."
+      },
+      {
+        "id": "d",
+        "text": "As an undocumented setting, since its name already says what it is",
+        "reason": "A name says what a value is called, not what it's for or what happens if it's left alone. The description is the help text users see."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A customer-specific value becomes a parameter with a **description** and, when one value suits most customers, a **default**.",
+    "explanation": "An accelerator exposes what varies per customer as parameters with documented defaults. The description tells the next team what the value controls, and the default means the common case needs no setup. Choice b is tempting because it forces a deliberate choice, but it makes most customers type the standard endpoint by hand.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins-reference",
+      "title": "Plugin manifest reference",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ]
+  },
+  {
+    "id": "q-s5pack-agent-template-shared",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "config-management",
+    "topic": "Agent templates",
+    "stem": "Your team tuned an agent setup (model, system prompt, tools and skills) that every new engagement should start from. Each customer also needs a few settings of their own. How should you package it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As a wiki page with the system prompt, for each team to copy into its own agent",
+        "reason": "Copies drift apart, and nothing records which version a team started from. A template is one versioned configuration everyone references."
+      },
+      {
+        "id": "b",
+        "text": "As the first customer's full repository, so new teams see a working example",
+        "reason": "That ships the first customer's specific parts along with the reusable ones. Packaging means separating those out."
+      },
+      {
+        "id": "c",
+        "text": "As an eval suite, since its cases already describe what the agent should do",
+        "reason": "An eval suite checks behavior; it doesn't define the agent's model, prompt and tools. It ships alongside the template, not instead of it."
+      },
+      {
+        "id": "d",
+        "text": "As an agent template: one versioned config, customer settings kept apart",
+        "reason": "Correct: an agent can be a reusable, versioned configuration of model, system prompt, tools, MCP servers and skills, and a single session can override parts of it without changing the agent."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An **agent template** is one versioned configuration every engagement starts from; customer-specific settings stay outside it.",
+    "explanation": "Asset types package differently, and a setup every engagement should start from is an agent template. On Managed Agents, an agent is a reusable, versioned configuration referenced by ID, and a session can override parts of it without changing the agent. Choice b is tempting because a working example feels complete, but it carries the first customer's specifics into every new engagement.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Every engagement starts from the same template and adds only its own settings.",
+      "steps": [
+        {
+          "label": "Agent template",
+          "sublabel": "versioned, shared"
+        },
+        {
+          "label": "Customer settings",
+          "sublabel": "per engagement"
+        },
+        {
+          "label": "Session",
+          "sublabel": "template plus settings"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/agent-setup",
+      "title": "Define your agent",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-managed-agents"
+    ]
+  },
+  {
+    "id": "q-s5pack-mcp-package-contents",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "config-management",
+    "topic": "MCP server packages",
+    "stem": "Your MCP server will be installed by teams you'll never meet, on their own machines, and many of their users aren't developers. Which two things should the server's package include?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Your own API token as a default setting, so the first run succeeds",
+        "reason": "Every installer would run on your credential. An API key is a value each user supplies, and the bundle format keeps it in the OS keychain."
+      },
+      {
+        "id": "b",
+        "text": "Setup steps for installing the runtime and dependencies from a terminal",
+        "reason": "Developer tools, hand-edited config and dependency problems are the friction that kept MCP servers out of reach for non-technical users."
+      },
+      {
+        "id": "c",
+        "text": "The server together with its dependencies, in one installable archive",
+        "reason": "Correct: an MCP Bundle is a zip archive holding the local server with its dependencies, so users install it without setting anything up first."
+      },
+      {
+        "id": "d",
+        "text": "The first customer's settings, so new teams can start from working values",
+        "reason": "Customer-specific values are what packaging separates out. The package declares the settings each installer supplies instead."
+      },
+      {
+        "id": "e",
+        "text": "A manifest declaring the settings it needs and the platforms it runs on",
+        "reason": "Correct: the manifest declares the user configuration the server needs and, optionally, its compatibility, such as supported platforms and runtimes."
+      }
+    ],
+    "answer": [
+      "c",
+      "e"
+    ],
+    "takeaway": "An **MCP server package** carries the server with its dependencies, plus a manifest of what it needs and where it runs.",
+    "explanation": "A server that strangers install has to bring what it needs and say what it expects. The bundle format packs the server with its dependencies (c) and a manifest declaring its configuration and compatibility (e). Choice b is tempting because good instructions feel thorough, but terminals, runtimes and dependency conflicts are exactly the friction the package removes.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/desktop-extensions",
+      "title": "Claude Desktop Extensions: One-click MCP server installation for Claude Desktop",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ]
+  },
+  {
+    "id": "q-s5pack-what-not-to-parameterize",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "config-management",
+    "topic": "Accelerator parameters",
+    "stem": "While packaging an accelerator, a colleague proposes making everything a parameter, including the order of the workflow steps and how the modules connect, so customers can change anything. What is the problem with that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "None: the more parameters a package has, the more reusable it becomes",
+        "reason": "Config is what varies between deploys. A value that is the same for every customer is part of the reusable code, and making it a setting adds nothing to reuse."
+      },
+      {
+        "id": "b",
+        "text": "Values the same for every customer belong in code, not in settings",
+        "reason": "Correct: config is what varies between deploys. Internal configuration, such as how modules connect, doesn't vary, so it's best kept in the code."
+      },
+      {
+        "id": "c",
+        "text": "Parameters can hold only credentials and URLs, never workflow choices",
+        "reason": "Any value that really varies between deploys can be a parameter, thresholds included. The issue is parameterizing what stays the same."
+      },
+      {
+        "id": "d",
+        "text": "Parameters are fixed at install time, so customers could never change them",
+        "reason": "Nothing about parameters prevents later changes. The issue is that the workflow is the reusable core every customer should share."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Parameterize what **varies between customers**; keep the reusable core, such as the workflow, in the code.",
+    "explanation": "An accelerator keeps the reusable parts and exposes only the customer-specific ones. The Twelve-Factor App draws the same line: internal application config that doesn't vary between deploys is best done in the code. Choice a is tempting because flexibility sounds like reuse, but a setting every customer leaves the same isn't customer-specific at all.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://12factor.net/config",
+      "title": "The Twelve-Factor App: III. Config",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env"
+    ]
+  },
+  {
+    "id": "q-s5pack-eval-suite-owner",
+    "domainId": "apps-integration",
+    "lessonId": "l-course-accelerator-packaging",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval suites",
+    "stem": "You handed an accelerator and its eval suite to another team. Six months later the suite still passes, but its cases no longer resemble how customers use the agent, and nobody has touched it since the handover. What did the handover miss?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A named owner who keeps the suite current as the agent's use changes",
+        "reason": "Correct: Anthropic calls an eval suite a living artifact that needs ongoing attention and clear ownership to remain useful."
+      },
+      {
+        "id": "b",
+        "text": "A higher pass threshold, so the suite fails sooner when quality slips",
+        "reason": "A stricter bar on outdated cases still measures the wrong tasks. The cases themselves need updating."
+      },
+      {
+        "id": "c",
+        "text": "Your final scores, so the new team knows what good results looked like",
+        "reason": "Past scores describe the old cases. They don't make the suite reflect how customers use the agent now."
+      },
+      {
+        "id": "d",
+        "text": "A promise that the suite won't need any changes after the handover",
+        "reason": "That is the assumption that failed. A suite needs ongoing attention to stay useful."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "An eval suite is a **living artifact**: hand it over with an owner who keeps its cases current.",
+    "explanation": "Shipping the suite lets the next team check the build, but only while its cases reflect real use. Anthropic describes an eval suite as a living artifact that needs ongoing attention and clear ownership to remain useful. Choice b is tempting because a stricter gate sounds safer, but a higher bar on outdated cases still tests the wrong things.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ]
+  },
+  {
+    "id": "q-s5platform-measure-from-customer-region",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Measuring latency",
+    "stem": "You're comparing two platforms for a customer whose users and servers are in Frankfurt. Your latency tests ran from your laptop in Chicago, using one-line test prompts. Before you recommend a platform on latency, what should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: latency depends mostly on model size, so the laptop numbers already rank the platforms",
+        "reason": "The guide lists several factors, including the infrastructure supporting the model and the point of interaction, so where you test from is part of the result."
+      },
+      {
+        "id": "b",
+        "text": "Cap `max_tokens` very low on every test call so each run finishes fast and compares cleanly",
+        "reason": "Fewer generated tokens means a faster response, so capped runs understate how long the customer's real replies will take."
+      },
+      {
+        "id": "c",
+        "text": "Re-test from the customer's region with prompts like theirs, timing first token and full reply",
+        "reason": "Correct: latency depends on the infrastructure and point of interaction and on prompt and output length, so measure where and what the customer will actually run."
+      },
+      {
+        "id": "d",
+        "text": "Keep the location but use an even shorter prompt, so network time is isolated from model time",
+        "reason": "Prompt length and complexity affect latency too; a toy prompt hides the processing time the customer's real prompts will add."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Measure latency **from the customer's region** with realistic prompts; numbers measured elsewhere don't transfer.",
+    "explanation": "Latency is shaped by the model, the prompt and output, and the infrastructure between the caller and the model. A test from another continent with toy prompts measures a different path and a different workload. Choice a is tempting because model size does matter, but the guide lists infrastructure and the point of interaction as factors too, so the test's location is part of the result.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Measure the path and the workload the customer will actually run.",
+      "steps": [
+        {
+          "label": "Customer's region",
+          "sublabel": "where the app runs"
+        },
+        {
+          "label": "Real prompts",
+          "sublabel": "realistic length"
+        },
+        {
+          "label": "Each platform"
+        },
+        {
+          "label": "First token + full reply",
+          "sublabel": "timed"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-ttft",
+      "c-latency-levers"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-full-reply-metric",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Measuring latency",
+    "stem": "A back-end service sends a document to Claude, waits for the complete answer without streaming, then passes the result on. You're comparing platforms on speed for this service. Which measurement fits best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The time taken to process the prompt and return the whole response",
+        "reason": "Correct: the service does nothing until the full answer arrives, so baseline latency, the time to process the prompt and generate the response, is what it waits for."
+      },
+      {
+        "id": "b",
+        "text": "Time to first token, since it's the standard latency measure for Claude",
+        "reason": "The guide says TTFT is particularly relevant when you stream, for a responsive experience. This service doesn't stream, so the first token alone tells it little."
+      },
+      {
+        "id": "c",
+        "text": "Output speed in tokens per second, leaving out prompt processing",
+        "reason": "Latency covers processing the prompt as well as generating the output. Output speed alone leaves out the time spent reading the document."
+      },
+      {
+        "id": "d",
+        "text": "How quickly streamed chunks arrive, after switching the service to streaming",
+        "reason": "Streaming improves perceived responsiveness for people watching the output appear; a service that needs the whole answer still waits for all of it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Measure the latency the workload feels: **TTFT** for streamed chat, full response time for a caller that waits for the whole answer.",
+    "explanation": "The deciding detail is that the service waits for the complete, non-streamed answer. What it experiences is the time to process the prompt and generate the whole output. Choice b is tempting because TTFT is a well-known metric, but the guide ties it to streaming and a responsive experience for users watching the reply, which this service doesn't have.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-ttft",
+      "c-streaming"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-fedramp-decides",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Compliance and platforms",
+    "stem": "A US government contractor must meet FedRAMP High for a new Claude workload on AWS. The team spent a week benchmarking latency and cost on two candidate platforms before anyone checked which of them meets that requirement. What should have come first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Picking the faster platform, then seeking FedRAMP High coverage on it later",
+        "reason": "Compliance isn't a tuning step you add later. A platform that doesn't meet a hard requirement isn't a candidate, however fast it is."
+      },
+      {
+        "id": "b",
+        "text": "Confirming which candidates meet FedRAMP High, then benchmarking only those",
+        "reason": "Correct: a hard requirement removes platforms outright. Anthropic's docs, for example, direct workloads that need FedRAMP High on AWS to one specific platform."
+      },
+      {
+        "id": "c",
+        "text": "Adding FedRAMP High as one weighted row in a scorecard with latency and cost",
+        "reason": "A pass/fail requirement can't be traded against speed or price. Weighting it lets a platform that fails the rule win on points."
+      },
+      {
+        "id": "d",
+        "text": "Comparing per-token prices, since every platform on AWS meets the same rules",
+        "reason": "Running on AWS doesn't mean meeting the same rules: the docs distinguish the AWS options by who operates them and point FedRAMP High workloads to one."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A hard compliance requirement narrows the platforms **before** you measure latency or cost.",
+    "explanation": "Compliance often decides the platform outright, so it's checked first. The deciding detail is that FedRAMP High is mandatory, and Anthropic's docs direct such workloads on AWS to a specific platform. Choice c is tempting because a scorecard looks thorough, but a pass/fail rule isn't a weight: a platform that fails it is out, however well it scores on speed or price.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-platform-on-aws",
+      "title": "Claude Platform on AWS",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria",
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-cost-beyond-token-rate",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Total cost",
+    "stem": "Finance compares platforms using only the model's base per-token price. Which two factors from Anthropic's pricing page can also change what a workload actually costs?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Output tokens cost the same as input tokens, so only the total token count matters",
+        "reason": "Input and output tokens are priced separately, and output costs more, so the mix of the two changes the bill."
+      },
+      {
+        "id": "b",
+        "text": "Residency choices, since regional or US-only routing can cost more than global",
+        "reason": "Correct: regional and multi-region endpoints on the cloud platforms carry a premium over global ones, and US-only inference on the Claude API is priced above global routing."
+      },
+      {
+        "id": "c",
+        "text": "A fixed fee on every request, so many small calls cost more than a few large ones",
+        "reason": "Pricing is per token, plus usage charges for server-side tools such as web search. The pricing page lists no flat per-request fee."
+      },
+      {
+        "id": "d",
+        "text": "Nothing for the system prompt, since only the user message is billed as input",
+        "reason": "All input tokens are billed, the system prompt included. That's why caching a long shared system prompt saves money."
+      },
+      {
+        "id": "e",
+        "text": "How much of the workload can use the prompt caching and batch processing discounts",
+        "reason": "Correct: cache reads cost a fraction of base input and batch requests are discounted, so the share of traffic that can use them shifts the total."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Total cost depends on residency premiums and on which discounts the workload can use, not only on the per-token rate.",
+    "explanation": "Two platforms can list the same base price and still produce different bills. Residency routing adds a premium, and caching and batch discounts lower the cost only for traffic that can use them. Choice d is tempting because the system prompt feels like setup rather than usage, but every input token is billed, which is exactly why caching a long shared prompt pays off.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-prompt-caching",
+      "c-message-batches"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-unattended-job-criteria",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Deciding dimension",
+    "stem": "You're placing an overnight report job: nobody waits on it, its data must stay in the US, and finance has a firm monthly budget. A teammate plans a week of latency benchmarks on every candidate platform. How should the comparison be framed?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Benchmark time to first token on every platform first, since speed is the main criterion for any app",
+        "reason": "Acceptable latency depends on the app's real-time requirements and user expectations. An unattended overnight job has loose ones."
+      },
+      {
+        "id": "b",
+        "text": "Let the US residency rule and cost decide, since latency barely matters when nobody is waiting",
+        "reason": "Correct: criteria should be relevant to the app's purpose and users. Here the residency rule and the budget decide; latency requirements are loose."
+      },
+      {
+        "id": "c",
+        "text": "Weight latency, cost, residency and features equally, so the comparison stays objective",
+        "reason": "Good criteria are relevant to the application's purpose. Equal weights let a dimension that doesn't matter here outvote one that does."
+      },
+      {
+        "id": "d",
+        "text": "Choose the fastest platform, then trim cost later by shortening the prompts it sends",
+        "reason": "That optimizes a dimension the job doesn't need. For price, the guide says to weigh cost per call, model size and how often the job runs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Measure the dimensions that can change the placement; for work nobody waits on, latency rarely decides.",
+    "explanation": "Success criteria should be relevant to the application's purpose and users, and acceptable latency depends on real-time requirements. An overnight job that nobody watches has loose latency needs, while the US residency rule and the budget are firm. Choice c is tempting because equal weights look fair, but they let latency, which barely matters here, count as much as the rule and budget that actually decide.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "For an unattended overnight job, latency carries little weight in the decision.",
+      "segments": [
+        {
+          "label": "US residency",
+          "sublabel": "must pass",
+          "weight": 3,
+          "tone": "accent"
+        },
+        {
+          "label": "Cost",
+          "sublabel": "firm budget",
+          "weight": 3,
+          "tone": "success"
+        },
+        {
+          "label": "Latency",
+          "sublabel": "loose",
+          "weight": 1,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria",
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-us-only-inference",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Data residency",
+    "stem": "A customer on the Claude API must keep model inference in the US for one product. A teammate asks what setting US-only inference for that product changes. Which answer matches the data residency docs?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It also moves the product's stored data to the US, since inference geo controls storage",
+        "reason": "Where data is stored at rest is governed by workspace geo, a separate setting. Inference geo controls only where inference runs."
+      },
+      {
+        "id": "b",
+        "text": "Nothing about price: US-only inference always costs the same as global routing",
+        "reason": "The docs price US-only inference above the standard rate on newer models, while global routing uses standard pricing."
+      },
+      {
+        "id": "c",
+        "text": "It guarantees lower latency for US users, since inference always runs closer to them",
+        "reason": "The docs make no latency promise for US-only inference; they describe global routing as the option for optimal performance and availability."
+      },
+      {
+        "id": "d",
+        "text": "Inference stays on US infrastructure, and it can cost more than global routing",
+        "reason": "Correct: US-only inference keeps inference on US-based infrastructure, and on newer models it is priced above the standard rate."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Residency has a price: US-only inference can cost more than global routing, and it governs where inference runs, not where data is stored.",
+    "explanation": "Inference residency decides where inference runs, and on newer models the US-only option is priced above standard. Where data is stored at rest is a separate setting. Choice c is tempting because US-only sounds closer to US users, but the docs promise no latency gain and describe global routing as the choice for optimal performance and availability.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+      "title": "Data residency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-agent-cost-extras",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Total cost",
+    "stem": "Your cost estimate for a research agent counts only the user's messages and Claude's replies. The agent has several tool definitions and uses the web search tool. Which two costs is the estimate missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The tool definitions in the `tools` parameter, which are billed as input tokens",
+        "reason": "Correct: tool names, descriptions and schemas in `tools` count as input tokens, along with a special tool-use system prompt the API adds."
+      },
+      {
+        "id": "b",
+        "text": "A per-call fee for each client-side tool that your own code runs",
+        "reason": "Client-side tools are priced the same as any other Claude API request, by input and output tokens."
+      },
+      {
+        "id": "c",
+        "text": "Prompt-cache reads, which are billed at the full base input price",
+        "reason": "Cache reads cost a fraction of the base input price, so caching lowers the bill rather than adding a hidden cost."
+      },
+      {
+        "id": "d",
+        "text": "A usage charge for each web search, on top of the tokens its results add",
+        "reason": "Correct: web search is charged per search performed, plus standard token costs for the search results that enter the context."
+      },
+      {
+        "id": "e",
+        "text": "A monthly fee for each tool the agent defines, charged whether or not it runs",
+        "reason": "Tool definitions are billed as input tokens on the requests that include them, not as a separate subscription fee."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "An agent's cost includes tool definitions as input tokens and server-tool usage charges, not just messages and replies.",
+    "explanation": "Tool use adds cost in two ways the estimate misses: the definitions in `tools` are sent as input tokens on every request, and server-side tools such as web search carry their own usage charges. Choice b is tempting because tools feel like extra calls, but client-side tools you run yourself are priced like any other request, by tokens.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-client-vs-server-tools"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-retention-terms-recheck",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Compliance and platforms",
+    "stem": "A customer has a data-retention arrangement with Anthropic for its Claude API traffic. To save money it will move the workload to a platform its cloud provider operates. The project plan assumes the retention terms come along unchanged. What should the plan say instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: the arrangement is tied to the customer, wherever the workload runs",
+        "reason": "Anthropic's arrangements apply where Anthropic is the data processor. Where the cloud provider processes the data, the provider's own terms apply."
+      },
+      {
+        "id": "b",
+        "text": "The terms carry over as long as the workload calls the same Claude model",
+        "reason": "The model doesn't decide whose terms apply. The platform does, through who processes the data there."
+      },
+      {
+        "id": "c",
+        "text": "Check the target platform's own retention and compliance controls first",
+        "reason": "Correct: on Amazon Bedrock and Google Cloud the cloud provider is the data processor, so you refer to that platform's retention and compliance documentation."
+      },
+      {
+        "id": "d",
+        "text": "Retention covers stored files only, so the prompts and outputs aren't affected",
+        "reason": "Retention arrangements cover prompts and responses too. Under ZDR, for example, Anthropic doesn't store them at rest after the response is returned."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Compliance terms belong to the platform and its data processor: re-check them on the target before you move a regulated workload.",
+    "explanation": "Anthropic's ZDR and HIPAA arrangements apply where Anthropic is the data processor. On platforms the cloud provider operates, such as Bedrock and Google Cloud, the provider processes the data and its own retention and compliance controls apply. Choice a is tempting because the arrangement feels like a property of the customer, but it depends on who processes the data, so the plan has to check the target's controls.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/api-and-data-retention",
+      "title": "API and data retention",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-residency-only-where-required",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Data residency",
+    "stem": "A company runs three Claude-backed products on the Claude API. Only one, a payroll tool, has a rule that inference must stay in the US. A teammate wants US-only routing on all three to keep things simple. What is the better design?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Route all three US-only, since residency settings can't differ by product",
+        "reason": "Inference geo can be set on each request or as a workspace default, so each product can follow its own rule."
+      },
+      {
+        "id": "b",
+        "text": "Route only the payroll tool US-only and let the other two route globally",
+        "reason": "Correct: US-only inference is priced above global routing on newer models, while global routing uses standard pricing and runs where performance and availability are best."
+      },
+      {
+        "id": "c",
+        "text": "Route all three globally, since global routing usually lands in the US",
+        "reason": "Global routing may run in any available geography. The payroll rule needs US-only inference, not a likely location."
+      },
+      {
+        "id": "d",
+        "text": "Move the payroll tool to another model, since the model decides where it runs",
+        "reason": "The model doesn't set the location. The inference geo setting on the request or workspace does."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Apply a residency rule where it is required and let other traffic route globally: residency usually carries a price premium.",
+    "explanation": "Residency here is a requirement for one product, not the whole company, and US-only routing costs more than global routing on newer models. The deciding detail is that only the payroll tool has the rule. Choice a is tempting because one setting everywhere looks simpler, but the setting works per request or per workspace, so the other two products would pay a premium they don't need.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/data-residency",
+      "title": "Data residency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-batch-assumption-check",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Total cost",
+    "stem": "Your cost estimate for a customer's large nightly summarization job assumes the batch processing discount you use on the Claude API. The job will run on the customer's own cloud platform, and nobody has checked that platform's feature list. What should you do before presenting the estimate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing, since discounts follow the model and every platform serving it has batches",
+        "reason": "Availability is listed per platform, not per model, and batch processing appears for only some platforms."
+      },
+      {
+        "id": "b",
+        "text": "Assume the batch discount applies to any request that is not streamed",
+        "reason": "The discount belongs to batch processing, an asynchronous way to send large volumes. An ordinary non-streamed request isn't a batch."
+      },
+      {
+        "id": "c",
+        "text": "Leave the nightly job out of the estimate, since batch work isn't billed",
+        "reason": "Batch work is billed. Batch processing is offered for cost savings, at a discount on standard calls, not for free."
+      },
+      {
+        "id": "d",
+        "text": "Confirm the platform offers batch processing, and re-price the job if it doesn't",
+        "reason": "Correct: the features overview lists, for each feature, the platforms that offer it, and batch processing is not on every platform."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Cost features are platform features: confirm that the discounts your estimate assumes exist where the customer will run.",
+    "explanation": "A discount is only real if the platform offers the feature behind it. The features overview lists availability per platform, and batch processing isn't on all of them. Choice a is tempting because the model is the same, but availability follows the platform, so an estimate built on the Claude API's batch discount has to be checked against the customer's platform.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/overview",
+      "title": "Features overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-price-the-real-workload",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Total cost",
+    "stem": "Two candidate platforms list the same base price per token for the model you will use. A manager concludes the workload will cost the same on either one. What is the better way to compare cost?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Price the customer's real traffic mix: prompts, caching, batching and tools",
+        "reason": "Correct: the pricing page bills input and output separately and adds caching and batch discounts, residency premiums and server-tool charges, so the real mix decides the bill."
+      },
+      {
+        "id": "b",
+        "text": "Compare the base per-token price only, since every other charge is the same",
+        "reason": "Endpoint premiums, discount availability and tool charges can differ, so the same base price doesn't mean the same bill."
+      },
+      {
+        "id": "c",
+        "text": "Average the two platforms' published prices into a single planning figure",
+        "reason": "Averaging hides the differences that matter. The workload's own traffic decides which charges and discounts apply."
+      },
+      {
+        "id": "d",
+        "text": "Count output tokens only, since output costs more and so decides the bill",
+        "reason": "Input and output are priced separately and both count. Input can be large, for example a long shared prompt, which caching changes."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Compare total cost on the customer's real traffic, not on the headline per-token rate.",
+    "explanation": "The base rate is only one input to the bill. Input and output tokens, cache reads, batch discounts, residency premiums and server-tool charges all depend on how the workload actually runs. Choice b is tempting because the headline rates match, but the other charges and discounts can differ between platforms, so the comparison has to use the customer's real traffic.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-price-per-mtok",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-latency-not-deciding",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Deciding dimension",
+    "stem": "You measured two candidate platforms from the customer's region with its real prompts. Both meet its compliance rules and its latency target, with response times within a few percent of each other. One costs clearly less for the customer's traffic. A teammate wants another week of latency tests. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the extra week of latency tests, since speed matters most in every app",
+        "reason": "Acceptable latency depends on the app's requirements. Both platforms already meet them, so more speed tests won't separate the two."
+      },
+      {
+        "id": "b",
+        "text": "Give every dimension equal weight and add up the scores to pick one",
+        "reason": "Criteria should be relevant to the application. Equal weights let a dimension that doesn't separate the options count as much as one that does."
+      },
+      {
+        "id": "c",
+        "text": "Pick the slightly faster platform, since any speed edge beats lower cost",
+        "reason": "A difference of a few percent, when both meet the target, isn't what decides here. The clear cost difference is."
+      },
+      {
+        "id": "d",
+        "text": "Decide on cost, since latency no longer separates the two platforms",
+        "reason": "Correct: good criteria are relevant to the application, and price covers cost per call and frequency of use. With latency tied and compliance met, cost decides."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "**Measure the dimension that decides the placement**: once one stops separating the options, move to the one that does.",
+    "explanation": "Measuring is only worth it where the result can change the decision. Here both platforms pass compliance and meet the latency target with nearly identical times, while cost differs clearly. Choice a is tempting because latency feels important, but acceptable latency depends on the app's requirements, and both already meet them, so more speed tests won't change the placement.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "With compliance passed and latency tied, cost is the dimension left to decide.",
+      "segments": [
+        {
+          "label": "Compliance",
+          "sublabel": "both pass",
+          "weight": 1,
+          "tone": "success"
+        },
+        {
+          "label": "Latency",
+          "sublabel": "tied",
+          "weight": 1,
+          "tone": "neutral"
+        },
+        {
+          "label": "Cost",
+          "sublabel": "decides",
+          "weight": 3,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-multidimensional-criteria",
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-voice-agent-latency",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Measuring latency",
+    "stem": "A call-center voice agent streams Claude's replies to callers in real time. Both candidate platforms meet the customer's compliance rules and cost about the same. Which measurement should decide between them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Time to first token, measured from the customer's region with real call prompts",
+        "reason": "Correct: TTFT matters when you stream for a responsive experience, and latency depends on the infrastructure and point of interaction as well as the prompt."
+      },
+      {
+        "id": "b",
+        "text": "Total tokens per month on each platform, to compare the two monthly bills",
+        "reason": "Costs are already about equal, so cost isn't what separates them. Callers feel how quickly the reply starts."
+      },
+      {
+        "id": "c",
+        "text": "Published benchmark figures measured in another region, to save testing time",
+        "reason": "Latency depends on the infrastructure and point of interaction, so numbers measured elsewhere don't show what callers will feel."
+      },
+      {
+        "id": "d",
+        "text": "Full response time on short one-line test prompts, since those finish quickly",
+        "reason": "Toy prompts hide the processing time real prompts add, and for streamed speech the start of the reply matters more than its end."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For a streamed, real-time experience, measure **time to first token** where the customer runs, with the customer's real prompts.",
+    "explanation": "Callers hear the reply as it streams, so the wait before the first token is what they feel. The deciding detail is that compliance and cost don't separate the platforms, which leaves latency. Choice c is tempting because published numbers save time, but latency depends on the infrastructure and point of interaction, so only a test from the customer's region with its prompts shows what callers will experience.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-ttft",
+      "c-streaming"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-whole-manual-every-request",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Total cost",
+    "stem": "A design sends a customer's entire 500-page product manual with every support question. A teammate says cost is fine because the model's context window holds the whole manual. What does that argument miss?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: any request that fits in the context window is billed at a flat rate",
+        "reason": "Requests are billed per token. A huge request pays the same rate per token as a small one, so in total it costs far more."
+      },
+      {
+        "id": "b",
+        "text": "Very long requests are always rejected, so this design cannot work at all",
+        "reason": "The models offer context windows large enough to fit it. The problem is the cost of sending it every time, not a rejection."
+      },
+      {
+        "id": "c",
+        "text": "Every request bills all those input tokens; caching the manual cuts that",
+        "reason": "Correct: on most current models a 900k-token request is billed at the same per-token rate as a 9k-token one, and cache reads cost a fraction of base input."
+      },
+      {
+        "id": "d",
+        "text": "Only output tokens are billed, so a large input adds nothing to the bill",
+        "reason": "Input tokens are billed too, which is why a large input sent again and again is worth caching."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Fitting in the context window isn't the same as being cheap: a long input is billed on every request unless the repeated part is cached.",
+    "explanation": "Long context costs through sheer volume: every request pays for all its input tokens, and the per-token rate doesn't drop for big requests. The deciding detail is that the same manual goes out with every question. Choice a is tempting because the window does hold it, but fitting in the window and the price per request are separate questions; caching the repeated manual is what brings the cost down.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "title": "Pricing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-price-per-mtok"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5platform-same-model-benchmark",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Measuring latency",
+    "stem": "A comparison report says Platform A is much faster than Platform B. Reading the method, you see the team ran Claude Haiku 5.5 on A and Claude Opus 5.5 on B, from the same region with the same prompts. What should you conclude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Platform A is faster, since the region and the prompts were held the same",
+        "reason": "Region and prompts matched, but the models didn't. Model size is one of the factors the guide lists as influencing latency."
+      },
+      {
+        "id": "b",
+        "text": "Platform B is faster underneath, since bigger models run on better hardware",
+        "reason": "Nothing in the test supports that. The difference in model alone can explain the gap."
+      },
+      {
+        "id": "c",
+        "text": "Latency can't be compared across platforms, so drop it as a criterion",
+        "reason": "It can be, if the test holds the other factors constant. The problem here is the method, not the criterion."
+      },
+      {
+        "id": "d",
+        "text": "The test compared models, not platforms; rerun it with one model on both",
+        "reason": "Correct: latency is influenced by the size of the model, so a fair platform comparison keeps the model fixed and changes only the platform."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Compare platforms by changing only the platform: same model, same prompts, same region.",
+    "explanation": "A fair comparison changes one thing at a time. The guide lists the size of the model among the factors that influence latency. The deciding detail is that each platform ran a different model. Choice a is tempting because region and prompts were controlled, but the model wasn't, so the result says more about the two models than about the two platforms.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-latency",
+      "title": "Reducing latency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-latency-levers",
+      "c-ttft"
+    ],
+    "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-s5req-functional-vs-nonfunctional",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Functional requirements",
+    "stem": "You're turning a claims team's business problem into requirements for a Claude intake assistant. Which item on the draft list is a **functional** requirement rather than a nonfunctional one?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replies must reach the customer within a few seconds of their message",
+        "reason": "That's latency: how well the app performs. The guidance lists latency, with scalability and availability, as nonfunctional requirements."
+      },
+      {
+        "id": "b",
+        "text": "Extract the policy number and incident date from each claim email",
+        "reason": "Correct: functional requirements determine whether the application performs its task, and pulling out those fields is the task itself."
+      },
+      {
+        "id": "c",
+        "text": "The service must stay available through the month-end claims peak",
+        "reason": "Availability is a nonfunctional requirement: it describes how well the app performs, not which task it performs."
+      },
+      {
+        "id": "d",
+        "text": "The design must handle triple today’s email volume without rework",
+        "reason": "Handling growth is scalability, a nonfunctional requirement. Like the others, it shapes design and technology choices."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Functional** requirements say what the app must do; **nonfunctional** ones (latency, availability, scale) say how well it must do it.",
+    "explanation": "Microsoft's architecture guidance splits requirements in two: functional requirements determine whether the application performs its task, and nonfunctional requirements determine how well it performs. Extracting the fields is the task. Choices a, c and d are tempting because they are written as must-haves too, but latency, availability and scalability are the guidance's own examples of nonfunctional requirements.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria",
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-ideal-interaction-tasks",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Functional requirements",
+    "stem": "An insurer's business goal is a chatbot that answers car-insurance questions and gives quotes. Before building, how does Anthropic's customer support guide suggest turning that goal into requirements you can prompt and evaluate against?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Choose the most capable model first, since the model decides what the chatbot can do",
+        "reason": "The guide chooses a model later, by the trade-offs between cost, accuracy and response time. The model doesn't define what the bot must do."
+      },
+      {
+        "id": "b",
+        "text": "Write the full system prompt first, then let early users show which tasks matter",
+        "reason": "The guide lists every task before building, so each one can be prompted and evaluated, rather than finding the gaps after the prompt is written."
+      },
+      {
+        "id": "c",
+        "text": "Outline an ideal interaction, then break it into every task Claude must perform",
+        "reason": "Correct: the outline helps determine the technical requirements, and listing every task ensures you can prompt and evaluate Claude for each one."
+      },
+      {
+        "id": "d",
+        "text": "Set up the streaming API service first, since the interface shapes the requirements",
+        "reason": "Streaming and the API wrapper belong to the guide’s implementation and integration steps, which come after the interaction and tasks are defined."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Turn a business goal into requirements by outlining the ideal interaction and listing every task in it; each task becomes something to prompt and test.",
+    "explanation": "The guide's \"before building\" steps go from goal to requirements: outline an ideal interaction, which helps determine the technical requirements, then break it into every task (greeting, product information, staying on topic, quote generation) so each can be prompted and evaluated. Choice b is tempting because it starts building sooner, but a task nobody listed is never prompted for or evaluated.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat",
+      "title": "Customer support agent",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-realtime-data-needs-tool",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Infrastructure requirements",
+    "stem": "One functional requirement for a bank's support assistant reads: \"Tell signed-in customers their current account balance.\" Which infrastructure requirement does this imply?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An embedding index of last night's account export, searched with RAG on each question",
+        "reason": "The guide says embedding-based RAG approaches are not sufficient for real-time information such as account balances; a nightly export is already stale."
+      },
+      {
+        "id": "b",
+        "text": "A tool Claude can call to look up the customer's live balance in the bank's system",
+        "reason": "Correct: for real-time information such as account balances, the guide recommends tool use, which integrates live data into Claude’s responses."
+      },
+      {
+        "id": "c",
+        "text": "Every customer’s balance placed in the system prompt, so Claude always has it at hand",
+        "reason": "Putting all information in the prompt can lead to high costs, slower responses and context limits, the guide says, and balances change; live data needs a tool."
+      },
+      {
+        "id": "d",
+        "text": "Streaming responses, so the balance appears on screen as soon as it is generated",
+        "reason": "Streaming reduces perceived response time. It doesn't give Claude access to data it doesn't have."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Derive infrastructure from function: a requirement for **live** data means a lookup tool, not a nightly RAG index.",
+    "explanation": "Each functional requirement carries infrastructure with it. A current balance is real-time information, and Anthropic's guide says embedding-based RAG is not sufficient for that; tool use brings live data into Claude's answer. Choice a is the tempting one because RAG is the usual way to give Claude knowledge, but an index built from last night's export can't report today's balance.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "What the app must do tells you what it must connect to.",
+      "steps": [
+        {
+          "label": "Functional requirement",
+          "sublabel": "tell the current balance"
+        },
+        {
+          "label": "Implication",
+          "sublabel": "needs real-time data"
+        },
+        {
+          "label": "Infrastructure requirement",
+          "sublabel": "live lookup tool"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/customer-support-chat",
+      "title": "Customer support agent",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-long-context-vs-rag"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-redundancy-without-requirement",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Infrastructure requirements",
+    "stem": "An internal Claude tool drafts weekly reports. The business says an outage of a day or two is acceptable. An engineer proposes a zone-redundant, multi-region setup \"to be safe\". What does architecture guidance on building for business needs say?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tie redundancy to the recovery targets; here it might add cost for no business benefit",
+        "reason": "Correct: every design decision should be justified by a business requirement, and if the business tolerates a higher RTO and RPO, redundancy might add cost for no benefit."
+      },
+      {
+        "id": "b",
+        "text": "Always build for maximum redundancy, because no outage is acceptable for an AI tool",
+        "reason": "The guidance ties redundancy to the business’s tolerance for outages, and here the business has said a day or two is acceptable."
+      },
+      {
+        "id": "c",
+        "text": "Decide on redundancy after launch, once real outage data shows what is needed",
+        "reason": "The guidance says to define objectives such as RTO and RPO first, because these numbers should inform decisions about the architecture."
+      },
+      {
+        "id": "d",
+        "text": "Let the engineer decide, since availability is a technical matter, not a business one",
+        "reason": "The guidance treats it as a business matter: what outage is acceptable is a business requirement, and whether an SLO meets the SLA is a business decision."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every design decision needs a business requirement behind it; redundancy the business does not need is cost without benefit.",
+    "explanation": "Microsoft's guidance starts from one rule: every design decision must be justified by a business requirement. Recovery objectives such as RTO and RPO should inform the architecture, and when the business can tolerate a higher RTO and RPO, adding redundancy might add cost for no business benefit. Choice b sounds responsible, but it ignores the stated tolerance, which is the requirement that should decide.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-decision-record-defend",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Documenting decisions",
+    "stem": "Months after your team chose Claude Haiku 5.5 for a ticket classifier, a new architect asks why it isn't on Claude Opus 5.5. Which artifact lets the team defend the choice and judge whether it still applies?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The commit that changed the model ID, since its diff shows exactly what changed",
+        "reason": "A diff shows what changed, not why. Without the context and rationale, nobody can judge whether the decision still holds."
+      },
+      {
+        "id": "b",
+        "text": "The final production prompt, since it shows what the model is being asked to do",
+        "reason": "The prompt shows what was built, not the requirements, options and trade-offs that led to the model choice."
+      },
+      {
+        "id": "c",
+        "text": "The chat thread where the team discussed it, still searchable in the team channel",
+        "reason": "The guidance says to store the log openly with the workload’s documentation; a decision made but never recorded is likely to be forgotten and debated again."
+      },
+      {
+        "id": "d",
+        "text": "A decision record of the context, options considered, decision and trade-offs",
+        "reason": "Correct: an ADR captures context, justification and implications. Without the justification, stakeholders can’t tell whether the decision still applies."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Record the requirements, options and trade-offs behind a decision, so it can be defended, or revisited when circumstances change.",
+    "explanation": "Documenting requirements so a decision can be defended means writing down why, not just what. An architecture decision record holds the context, the options considered, the decision and its trade-offs; without the justification, stakeholders can't evaluate whether the decision still applies when circumstances change. Choice a is tempting because version control is a precise history, but a diff records the change, not the requirements that motivated it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record",
+      "title": "Maintain an architecture decision record (ADR)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-start-strategy",
+      "c-eval-thresholds"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-adr-contents",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Documenting decisions",
+    "stem": "You're writing the decision record for using retrieval (RAG) instead of putting the whole policy library in every prompt. Which two things should the entry include?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The options considered, including the full-prompt approach you ruled out",
+        "reason": "Correct: the record documents key decisions including the alternatives you ruled out, so the comparison is still visible later."
+      },
+      {
+        "id": "b",
+        "text": "The complete retrieval design, step by step, so the record needs nothing else",
+        "reason": "The guidance says to avoid making decision records design guides; link longer design material as a supplement instead."
+      },
+      {
+        "id": "c",
+        "text": "Only the final decision, kept short so readers aren’t distracted by the reasoning",
+        "reason": "Always include context and rationale: a record without justification loses its value over time."
+      },
+      {
+        "id": "d",
+        "text": "The trade-offs the decision accepts and how confident the team was in it",
+        "reason": "Correct: the decision outcome should include its important trade-offs and its confidence level, which helps any later reconsideration."
+      },
+      {
+        "id": "e",
+        "text": "A note to edit this entry in place whenever the approach changes later",
+        "reason": "The log is append-only. If a decision changes, write a new record that supersedes the original and link the two."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "A decision record holds context, options (including rejected ones), the decision, trade-offs and confidence; changes get a new, linked record.",
+    "explanation": "Microsoft's ADR guidance gives each record a fixed anatomy: problem and context, options considered, and a decision outcome with its trade-offs and confidence level, plus a status. Choice c is tempting because records should be pithy, but short must not mean unjustified. Choice e breaks the append-only rule: a changed decision gets a new record that supersedes the old one.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record",
+      "title": "Maintain an architecture decision record (ADR)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-thresholds",
+      "c-long-context-vs-rag"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-evals-expose-vague-spec",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Testable requirements",
+    "stem": "A support agent's spec says it should \"handle refund requests appropriately.\" Two engineers build different behavior for a refund just outside the policy window, and both say they followed the spec. What does Anthropic's post on agent evals suggest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Let each engineer ship their version, then keep whichever draws fewer complaints",
+        "reason": "That settles the requirement by trial on customers. The post resolves this kind of ambiguity with an eval suite that encodes the expected behavior."
+      },
+      {
+        "id": "b",
+        "text": "Add detail to the system prompt and leave evals for later, once the agent is at scale",
+        "reason": "The post says evals get harder to build the longer you wait, and are especially useful early to explicitly encode expected behavior."
+      },
+      {
+        "id": "c",
+        "text": "Write eval tasks that encode the expected behavior for cases like this one",
+        "reason": "Correct: two engineers can read the same spec differently, and an eval suite resolves this; defining eval tasks stress-tests whether requirements are concrete enough."
+      },
+      {
+        "id": "d",
+        "text": "Switch to a more capable model, which will read the vague spec the intended way",
+        "reason": "The disagreement is between two readings of the spec, not a model limitation. The post's fix is an eval suite that makes the expected behavior explicit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "If a requirement can't be written as an eval task, it isn't concrete yet; eval tasks turn a vague spec into agreed behavior.",
+    "explanation": "Anthropic's evals post notes that two engineers reading the same initial spec can come away with different interpretations of edge cases, and that an eval suite resolves this. Defining eval tasks is also one of the best ways to stress-test whether product requirements are concrete enough to start building. Choice b is tempting for a small team, but the post warns that evals get harder to build the longer you wait.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-push-vs-pull-integration",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Infrastructure requirements",
+    "stem": "Your Claude ticket router must assign each new ticket within moments of submission, at high volume. The ticketing system can send a webhook event for every new ticket, and your team can expose a public HTTPS endpoint. Which integration fits these requirements?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Push-based: the ticketing system's webhook calls your routing service per ticket",
+        "reason": "Correct: the guide’s push-based option is more web-scalable and needs a public endpoint, which your team can provide, and it routes each ticket as it arrives."
+      },
+      {
+        "id": "b",
+        "text": "Pull-based: your code fetches new tickets every few hours and routes them in bulk",
+        "reason": "The guide warns that a pull-based design can be overly slow when the pull frequency is too low, which rules out assignment within moments."
+      },
+      {
+        "id": "c",
+        "text": "Pull-based: your code polls the ticketing system every second to keep delays short",
+        "reason": "The guide notes that polling too often can make unnecessary calls to the ticketing system; with webhooks available, push avoids that."
+      },
+      {
+        "id": "d",
+        "text": "No service: staff paste new tickets into the Claude Console and copy the label back",
+        "reason": "The guide says either approach needs your script wrapped in a service; copying by hand can’t keep up with high volume or near-instant routing."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Infrastructure follows the requirements and the systems you connect to: webhooks plus near-instant routing point to a **push-based** service.",
+    "explanation": "The guide offers two integrations. Push-based lets the ticketing system trigger your service through a webhook; it is more web-scalable but needs a public endpoint. Pull-based is easier, but makes unnecessary calls when it polls too often and is slow when it polls too rarely. The stem supplies webhooks, a public endpoint and a near-instant target, so push fits. Choice c is tempting because it cuts the delay, but only by calling the ticketing system constantly.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-thresholds-settle-debate",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Evaluation thresholds",
+    "stem": "Stakeholders keep arguing over whether the new Claude ticket router is \"good enough\" to replace the legacy rules. Your eval script already reports accuracy, response time and cost per ticket. What does Anthropic's ticket-routing guide say is still missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A much larger test set, since stakeholders won't trust results from a small one",
+        "reason": "Size isn't the gap the guide names. Without agreed thresholds, even a large set's numbers can't say whether the router is good enough."
+      },
+      {
+        "id": "b",
+        "text": "A person reviewing every routed ticket before any decision is made",
+        "reason": "Reviewing every ticket doesn't scale and still leaves \"good enough\" undefined; the guide's answer is clearly established thresholds."
+      },
+      {
+        "id": "c",
+        "text": "A switch to the most capable model, so the accuracy is beyond argument",
+        "reason": "Model choice is a trade-off between cost, accuracy and response time; a bigger model doesn't define which result counts as good."
+      },
+      {
+        "id": "d",
+        "text": "Clear thresholds, such as target accuracy and a cost cut versus today's method",
+        "reason": "Correct: the script returns runtime values, but you still need clear thresholds to tell, with impartial empiricism, which method is best."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Agree pass/fail thresholds before you compare; numbers without targets can’t settle a decision.",
+    "explanation": "Metrics alone don't decide anything. The guide's evaluation step says that once the script reports accuracy, response time and cost, you still need clearly established thresholds, such as 95% accuracy and a cost reduction against the current routing method. With those, you can tell with impartial empiricism which method is best. Choice a is tempting, but more data without a target still leaves \"good enough\" open to argument.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/use-case-guides/ticket-routing",
+      "title": "Ticket routing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-thresholds",
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-requirements-per-flow",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Infrastructure requirements",
+    "stem": "One Claude application has two flows: a live chat where customers wait for each reply, and a nightly job that summarizes the day's tickets for managers. How should the team set latency and availability requirements?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use the strictest targets for both flows, so the whole app follows one standard",
+        "reason": "Different flows often have different requirements; holding the nightly job to live-chat targets spends money where the business gains little."
+      },
+      {
+        "id": "b",
+        "text": "Set them per flow: tight latency and high availability for chat, looser for the job",
+        "reason": "Correct: different user, data or system flows often have different requirements for availability and scalability, and good designs optimize per flow."
+      },
+      {
+        "id": "c",
+        "text": "Leave them out for now, since latency and availability only matter once there are users",
+        "reason": "These are nonfunctional requirements that influence design decisions and technology choices, so they belong in the requirements, before design."
+      },
+      {
+        "id": "d",
+        "text": "Use the loosest targets for both, since the nightly job shows delays are acceptable",
+        "reason": "A delay that's fine for a nightly report isn't fine for a customer waiting in chat; each flow needs its own targets."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Set nonfunctional requirements **per flow**: a live chat and a nightly job need different latency and availability targets.",
+    "explanation": "Microsoft's guidance decomposes a workload into user, data and system flows, and notes that different flows often have different requirements for availability, scalability and recovery, so a good design optimizes per flow. The live chat has someone waiting; the nightly summary doesn't. Choice a feels safe, but holding every flow to the strictest target adds cost where the business gets little value.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-batch-vs-realtime",
+      "c-multidimensional-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-criteria-before-prompting",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Lifecycle phases",
+    "stem": "A team's kickoff meeting ends with \"let's start writing prompts.\" Nobody has defined what success looks like or how they would test it. Per Anthropic's prompt engineering overview, what should they do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write the prompt now, and define success criteria once they see the first outputs",
+        "reason": "The overview assumes success criteria and ways to test them already exist when prompt engineering starts; if not, establish them first."
+      },
+      {
+        "id": "b",
+        "text": "Pick the most capable model, since prompt work depends mostly on the model chosen",
+        "reason": "Model choice doesn’t replace criteria. The overview notes some criteria, such as latency and cost, may be easier to meet by choosing a different model."
+      },
+      {
+        "id": "c",
+        "text": "Define success criteria and ways to test against them, then draft the prompt",
+        "reason": "Correct: the overview assumes a clear definition of success criteria, ways to test against them empirically, and a first draft prompt."
+      },
+      {
+        "id": "d",
+        "text": "Ship a quick prototype so users can say what they actually want from the feature",
+        "reason": "The overview puts success criteria and ways to test against them ahead of prompt engineering, not after a release."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Requirements come before Build: define success criteria and how to test them before writing the first prompt.",
+    "explanation": "Anthropic's prompt engineering overview assumes three things are in place before you start: a clear definition of the success criteria, some ways to empirically test against them, and a first draft prompt. If they're missing, establish them first. Choice a is the usual temptation, but prompting without criteria leaves nothing to judge the outputs against.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Criteria and tests come before prompt engineering.",
+      "steps": [
+        {
+          "label": "Success criteria"
+        },
+        {
+          "label": "Ways to test"
+        },
+        {
+          "label": "First draft prompt"
+        },
+        {
+          "label": "Prompt engineering"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview",
+      "title": "Prompt engineering overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop",
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-evals-early",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Evals in the lifecycle",
+    "stem": "A team plans to skip evals for its new agent until after launch, \"once we're at scale and know what matters.\" What does Anthropic's post on agent evals say about that timing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It's the recommended order, since evals mean little until production traffic exists",
+        "reason": "Some teams do add evals once at scale, but the post says evals are especially useful at the start of development to encode expected behavior."
+      },
+      {
+        "id": "b",
+        "text": "Timing doesn't matter much, since an eval suite takes the same effort at any stage",
+        "reason": "The post says the opposite: evals get harder to build the longer you wait."
+      },
+      {
+        "id": "c",
+        "text": "It's fine as long as production monitoring is in place to take over the evals' job",
+        "reason": "The post compares the layers to the Swiss cheese model: no single evaluation layer catches every issue, so monitoring complements evals rather than replacing them."
+      },
+      {
+        "id": "d",
+        "text": "Wait too long and you're reverse-engineering success criteria from a live system",
+        "reason": "Correct: the post says evals get harder to build the longer you wait, while early on, product requirements naturally translate into test cases."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Build evals early in the lifecycle: requirements translate into test cases most easily before launch.",
+    "explanation": "The post accepts that some teams create evals at the start and others add them at scale, but it is clear about the cost of waiting: evals get harder to build the longer you wait, and late teams end up reverse-engineering success criteria from a live system. Early on, product requirements naturally translate into test cases. Choice c is tempting because monitoring does watch production, but the post treats evaluation as layers, where no single one catches every issue.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-delivery-gates",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Release management",
+    "stem": "Your team is setting up the Deploy phase for a Claude app's prompt and tool changes, moving each change from test environments to production. Which two practices match DevOps guidance for the delivery phase?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Edit the production prompt directly when a fix is urgent, skipping the test stages",
+        "reason": "Delivery is meant to be controlled and well-tested; the guidance moves changes through stages with gates rather than around them."
+      },
+      {
+        "id": "b",
+        "text": "Automated gates that a change must pass before it moves to the next stage",
+        "reason": "Correct: in delivery, teams set automated gates to move applications between stages until final release to customers."
+      },
+      {
+        "id": "c",
+        "text": "One large release a year, so customers see fewer changes to the app",
+        "reason": "The guidance favors shorter release cycles: incremental progress makes planning and risk management easier."
+      },
+      {
+        "id": "d",
+        "text": "No separate test environment, since Claude’s outputs vary from run to run anyway",
+        "reason": "The guidance says deploying and testing in multiple environments increases quality, and that delivery processes should be well-tested."
+      },
+      {
+        "id": "e",
+        "text": "A release management process with clear manual approval stages",
+        "reason": "Correct: the guidance’s delivery phase starts by defining a release management process with clear manual approval stages."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Ship through stages: automated gates plus clear approval steps, not edits straight to production.",
+    "explanation": "In the delivery phase, DevOps guidance defines a release management process with clear manual approval stages and sets automated gates that move changes between stages until final release. Delivery should be scalable, repeatable, controlled and well-tested. Choice a is tempting under pressure, but it skips exactly the controls that keep delivery repeatable and well-tested.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/devops/what-is-devops",
+      "title": "What is DevOps?",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-short-release-cycles",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Release management",
+    "stem": "A team wants to bundle six months of prompt, tool and model changes into one big release of its Claude app. What does DevOps guidance recommend instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Release in short cycles, so progress is incremental and risk is easier to manage",
+        "reason": "Correct: shorter release cycles make planning and risk management easier, since progress is incremental, and reduce the impact on system stability."
+      },
+      {
+        "id": "b",
+        "text": "Keep the big release, since fewer deployments mean fewer chances for something to break",
+        "reason": "The guidance argues the opposite: short, incremental cycles are what reduce the impact on system stability."
+      },
+      {
+        "id": "c",
+        "text": "Release only when a new Claude model comes out, so every change is tested together",
+        "reason": "One reason the guidance gives for short cycles is reacting to evolving customer needs; waiting for model launches brings back long, bundled releases."
+      },
+      {
+        "id": "d",
+        "text": "Freeze all changes after launch, since a stable app should not keep changing at all",
+        "reason": "The guidance expects teams to keep improving through continuous learning and to react to evolving customer needs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Short, incremental releases make risk easier to manage than one big bundle.",
+    "explanation": "DevOps guidance favors shorter release cycles: progress is incremental, which makes planning and risk management easier and reduces the impact on system stability, and teams can react to evolving customer needs. Choice b is the intuitive objection, but the guidance says it is the incremental approach that protects stability.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/devops/what-is-devops",
+      "title": "What is DevOps?",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-s5req-operate-feeds-iterate",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Lifecycle phases",
+    "stem": "Three months after launch, telemetry and alerts on your Claude support app show a growing share of conversations about a new product line, which the bot handles poorly. The original requirements never mentioned it. In lifecycle terms, what should happen next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing yet: the lifecycle ended at Deploy, so this waits for a full rebuild next year",
+        "reason": "Monitoring insights are meant to improve the application in future development cycles; the lifecycle continues past deployment."
+      },
+      {
+        "id": "b",
+        "text": "Patch the production prompt today and skip planning, since the need is already clear",
+        "reason": "That bypasses the planning, testing and controlled delivery the change still needs; each phase relies on the others."
+      },
+      {
+        "id": "c",
+        "text": "Feed it back into planning: update requirements, then build, test and ship the change",
+        "reason": "Correct: monitoring insights help the team see how to improve the app in future development cycles, so the gap goes back through planning and delivery."
+      },
+      {
+        "id": "d",
+        "text": "Treat it as an alerting problem and raise the alert thresholds until the noise stops",
+        "reason": "The alerts are working; the gap is in what the app was built to do. Monitoring insights should shape the next development cycle."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Operate feeds Iterate: what monitoring reveals becomes new requirements for the next cycle, not a patch outside the process.",
+    "explanation": "The lifecycle is a loop. DevOps guidance says continuous monitoring's insights help the team mitigate issues and see how to improve the application in future development cycles, and each phase relies on the others. A topic the requirements never covered is a requirements gap, so it goes back to planning, then through development and delivery. Choice b is tempting because the fix looks obvious, but it skips the testing and controlled delivery the change still needs.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "What Operate reveals starts the next cycle.",
+      "steps": [
+        {
+          "label": "Operate",
+          "sublabel": "telemetry shows a gap"
+        },
+        {
+          "label": "Plan",
+          "sublabel": "update requirements"
+        },
+        {
+          "label": "Develop",
+          "sublabel": "build and test"
+        },
+        {
+          "label": "Deliver",
+          "sublabel": "gated release"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/devops/what-is-devops",
+      "title": "What is DevOps?",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop",
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
   }
 ]

@@ -1517,5 +1517,481 @@
       "c-cc-custom-skill"
     ],
     "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-focus-headless-which-jobs-headless",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "Your team is sorting its Claude Code work into jobs that run headless with `claude -p` and jobs that stay in an interactive session. Which two jobs fit `claude -p`?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A pre-commit hook that checks the staged changes for obvious problems",
+        "reason": "Correct: the best-practices guide names pre-commit hooks, alongside CI pipelines and scripts, as places to run `claude -p`."
+      },
+      {
+        "id": "b",
+        "text": "Getting to know a new codebase by asking follow-up questions as answers arrive",
+        "reason": "The guide frames onboarding as asking Claude the questions you'd ask a senior engineer, one after another. Each question depends on the last answer, so it needs you there."
+      },
+      {
+        "id": "c",
+        "text": "Having Claude interview you about a large feature before it writes the spec",
+        "reason": "The interview pattern has Claude ask you about implementation, edge cases and trade-offs. It only works with a person answering in the session."
+      },
+      {
+        "id": "d",
+        "text": "A CI step that explains each failed build log and attaches it to the run",
+        "reason": "Correct: CI pipelines are a named use of non-interactive mode, and piping a log into `claude -p` is one of the guide's own examples."
+      },
+      {
+        "id": "e",
+        "text": "A risky change you plan to rewind with checkpoints if the first try goes wrong",
+        "reason": "Rewinding is done in the session by pressing `Esc` twice or running `/rewind`, then choosing a checkpoint. That's a person steering, not a script."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Run headless when a job has no person in the loop: CI, pre-commit hooks, scripts. Stay interactive when you'll answer, steer or rewind.",
+    "explanation": "The deciding question is whether anyone needs to respond while the work happens. A pre-commit check and a CI log explainer run the same way every time and nobody watches them, which is what `claude -p` is for. Onboarding questions, a spec interview and checkpoint rewinds all need a person reacting to what Claude just did. Choice e is tempting because risky work sounds like something to automate, but rewinding is a hands-on step in the session.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-open-investigation-interactive",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A teammate wants every task scripted with `claude -p`, including \"find out why checkout got slow\" in a service nobody on the team knows well. What Claude should look at next depends on what it finds. What is the best way to run this task?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Script it with `claude -p` and stream-json output, so you can steer each step as it streams",
+        "reason": "Streaming JSON is an output format for processing results as they arrive. It shows you what happened; it gives you no way to stop Claude and redirect it."
+      },
+      {
+        "id": "b",
+        "text": "Script it with `claude -p` and a much higher turn limit, so the investigation finishes alone",
+        "reason": "The guide calls an unscoped investigation the \"infinite exploration\" failure: Claude reads hundreds of files and fills its context. More turns makes that worse."
+      },
+      {
+        "id": "c",
+        "text": "Work in an interactive session, so you can stop Claude mid-action and redirect it early",
+        "reason": "Correct: the guide says tight feedback loops give the best results. Press `Esc` to stop Claude mid-action, keep the context, and redirect it as soon as it drifts."
+      },
+      {
+        "id": "d",
+        "text": "Script it as a fan-out, with one `claude -p` call for each file in the service",
+        "reason": "Fan-out suits large migrations or analyses over a known task list. Here the next step depends on findings, so there's no list to split up ahead of time."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Open-ended work where each step depends on the last finding belongs in an interactive session, where you can stop and redirect Claude.",
+    "explanation": "Headless mode fits work that can be specified up front. This task can't be: nobody knows the service, and the direction depends on what Claude discovers. The guide's advice for that is to course-correct early and often, which needs a person in the session. Choice a is tempting because streaming output looks live, but it only reports what Claude did. It gives the script no way to stop Claude and change course.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-preapprove-tools-unattended",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "A nightly job runs `claude -p \"run the tests and fix any failures\"` on a CI runner, with nobody watching. The log shows Claude found the bugs, but its file edits and test commands were denied, so nothing got fixed. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rerun the job, since denials like these usually clear up on a second attempt",
+        "reason": "In a `-p` run with nobody to answer, calls that would prompt are denied either way, so a rerun hits the same denials."
+      },
+      {
+        "id": "b",
+        "text": "Pre-approve only the tools the job needs, such as Read, Edit and the test command",
+        "reason": "Correct: listing tools in `--allowedTools` lets Claude use them without prompting. A scoped rule such as `Bash(npm test *)` approves only that command."
+      },
+      {
+        "id": "c",
+        "text": "Add a line to the prompt saying Claude has permission to edit files and run commands",
+        "reason": "Permission rules, hooks and the permission mode decide every call. Text in the prompt doesn't grant Claude any permission."
+      },
+      {
+        "id": "d",
+        "text": "Start an interactive session on the runner so the approval prompts can wait for an answer",
+        "reason": "Nobody is there to answer, so the prompts would just wait. Non-interactive mode is the way to run unattended, with the approvals settled before the run starts."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With nobody there to approve, decide permissions up front: pre-approve the exact tools the job needs and leave the rest denied.",
+    "explanation": "In a `-p` run that nobody is answering, any call that would need approval is denied, and it is denied again on every rerun. The fix is to settle those approvals before the run starts, as narrowly as the job allows: read and edit files, plus the one test command. Choice d is tempting because it lets the prompts appear, but nobody is on the runner to answer them, so the job just waits.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode",
+      "c-allowed-vs-disallowed-tools"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-focus-headless-skip-local-config",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "Your `claude -p` check runs on CI runners and on developers' laptops, and the results differ. On one laptop a personal hook in `~/.claude` changed the run, and another machine connected an extra MCP server. You need the same behavior on every machine. What should the script do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask each developer to empty their `~/.claude` folder before they run the check",
+        "reason": "That depends on every machine being cleaned before every run. Telling the run not to read local config at all removes that dependency."
+      },
+      {
+        "id": "b",
+        "text": "Pin the model in the script, so every machine runs the same model each time",
+        "reason": "The model wasn't what differed. A `-p` run discovers and loads each machine's hooks and MCP servers, and pinning the model leaves that in place."
+      },
+      {
+        "id": "c",
+        "text": "Use a stricter permission mode, so personal hooks and servers can't load",
+        "reason": "A permission mode decides which tool calls get approved. It does not stop the run from discovering and loading the hooks and servers each machine has configured."
+      },
+      {
+        "id": "d",
+        "text": "Skip local config discovery; pass in the settings and servers the check needs",
+        "reason": "Correct: bare mode skips auto-discovery of hooks, plugins, MCP servers, auto memory and CLAUDE.md, and you pass what the job needs as flags. The docs say it suits CI where you need the same result on every machine."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "For scripted runs that must behave the same everywhere, skip local config discovery and pass in exactly the config the job needs.",
+    "explanation": "A `-p` run discovers and loads configuration just as an interactive session does, including anything in `~/.claude` and the working directory, so each machine's personal setup leaks into the run. The fix is to turn that discovery off and pass the job's config in explicitly; Claude Code calls this bare mode and recommends it for scripted calls. Choice c is tempting because it sounds locked down, but a permission mode governs tool approvals, not what loads.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-bound-runaway-run",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A CI step runs `claude -p` with an open-ended prompt: \"tidy up this module\". Most runs finish quickly, but a few keep going far longer and cost far more than the job is worth. What puts a bound on each run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Cap the agentic turns and set a spend limit on the call itself",
+        "reason": "Correct: a turn limit ends the run with an error when it's reached, and a spend cap stops the run once estimated spend reaches it. Spend can pass the cap, so leave headroom."
+      },
+      {
+        "id": "b",
+        "text": "Switch to stream-json output, so you can tell when a run has started looping",
+        "reason": "Streaming output shows progress as it happens, but nothing in it ends the run. Without a turn or spend limit, a runaway run keeps going."
+      },
+      {
+        "id": "c",
+        "text": "Turn off session persistence, so a run can't keep building up its history",
+        "reason": "This only stops the session being saved to disk for later resuming. It doesn't limit how many turns a run takes or how much it spends."
+      },
+      {
+        "id": "d",
+        "text": "Add `--continue`, so each run carries on from the last one instead of starting over",
+        "reason": "Continuing loads the most recent conversation. It does nothing to bound a run, and it carries the last run's history into the next one."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Bound an unattended run with a turn limit and a spend cap. Watching its output doesn't stop it.",
+    "explanation": "There's no limit on turns by default, so an open-ended prompt can run on for a long time. Set a limit in the call itself: a turn cap that ends the run with an error, and a spend cap that stops it at an estimated amount. Choice b is tempting because seeing a loop feels like controlling it, but output formats only report what happened. Nothing in a stream stops the run.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/cli-reference",
+      "title": "CLI reference",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode",
+      "c-max-turns-budget"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-resume-by-session-id",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Sessions",
+    "stem": "A build script starts three `claude -p` review conversations, one per service, and then sends each one a follow-up. The follow-ups use `--continue`, and some of them land in the wrong service's conversation. How should the script target each follow-up?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Name the service in each follow-up prompt, so `--continue` picks the right conversation",
+        "reason": "`--continue` always opens the most recent conversation. The text of the prompt has no say in which conversation that is."
+      },
+      {
+        "id": "b",
+        "text": "Save each run's session ID from its JSON output, then `--resume` that ID",
+        "reason": "Correct: the docs say to capture the session ID when you run several conversations, then resume that specific one. The ID is in the `session_id` field of the JSON output."
+      },
+      {
+        "id": "c",
+        "text": "Repeat the first prompt in full in every follow-up, instead of continuing a conversation",
+        "reason": "That starts a fresh conversation, so the earlier review's work is lost. Resuming by ID keeps the conversation's full context."
+      },
+      {
+        "id": "d",
+        "text": "Send the follow-ups from an interactive session, and pick each conversation by hand",
+        "reason": "The script runs unattended, so nobody is there to pick. Capturing and passing the session ID keeps the whole flow scripted."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When a script runs several conversations, save each run's session ID and resume that one. `--continue` only finds the most recent.",
+    "explanation": "`--continue` is fine when a script runs one conversation at a time, because the most recent one is the right one. With three in flight, \"most recent\" is just whichever finished last. JSON output includes each run's session ID, so the script can save it and resume exactly that conversation later. Choice a is tempting because the prompt names the service, but `--continue` always opens the most recent conversation, whatever the prompt says.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Each follow-up resumes the conversation it belongs to.",
+      "steps": [
+        {
+          "label": "claude -p",
+          "sublabel": "JSON output"
+        },
+        {
+          "label": "Save session_id",
+          "sublabel": "one per service"
+        },
+        {
+          "label": "claude -p --resume",
+          "sublabel": "that ID"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-continue-resume",
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-pipe-diff-stdin",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "You're adding an npm script that has Claude check the diff against `main` for typos. The team doesn't want to give Claude any shell access for this job. How should the script get the diff to Claude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Allow Bash for the run, so Claude can call `git diff main` for itself",
+        "reason": "That gives Claude the shell access the team ruled out. The docs point out that piping the diff in means Claude doesn't need Bash permission to read it."
+      },
+      {
+        "id": "b",
+        "text": "Write the diff into CLAUDE.md before each run, so Claude reads it at startup",
+        "reason": "That means rewriting a project file on every run. Non-interactive mode already reads stdin, so the diff can go straight to Claude."
+      },
+      {
+        "id": "c",
+        "text": "Pipe `git diff main` into `claude -p` on stdin, so no command is needed",
+        "reason": "Correct: non-interactive mode reads stdin, so you can pipe data in like any other command-line tool. The docs' typo-linter script does exactly this."
+      },
+      {
+        "id": "d",
+        "text": "Open an interactive session and paste the diff in each time the script runs",
+        "reason": "An npm script has to run without a person. Pasting by hand defeats the point of scripting the check."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Pipe the data a headless run needs into `claude -p`, so Claude doesn't need tool access to fetch it.",
+    "explanation": "Claude Code in `-p` mode reads stdin, so a script can hand Claude its input the same way you'd pipe into any CLI tool. Piping the diff means the script runs `git diff` and Claude only reads the result, so Claude never needs shell permission. Choice a is tempting because letting Claude fetch its own input is the default habit, but it gives Claude exactly the access the team wanted to withhold.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-output-format-by-consumer",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "Your team sends `claude -p` output to several different consumers. Which two pairings of consumer and output format fit best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A person skimming the job log the next morning: the default `text` output",
+        "reason": "Correct: `text` is the default and returns plain text, which is what a person reading a log needs."
+      },
+      {
+        "id": "b",
+        "text": "A dashboard that shows the run's progress live while it works: `json`",
+        "reason": "`json` returns one object when the run ends, so a dashboard would see nothing until then. `stream-json` gives newline-delimited events as they happen."
+      },
+      {
+        "id": "c",
+        "text": "A script that needs the answer and the session ID after the run ends: `json`",
+        "reason": "Correct: `json` returns structured JSON with the result, the session ID and other metadata, ready for a script to parse."
+      },
+      {
+        "id": "d",
+        "text": "A person reading the finished report in a terminal: `stream-json`, to see it all at once",
+        "reason": "`stream-json` is newline-delimited JSON events for real-time streaming. It's built for programs, not for a person reading a report."
+      },
+      {
+        "id": "e",
+        "text": "A script that maps the reply onto fixed fields: `text`, with the schema described in the prompt",
+        "reason": "For output that must match a schema, the docs pair `json` output with a JSON Schema and put the result in `structured_output`, rather than asking for JSON in plain text."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Choose the format for whoever reads it: `text` for people, `json` for a script that runs after the job, `stream-json` for live progress.",
+    "explanation": "The three output formats answer three different needs. Plain text suits a human. A single JSON object with the result and session ID suits a script that runs once the job is done. Newline-delimited events suit anything that has to react while the run is still going. Choice b is the tempting one because JSON sounds machine-friendly, but `json` arrives all at once at the end, so a live dashboard needs `stream-json`.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-check-exit-before-using",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A nightly script runs `claude -p` with JSON output and posts the `result` field as a comment on the team's tracking issue. One night the CI credentials had expired, and the script posted the authentication failure as if it were the report. What check was missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Checking the exit status, and posting nothing if the run failed",
+        "reason": "Correct: Claude Code exits with 0 on success and a non-zero code when the run fails. A failure inside the run, such as missing authentication, is printed as the result on stdout."
+      },
+      {
+        "id": "b",
+        "text": "Checking that stderr is empty, since that's where failed runs report",
+        "reason": "Errors caught before the run starts, such as an invalid flag, go to stderr. A failure inside the run, like this one, is printed as the result on stdout."
+      },
+      {
+        "id": "c",
+        "text": "Checking that the `result` text isn't empty before posting it",
+        "reason": "The failure text was printed as the result, so the field wasn't empty. That check passes and the script still posts the error."
+      },
+      {
+        "id": "d",
+        "text": "Using plain text output instead, since it leaves failures off stdout",
+        "reason": "The output format doesn't change this: a failure inside the run is printed as the result on stdout. The exit status is what tells you the run failed."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In a script, check the exit status before using the output. A failed run can still print text where the answer would go.",
+    "explanation": "A failed run doesn't always leave the output empty. When something goes wrong inside the run, Claude Code prints the failure as the result, so a script that only reads `result` passes the error downstream as if it were the answer. The exit status tells the two cases apart. Choice b is tempting because errors often go to stderr, but that holds for problems caught before the run starts, such as a bad flag, not for a failure inside the run.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Gate on the exit status before anything downstream reads the output.",
+      "steps": [
+        {
+          "label": "claude -p",
+          "sublabel": "JSON output"
+        },
+        {
+          "label": "Exit status?",
+          "sublabel": "0 or non-zero"
+        },
+        {
+          "label": "0: post result",
+          "sublabel": "non-zero: fail the step"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-focus-headless-routine-log-summary",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "Every morning a developer opens an interactive Claude Code session, pastes in last night's build log and asks for a short root-cause note for the team channel. The prompt never changes, and nobody follows up on the answer. How should the team run this job?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep it interactive, since only a session with a person in it can read a log file",
+        "reason": "Non-interactive mode reads piped input. The guide's own example pipes a log into `claude -p` to explain an error."
+      },
+      {
+        "id": "b",
+        "text": "Put the request in CLAUDE.md, so each new session writes the note when it starts",
+        "reason": "Claude reads CLAUDE.md at the start of every conversation, but someone still has to open that session each morning, so the job stays manual."
+      },
+      {
+        "id": "c",
+        "text": "Fan it out, with one `claude -p` call for each line of the log in parallel",
+        "reason": "Fan-out suits large migrations or analyses split across many files. One short note from one log is a single task."
+      },
+      {
+        "id": "d",
+        "text": "Script it: pipe the log into `claude -p` on a schedule and post the reply",
+        "reason": "Correct: the guide says to use `claude -p` in CI, pre-commit hooks or scripts, and piping data in, as in `cat error.log | claude -p`, is one of its examples."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "When a task has a fixed prompt, a file as input and nobody steering, move it out of the interactive session and into a `claude -p` script.",
+    "explanation": "The deciding detail is that nothing about the job needs a person: the prompt is fixed, the input is a file, and nobody steers or follows up. That's the kind of work non-interactive mode is for, and piping the log in hands Claude its input like any command-line tool. Choice a is tempting if you think of Claude Code as a chat window, but `claude -p` reads piped input, so nobody needs to paste the log.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-cc-operation"
   }
 ]

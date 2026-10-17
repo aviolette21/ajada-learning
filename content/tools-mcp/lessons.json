@@ -856,5 +856,171 @@
         "checkedOn": "2026-10-15"
       }
     ]
+  },
+  {
+    "id": "l-course-contributing-back",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "title": "Contributing back to shared channels",
+    "summary": "Contributing back moves an asset you reuse privately into shared infrastructure someone else maintains, such as Anthropic's directory, a plugin marketplace or the MCP Registry. Pick the channel built for that kind of asset, settle rights and attribution before anyone reviews the code, and make every behavior visible, because a maintainer accepts what they can verify.",
+    "keyPoints": [
+      "**Match the channel to the asset and audience**: your own marketplace for a group you choose (a private repo works), a public channel such as Anthropic's directory for everyone.",
+      "**Read the channel's rules first**: contribution guidelines say how maintainers want contributions; a skill in the open Agent Skills format works across compatible agents.",
+      "The **MCP Registry** holds metadata for public servers only; internal servers go in a private registry you host. It verifies who published a server, not that its code is safe.",
+      "**Rights first**: without a license, default copyright applies; reused code keeps its license terms and notices; a DCO sign-off certifies your right to submit.",
+      "**Verifiable beats impressive**: rerunnable evals, a README that says what the asset runs and sends, readable source, and no real credentials.",
+      "After acceptance, **every release goes back through** the channel's checks, and names other people depend on stay stable."
+    ],
+    "sections": [
+      {
+        "heading": "From private reuse to shared infrastructure",
+        "body": "An asset you reuse privately, such as a plugin your team installs or an MCP server your projects call, runs on your terms. Contributing it back means moving it into infrastructure someone else maintains and other people install from. The maintainer of that channel didn't watch you build it, so they can only accept what they can check.\n\nThe Claude Code publishing guide compares the routes by who can install:\n\n- **No marketplace:** send the plugin folder or a `.zip`. Fine for a few people, but there's no install by name and no updates.\n- **Your own marketplace:** a `marketplace.json` in a git repository. Once the file is in, the plugin is published, with no submission form; if the repository is private, the marketplace is private too.\n- **Anthropic's directory:** one listing reaches people on claude.ai, in Cowork and in Claude Code, and Anthropic checks each submission before it's listed.\n\nThe checks differ by channel. Anthropic doesn't review third-party marketplaces, and one your own team or organization publishes counts as third-party, so Anthropic doesn't check what you list there; its docs tell users to review a plugin before installing it, whichever marketplace it comes from. The directory gives every plugin version automated validation and a security scan, and a person reviews each new listing before it goes live.",
+        "example": "A consultancy built a ticket-triage plugin during one client engagement and now reuses it on every new one. Step one is private reuse: a marketplace file in a private firm repository, so every consultant installs `triage@firm-tools` and gets updates. Months later the firm wants a generic version public. That's a contribution: the plugin goes to Anthropic's directory, where it's validated, scanned and reviewed by people who never saw the original engagement.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Contributing moves an asset into a channel someone else maintains, which checks it before listing it.",
+          "steps": [
+            {
+              "label": "Private reuse",
+              "sublabel": "your team"
+            },
+            {
+              "label": "Pick the channel",
+              "sublabel": "built for the asset"
+            },
+            {
+              "label": "Rights settled",
+              "sublabel": "license, notices"
+            },
+            {
+              "label": "Maintainer checks",
+              "sublabel": "validate, scan, review"
+            },
+            {
+              "label": "Listed",
+              "sublabel": "others install it"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "Match the contribution to the channel built for it",
+        "body": "Each channel is built for a kind of asset and an audience, so start by asking what you're contributing and who should be able to install it.\n\n- **A plugin:** your own marketplace for a group you choose, or a public channel such as Anthropic's directory for everyone.\n- **A skill:** Agent Skills are an open format, a folder with a `SKILL.md` holding a name, a description and instructions, so a skill built once works across skills-compatible agents. That makes community skills repositories a natural channel, and a plugin can carry skills too.\n- **Public MCP server metadata:** the official **MCP Registry**, which catalogs publicly accessible servers and is meant to be consumed mainly by downstream aggregators such as marketplaces. The code itself stays in its package registry, such as npm. The registry doesn't support private servers; for those, host your own private registry.\n\nWhen the channel is someone's repository, read its contribution guidelines first. Maintainers use them to say how they want contributions made, which saves the hassle of pull requests that must be rejected and resubmitted.",
+        "example": "A data vendor has three assets: a plugin whose skills explain the vendor's query patterns, an open-source MCP server published on npm, and an admin server on the corporate network. The plugin goes to a public plugin channel. The open-source server's metadata goes to the MCP Registry, pointing at the npm package, so marketplaces can discover it. The admin server goes in a private registry the company hosts, because the official one is for publicly accessible servers only."
+      },
+      {
+        "heading": "Rights and attribution come before technical review",
+        "body": "Technical review can't settle whether you were allowed to contribute something, so settle that before anyone reads the code.\n\n- **License it.** Without a license, default copyright law applies: you keep all rights, and no one may reproduce, distribute or create derivative works from your work. A public repository lets people view and fork it on GitHub, not reuse it. Listing channels often require one; a skill's `SKILL.md` can name its license in its frontmatter.\n- **Keep other people's notices.** Permissive doesn't mean condition-free. The MIT license, for example, requires its copyright notice and permission notice in all copies or substantial portions of the software.\n- **Know what you're certifying.** Projects that use the Developer Certificate of Origin ask each contributor to certify that they created the contribution, or that it's based on suitably licensed work, and that they have the right to submit it. If part of the asset came from a customer engagement, such as the customer's own data or code written for them, confirm that right first, or replace that material with your own.\n- **Don't borrow a name.** The directory allows forks but expects a fork to have a name of its own, and blocks names that present a plugin as official.",
+        "example": "An engineer wants to contribute an `invoice-check` skill to a shared skills repository. Its parser was adapted from an MIT-licensed library, and its prompts were first written on a client project. Before opening a pull request, the engineer confirms the client agreement lets those prompts be shared (or rewrites them), keeps the library's MIT notice beside the adapted code, adds `license: Apache-2.0` to the frontmatter with a bundled `LICENSE`, and only then signs off the commit under the repository's DCO."
+      },
+      {
+        "heading": "A maintainer accepts what they can verify",
+        "body": "A maintainer can't take your word for what an asset does, so make everything checkable:\n\n- **Show its behavior.** Build checks show how an asset is made, not whether it helps. Give the maintainer evals they can rerun, such as output compared with and without the plugin on real prompts.\n- **Disclose what it does.** Describe in the README everything the asset runs, sends or fetches. Anthropic's directory scans for behavior a plugin doesn't disclose, such as sending data elsewhere; disclosure doesn't make a behavior allowed, though, since the directory policy decides that.\n- **Keep the source readable.** Commit readable source, not compiled, packed or minified code. Code the scan can't read is held for a reviewer.\n- **Ship no secrets.** Keep real credentials out of every file, examples included, and ask users for their own values.\n\nAlso be clear about what a channel itself verifies. The MCP Registry ties each server name to a verified GitHub account or domain, and it hosts metadata only, leaving security scanning to package registries and downstream aggregators. So a listing shows who published a server, not that its code is safe.",
+        "example": "A plugin's hook posts weekly usage counts to `metrics.example.com`, its helper script is minified, and its sample `.mcp.json` holds the team's real API key. The review-ready version adds a README section saying exactly what the hook sends and where, replaces the minified script with readable source, swaps the key for a value each user enters when they configure the plugin, and includes eval cases comparing results with and without the plugin.",
+        "diagram": {
+          "kind": "flow",
+          "caption": "Every version is validated and scanned; a person reviews a new listing before it goes live.",
+          "steps": [
+            {
+              "label": "Validate",
+              "sublabel": "portal checks"
+            },
+            {
+              "label": "Submit",
+              "sublabel": "for review"
+            },
+            {
+              "label": "Security scan",
+              "sublabel": "every version"
+            },
+            {
+              "label": "Human review",
+              "sublabel": "new listing"
+            },
+            {
+              "label": "Published",
+              "sublabel": "live in directory"
+            }
+          ]
+        }
+      },
+      {
+        "heading": "After acceptance: every release goes back through",
+        "body": "Once an asset lives in shared infrastructure, other people's setups depend on it, so each release goes back through the channel.\n\n- **New versions are checked too.** Anthropic's directory, for example, picks up each new commit on the branch it follows, scans it, and serves it only once it's published; until then, the listing keeps serving the last published version.\n- **Raise the version.** In your own marketplace, if `plugin.json` sets a version and you push commits without changing it, users keep the old copy.\n- **Keep names stable.** Users install and configure a plugin by its name, so a renamed plugin is a different plugin to every existing install. Treat a published name as permanent and change only the label users see.",
+        "example": "The triage plugin is live at 1.4. The team merges 1.5, which adds a hook that calls a new endpoint, and the scan holds it for a reviewer; users keep getting 1.4 meanwhile. The team documents the endpoint in the README and pushes the fix, and once 1.5 is published users receive it. Marketing's request to call the plugin \"Ticket Triage Pro\" changes only the label users see, and the plugin's name stays `triage`."
+      }
+    ],
+    "checkQuestionIds": [
+      "q-s5contrib-private-team-marketplace",
+      "q-s5contrib-dco-sign-off-rights",
+      "q-s5contrib-disclose-what-it-sends"
+    ],
+    "sources": [
+      {
+        "url": "https://code.claude.com/docs/en/plugins/publish",
+        "title": "Publish and distribute a plugin",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugins/anthropic-marketplaces",
+        "title": "Anthropic's marketplaces",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://code.claude.com/docs/en/plugins/security",
+        "title": "Plugin security and trust",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://claude.com/docs/directory/publish",
+        "title": "Publish to the directory",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+        "title": "Plugin pre-submission checklist",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://claude.com/docs/plugins/submit",
+        "title": "Submit your plugin",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://modelcontextprotocol.io/registry/about",
+        "title": "The MCP Registry",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://agentskills.io/home",
+        "title": "Agent Skills Overview",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://agentskills.io/specification",
+        "title": "Specification",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+        "title": "Licensing a repository",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors",
+        "title": "Setting guidelines for repository contributors",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://opensource.org/license/mit",
+        "title": "The MIT License",
+        "checkedOn": "2026-10-17"
+      },
+      {
+        "url": "https://developercertificate.org/",
+        "title": "Developer Certificate of Origin",
+        "checkedOn": "2026-10-17"
+      }
+    ]
   }
 ]

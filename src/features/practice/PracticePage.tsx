@@ -11,7 +11,7 @@ import './practice.css';
 
 export function PracticePage() {
   const navigate = useNavigate();
-  const { domains, questions } = useContent();
+  const { domains, questions, focus } = useContent();
   const [size, setSize] = useState<string>(String(QUIZ_SIZE));
   const { attempts, mockSessions } = useProgress();
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
@@ -38,6 +38,12 @@ export function PracticePage() {
           ))}
         </div>
       </section>
+      {focus.length > 0 && (
+        <Link className="panel panel-link" to="/practice/focus">
+          <span className="grow"><h2>Focus areas</h2><span className="muted">{focus.length} topics test takers say the exam leans on · drill one at a time</span></span>
+          <span className="chev"><IconChevron /></span>
+        </Link>
+      )}
       <Link className="panel panel-link" to="/practice/mistakes">
         <span className="grow"><h2>My mistakes</h2><span className="muted">{missed > 0 ? `${missed} question${missed === 1 ? '' : 's'} to master · right on 2 different days clears one` : 'Nothing to review yet'}</span></span>
         <span className="chev"><IconChevron /></span>

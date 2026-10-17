@@ -1743,5 +1743,112 @@
       "c-retry-after"
     ],
     "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-focus-err-resume-not-restart",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retries and side effects",
+    "stem": "Your order agent runs several steps per job. On step 4 the API keeps returning `529 overloaded_error` until retries run out, but step 3's tool has already emailed the customer. Your job runner then restarts the job from step 1, so customers get duplicate emails. What should change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry step 4 with no limit at all, so the job never has to restart from the beginning",
+        "reason": "Endless retries just stall the job through a long overload. Anthropic pairs retry logic with regular checkpoints, so a job can pick up where it stopped."
+      },
+      {
+        "id": "b",
+        "text": "Treat the 529 as permanent and cancel the job, so nothing else happens to that order",
+        "reason": "Cancelling throws away the finished steps and leaves the order half done after the customer was already emailed. The post resumes from where the error occurred instead."
+      },
+      {
+        "id": "c",
+        "text": "Restart the job from step 1, but tell the agent in its prompt not to email twice",
+        "reason": "This still replays the run from the beginning and leaves it to the model not to repeat a side effect. The post's approach is to resume where the error occurred."
+      },
+      {
+        "id": "d",
+        "text": "Save progress after each step, and resume from step 4 once the API has recovered",
+        "reason": "Correct: Anthropic's research system uses regular checkpoints and resumes from where the agent was when errors occurred, since restarts are expensive and frustrating for users."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "When an agent step fails after earlier side effects, resume from a checkpoint instead of replaying the whole run.",
+    "explanation": "Agents keep state across many tool calls, so a failure partway through leaves real effects behind, like the email sent in step 3. Restarting from step 1 repeats those effects; Anthropic's multi-agent post describes regular checkpoints and resuming from where the error occurred instead. Choice c is tempting because it seems to address the duplicates, but it still replays the run and leaves the guarantee to the model.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Resume at the failed step; finished steps and their side effects aren't repeated.",
+      "steps": [
+        {
+          "label": "Steps 1–3",
+          "sublabel": "saved, email sent"
+        },
+        {
+          "label": "Step 4 fails",
+          "sublabel": "529, retries spent"
+        },
+        {
+          "label": "API recovers"
+        },
+        {
+          "label": "Resume at step 4",
+          "sublabel": "from checkpoint"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-exponential-backoff",
+      "c-overloaded-error"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-focus-err-fail-visibly",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Retries and side effects",
+    "stem": "A nightly job asks Claude to summarize each new support ticket. When a ticket's retries run out, the handler writes an empty summary and marks the ticket done. By morning the dashboard shows those tickets as summarized, and nobody knows to rerun them. What should the handler do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep retrying that ticket until it succeeds, however long the outage happens to last",
+        "reason": "Google's SRE guidance says to limit retries per request and not to retry a given request indefinitely."
+      },
+      {
+        "id": "b",
+        "text": "Fail the ticket: record it as failed with the error, so it's surfaced and rerun",
+        "reason": "Correct: the guidance is to limit retries and, once the retry budget is spent, to stop retrying and fail the request. Recording the failure keeps a missing summary from passing as a finished one."
+      },
+      {
+        "id": "c",
+        "text": "Keep writing the empty summary, but also log the error at debug level for tracing",
+        "reason": "The empty record still reaches the dashboard marked done, so the failure stays hidden from everyone who relies on it."
+      },
+      {
+        "id": "d",
+        "text": "Retry at once in a tight loop, so that every summary is ready before the morning",
+        "reason": "The guidance is to always use randomized exponential backoff when scheduling retries, not to fire them again immediately."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When retries run out, fail the item visibly; never record a failed call as a finished result downstream.",
+    "explanation": "Google's SRE guidance limits retries per request and, once a retry budget is spent, says to just fail the request rather than keep trying. The stem's real damage is downstream: an empty summary marked done looks like success, so nobody reruns it. Choice c is tempting because it at least logs the error, but the bad record still reaches the dashboard as complete.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://sre.google/sre-book/addressing-cascading-failures/",
+      "title": "Addressing Cascading Failures",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-exponential-backoff",
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
   }
 ]

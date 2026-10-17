@@ -3707,5 +3707,205 @@
       "c-lead-agent-subagents"
     ],
     "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-focus-sdk-check-result-subtype",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "Your Agent SDK worker runs a nightly cleanup task and saves the final message's `result` to your database. On nights when the run hits its turn limit, an empty value gets saved and the job reports success. What should the worker do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stop reading the stream at the first assistant message that has no tool calls",
+        "reason": "The result message comes after that last assistant message, and it's the one that says whether the task succeeded. The docs say to read the stream to the end."
+      },
+      {
+        "id": "b",
+        "text": "Raise the turn limit high enough that no run ever reaches it",
+        "reason": "Limits exist to stop runaway runs, and runs can still end in other ways, such as the budget cap or an error during execution. Each ending still needs a check."
+      },
+      {
+        "id": "c",
+        "text": "Read the answer from the init system message, which every run sends",
+        "reason": "The init message comes at the start, with session metadata. The final answer and outcome arrive at the end, in the result message."
+      },
+      {
+        "id": "d",
+        "text": "Check the result message's `subtype`, and save `result` only on `success`",
+        "reason": "Correct: `result` is only present on `success`. Error subtypes such as `error_max_turns` still carry cost, turn count and session ID, so you can log the run or resume it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Read the result message's subtype before you use its output. Only `success` carries a final answer.",
+    "explanation": "Every SDK run ends with a result message, whether it succeeded or hit a limit. The `subtype` tells you which happened, and only the `success` variant has a `result`. A worker that reads `result` without checking turns every limit hit into an empty value marked as success. Choice b is tempting because the limit triggered the bug, but removing a guardrail hides the failure without fixing how the worker handles failures.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The outcome arrives last, in the result message.",
+      "steps": [
+        {
+          "label": "System init",
+          "sublabel": "session metadata"
+        },
+        {
+          "label": "Assistant + tool turns",
+          "sublabel": "repeat"
+        },
+        {
+          "label": "ResultMessage",
+          "sublabel": "check subtype"
+        },
+        {
+          "label": "success: use result",
+          "sublabel": "else log or resume"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-max-turns-budget",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-focus-sdk-stream-progress-outcome",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "You're building a UI for an Agent SDK agent. While the agent works, the UI should list each tool Claude calls. When it finishes, the UI should show the final answer and what the run cost. Which two kinds of message in the SDK's stream should your code read?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The assistant messages for each turn, which include Claude's tool call requests",
+        "reason": "Correct: the SDK yields an assistant message for each content block in Claude's responses, including tool calls, so they show what Claude is doing each turn."
+      },
+      {
+        "id": "b",
+        "text": "The startup message at the beginning, which reports the run's total cost",
+        "reason": "The opening system message carries session metadata. Cost isn't known until the loop ends, and the final result message reports it."
+      },
+      {
+        "id": "c",
+        "text": "Token-level streaming events, which every run sends and which name each tool",
+        "reason": "Raw streaming events arrive only when you turn on partial messages. Assistant messages already show each tool call without them."
+      },
+      {
+        "id": "d",
+        "text": "The messages carrying tool results back to Claude, which hold the final answer",
+        "reason": "Those user messages carry each tool's output back to Claude. The final answer and cost arrive in the result message."
+      },
+      {
+        "id": "e",
+        "text": "The result message at the end, which holds the final text, usage and cost",
+        "reason": "Correct: the result message marks the end of the loop, with the final text, token usage, cost and session ID. Its subtype says whether the task succeeded."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "Read assistant messages for live progress and the final result message for the outcome. Token-level streaming is opt-in.",
+    "explanation": "An SDK run is a stream of typed messages, one kind per stage of the loop: a startup message, then assistant messages and tool results each turn, then a result message at the end. Progress lives in the assistant messages and the outcome in the result message. Choice c is tempting because streaming sounds like the way to show live updates, but token-level events are opt-in and you don't need them to see tool calls.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-focus-sdk-cli-or-package",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Choosing a wiring path",
+    "stem": "Your team has two automations. One is a CI step that asks Claude Code to explain each failed build. The other is a Python support service whose code must approve each tool call and show typed progress messages in your app's UI. Which setup fits each one best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The CI step runs `claude -p` in a script; the service uses the Python package",
+        "reason": "Correct: the docs offer the CLI for scripts and CI/CD, and the Python and TypeScript packages, with tool approval callbacks and native message objects, for full programmatic control."
+      },
+      {
+        "id": "b",
+        "text": "Both use the Python package, since `claude -p` can't run inside a CI pipeline",
+        "reason": "The docs describe the CLI as the form for scripts and CI/CD. A CI step is exactly where `claude -p` fits."
+      },
+      {
+        "id": "c",
+        "text": "Both call `claude -p`, since the CLI gives code the same approval callbacks",
+        "reason": "Tool approval callbacks and native message objects come with the Python and TypeScript packages. The CLI is the form for scripts and CI/CD."
+      },
+      {
+        "id": "d",
+        "text": "The CI step uses the Python package; the service shells out to `claude -p`",
+        "reason": "That swaps them. The service needs approval callbacks and message objects, which the packages provide, while the CI step needs only a script call."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Use `claude -p` when a script or CI step just needs a result; use the Python or TypeScript package when your code must control the run.",
+    "explanation": "The Agent SDK gives you the same agent loop and tools in two forms: a CLI for scripts and CI/CD, and Python and TypeScript packages for full programmatic control. What decides each case is how much control the code needs. The CI step needs one call and its output; the service needs approval callbacks and typed messages, which come with the packages. Choice c is tempting because both forms run the same loop, but the callbacks and message objects belong to the packages.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-cc-print-mode"
+    ],
+    "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-focus-sdk-input-mode-by-deployment",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Agent SDK",
+    "stem": "You're deploying two Agent SDK agents. One runs in a stateless serverless function: it gets one request, returns one answer and exits. The other is an in-app assistant where users send follow-ups, attach screenshots and sometimes stop Claude mid-task. Which input mode fits each?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Streaming input for both, since a stateless function still needs a long-lived session",
+        "reason": "The docs suggest single-message input for one-shot responses in stateless environments such as a lambda function. A long-lived session does not fit a function that exits."
+      },
+      {
+        "id": "b",
+        "text": "Single-message input for both, resuming the session ID on each follow-up",
+        "reason": "Single-message input can resume sessions, but it doesn't support image attachments, real-time interruption or natural multi-turn conversation, which the assistant needs."
+      },
+      {
+        "id": "c",
+        "text": "Single-message input for the function; a streaming input session for the assistant",
+        "reason": "Correct: the docs suggest single-message input for one-shot, stateless calls, and streaming input for a persistent session that takes images, queued messages and interruptions."
+      },
+      {
+        "id": "d",
+        "text": "Streaming input for the function; single-message input for the assistant",
+        "reason": "That swaps them. The assistant needs images and interruption, which single-message input doesn't support, and the function only needs a one-shot answer."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Use single-message input for one-shot, stateless calls; use a streaming input session when users talk to the agent while it works.",
+    "explanation": "The SDK has two input modes for two shapes of work. Single-message input is for one-shot queries, including stateless hosts like a lambda function. Streaming input keeps a long-lived session that takes new user input, handles interruptions and accepts images, and the docs call it the preferred mode. Choice b is tempting because resuming by session ID does carry context across calls, but single-message input still cannot take images or be interrupted mid-task.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/streaming-vs-single-mode",
+      "title": "Streaming Input",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-agent-construction"
   }
 ]

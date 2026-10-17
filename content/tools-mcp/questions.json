@@ -5179,5 +5179,1622 @@
       "c-is-error"
     ],
     "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-s5contrib-internal-server-private-registry",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "MCP Registry",
+    "stem": "Your platform team built an MCP server that only runs on the company network at `mcp.corp.internal`. Engineers keep asking where to find it, and someone proposes publishing it to the official MCP Registry so their tools can discover it like any public server. What's the right call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Publish it, using domain-based authentication to prove the company owns the corporate namespace",
+        "reason": "Namespace authentication proves who owns a name, but it doesn't change what the registry accepts, and it doesn't support servers reachable only on a private network."
+      },
+      {
+        "id": "b",
+        "text": "Publish only its metadata and keep the code private, since the registry never stores server code",
+        "reason": "The registry does host only metadata, but publishing still needs a publicly available install method or a publicly reachable server. This one is neither."
+      },
+      {
+        "id": "c",
+        "text": "Publish it to the official registry but mark the listing as visible to your organization only",
+        "reason": "The official registry is for publicly accessible servers and doesn't support private ones, so there's no way to list this one for just your organization."
+      },
+      {
+        "id": "d",
+        "text": "Host a private MCP registry for the company and list the server there instead of the official one",
+        "reason": "Correct: the registry docs say it doesn't support private servers, such as ones on a private network, and recommend hosting your own private MCP registry for them."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The official MCP Registry is for **publicly accessible** servers; internal ones belong in a **private registry** you host.",
+    "explanation": "Matching a contribution to its channel includes checking who the channel is for. The official MCP Registry catalogs publicly accessible servers, and a server on a private network such as `mcp.corp.internal` is exactly the private case it doesn't support. Choice a is tempting because proving ownership sounds like the hard part, but ownership isn't what's missing here: the server isn't public.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Internal servers go in a registry you host, not the public one.",
+      "steps": [
+        {
+          "label": "Internal server",
+          "sublabel": "corporate network only"
+        },
+        {
+          "label": "Private registry",
+          "sublabel": "hosted by you"
+        },
+        {
+          "label": "Engineers' tools",
+          "sublabel": "discover it there"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/registry/about",
+      "title": "The MCP Registry",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-no-license-default-copyright",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Licensing and attribution",
+    "stem": "Your team pushed a useful set of skills to a public GitHub repository with no license file. A partner company wants to copy and adapt them, reasoning that anything in a public repository is free to reuse. What's the situation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "They can reuse it freely, since publishing publicly puts the code in the public domain",
+        "reason": "Publishing doesn't give up your rights. Without a license, default copyright law applies and you keep all rights to the code."
+      },
+      {
+        "id": "b",
+        "text": "They can adapt it but not redistribute it, since public repositories allow private changes",
+        "reason": "Others can view and fork a public repository on GitHub, but without a license no one may reproduce, distribute or create derivative works."
+      },
+      {
+        "id": "c",
+        "text": "Default copyright applies, so add a license stating what others may do with the skills",
+        "reason": "Correct: without a license, default copyright applies and no one may reproduce, distribute or create derivative works. A license tells others what they can and can't do."
+      },
+      {
+        "id": "d",
+        "text": "It depends on the partner's own license, which then covers anything they copy in",
+        "reason": "Rights to your code come from you: a software license tells others what they can and can't do with your source code, and you haven't given one."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "No license means **default copyright**: others can't reuse your code until a license says they may.",
+    "explanation": "Rights come before anything else in a contribution. GitHub's licensing docs say that without a license, default copyright applies: you keep all rights, and no one may reproduce, distribute or create derivative works. Choice a is tempting because the repository is public, but public only means others can view and fork it on GitHub, not reuse it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
+      "title": "Licensing a repository",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-mit-keep-notices",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Licensing and attribution",
+    "stem": "Your plugin's helper script includes a substantial chunk of code copied from an MIT-licensed open-source project. You're about to contribute the plugin to a shared marketplace. What does the MIT license require you to do about that code?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing, since MIT is permissive and lets anyone use the code without conditions",
+        "reason": "MIT permits use, copying, modification and distribution, but subject to a condition: the copyright notice and permission notice stay with the code."
+      },
+      {
+        "id": "b",
+        "text": "Relicense the whole plugin under MIT, since any MIT code makes the project MIT",
+        "reason": "MIT's condition is that its notices be included in copies or substantial portions of that software; it sets no condition on the rest of your project."
+      },
+      {
+        "id": "c",
+        "text": "Get written permission from the original authors before including their code",
+        "reason": "The license already grants permission, free of charge, to anyone who obtains a copy. Its condition is keeping the notices, not asking again."
+      },
+      {
+        "id": "d",
+        "text": "Keep the original copyright notice and MIT permission notice with the copied code",
+        "reason": "Correct: MIT requires that the copyright notice and permission notice be included in all copies or substantial portions of the software."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Permissive isn't condition-free: **attribution**, the original notices, travels with any code you reuse.",
+    "explanation": "Attribution is part of the rights check that comes before technical review. The MIT license grants broad permission to use, modify and distribute the software, on one condition: the copyright notice and permission notice must be included in all copies or substantial portions. Choice a is tempting because MIT is known as permissive, but dropping the notices breaks the one condition it sets.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://opensource.org/license/mit",
+      "title": "The MIT License",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-dco-sign-off-rights",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Licensing and attribution",
+    "stem": "A shared skills repository asks every contributor to sign off commits under the Developer Certificate of Origin. Part of the skill you want to contribute was first written during a customer engagement. What are you certifying when you sign off?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "That you created it, or it builds on open-source work, and you have the right to submit it",
+        "reason": "Correct: the DCO certifies the contribution's origin, that you created it or it builds on suitably licensed work, and your right to submit it under the project's license."
+      },
+      {
+        "id": "b",
+        "text": "That the maintainers have already reviewed the code and confirmed it works as described",
+        "reason": "Sign-off is the contributor's own statement about where the contribution came from and their right to submit it, not a record of the maintainers' review."
+      },
+      {
+        "id": "c",
+        "text": "That the contribution is free of bugs and security issues, so reviewers can merge it quickly",
+        "reason": "The DCO is about where the contribution came from and your right to submit it, not about its quality or security."
+      },
+      {
+        "id": "d",
+        "text": "That the contribution stays private to the project and its current group of contributors",
+        "reason": "The opposite: you certify that you understand the project and contribution are public, and that a record of the contribution is kept."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Sign-off is a statement about **rights**, so settle who owns engagement code before you contribute it.",
+    "explanation": "Rights and attribution come before technical review. The Developer Certificate of Origin is the contributor's certification that they created the work, or that it's based on suitably licensed work, and that they have the right to submit it under the project's license. Part of this skill came from a customer engagement, so confirm you hold that right before signing. Choice b is tempting because sign-off feels like approval, but it's about origin, not review.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developercertificate.org/",
+      "title": "Developer Certificate of Origin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-disclose-what-it-sends",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Contribution review",
+    "stem": "Your plugin's hook sends anonymous usage counts to your analytics endpoint. You're preparing the plugin for Anthropic's directory, whose security scan looks for behavior a plugin doesn't disclose. What's the best preparation?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Minify the hook script so the scan sees less code and the endpoint isn't exposed",
+        "reason": "Code the scan can't read is held for a reviewer. The checklist asks for readable source, not compiled, packed or minified code."
+      },
+      {
+        "id": "b",
+        "text": "Say in the README what the hook sends and where, and commit readable source",
+        "reason": "Correct: the checklist says to describe everything the plugin runs, sends or fetches in its README and to commit readable source. Disclosure alone doesn't make a behavior allowed."
+      },
+      {
+        "id": "c",
+        "text": "Ship the hook switched off, then enable it in a version after the listing is live",
+        "reason": "The scan runs on each new commit the directory picks up, so later versions are checked too, and hiding behavior from review is what the scan looks for."
+      },
+      {
+        "id": "d",
+        "text": "Leave the README as it is, since anonymous counts aren't personal data",
+        "reason": "The scan looks for undisclosed behavior such as sending data elsewhere. The README should say what the plugin sends, whether or not it's personal data."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Make behavior **visible**: say in the README what the plugin runs and sends, and ship source a reviewer can read.",
+    "explanation": "A maintainer accepts what they can verify. The directory's security scan looks for undisclosed behavior such as sending data elsewhere, so the fix is to disclose it in the README and keep the source readable. Choice a is tempting because it seems to protect the endpoint, but minified code is exactly what the scan can't read, so the version is held for a reviewer. A complete README still doesn't make a behavior allowed: the directory policy decides that.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust",
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-no-real-credentials",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Contribution review",
+    "stem": "To make your MCP-backed plugin easy to try, its README example and its `.mcp.json` both include your team's real API key. Before contributing the plugin to Anthropic's directory, what should change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the key into the README only, since documentation isn't loaded when the plugin runs",
+        "reason": "The checklist says to keep real credentials out of every file, documentation and examples included."
+      },
+      {
+        "id": "b",
+        "text": "Read the key from a variable already set in the user's environment and send that instead",
+        "reason": "Reading a credential already set in the user's environment and sending it to a server is held for a reviewer. Ask the user for the value instead."
+      },
+      {
+        "id": "c",
+        "text": "Remove the key and ask each user for their own value through the plugin's configuration",
+        "reason": "Correct: real credentials stay out of every file. The checklist says to ask for each value through the plugin's own configuration, marked sensitive."
+      },
+      {
+        "id": "d",
+        "text": "Keep the key but restrict it to read-only scopes, so a leak would cause less damage",
+        "reason": "Narrow scopes limit damage, but the rule is no real credentials in any file: validation blocks a plugin that ships one."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A contributed asset ships with **no real secrets**: each user supplies their own credentials.",
+    "explanation": "Once an asset is shared, everyone who installs it gets every file you ship. The directory blocks real credentials in any file, documentation and examples included, and asks for each value through the plugin's own configuration instead. Choice d is tempting because least privilege is good practice, but a restricted key is still your key in strangers' hands, and validation still blocks it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-registry-not-security-review",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "MCP Registry",
+    "stem": "Your security team proposes a shortcut: any MCP server listed in the official MCP Registry can be approved for internal use without further review, since the registry must have vetted it. What's wrong with that reasoning?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The registry checks who published a server and hosts metadata; it doesn't security-scan server code",
+        "reason": "Correct: the registry focuses on namespace authentication and metadata hosting, and delegates security scanning to package registries and downstream aggregators."
+      },
+      {
+        "id": "b",
+        "text": "Nothing, as long as the server's namespace is verified against a real GitHub account or domain",
+        "reason": "A verified namespace proves only who may publish under that name. The registry still relies on others to scan the server's actual code."
+      },
+      {
+        "id": "c",
+        "text": "The registry only lists servers that Anthropic built, so third-party servers never appear in it",
+        "reason": "Server developers can publish metadata whenever the server or its install method is publicly available. The registry isn't limited to Anthropic's servers."
+      },
+      {
+        "id": "d",
+        "text": "The registry runs full security reviews, but only for remote servers rather than packaged ones",
+        "reason": "The registry doesn't security-review any server type itself. Scanning is left to package registries such as npm and PyPI and to downstream aggregators."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A registry listing shows **who published** a server, not that it's safe: review the code yourself or use a curated source.",
+    "explanation": "Be clear about what a channel verifies. The official MCP Registry authenticates namespaces and hosts metadata, and leaves security scanning to the underlying package registries and to downstream aggregators, which can add checks and curation. Choice b is tempting because verification sounds like vetting, but namespace authentication only ties a name to its owner; it says nothing about what the code does.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/registry/about",
+      "title": "The MCP Registry",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-fork-needs-own-name",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Licensing and attribution",
+    "stem": "You forked a popular open-source plugin, added features your clients needed, and now want to list your version in Anthropic's directory. You'd like to keep the upstream plugin's name, since users already know it. What does the directory expect?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Don't submit it, since the directory doesn't accept forks of other people's plugins",
+        "reason": "Forks are allowed. What the directory checks is that a fork has a name of its own."
+      },
+      {
+        "id": "b",
+        "text": "Keep the upstream name but add `-official`, so users know your version is maintained",
+        "reason": "Names that present a plugin as official are blocked, and a fork that keeps the upstream project's name is held for a reviewer."
+      },
+      {
+        "id": "c",
+        "text": "Keep the upstream name, since a fork carries over the original plugin's listing",
+        "reason": "A fork doesn't inherit a listing. A fork that keeps the upstream project's name is held for a reviewer, and a name another organization uses is taken."
+      },
+      {
+        "id": "d",
+        "text": "Give the fork a distinctive name of its own, separate from the upstream project's",
+        "reason": "Correct: forks are allowed, but the checklist says to give a fork a name of its own; a fork that keeps the upstream name is held for a reviewer."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Forks are welcome, but a fork needs **its own name** so it can't be mistaken for the upstream plugin.",
+    "explanation": "Attribution includes being clear whose work is whose. The directory allows forks but expects each to have a name of its own, holds a fork that keeps the upstream name for a reviewer, and blocks names that present a plugin as official. Choice c is tempting because users already know the name, but that familiarity is exactly why a matching name could be mistaken for the original.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-private-team-marketplace",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Contribution channels",
+    "stem": "Your consultancy turned an engagement build into a Claude Code plugin, and every consultant should be able to install it by name and get updates. It must stay inside the firm, so its repository is private. Which distribution route fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Anthropic's directory, since one listing there reaches people on every Claude app",
+        "reason": "The directory is a public listing: the repository can be private while you submit, but must be public before the listing goes live."
+      },
+      {
+        "id": "b",
+        "text": "Sending each consultant a `.zip` of the plugin folder whenever it changes",
+        "reason": "That suits a few people, but there's no install by name and no updates: they keep loading the copy you sent."
+      },
+      {
+        "id": "c",
+        "text": "Your own marketplace: a `marketplace.json` added to the private repository",
+        "reason": "Correct: once the marketplace file is in the repository the plugin is published, with no submission form, and a private repository makes a private marketplace."
+      },
+      {
+        "id": "d",
+        "text": "Anthropic's official marketplace, since Claude Code adds it for every user",
+        "reason": "It's a public catalog that Claude Code adds for everyone, and it doesn't take submissions through the directory portal. It can't keep one firm's plugin private."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Pick the channel by **audience**: your own marketplace in a private repo for your group, the directory for the public.",
+    "explanation": "Match the contribution to the channel built for it. The publishing guide compares routes by who can install: your own marketplace reaches anyone who can reach the repository, including a private one, while the directory is a public listing whose repository must be public before it goes live. Choice a is tempting because it reaches the most people, but reaching everyone is the opposite of what a firm-only plugin needs.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/publish",
+      "title": "Publish and distribute a plugin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-s5contrib-read-guidelines-first",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "Contribution channels",
+    "stem": "You want to contribute a new skill to an open-source skills repository you've never contributed to before. The skill is written and tested. What should you do before opening a pull request?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read the repo's contribution guidelines and shape the pull request to fit",
+        "reason": "Correct: maintainers write contribution guidelines to say how they want contributions made, which saves the hassle of improperly created pull requests that must be rejected and resubmitted."
+      },
+      {
+        "id": "b",
+        "text": "Open the pull request now, and let the maintainers say what they want changed",
+        "reason": "That's the round trip guidelines exist to avoid: a pull request made the wrong way gets rejected and has to be resubmitted."
+      },
+      {
+        "id": "c",
+        "text": "Fork the repository and publish your copy, so the skill skips review entirely",
+        "reason": "A fork is your own copy, not a contribution. Nothing reaches the shared repository's users until its maintainers accept it there."
+      },
+      {
+        "id": "d",
+        "text": "Email the skill to one maintainer directly, so it skips the public queue",
+        "reason": "Going around the channel the project set up means the contribution is not made the way its maintainers asked for."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Match the contribution to the channel: read the project's **contribution guidelines** before you open a pull request.",
+    "explanation": "Contributing back means fitting a channel someone else maintains. A repository's contribution guidelines say how its maintainers want contributions made, and following them avoids pull requests that must be rejected and resubmitted. Choice b is tempting because review will surface problems anyway, but that's exactly the round trip the guidelines are there to prevent.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Read how the maintainers want contributions before you make one.",
+      "steps": [
+        {
+          "label": "Read guidelines",
+          "sublabel": "CONTRIBUTING file"
+        },
+        {
+          "label": "Shape the PR",
+          "sublabel": "the way they ask"
+        },
+        {
+          "label": "Maintainer review",
+          "sublabel": "no resubmission"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors",
+      "title": "Setting guidelines for repository contributors",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ]
+  },
+  {
+    "id": "q-s5contrib-public-server-registry",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "MCP Registry",
+    "stem": "Your company open-sourced its MCP server and published the package on npm. You want MCP marketplaces and other aggregators across the ecosystem to be able to discover it. Which channel is built for that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An internal wiki page that lists the server's install command",
+        "reason": "A wiki page reaches only the people who find it. MCP clients and aggregators can't discover a server from it."
+      },
+      {
+        "id": "b",
+        "text": "The official MCP Registry, which catalogs publicly accessible servers",
+        "reason": "Correct: the registry is the official centralized metadata repository for publicly accessible MCP servers, and it is meant to be consumed mainly by downstream aggregators such as marketplaces."
+      },
+      {
+        "id": "c",
+        "text": "The npm listing alone, since the package registry already describes it",
+        "reason": "npm hosts the package with its code. The MCP Registry hosts the server metadata that points to that package, which is what aggregators pull."
+      },
+      {
+        "id": "d",
+        "text": "A private MCP registry that your company hosts for its own engineers",
+        "reason": "A private registry suits servers only a narrow set of users can reach. This server is public and meant for everyone."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A public MCP server's metadata goes to the **MCP Registry**; its code stays in the package registry.",
+    "explanation": "Match the contribution to the channel built for it. The official MCP Registry catalogs publicly accessible servers, holding metadata that points to the package on npm, and downstream aggregators such as marketplaces read from it. Choice c is tempting because the package is already public, but npm hosts the code, while the registry hosts the metadata aggregators pull.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The package holds the code; the registry holds metadata that points to it.",
+      "steps": [
+        {
+          "label": "npm package",
+          "sublabel": "code"
+        },
+        {
+          "label": "MCP Registry",
+          "sublabel": "metadata"
+        },
+        {
+          "label": "Aggregators",
+          "sublabel": "marketplaces discover it"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/registry/about",
+      "title": "The MCP Registry",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ]
+  },
+  {
+    "id": "q-s5contrib-customer-material",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "Licensing and attribution",
+    "stem": "You're contributing a ticket-triage skill to a shared open-source repository that asks for a DCO sign-off. The skill's example cases are real support tickets you copied from a customer's system during the engagement. What should you do before signing off?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace the customer's tickets with examples you wrote yourself",
+        "reason": "Correct: by signing off you certify that you created the contribution, or that it's based on suitably licensed work, and that you have the right to submit it. A customer's tickets are neither."
+      },
+      {
+        "id": "b",
+        "text": "Nothing, since the tickets are only examples and not part of the code",
+        "reason": "The certification covers the contribution as a whole. You'd be certifying a right to submit material that came from the customer."
+      },
+      {
+        "id": "c",
+        "text": "Remove the customer names from the tickets and keep the rest as it is",
+        "reason": "Removing names doesn't make the tickets yours. You still couldn't certify that you created them or have the right to submit them."
+      },
+      {
+        "id": "d",
+        "text": "Ask the maintainers to review the code first and settle the tickets later",
+        "reason": "A sign-off certifies your right to submit at the time you contribute. A code review can't settle whether the tickets were yours to share."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Settle **rights** before review: material from a customer isn't yours to contribute, however useful it is.",
+    "explanation": "Rights and attribution come before technical review. The Developer Certificate of Origin has you certify that you created the contribution, or that it's based on suitably licensed work, and that you have the right to submit it; it also notes that the contribution is public. Choice c is tempting because anonymizing feels responsible, but the tickets still belong to the customer.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://developercertificate.org/",
+      "title": "Developer Certificate of Origin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ]
+  },
+  {
+    "id": "q-s5contrib-portable-skill-format",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "Contribution channels",
+    "stem": "You want to contribute a skill to a community collection whose users run many different agent products, not only Claude Code. How should you package the skill so all of them can use it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "As a long system prompt that each user pastes into their own agent",
+        "reason": "A pasted prompt has no metadata for discovery and sits in context in full. A skill loads its instructions only when a task matches."
+      },
+      {
+        "id": "b",
+        "text": "As an Agent Skills folder: a SKILL.md with metadata and instructions",
+        "reason": "Correct: Agent Skills are an open format, a folder with a SKILL.md holding a name, a description and instructions, so a skill built once works across skills-compatible agents."
+      },
+      {
+        "id": "c",
+        "text": "As a script with no instructions, since any agent can read the code",
+        "reason": "A bare script has no description telling an agent when to use it and no instructions for how. SKILL.md carries both."
+      },
+      {
+        "id": "d",
+        "text": "As screenshots of the workflow, so users can rebuild it in their agent",
+        "reason": "An agent can't load a screenshot as a capability. Contributors would each rebuild it by hand, and the copies would differ."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For a skill meant for many agents, use the open **Agent Skills** format: one SKILL.md folder works across skills-compatible agents.",
+    "explanation": "Match the contribution to the channel built for it. Agent Skills are an open format: a folder with a SKILL.md holding metadata and instructions, plus optional scripts and resources, built once and usable across any skills-compatible agent. Choice a is tempting because a prompt works anywhere, but it gives up discovery and the on-demand loading that skills provide.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://agentskills.io/home",
+      "title": "Agent Skills Overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ]
+  },
+  {
+    "id": "q-s5contrib-rights-before-review",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "Licensing and attribution",
+    "stem": "Your team wants to contribute a plugin built during a client engagement to a public open-source repository. It includes a helper adapted from an MIT-licensed library. Which two things should be settled before anyone reviews the code?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Whether the test suite covers every one of the helper functions",
+        "reason": "Coverage is part of technical review, which comes after the question of whether you may contribute the work at all."
+      },
+      {
+        "id": "b",
+        "text": "Whether the client agreement lets you share the work done for that client",
+        "reason": "Correct: contributors certify that they have the right to submit the work. Code written for a client may not be yours to share."
+      },
+      {
+        "id": "c",
+        "text": "Whether the plugin's name is short and easy for users to remember",
+        "reason": "A name is a listing detail. It doesn't settle whether you have the right to contribute the code."
+      },
+      {
+        "id": "d",
+        "text": "Whether the adapted code meets the library license's terms, notices included",
+        "reason": "Correct: you can certify work based on openly licensed code only when you have the right under that license to submit it, so its conditions come with the code."
+      },
+      {
+        "id": "e",
+        "text": "Whether the code style matches the repository's linter settings",
+        "reason": "Style is part of technical review. It can't fix a contribution you weren't entitled to make."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Before review: confirm you **may share** the work, and that reused code meets its **license terms**.",
+    "explanation": "Rights and attribution come before technical review, because no review can fix a contribution you had no right to make. The DCO has contributors certify the work is theirs to submit, or is based on openly licensed work they may submit under that license. Choices a and e are tempting because they're good practice, but they belong to the technical review that follows.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developercertificate.org/",
+      "title": "Developer Certificate of Origin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest"
+    ]
+  },
+  {
+    "id": "q-s5contrib-verifiable-evidence",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "lessonId": "l-course-contributing-back",
+    "topic": "Contribution review",
+    "stem": "A maintainer reviews every contribution to a shared plugin collection and can't take any contributor's word for what a plugin does. Which two items in your submission give them something they can check?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Eval cases they can rerun, comparing output with and without the plugin",
+        "reason": "Correct: build checks show how a plugin is made, not whether it helps. Comparing output with and without the plugin on real prompts shows what it adds."
+      },
+      {
+        "id": "b",
+        "text": "A note that your team has used it daily for months without problems",
+        "reason": "A claim about your own use can't be checked by someone who wasn't there. Rerunnable cases show the behavior directly."
+      },
+      {
+        "id": "c",
+        "text": "Readable source, so a reviewer can see everything its scripts do",
+        "reason": "Correct: the checklist asks for readable source instead of compiled, packed or minified code. Code the scan can't read is held for a reviewer."
+      },
+      {
+        "id": "d",
+        "text": "Screenshots of the best outputs it produced for your first customer",
+        "reason": "Hand-picked outputs show what you chose to show. A maintainer needs results they can reproduce."
+      },
+      {
+        "id": "e",
+        "text": "Minified scripts, so there is less code for the reviewer to read",
+        "reason": "Minified code is what a reviewer can't check, and the scan holds code it can't read for a person to review."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "A maintainer accepts what they can **verify**: rerunnable evals and readable source, not assurances or screenshots.",
+    "explanation": "A maintainer who didn't watch you build an asset can only accept what they can check. Rerunnable cases that compare output with and without the plugin (a) show what it contributes, and readable source (c) shows what it does. Choice b is tempting because months of use sound convincing, but it's a claim the maintainer has no way to check.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust",
+      "c-plugin-manifest"
+    ]
+  },
+  {
+    "id": "q-focus-skmcp-release-notes-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Before each release, your team asks Claude Code to write release notes in a fixed template, with house rules on tone and on which changes to leave out. The rules matter only at release time, and no outside system is involved. Which extension fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An MCP server that returns the template and the rules whenever Claude asks",
+        "reason": "MCP is for connecting Claude to external services, for data or actions. A template and house rules are knowledge, which is what skills hold."
+      },
+      {
+        "id": "b",
+        "text": "A hook that pastes the template into the conversation at every session start",
+        "reason": "Hooks are for automation that must run on every matching event. These rules are needed only at release time, so loading them into every session wastes context."
+      },
+      {
+        "id": "c",
+        "text": "A skill holding the template and the rules, loaded when notes are needed",
+        "reason": "Correct: skills hold reusable knowledge and workflows, and a skill's full content loads only when it's used."
+      },
+      {
+        "id": "d",
+        "text": "A subagent that writes the notes, so the rules never enter any context",
+        "reason": "A subagent isolates work in its own context, but it still needs the rules from somewhere. Reusable instructions belong in a skill, which a subagent can preload."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Know-how with no outside system behind it (templates, rules, procedures) belongs in a skill, not an MCP server.",
+    "explanation": "The deciding detail is that nothing external is involved: the need is know-how, a template plus house rules, used only at release time. A skill packages exactly that and loads its full content only when used. Choice a is tempting because a server can return text, but MCP's job is connecting Claude to external services for data or actions, not storing instructions.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-tracker-actions",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "You want Claude Code to open, update and close issues in your company's hosted issue tracker during a session. Today developers copy issue text in and out of the tracker by hand. Which extension gives Claude this ability?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An MCP server for the tracker, which supplies the tools and the connection",
+        "reason": "Correct: MCP connects Claude to external services for data and actions, with the connection and authentication handled by the server."
+      },
+      {
+        "id": "b",
+        "text": "A skill that describes the tracker's screens, fields and workflows in careful detail",
+        "reason": "A skill adds knowledge, not access. Knowing the tracker's layout doesn't let Claude open or close an issue in it."
+      },
+      {
+        "id": "c",
+        "text": "A CLAUDE.md section listing the tracker's URL and your issue conventions",
+        "reason": "CLAUDE.md is persistent context loaded every session. It can describe the tracker, but it gives Claude no tools to act on it."
+      },
+      {
+        "id": "d",
+        "text": "An output style that formats each reply as an issue ready to paste in",
+        "reason": "An output style sets Claude's tone and response format. Developers would still copy everything into the tracker by hand."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When Claude must read or change a live external system, reach for MCP: it supplies the tools and the connection.",
+    "explanation": "The stem asks for actions in a live, hosted system: opening, updating and closing issues. That's access, and MCP is the extension that connects Claude to external services, with the server handling the connection and authentication. Choice b is the classic mix-up: a skill can teach Claude about the tracker, but knowledge alone can't change anything in it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-stale-catalog-export",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Each Friday a teammate exports the product catalog to a markdown file inside a skill, so Claude can quote prices and stock levels. By midweek the numbers are wrong, and Claude still can't reserve stock for a customer. What should replace the export?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A daily export into the same skill, so the file is never more than a day old",
+        "reason": "A fresher file still goes stale between runs, and a file can't reserve stock. Live data and actions need a connection to the system."
+      },
+      {
+        "id": "b",
+        "text": "Moving the catalog file into CLAUDE.md so it loads in every session",
+        "reason": "CLAUDE.md loads in full on every request, so this costs context all the time and is just as stale. It still gives Claude no way to act."
+      },
+      {
+        "id": "c",
+        "text": "A hook that re-reads the catalog file after every tool call Claude makes",
+        "reason": "Hooks automate actions on lifecycle events. Re-reading a stale export doesn't make it current or let Claude reserve stock."
+      },
+      {
+        "id": "d",
+        "text": "An MCP server for the catalog system, for live queries and actions",
+        "reason": "Correct: MCP connects Claude to external services for data or actions, so prices come from the system itself and reservations become tool calls."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A skill is for knowledge that holds still. Data that changes, and actions on it, come through MCP.",
+    "explanation": "Two symptoms point to MCP: the data changes faster than any export, and Claude needs to act (reserve stock), not just read. MCP provides tools and data access for an external system. Choice a is tempting because it shrinks the staleness, but a skill still holds a snapshot and still can't perform the reservation.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-slack-announcement-both",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills and MCP together",
+    "stem": "Your team wants Claude Code to post release announcements to the team's Slack channel, following the team's message formatting rules every time. Which two pieces make up the right setup?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A skill whose script calls Slack's web API with a token pasted into its files",
+        "reason": "This makes the skill own the connection and its secret. MCP gives Claude purpose-built tools for a service, with the connection and authentication handled by the server."
+      },
+      {
+        "id": "b",
+        "text": "An MCP server for Slack, which gives Claude a tool to post messages",
+        "reason": "Correct: MCP connects Claude to external services, and posting to Slack is one of the guide's own MCP examples."
+      },
+      {
+        "id": "c",
+        "text": "A hook that posts Claude's latest output to Slack whenever a session ends",
+        "reason": "A hook fires on its event without Claude deciding, so it would post at every session end, announcement or not, and it holds no formatting rules."
+      },
+      {
+        "id": "d",
+        "text": "A skill such as `/post-to-slack` that holds the team's formatting rules",
+        "reason": "Correct: a skill gives Claude the know-how to use the tool well, like the guide's `/post-to-slack` workflow with your team's formatting rules."
+      },
+      {
+        "id": "e",
+        "text": "A second MCP server whose only job is to return the formatting rules",
+        "reason": "The rules are knowledge, not an external system. Skills hold knowledge and workflows; MCP connects Claude to services."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "MCP provides the connection; a skill teaches Claude how to use it well. Many real setups need both.",
+    "explanation": "The task has two halves: reaching Slack (access) and following the team's format (know-how). The features guide pairs them: MCP for the Slack connection, with authentication handled by the server, and a skill for the formatting rules, such as a `/post-to-slack` workflow. Choice a merges both into a skill with a pasted token, skipping the server that's meant to own the connection and its credentials.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-pasted-key-script",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills and MCP together",
+    "stem": "Your `crm-lookup` skill bundles a script that calls the CRM's API with an API key pasted into the skill's files. Security flags that every install copies the key, and the skill now handles both how to look up accounts and how to connect. What's the better split?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the key into CLAUDE.md, so the skill holds only the lookup steps",
+        "reason": "CLAUDE.md loads in full into every session, so the key would sit in context on every request instead, and the connection still has no proper owner."
+      },
+      {
+        "id": "b",
+        "text": "Keep the key in the skill, but add an instruction never to show it in replies",
+        "reason": "An instruction in a skill is a request, not a guarantee, and the key is still copied to every install."
+      },
+      {
+        "id": "c",
+        "text": "Turn the script into a hook so the lookup runs before every prompt",
+        "reason": "A hook fires on its event without Claude deciding, so a lookup would run on every prompt, and the key problem stays exactly as it was."
+      },
+      {
+        "id": "d",
+        "text": "Let an MCP server own the CRM connection and auth; the skill keeps the steps",
+        "reason": "Correct: MCP gives Claude tools for an external system with the connection and authentication handled by the server, and the skill keeps the know-how."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Connections and their credentials belong to an MCP server; a skill should carry only the know-how.",
+    "explanation": "The skill is doing two jobs: the lookup procedure (know-how) and the connection with its secret (access). The features guide splits these: an MCP server provides tools for the external system with the connection and authentication handled by the server, and a skill teaches Claude how to use them. Choice b is tempting, but an instruction is only a request, and it doesn't stop the key being copied to every install.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Today the skill carries both the connection and its secret.",
+      "steps": [
+        {
+          "label": "Skill script",
+          "sublabel": "lookup steps"
+        },
+        {
+          "label": "Pasted API key",
+          "sublabel": "in every install"
+        },
+        {
+          "label": "CRM API"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-static-docs-server",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "A developer built, and now maintains, an MCP server whose only tool returns your team's API style guide: a markdown file that changes a few times a year. Claude calls the tool before any API work. What's the better setup?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the server, and have Claude call its tool at the start of every session",
+        "reason": "That still runs a service just to hand back a static file, and loads it whether or not it's needed. A style guide is reference material, which skills are built for."
+      },
+      {
+        "id": "b",
+        "text": "Turn the style guide into a skill that Claude loads when it does API work",
+        "reason": "Correct: the guide lists an API style guide as a skill example. Skills hold reference material and load their full content on demand."
+      },
+      {
+        "id": "c",
+        "text": "Paste the whole guide into CLAUDE.md, since its content rarely changes",
+        "reason": "CLAUDE.md loads in full on every request and is for what every session needs. The guide says reference material Claude needs only sometimes belongs in skills."
+      },
+      {
+        "id": "d",
+        "text": "Wrap the server in a subagent so its output stays out of the main context",
+        "reason": "Subagents isolate heavy work and return summaries, but the guide would still be served by a needless server. Reference content fits a skill."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "MCP is for reaching external systems. Static reference material belongs in a skill, even if a server could serve it.",
+    "explanation": "Nothing external is involved: the 'service' just returns a file that rarely changes. The features guide lists an API style guide as a typical skill: reference material whose full content loads only when Claude uses it. Choice c is tempting because the guide is stable, but CLAUDE.md loads in full on every request, and reference material Claude needs only sometimes belongs in skills.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-script-stays-in-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "Your `weekly-metrics` skill tells Claude how to summarize CSV files that are already in the repo, and it bundles a small script that turns them into charts. A teammate says the chart step must move to an MCP server because it runs code. What's the better call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move it to an MCP server, since a skill can hold instructions but not code",
+        "reason": "Skills can include code: the post lists a skill's contents as instructions, code and assets. Running code isn't what calls for MCP; reaching an outside system is."
+      },
+      {
+        "id": "b",
+        "text": "Rebuild the step as a subagent, since a subagent is the only way to run code",
+        "reason": "Subagents are for delegating self-contained tasks, and they aren't the only option that runs code: the post marks skills as supporting code too."
+      },
+      {
+        "id": "c",
+        "text": "Keep the script in the skill; nothing here needs to reach an outside system",
+        "reason": "Correct: skills are folders of instructions, scripts and resources, so a script fits inside one. MCP is for tool connectivity and data access, and these files are already local."
+      },
+      {
+        "id": "d",
+        "text": "Paste the script into the prompt each time someone asks for the weekly charts",
+        "reason": "Prompts are for one-off requests and are ephemeral. A procedure you'll need repeatedly, with its code, is what a skill is for."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Running code doesn't call for MCP: a skill can bundle scripts. Reach for MCP when Claude must connect to an outside system.",
+    "explanation": "The deciding detail is that the files are already in the repo: nothing outside needs reaching. Skills are folders of instructions, scripts and resources, so a chart script belongs inside one, while MCP is for tool connectivity and data access. Choice a is the tempting misconception: running code isn't the line between them, since skills can include code too.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://claude.com/blog/skills-explained",
+      "title": "Skills explained: How Skills compares to prompts, Projects, MCP, and subagents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-guardrail-hook",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "A team rule says Claude must never edit files in `db/migrations/`. One teammate proposes a skill that explains the rule; another proposes an MCP server with a safe-edit tool. The rule must hold every time. What does the features guide recommend?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A hook that runs before each edit and blocks changes to that folder",
+        "reason": "Correct: the guide says to put guardrails in hooks. A hook that blocks the edit is enforcement; an instruction is only a request."
+      },
+      {
+        "id": "b",
+        "text": "A skill that explains the rule and why the migrations folder matters",
+        "reason": "Claude interprets a skill's instructions, so the outcome can vary. The guide calls a rule like this in a skill a request, not a guarantee."
+      },
+      {
+        "id": "c",
+        "text": "An MCP server with a safe-edit tool that refuses migration file paths",
+        "reason": "MCP adds tools for external services; it doesn't take away Claude's built-in file tools, so nothing stops an ordinary edit."
+      },
+      {
+        "id": "d",
+        "text": "A CLAUDE.md line marked IMPORTANT, so Claude sees it in every session",
+        "reason": "CLAUDE.md is always loaded, but the guide says a rule there is still a request, not a guarantee."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When a rule must hold every time, neither a skill nor MCP fits: enforce it with a hook.",
+    "explanation": "The deciding phrase is 'must hold every time'. Skills and CLAUDE.md are instructions Claude interprets, which the features guide calls requests, and an MCP server adds tools rather than taking any away. A `PreToolUse` hook runs on its event without Claude deciding and can block the edit. Choice b is tempting because a skill can explain the rule well, but explaining isn't enforcing.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-code-hooks",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-durable-context"
+  },
+  {
+    "id": "q-focus-skmcp-skill-without-access",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills and MCP together",
+    "stem": "Your analysts wrote a solid `quarterly-report` skill: which date ranges to filter, which accounts to exclude, how to chart the results. When they run it, Claude follows the steps but says it has no way to read the sales database. What's missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "More detail in the skill, such as the database's table and column names",
+        "reason": "Knowing the schema doesn't give access. Skills teach Claude what to do with data; reaching the database in the first place is MCP's job."
+      },
+      {
+        "id": "b",
+        "text": "A second skill that holds a recent export of the sales tables to work from",
+        "reason": "A copy inside a skill is a snapshot, not access. If Claude needs to reach the database itself, that's MCP."
+      },
+      {
+        "id": "c",
+        "text": "An MCP connection to the database, with the skill kept for the procedure",
+        "reason": "Correct: MCP connects Claude to data; Skills teach Claude what to do with that data. If Claude needs to access the database in the first place, that's MCP."
+      },
+      {
+        "id": "d",
+        "text": "A rewrite of the skill as a longer, more detailed set of instructions",
+        "reason": "The skill isn't the problem: Claude is already following it. What's missing is a connection to the database, and that's MCP's job."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "If Claude can't reach the data at all, add MCP; a skill says what to do with the data once Claude can reach it.",
+    "explanation": "The skill is working: Claude follows it right up to the step that needs the sales data. What's missing is access, and the Skills explained post draws the line plainly: MCP connects Claude to data, and Skills teach Claude what to do with that data. Choice a is tempting because more schema detail sounds helpful, but knowing the tables doesn't let Claude query them.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The procedure is in place; the step that needs live data has nothing to call.",
+      "steps": [
+        {
+          "label": "/quarterly-report"
+        },
+        {
+          "label": "Skill steps",
+          "sublabel": "filters, exclusions"
+        },
+        {
+          "label": "Read sales data",
+          "sublabel": "no connection"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://claude.com/blog/skills-explained",
+      "title": "Skills explained: How Skills compares to prompts, Projects, MCP, and subagents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-which-need-mcp",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "You're sorting your team's requests into skills and MCP servers for Claude Code. Which two of these requests call for an MCP server?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Let Claude run read-only queries against the staging database",
+        "reason": "Correct: database queries are one of the guide's MCP examples. Claude needs a connection to an external system."
+      },
+      {
+        "id": "b",
+        "text": "Teach Claude the team's code review checklist",
+        "reason": "A checklist is knowledge Claude applies, and the guide lists a code review checklist as a skill example."
+      },
+      {
+        "id": "c",
+        "text": "Give Claude the team's API style guide when it writes endpoints",
+        "reason": "Reference material Claude needs only sometimes belongs in a skill; the guide lists an API style guide as one."
+      },
+      {
+        "id": "d",
+        "text": "Let Claude open and check pages in a real browser",
+        "reason": "Correct: browser control is one of the guide's MCP examples. It's an outside capability Claude reaches through a connection."
+      },
+      {
+        "id": "e",
+        "text": "Walk Claude through the deploy steps whenever someone runs `/deploy`",
+        "reason": "A repeatable workflow you trigger by name is a skill; the guide's own example is a `/deploy` skill that runs your deployment checklist."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Ask whether Claude needs to reach something (MCP) or to know something (a skill).",
+    "explanation": "Sort by what's missing. Database queries and browser control both need a connection to something outside Claude, which is MCP's role: tools and data access. The checklist, the style guide and the deploy steps are knowledge and workflows, which the features guide lists as skill examples. Choice e can look like MCP because it does something, but the guide's `/deploy` example is a skill: it packages the steps Claude follows.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-overloaded-setup",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Context cost",
+    "stem": "Your Claude Code setup has grown to 40 skills, several with vague, overlapping descriptions, plus a dozen MCP servers connected just in case. Claude now sometimes loads the wrong skill and loses track of team conventions. What does the features guide point you to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Merge all 40 skills into CLAUDE.md so nothing depends on triggering",
+        "reason": "CLAUDE.md loads in full on every request, so this adds far more context and noise. The guide says to keep it lean and move reference material into skills."
+      },
+      {
+        "id": "b",
+        "text": "Convert the overlapping skills into MCP servers, whose tools are deferred",
+        "reason": "Skills hold knowledge and MCP connects external services. Moving know-how into servers doesn't fix vague descriptions, and the content isn't an external system."
+      },
+      {
+        "id": "c",
+        "text": "Add more skills that explain when to use each of the existing ones",
+        "reason": "More skills add more descriptions and more overlap. The guide warns that too much setup adds noise that makes Claude less effective."
+      },
+      {
+        "id": "d",
+        "text": "Give each skill a distinct description; disconnect servers you don't use",
+        "reason": "Correct: vague or overlapping descriptions make Claude load the wrong skill, every feature costs some context, and the guide suggests disconnecting idle servers."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Every skill and server costs some context and adds noise: keep descriptions distinct, and connect only what you use.",
+    "explanation": "Both symptoms match the features guide's warning: too many features add noise as well as context, so skills may not trigger correctly and Claude may lose track of conventions. Vague or overlapping descriptions also make Claude load the wrong skill. The fix is distinct descriptions and fewer idle servers. Choice b is tempting because MCP tools are deferred, but static know-how isn't an external system, and the vague descriptions would remain.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-skill-progressive-disclosure",
+      "c-mcp-tool-search"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-skmcp-incident-three-parts",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "You're setting up Claude Code for on-call work with three needs: (1) read live alerts from your monitoring service, (2) follow the team's triage playbook, and (3) log every shell command Claude runs, without exception. Which mapping fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "(1) Skill, (2) MCP server, (3) Hook",
+        "reason": "This swaps the first two. Live alerts need a connection to an external service (MCP), and a playbook is knowledge (a skill)."
+      },
+      {
+        "id": "b",
+        "text": "(1) MCP server, (2) Skill, (3) Hook",
+        "reason": "Correct: MCP for the external data, a skill for the playbook, and a hook for logging, which must happen on every matching event."
+      },
+      {
+        "id": "c",
+        "text": "(1) MCP server, (2) Skill, (3) A logging step inside the skill",
+        "reason": "Claude interprets a skill's steps, so the outcome can vary. Logging without exception is a hook's job, since a hook fires without Claude deciding."
+      },
+      {
+        "id": "d",
+        "text": "(1) MCP server, (2) Hook, (3) Skill",
+        "reason": "A playbook needs reasoning to apply, which fits a skill, and a skill can't guarantee that every command gets logged."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Reach something (MCP), know something (skill), always do something (hook): give each need the extension built for it.",
+    "explanation": "Each need has a different shape. Live alerts are external data, which MCP connects. A triage playbook is knowledge Claude applies with judgment, which is a skill. Logging every command without exception must happen on every matching event, which is a hook: it fires without Claude deciding. Choice c is tempting because a skill could mention logging, but Claude interprets skill instructions, so the outcome can vary.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-server",
+      "c-agent-skill",
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-agentic-customisation"
+  },
+  {
+    "id": "q-focus-mcptr-stdio-launch",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your desktop AI app's config lists an MCP server as a command with arguments, not a URL. When the app starts, how does it reach that server?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "It connects to a port the server opened when you started it yourself earlier",
+        "reason": "With stdio, nobody starts the server separately or opens a port: the client itself launches the server as a subprocess."
+      },
+      {
+        "id": "b",
+        "text": "It runs the server as a subprocess, trading JSON-RPC over stdin and stdout",
+        "reason": "Correct: in the stdio transport the client launches the server as a subprocess; the server reads messages from stdin and writes them to stdout."
+      },
+      {
+        "id": "c",
+        "text": "It sends HTTP POST requests to the command's name as a host on localhost",
+        "reason": "POSTs to a single endpoint describe Streamable HTTP. A command in the config means stdio, which uses the subprocess's standard streams."
+      },
+      {
+        "id": "d",
+        "text": "It loads the server's code into its own process and calls the tools directly",
+        "reason": "The server runs as its own subprocess, and the two sides exchange JSON-RPC messages over that subprocess's standard streams."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "stdio means the client starts the server itself and talks to it through the process's standard input and output.",
+    "explanation": "A command in the config is the stdio signal: the client launches the server as its own subprocess, writes JSON-RPC messages to its stdin and reads replies from its stdout, one message per line. Choice a is tempting if you picture every server as a network service, but a stdio server isn't started separately or listening on a port; the client starts it.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "In stdio, the client launches the server and they talk over its standard streams.",
+      "steps": [
+        {
+          "label": "App starts",
+          "sublabel": "reads command"
+        },
+        {
+          "label": "Launches server",
+          "sublabel": "subprocess"
+        },
+        {
+          "label": "JSON-RPC",
+          "sublabel": "stdin and stdout"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio",
+      "title": "stdio",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-mcptr-stdio-to-shared-service",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "A developer's stdio MCP server for your billing system works in Claude Code on their laptop. Now a hosted web backend, and agents on other teams' machines, need the same server. What has to change about how it runs?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: share the stdio launch command so every client reaches the laptop's copy",
+        "reason": "Each stdio client launches its own subprocess on its own machine. A launch command can't reach a process running on someone else's laptop."
+      },
+      {
+        "id": "b",
+        "text": "Keep stdio, but raise the server's limit on how many clients it will accept",
+        "reason": "stdio has no such limit to raise: it's a single channel to the client that launched the process. Serving many clients is what Streamable HTTP is for."
+      },
+      {
+        "id": "c",
+        "text": "Run it as an independent Streamable HTTP service at one endpoint, with auth",
+        "reason": "Correct: with Streamable HTTP the server runs as an independent process that can handle multiple client connections, and it should authenticate all of them."
+      },
+      {
+        "id": "d",
+        "text": "Switch it to the HTTP+SSE transport, which was built for servers with many clients",
+        "reason": "HTTP+SSE is deprecated: new implementations should not adopt it, and existing ones should migrate to Streamable HTTP."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "To serve a hosted backend or many teams, run the server as an independent HTTP service with authentication, not as one client's subprocess.",
+    "explanation": "A stdio server is a subprocess of the one client that launched it, so it can't serve a hosted backend or other teams. Streamable HTTP is the deployed shape: the server runs as an independent process, takes each message as a POST to one endpoint, can handle multiple client connections and should authenticate them. Choice d sounds right because it has 'HTTP' in it, but HTTP+SSE is deprecated in favor of Streamable HTTP.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Today the server is a subprocess of one developer's client.",
+      "steps": [
+        {
+          "label": "Laptop client"
+        },
+        {
+          "label": "Launches server",
+          "sublabel": "stdio"
+        },
+        {
+          "label": "Billing system"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http",
+      "title": "Streamable HTTP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-mcptr-sort-deployments",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "You're sorting your company's planned MCP servers by transport. Which two of them should run over Streamable HTTP rather than stdio?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A formatter that each developer's editor launches on their own machine",
+        "reason": "A process launched on the same machine as its client is stdio's case: direct process communication with no network overhead."
+      },
+      {
+        "id": "b",
+        "text": "A search service that agents on several teams' machines all call into",
+        "reason": "Correct: remote servers that use Streamable HTTP typically serve many clients, which a service shared across teams needs."
+      },
+      {
+        "id": "c",
+        "text": "A filesystem server that a desktop app starts to read the user's own files",
+        "reason": "This is the architecture overview's own local example: the desktop app launches the filesystem server, which runs on the same machine over stdio."
+      },
+      {
+        "id": "d",
+        "text": "A vendor's server that runs on the vendor's own platform for its customers",
+        "reason": "Correct: the overview's remote example is a vendor-hosted server (Sentry's) that runs on the vendor's platform and uses Streamable HTTP."
+      },
+      {
+        "id": "e",
+        "text": "A one-off script tool that your agent spawns as a child process on its host",
+        "reason": "A child process on the same host is a local server, and local servers use stdio. Nothing here has to be reached over a network."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Launched on the same machine as its client: stdio. Hosted elsewhere or shared by many clients: Streamable HTTP.",
+    "explanation": "Ask where each server runs and who reaches it. The formatter, the filesystem server and the script tool are all started on the same machine as their client, which is stdio's case. The shared search service and the vendor-hosted server are remote, and remote servers using Streamable HTTP typically serve many clients. Choice e is tempting because an agent depends on it, but a child process on the same host needs no network transport.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-mcptr-sdk-credentials",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your Agent SDK agent connects to two MCP servers: a local stdio server launched with `npx` that needs an API key, and a remote HTTP server that expects a bearer token. Where should each credential go?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The key in the stdio server's environment; the token in HTTP request headers",
+        "reason": "Correct: the SDK guide passes credentials to stdio servers through environment variables in the server config, and to HTTP servers through headers."
+      },
+      {
+        "id": "b",
+        "text": "Both in the agent's system prompt, so Claude can supply them when calling tools",
+        "reason": "The guide passes credentials through the server configuration: environment variables for stdio, headers for HTTP. The prompt isn't a credential channel."
+      },
+      {
+        "id": "c",
+        "text": "Both as HTTP headers, since every MCP server reads its credentials from headers",
+        "reason": "A stdio server is a local process, not an HTTP endpoint, so the guide passes its credentials through environment variables instead."
+      },
+      {
+        "id": "d",
+        "text": "Both as arguments on every tool call, so that each request carries its own key",
+        "reason": "Tool arguments come from Claude's tool calls. The guide puts credentials in the server config: environment variables for stdio, headers for HTTP."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A stdio server gets its secrets from the environment it's launched with; a remote HTTP server gets them in request headers.",
+    "explanation": "The transport decides the channel. A stdio server is a local process the agent launches, so its API key goes into the environment it starts with. A remote HTTP server is reached by requests, so its bearer token goes into the headers. Choice c is tempting because headers are the familiar place for tokens, but a stdio server has no HTTP requests to carry them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/mcp",
+      "title": "Connect to external tools with MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-server"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-mcptr-local-http-guard",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "While building an MCP server, you run it on your laptop over Streamable HTTP. Right now it listens on every network interface and answers any request without checks. A reviewer says this is unsafe even for local testing. What should you change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing yet: a server on your own laptop can't be reached from websites you visit",
+        "reason": "The spec warns that without protections, attackers could use DNS rebinding to interact with local MCP servers from remote websites."
+      },
+      {
+        "id": "b",
+        "text": "Move it to an unusual port number so that other programs are unlikely to find it",
+        "reason": "A different port hides little and stops nothing. The spec's protections are binding to localhost, validating where requests come from, and authentication."
+      },
+      {
+        "id": "c",
+        "text": "Keep every interface open, but write a log line for each request it receives",
+        "reason": "Logging records requests but blocks none of them. The server should listen on localhost only, validate request origins and authenticate connections."
+      },
+      {
+        "id": "d",
+        "text": "Listen on localhost only, check where each request comes from, and require auth",
+        "reason": "Correct: servers must validate the Origin header to prevent DNS rebinding, should bind only to localhost when running locally, and should authenticate all connections."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Even a local HTTP MCP server needs guarding: listen on localhost only, check where requests come from, and authenticate.",
+    "explanation": "Running on your laptop doesn't make an HTTP server private: the spec warns that without protections, attackers could use DNS rebinding to interact with local MCP servers from remote websites. So a local server should bind only to localhost, validate the origin of each request and authenticate connections. Choice a is tempting because the server feels local, but that is exactly the case the warning covers.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http",
+      "title": "Streamable HTTP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-mcptr-stdio-lifetime",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transports",
+    "stem": "Your host application runs a local MCP server over stdio. Which two statements describe how that server's life is tied to the client?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "To shut it down, the client closes the server's input stream and waits for it to exit",
+        "reason": "Correct: the client should close the input stream, wait for the server to exit, and force it to stop only if it doesn't exit in reasonable time."
+      },
+      {
+        "id": "b",
+        "text": "When the client exits, the server keeps running to serve the next client that starts",
+        "reason": "Servers should exit promptly when their standard input closes. The next client launches its own subprocess."
+      },
+      {
+        "id": "c",
+        "text": "If the server crashes, the client should restart it; lost requests can be retried",
+        "reason": "Correct: the client should restart a server that exits unexpectedly. In-flight requests are lost, and because the protocol is stateless the client can retry them on the new process."
+      },
+      {
+        "id": "d",
+        "text": "If the server crashes, it reconnects to the client over a local socket on restart",
+        "reason": "The client launched the server, so the client is the one that restarts it. A stdio server doesn't find its way back on its own."
+      },
+      {
+        "id": "e",
+        "text": "While shutting down, the server prints status lines to stdout to keep the client informed",
+        "reason": "The server must not write anything to stdout that isn't a valid MCP message; logging belongs on stderr."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "A stdio server lives within its client's lifetime: the client starts it, stops it by closing stdin, and restarts it if it dies.",
+    "explanation": "In stdio the client owns the server process. It shuts the server down by closing its input stream and waiting, and the server should exit promptly when its input closes. If the process dies unexpectedly, the client should restart it, and because the protocol is stateless, lost in-flight requests can simply be retried. Choice b treats a stdio server like a long-running shared service, but it exits when its input closes.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/stdio",
+      "title": "stdio",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-mcp-server-dev"
+  },
+  {
+    "id": "q-focus-loop-end-to-end",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool use loop",
+    "stem": "A customer asks your support app, \"Where is order 1234?\" Your code sends the message to Claude with a `lookup_order` tool defined. Which sequence matches what happens next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude runs `lookup_order` itself, then replies with the status and `stop_reason: \"end_turn\"`",
+        "reason": "The model never executes anything on its own. It emits a structured request, and your code runs the operation."
+      },
+      {
+        "id": "b",
+        "text": "Claude returns `tool_use`; your code runs it and sends the output back in an assistant message",
+        "reason": "Results go back in a new user message that holds `tool_result` blocks, after the assistant's response."
+      },
+      {
+        "id": "c",
+        "text": "Claude returns `tool_use`; your code runs it and sends a user `tool_result`; Claude answers",
+        "reason": "Correct: Claude responds with `stop_reason: \"tool_use\"`, you run the tool and send a user message with the `tool_result`, and Claude continues to its answer."
+      },
+      {
+        "id": "d",
+        "text": "Claude gives the order status from what it already knows, then calls the tool to confirm it",
+        "reason": "An order's status is fresh data specific to your system, which is why it needs a tool. Claude can't know it before the tool returns."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Tool use is a round trip: Claude asks, your code runs the tool, the `tool_result` goes back in a user message, and Claude continues.",
+    "explanation": "With client tools, your application drives the loop: Claude responds with `stop_reason: \"tool_use\"` and a `tool_use` block, your code runs the operation, and the next request carries a user message with the `tool_result`. The loop repeats while the stop reason is `tool_use` and ends when Claude gives its answer. Choice a is tempting because tools feel like Claude's abilities, but the model only asks; your code runs the tool.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-client-vs-server-tools",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-tool-use-loop"
   }
 ]

@@ -164,5 +164,41 @@
         "body": "Anything the agent didn't write can carry injected instructions. Keep it separate from trusted instructions, give tools least privilege, block sensitive actions with hooks that run regardless of what the model was told, and keep sandboxing as the backstop."
       }
     ]
+  },
+  {
+    "id": "section-5",
+    "number": 5,
+    "title": "Accelerators and IP Contribution",
+    "summary": "Turning a finished build into an asset: packaging it so the next engagement starts from a working foundation, contributing it back through the right channel, carrying requirements through the lifecycle, choosing where a Claude workload runs and pinning what ships, comparing platforms on the dimension that decides, and holding trust boundaries across connected components.",
+    "modules": [
+      { "title": "Packaging a build for reuse", "lessonId": "l-course-accelerator-packaging" },
+      { "title": "Contributing back", "lessonId": "l-course-contributing-back" },
+      { "title": "Requirements and the systems lifecycle", "lessonId": "l-course-requirements-lifecycle" },
+      { "title": "Deployment platforms and version pinning", "lessonId": "l-course-deployment-versioning" },
+      { "title": "Comparing platforms", "lessonId": "l-course-platform-comparison" },
+      { "title": "Trust boundaries across components", "lessonId": "l-course-trust-boundaries" }
+    ],
+    "takeaways": [
+      {
+        "title": "Package while the build is fresh.",
+        "body": "Separate what is customer-specific from what is reusable while you still remember why each choice was made. Expose the customer-specific parts as parameters with documented defaults, and ship the assumptions, the eval suite and the audit logging with the code."
+      },
+      {
+        "title": "A maintainer accepts what they can verify.",
+        "body": "Send a contribution through the channel built for it, settle rights and attribution before asking for technical review, and make its behavior checkable: tests, clear docs, disclosed data flows and no secrets."
+      },
+      {
+        "title": "Pin what ships.",
+        "body": "Ship a specific model version so an upstream change can't silently change production, and plan migrations anyway, because pinned versions still retire. Re-run your evals before you move."
+      },
+      {
+        "title": "Measure the dimension that decides the placement.",
+        "body": "The customer's cloud, identity and compliance needs usually narrow the platform first. Then measure what still decides it, such as latency from the customer's region with realistic prompts, or the total cost beyond the per-token rate."
+      },
+      {
+        "title": "Mark every seam as a boundary.",
+        "body": "Map which component does what before connecting them. Wherever data moves between components, treat what crosses as untrusted until checked, and give each component only the access its own job needs."
+      }
+    ]
   }
 ]

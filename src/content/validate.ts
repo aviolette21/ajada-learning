@@ -3,6 +3,7 @@ import {
   CardSchema,
   CourseFileSchema,
   DomainsFileSchema,
+  FocusFileSchema,
   GlossaryFileSchema,
   LessonSchema,
   QuestionSchema,
@@ -10,6 +11,7 @@ import {
   type Content,
   type CourseSection,
   type Domain,
+  type FocusArea,
   type GlossaryTerm,
   type Lesson,
   type Question,
@@ -21,6 +23,8 @@ export interface RawContent {
   glossary?: unknown;
   /** content/course.json; optional like the glossary. */
   course?: unknown;
+  /** content/focus.json; optional like the glossary. */
+  focus?: unknown;
   /** Keyed by "<domain-id>/<questions|cards|lessons>.json". */
   files: Record<string, unknown>;
 }
@@ -36,6 +40,7 @@ function zodErrors(file: string, error: z.ZodError): string[] {
 
 export function buildContent(
   domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = [], course: CourseSection[] = [],
+  focus: FocusArea[] = [],
 ): Content {
   return {
     domains,
@@ -44,6 +49,7 @@ export function buildContent(
     lessons,
     glossary,
     course,
+    focus,
     domainById: new Map(domains.map((d) => [d.id, d])),
     questionById: new Map(questions.map((q) => [q.id, q])),
     cardById: new Map(cards.map((c) => [c.id, c])),
@@ -162,6 +168,26 @@ export function validateContent(raw: RawContent): ValidationResult {
     }
   }
 
+  let focus: FocusArea[] = [];
+  if (raw.focus !== undefined) {
+    const parsed = FocusFileSchema.safeParse(raw.focus);
+    if (!parsed.success) errors.push(...zodErrors('focus.json', parsed.error));
+    else {
+      focus = parsed.data;
+      const areaIds = new Set<string>();
+      for (const a of focus) {
+        if (areaIds.has(a.id)) errors.push(`focus.json: duplicate area id "${a.id}"`);
+        areaIds.add(a.id);
+        const inArea = new Set<string>();
+        for (const id of a.questionIds) {
+          if (!questionIds.has(id)) errors.push(`focus.json: ${a.id} links unknown question "${id}"`);
+          if (inArea.has(id)) errors.push(`focus.json: ${a.id} repeats question "${id}"`);
+          inArea.add(id);
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -172,6 +198,7 @@ export function validateContent(raw: RawContent): ValidationResult {
       lessons.map((l) => l.item),
       glossary,
       course,
+      focus,
     ),
   };
 }

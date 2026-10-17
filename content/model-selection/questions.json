@@ -5309,5 +5309,265 @@
       "c-streaming"
     ],
     "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-focus-scq-what-you-give-up",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Speed, cost and quality",
+    "stem": "You're reviewing proposals to cut an agent workload's spend, and you must tell the team what each one costs in return. Which two statements are accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prompt caching: lower cost, paid for with slower responses on each cached request",
+        "reason": "The guide counts caching as a free win: each cached resend costs less and processes faster, without touching quality."
+      },
+      {
+        "id": "b",
+        "text": "Batch processing: a large discount, paid for in latency, since results can take up to a day",
+        "reason": "Correct: batch processing trades latency for its discount, with results arriving any time within 24 hours, so it suits work that can wait."
+      },
+      {
+        "id": "c",
+        "text": "Lower effort: less cost and often faster, but accuracy can drop, so check your evals",
+        "reason": "Correct: lower effort costs less and is often faster, but how much accuracy you lose depends on the task, so check the score on your own tasks."
+      },
+      {
+        "id": "d",
+        "text": "A tight `max_tokens` cap: lower cost with no effect on quality, since Claude plans to fit",
+        "reason": "The guide lists output caps as a tradeoff and says `max_tokens` caps a response invisibly to the model, so answers can simply be cut off."
+      },
+      {
+        "id": "e",
+        "text": "A smaller model: lower cost and latency, with the same accuracy on every kind of task",
+        "reason": "The guide lists model choice as a tradeoff that exchanges cost for intelligence, and says to compare models on cost per completed task."
+      }
+    ],
+    "answer": [
+      "b",
+      "c"
+    ],
+    "takeaway": "Know what each lever costs: caching is a free win, batch costs latency, and effort, caps and smaller models can cost quality.",
+    "explanation": "Anthropic's cost guide splits levers into free wins, which cut spend without touching quality, and tradeoffs, which exchange cost for intelligence. Batch costs nothing in quality but pays in latency, and lower effort is a tradeoff whose accuracy cost depends on the task. Choice a is the tempting trap: caching is the rare lever that cuts cost and speeds things up at the same time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-message-batches",
+      "c-effort"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-focus-scq-caching-vs-smaller-model",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Speed, cost and quality",
+    "stem": "A support agent resends the same long instructions and its growing conversation on every turn. It's over budget and a little slow. One proposal turns on prompt caching; another moves the agent to a smaller model. How do the two compare?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Both trade away quality, so pick whichever one saves more and accept the drop",
+        "reason": "The guide counts caching as a free win that cuts spend without touching quality. Only the model switch exchanges cost for intelligence."
+      },
+      {
+        "id": "b",
+        "text": "The smaller model is the free win, while caching is the one that puts quality at risk",
+        "reason": "It's the other way round: caching cuts spend without touching quality, and the guide lists model choice among the tradeoffs."
+      },
+      {
+        "id": "c",
+        "text": "Caching only cuts latency, so the smaller model is the only way to bring cost down",
+        "reason": "Each cached resend costs much less than the full input price and also processes faster, so caching cuts cost and latency together."
+      },
+      {
+        "id": "d",
+        "text": "Caching cuts cost and latency at no quality cost; a smaller model needs evals first",
+        "reason": "Correct: caching is a free win, to turn on before any other lever since each turn resends the conversation. A model switch is a tradeoff, so check its score on your tasks."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Take the free wins, such as caching, first; a smaller model is a tradeoff to check with evals before you switch.",
+    "explanation": "The cost guide separates free wins, which cut spend without touching quality, from tradeoffs, which exchange cost for intelligence. Caching a prefix that every turn resends is the textbook free win, and it speeds processing too. Choice c is tempting if you think of caching as a latency feature, but cached reads are also billed far below the normal input price.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Free wins cut spend without touching quality; tradeoffs exchange cost for intelligence.",
+      "segments": [
+        {
+          "label": "Free wins",
+          "sublabel": "caching, batch, token hygiene",
+          "weight": 1,
+          "tone": "success"
+        },
+        {
+          "label": "Tradeoffs",
+          "sublabel": "model, effort, output caps",
+          "weight": 1,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-focus-scq-live-feature-plan",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Speed, cost and quality",
+    "stem": "A live writing assistant must answer while users wait, stay within a monthly budget and pass a quality bar. Your evals show Claude Haiku 5.5 misses the bar and Claude Sonnet 5.5 clears it. Every request starts with the same long block of instructions. Which plan fits all three?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Opus 5.5 at its highest effort, since the quality bar matters more than the rest",
+        "reason": "Sonnet already clears the bar. A higher tier at its highest effort costs more and is slower, spending budget and time on quality you do not need."
+      },
+      {
+        "id": "b",
+        "text": "Sonnet 5.5, with prompt caching turned on for the shared block of instructions",
+        "reason": "Correct: Sonnet clears the bar, and caching is a free win: each cached resend costs less and processes faster, without touching quality."
+      },
+      {
+        "id": "c",
+        "text": "Haiku 5.5 with a tight `max_tokens` cap, as the fastest and cheapest option",
+        "reason": "Haiku already misses the quality bar, and `max_tokens` caps a response invisibly to the model, so a tight cap cuts answers off rather than improving them."
+      },
+      {
+        "id": "d",
+        "text": "Sonnet 5.5 through batch processing, so that the discount keeps it under budget",
+        "reason": "Batch trades latency for its discount, with results arriving any time within 24 hours. Users here are waiting on every answer."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "To balance all three, choose the cheapest model that clears the bar, then add free wins such as caching.",
+    "explanation": "When speed, cost and quality all constrain you, no single lever wins. Evals rule out Haiku on quality, a waiting user rules out batch, and the budget argues against the top tier when Sonnet already passes. Caching the repeated instructions then cuts cost and latency together. Choice a is tempting because quality is a hard requirement, but Sonnet already meets it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-prompt-caching"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-focus-model-orchestrator-fit",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Combining models",
+    "stem": "You run two agent jobs on Claude Opus 5.5. Job A debugs one failure, where each step depends on the last. Job B reviews thousands of independent support transcripts, far more than one context window holds. Where does an Opus orchestrator delegating to lower-cost workers fit best?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Both jobs, since cheaper workers lower the bill on any kind of agent task",
+        "reason": "Delegation saved money only in some situations. For one dependent chain, the orchestrator's model alone at lower effort came out ahead in every case measured."
+      },
+      {
+        "id": "b",
+        "text": "Job A only, since dependent steps gain the most from a planner handing them out",
+        "reason": "A single dependent chain is exactly where the guide's measurements favored the orchestrator's model alone, at lower effort, over delegation."
+      },
+      {
+        "id": "c",
+        "text": "Job B only, since independent pieces beyond one context window suit delegation",
+        "reason": "Correct: the orchestrator pattern fits work that fans out across genuinely independent files, documents or cases, especially more than one context window of it."
+      },
+      {
+        "id": "d",
+        "text": "Neither job, since mixing models always scores lower than a single model does",
+        "reason": "Pairing a lower-cost model with a frontier model is a strategy the guide describes; its advice is to measure a pairing on your workload, not to rule it out."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Delegate to lower-cost workers when work fans out into independent pieces; keep a single dependent chain on one model.",
+    "explanation": "Anthropic's cost guide describes an orchestrator that plans, dispatches bulk work to lower-cost workers and synthesizes the results. In its measurements, delegation saved money on work larger than one context window, for a somewhat lower score, but not on one dependent chain, where the orchestrator's model alone at lower effort came out ahead. Choice b is tempting because planning sounds useful for hard debugging, but the measurements favored a single model there.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The stronger model runs the loop; lower-cost workers take the independent bulk work.",
+      "steps": [
+        {
+          "label": "Orchestrator",
+          "sublabel": "plans, dispatches"
+        },
+        {
+          "label": "Workers",
+          "sublabel": "independent pieces"
+        },
+        {
+          "label": "Orchestrator",
+          "sublabel": "synthesizes"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-orchestrator-workers",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-focus-model-advisor-escalation",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Combining models",
+    "stem": "Your coding agent spends most turns on routine edits, with a few hard design decisions along the way. You want those decisions to get a stronger model's judgment without paying frontier rates on every turn. Which setup fits that shape of work?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A smaller executor runs the loop and consults a stronger model on hard calls",
+        "reason": "Correct: the advisor pattern fits serial work that is hard in spots. The smaller model runs the loop and escalates on demand, so most tokens bill at the lower rate."
+      },
+      {
+        "id": "b",
+        "text": "A frontier orchestrator splits the task across many workers running in parallel",
+        "reason": "The orchestrator pattern fits work that fans out across independent pieces. This is one serial task with a few hard spots."
+      },
+      {
+        "id": "c",
+        "text": "Every turn on the frontier model, since any setup that mixes models costs more",
+        "reason": "The most capable model can be too expensive at scale; multi-model strategies spend frontier intelligence on the hard tail without frontier rates for the rest."
+      },
+      {
+        "id": "d",
+        "text": "Models alternating turn by turn, so that each one handles half of the work",
+        "reason": "A fixed split ignores where the hard decisions fall. The advisor pattern brings in the stronger model on demand, when the work is hard."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For serial work that's hard only in spots, let a smaller model run the loop and escalate hard calls to a stronger advisor.",
+    "explanation": "Anthropic's cost guide describes two multi-model patterns: an executor that escalates hard decisions to an advisor, and an orchestrator that delegates bulk work. The stem's work is one serial task with a few hard spots, which is the advisor's shape. Choice b is tempting because it also mixes models, but it suits independent pieces. Note that an advisor helps only when the executor actually consults it, so measure the consult rate on your own tasks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
   }
 ]
