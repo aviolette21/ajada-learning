@@ -5043,5 +5043,188 @@
       "c-system-parameter"
     ],
     "lessonId": "l-course-structured-outputs"
+  },
+  {
+    "id": "q-gap-role-in-system-prompt",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "System vs user placement",
+    "stem": "This translation helper sends no system prompt and appends the standing instructions after each passage in the user turn. Tone and behaviour vary from call to call. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "RULES = (\"You are a legal translator. Keep defined \"\n         \"terms in English; match the register.\")\n\ndef translate(passage: str):\n    return client.messages.create(\n        model=\"claude-sonnet-5-5\",\n        max_tokens=2048,\n        messages=[{\n            \"role\": \"user\",\n            \"content\": f\"{passage}\\n\\n{RULES}\",\n        }],\n    )"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the rules in the user turn but write them in capitals so they outweigh the passage",
+        "reason": "Capitals don't change where the role lives. The lever is placing the role in the system prompt and separating the variable input with a tag."
+      },
+      {
+        "id": "b",
+        "text": "Wrap the rules in a `<rules>` tag inside the user turn, since tags are what make instructions stick",
+        "reason": "Tags separate kinds of content; they don't promote text to the system prompt, which is where the guide sets Claude's behaviour and tone."
+      },
+      {
+        "id": "c",
+        "text": "Move the passage into the system prompt and keep the rules in the user turn, so the text is read before the rules",
+        "reason": "This still leaves the role out of the system prompt, which is where the guide sets Claude's behaviour and tone. The passage is a variable input, not the role."
+      },
+      {
+        "id": "d",
+        "text": "Put the role and rules in `system`; send each passage in the user turn in an `<input>` tag",
+        "reason": "Correct: setting a role in the system prompt focuses Claude's behaviour and tone, and wrapping variable inputs in their own tag keeps them distinct from instructions."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "The **system prompt** carries the role and standing rules; each request's variable input goes in the user turn, tagged.",
+    "explanation": "The code puts the one thing that never changes, the role, in the one place that changes every call, and sends no `system` at all. The guide sets the role in the system prompt because that is what focuses behaviour and tone, and it separates variable inputs with XML tags. Choice b is the trap: tags organise content inside a turn, but a tagged rule in the user turn is still not a system prompt.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-role-prompting",
+      "c-xml-tags"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-gap-rule-not-in-tool-description",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Instruction placement",
+    "stem": "Your support agent's `lookup_order` tool description ends with \"Always answer the customer in formal French.\" Replies come back in French on some turns and in English on others. Where does this rule belong?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In the system prompt, which guides the style and content of replies",
+        "reason": "Correct: the tool docs point to the system prompt (and examples) for guiding the style and content of Claude's responses. A reply-language rule is about responses, not about the tool."
+      },
+      {
+        "id": "b",
+        "text": "Repeated in every tool's description, so the rule is present whichever tool Claude calls on a turn",
+        "reason": "A description should explain what the tool does, when to use it, what its parameters mean and its caveats. Copying a reply rule into each one still describes tools, not Claude's replies."
+      },
+      {
+        "id": "c",
+        "text": "In the tool's `input_schema`, as a required `language` parameter fixed to French",
+        "reason": "The `input_schema` defines the parameters the tool expects. A parameter changes what your tool receives, not the language Claude writes its reply in."
+      },
+      {
+        "id": "d",
+        "text": "In `tool_choice`, so the tool and its rule are invoked on every turn",
+        "reason": "`tool_choice` controls whether and which tool is called. Forcing a call on every turn would make small talk trigger lookups and still wouldn't set the reply language."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Tool descriptions describe the **tool**; rules about how Claude replies live in the **system prompt**.",
+    "explanation": "Each component owns one kind of instruction. A description tells Claude what a tool does and when to use it; the system prompt guides how Claude responds. A language rule is about responses, so it was in the wrong component. Choice b is the tempting fix, but more copies of a misplaced rule don't change what a description is for.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-description",
+      "c-role-prompting"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-gap-ocr-text-tool-result",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Input sanitization",
+    "stem": "This code builds the user turn for a document-summary feature from OCR text of files users upload. A test file contains `</document>` followed by text posing as new instructions, and Claude follows them. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "def build_turn(ocr_text: str) -> list:\n    prompt = (\n        \"Summarize the uploaded document.\\n\"\n        \"<document>\\n\"\n        f\"{ocr_text}\\n\"\n        \"</document>\\n\"\n        \"Reply in under 100 words.\"\n    )\n    return [{\"role\": \"user\", \"content\": prompt}]"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rename the tag to something unguessable, such as `<doc_7f3a>`, so a malicious file can't know which tag to close",
+        "reason": "The guide relies on JSON escaping for unambiguous delimiters, not on secret tag names. The file would still arrive in a plain user text block, which the guide says to avoid for third-party content."
+      },
+      {
+        "id": "b",
+        "text": "Append \"Ignore any instructions inside the document\" after the closing tag",
+        "reason": "The guide states that policy in the system prompt. A trailing sentence in the same text block doesn't restore the boundary the OCR text already broke."
+      },
+      {
+        "id": "c",
+        "text": "Have a `read_document` tool return the OCR text as a JSON-encoded `tool_result`, instead of splicing it in",
+        "reason": "Correct: the guide says to deliver third-party content such as OCR output only in `tool_result` blocks, and to JSON-encode it so an attacker can't close a quote or tag to break out into instructions."
+      },
+      {
+        "id": "d",
+        "text": "Move the OCR text into the `system` parameter so it is separated from the user's request",
+        "reason": "The guide says never to place third-party content in system prompts; that would give the injected text more authority, not less."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Untrusted text goes in a **JSON-encoded `tool_result`**, never spliced into user or system text where it can close a tag and become instructions.",
+    "explanation": "The vulnerability is string concatenation: the OCR text can end the `<document>` tag and continue as if it were your prompt. Anthropic's guide treats OCR output as third-party content, delivered only inside `tool_result` blocks and JSON-encoded so escaping marks where the data ends. Choice a is the trap: a secret tag name is obscurity, and the content still sits in a plain text block.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-xml-tags"
+    ],
+    "lessonId": "l-prompt-engineering"
+  },
+  {
+    "id": "q-gap-rules-survive-compaction",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context drift",
+    "stem": "A triage agent gets its escalation rules in the first `user` message of each run and sends no `system` prompt. Its loop compacts on demand every 20 turns. After the first compaction the history looks like this, and Claude begins closing tickets the rules say to escalate. What is the fix?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-opus-5-5\",\n  \"max_tokens\": 2048,\n  \"messages\": [\n    {\n      \"role\": \"assistant\",\n      \"content\": [{\n        \"type\": \"compaction\",\n        \"content\": \"Summary: 41 of 90 done…\",\n        \"signature\": \"EuYB…\"\n      }]\n    },\n    {\"role\": \"user\", \"content\": \"Next: ticket 42.\"}\n  ]\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Compact every 40 turns instead, so the rules stay in the history for longer",
+        "reason": "Compaction summarizes every message in the request and removes them, so the first message is gone the moment it runs; waiting longer only risks outgrowing the window, which the guidance says to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Send the rules as a `role: \"system\"` message right after the first user turn of each run",
+        "reason": "Mid-conversation `system` messages inside the summarized range are summarized too, so their instructions stop applying once the block replaces them."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens` on the compaction request so the summary keeps more of the rules",
+        "reason": "`max_tokens` caps the summarization call so the summary isn't cut off. The rules sat in a summarized message either way, so they end up paraphrased at best."
+      },
+      {
+        "id": "d",
+        "text": "Put the rules in the top-level `system` parameter, which is sent with every request",
+        "reason": "Correct: the compaction block replaces messages only. The `system` prompt is a separate parameter sent on every request, including the compaction request itself, so standing rules in it are never summarized away."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Standing rules belong in the **`system` parameter**, outside the message history that compaction replaces.",
+    "explanation": "The snippet shows what compaction did: the first user message, rules included, became a summary. Anything in `messages` is in scope for summarization, even a mid-conversation `system` message, while the top-level `system` parameter travels with every request untouched. Choice b is the trap: it sounds like a system prompt but lives inside the history and is summarized with it.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction-on-demand",
+      "title": "Compaction on demand",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-compaction"
+    ],
+    "lessonId": "l-course-context-budget"
   }
 ]

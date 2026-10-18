@@ -98,7 +98,9 @@
       "q-code-so-optional-field",
       "q-code-so-truncated-unhandled",
       "q-code-so-cap-in-description",
-      "q-cp-s2-scope-drift-technique"
+      "q-cp-s2-scope-drift-technique",
+      "q-appd2-schema-complexity-two-fixes",
+      "q-appd2-enum-for-classification-labels"
     ]
   },
   {
@@ -192,7 +194,12 @@
       "q-cp-s3-trace-403-insufficient-scope",
       "q-cp-s4-trace-429-retry-after",
       "q-cp-s4-529-not-your-limit",
-      "q-cp-s4-refusal-stored-as-output"
+      "q-cp-s4-refusal-stored-as-output",
+      "q-swe2-retry-tool-side-effect",
+      "q-swe2-missing-await-handler",
+      "q-tech2-per-request-timeout",
+      "q-tech2-timeout-circuit-breaker",
+      "q-tech2-bounded-worker-pool"
     ]
   },
   {
@@ -237,7 +244,11 @@
       "q-cp-s2-exit-condition-sentinel",
       "q-cp-s4-model-mixed-traffic-route",
       "q-cp-s4-cost-task-pairings",
-      "q-cp-s4-cost-handbook-lookup-single-agent"
+      "q-cp-s4-cost-handbook-lookup-single-agent",
+      "q-gap-augmented-llm-block",
+      "q-gap-evaluator-needs-criteria",
+      "q-gap-fixed-split-sectioning",
+      "q-gap-x-framework-gives-structure"
     ]
   },
   {
@@ -360,7 +371,10 @@
       "q-cp-s2-thinking-decisions-two",
       "q-cp-s2-trace-tool-use-id-mismatch",
       "q-cp-s2-trace-missing-parallel-result",
-      "q-cp-s2-exit-condition-sentinel"
+      "q-cp-s2-exit-condition-sentinel",
+      "q-swe2-tool-result-content-string",
+      "q-swe2-tool-schema-diff-contract",
+      "q-appd2-untrusted-content-in-tool-result"
     ]
   },
   {
@@ -512,7 +526,9 @@
       "q-code-batch-errored-resubmit-all",
       "q-cp-s1-offline-bulk-lowest-cost",
       "q-cp-s2-batch-workloads-two",
-      "q-cp-s4-cost-task-pairings"
+      "q-cp-s4-cost-task-pairings",
+      "q-tech2-stream-is-sse-not-ws",
+      "q-tech2-poll-batch-interval"
     ]
   },
   {
@@ -548,7 +564,8 @@
       "q-code-hook-matcher-misses-edit",
       "q-code-hook-json-deny-exit-0",
       "q-code-hook-formatter-wrong-event",
-      "q-cp-s3-hook-script-blank-exit"
+      "q-cp-s3-hook-script-blank-exit",
+      "q-appd2-claude-md-emphasis-vs-hook"
     ]
   },
   {
@@ -583,7 +600,10 @@
       "q-code-sdk-result-subtype-check",
       "q-code-sdk-tools-vs-allowed-tools",
       "q-code-sdk-two-queries-no-memory",
-      "q-cp-s3-sdk-setting-sources-blank"
+      "q-cp-s3-sdk-setting-sources-blank",
+      "q-appd2-sdk-default-prompt-minimal",
+      "q-appd2-surface-client-sdk",
+      "q-gap-approve-sends-not-reads"
     ]
   }
 ]

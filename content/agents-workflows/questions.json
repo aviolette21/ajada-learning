@@ -4163,5 +4163,226 @@
       "c-max-turns-budget"
     ],
     "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-gap-approve-sends-not-reads",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Human-in-the-loop",
+    "stem": "Your Agent SDK agent drafts contract amendments with three MCP tools: `search_clauses`, `get_contract` and `send_amendment`. Legal must approve every send, but approving every read is unworkable. Which two settings achieve this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "List the two read-only tools in `allowedTools` so their calls are auto-approved",
+        "reason": "Correct: a tool approved by an allow rule is resolved before `canUseTool` is consulted, so reads run without a prompt."
+      },
+      {
+        "id": "b",
+        "text": "List all three tools in `allowedTools`, since the callback still runs for every call",
+        "reason": "Allow rules resolve a call before `canUseTool` is consulted, so the callback would never see a send and amendments would go out with no one asked."
+      },
+      {
+        "id": "c",
+        "text": "Pass a `canUseTool` callback that shows `send_amendment` calls to legal and returns allow or deny",
+        "reason": "Correct: the callback fires when Claude wants a tool nothing earlier approved, pauses execution until it returns, and can allow, deny with a message, or allow with modified input."
+      },
+      {
+        "id": "d",
+        "text": "Put `send_amendment` in `disallowedTools` and have legal send the amendments by hand",
+        "reason": "Denying the tool removes it from Claude's reach entirely. The requirement is a gate on sends, not a ban on them."
+      },
+      {
+        "id": "e",
+        "text": "Run in `bypassPermissions` mode and instruct Claude in the system prompt to wait for legal",
+        "reason": "A mode like `bypassPermissions` resolves calls before the callback is consulted, so nothing would pause; a prompt instruction isn't an enforced gate."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Scope the human gate: auto-approve read-only tools with **`allowedTools`** and let **`canUseTool`** catch the side-effect tool that isn't pre-approved.",
+    "explanation": "The permission flow decides the design: anything an allow rule or mode approves never reaches `canUseTool`. So reads go in `allowedTools` (a) and sends are left unapproved, which makes the `canUseTool` callback the place legal sees them (c). Choice b is the trap: putting `send_amendment` in `allowedTools` silently bypasses the very approval you wanted.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/user-input",
+      "title": "Handle approvals and user input",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-allowed-vs-disallowed-tools",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-gap-augmented-llm-block",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Augmented LLM",
+    "stem": "A team's first agent design is a bare loop: call the model, append its reply, repeat. It has no way to look anything up, act on anything, or keep notes between steps. What is the basic building block they are missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A framework that abstracts the loop, since starting with one is the recommended way to get a first agent working",
+        "reason": "The post suggests starting with LLM APIs directly; frameworks add layers of abstraction that can obscure the underlying prompts."
+      },
+      {
+        "id": "b",
+        "text": "An orchestrator model plus a pool of workers, the smallest viable agent",
+        "reason": "Orchestrator-workers is one workflow pattern built on top of the building block, for tasks whose subtasks can't be predicted in advance."
+      },
+      {
+        "id": "c",
+        "text": "An LLM augmented with retrieval, tools and memory behind clear interfaces",
+        "reason": "Correct: the post calls this the augmented LLM, and advises tailoring those capabilities to the use case and giving the model an easy, well-documented interface to them."
+      },
+      {
+        "id": "d",
+        "text": "A larger model, since capability removes the need for tools or retrieval",
+        "reason": "The augmentations are the point: current models actively use them, generating search queries, selecting tools and deciding what to retain. Model size doesn't supply a lookup or an action."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Start from the **augmented LLM**: model plus retrieval, tools and memory behind well-documented interfaces, then compose patterns on top.",
+    "explanation": "The bare loop is missing exactly what the post names as the building block: augmentations for retrieval, tools and memory, exposed through clear interfaces the model can use. Patterns such as orchestrator-workers (b) are composed from that block, not substitutes for it. Choice a is the trap for teams who reach for a framework first; the post says to start with the API directly.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-frameworks-advice",
+      "c-workflow-vs-agent"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-gap-evaluator-needs-criteria",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Evaluator-optimizer",
+    "stem": "A team wants an evaluator-optimizer loop to improve generated marketing taglines. Asked what makes one tagline better than another, nobody can state criteria, and reviewers disagree from draft to draft. What should the team do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build the loop anyway; given enough drafts, the evaluator model will infer the criteria from the examples it sees",
+        "reason": "The post ties this workflow to clear evaluation criteria and to feedback that demonstrably improves output. Without criteria the evaluator has nothing reliable to apply."
+      },
+      {
+        "id": "b",
+        "text": "Hold off: the loop pays off only once evaluation criteria are clear and feedback measurably helps",
+        "reason": "Correct: the post names two signs of fit, that responses improve when a human articulates feedback and that the LLM can provide such feedback. Neither holds here yet."
+      },
+      {
+        "id": "c",
+        "text": "Switch to parallel voting, since several evaluators will cancel out the disagreement",
+        "reason": "Voting runs the same task several times for higher-confidence results on a defined check; it doesn't create a standard where none exists."
+      },
+      {
+        "id": "d",
+        "text": "Use routing so each tagline goes to a specialist prompt for its audience",
+        "reason": "Routing classifies inputs into categories with their own prompts. It doesn't supply the evaluation criteria a critique loop needs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "An **evaluator-optimizer** loop needs clear criteria and feedback that measurably helps; define the criteria first or skip the loop.",
+    "explanation": "The decisive detail is that nobody can articulate what better means. The post makes clear criteria and measurable improvement from feedback the conditions for this workflow, so the first job is to establish them. Choice c is the tempting substitute, but voting raises confidence on a known check; it can't manufacture the check.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-evaluator-optimizer"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-gap-fixed-split-sectioning",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Orchestrator-workers",
+    "stem": "Every incoming insurance claim gets the same three independent analyses: a summary, an extracted-entities list and a fraud-signal score. A teammate proposes an orchestrator model that reads each claim and decides which analyses to spawn. Which pattern fits better?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parallelization with sectioning: fixed, independent subtasks run side by side",
+        "reason": "Correct: sectioning breaks a task into independent subtasks run in parallel. Here the three analyses are known in advance for every claim, so no orchestrator step is needed."
+      },
+      {
+        "id": "b",
+        "text": "Orchestrator-workers: a central model should always choose the subtasks, so the pipeline adapts to unusual claims",
+        "reason": "The post's key difference from parallelization is that an orchestrator determines subtasks that can't be predicted in advance. Here they are the same three every time."
+      },
+      {
+        "id": "c",
+        "text": "Prompt chaining: run summary, then entities, then score, each step feeding the next",
+        "reason": "Chaining fits steps that build on each other's output. These analyses are independent, so sequencing them only adds latency."
+      },
+      {
+        "id": "d",
+        "text": "Voting: run the same claim analysis three times and keep the majority result",
+        "reason": "Voting repeats one task for diverse outputs and higher confidence. These are three different tasks, not three attempts at one."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Known, independent subtasks → **sectioning**; an orchestrator earns its keep only when the subtasks depend on the input.",
+    "explanation": "The deciding phrase is \"the same three independent analyses\". An orchestrator's value is choosing subtasks dynamically from the input; when the split is fixed, that step is overhead and plain parallel sectioning fits. Choice b is the trap: flexibility sounds safe, but the post reserves orchestrator-workers for subtasks you can't predict in advance.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-parallelization",
+      "c-orchestrator-workers"
+    ],
+    "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-gap-x-framework-gives-structure",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Agent frameworks",
+    "stem": "A team adopting an agent framework such as Strands, LangGraph or PydanticAI expects it to make their support agent's behaviour repeatable and to remove the need for an eval set, since \"the framework handles the agent part\". What does a framework actually give them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Deterministic behaviour: the graph fixes the order of steps, so the same input yields the same run",
+        "reason": "The model still decides inside each step. A framework simplifies standard low-level tasks; it doesn't make the model's choices repeatable."
+      },
+      {
+        "id": "b",
+        "text": "Built-in evaluation: the framework measures task success, so a separate eval set is redundant",
+        "reason": "No framework measures your task. The advice is to measure performance and iterate; the eval set is yours to build either way."
+      },
+      {
+        "id": "c",
+        "text": "Guaranteed-correct prompts, since the framework's abstractions replace hand-written prompting",
+        "reason": "The opposite risk: extra layers of abstraction can obscure the underlying prompts and responses, making debugging harder."
+      },
+      {
+        "id": "d",
+        "text": "Scaffolding for calling and chaining models; the agent's behaviour still has to be measured",
+        "reason": "Correct: frameworks make it easy to get started by simplifying standard low-level tasks such as calling LLMs and chaining calls. They structure the work; they don't make it deterministic or evaluate it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A framework gives orchestration structure and conveniences, not determinism and not a substitute for your own evals.",
+    "explanation": "A framework's value is scaffolding: it simplifies the low-level mechanics of calling models and chaining calls, so an agent is quick to stand up. It doesn't change what the model does inside each step, so behaviour is no more repeatable, and it has no knowledge of your task, so measuring performance and iterating remains your job. Choice a is the trap: a fixed graph orders the steps, but the decisions inside them are still the model's.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-frameworks-advice"
+    ],
+    "lessonId": "l-agent-patterns"
   }
 ]

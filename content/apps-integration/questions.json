@@ -10514,5 +10514,1596 @@
       "c-ttft"
     ],
     "lessonId": "l-course-platform-comparison"
+  },
+  {
+    "id": "q-swe2-headers-vs-body",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "REST requests",
+    "stem": "A service calls the Messages API with a plain HTTP client rather than an SDK. Its first request is rejected as unauthenticated, although the key is valid. Reading the request, what is wrong?",
+    "snippet": {
+      "language": "bash",
+      "code": "curl https://api.anthropic.com/v1/messages \\\n  -H \"content-type: application/json\" \\\n  -d '{\n    \"x-api-key\": \"sk-ant-...\",\n    \"anthropic-version\": \"2023-06-01\",\n    \"model\": \"claude-sonnet-5-5\",\n    \"max_tokens\": 512,\n    \"messages\": [\n      {\"role\": \"user\", \"content\": \"Hello\"}\n    ]\n  }'"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`model` and `max_tokens` must also move out of the body and be sent as HTTP headers",
+        "reason": "Those are request parameters. The JSON body is exactly where `model`, `max_tokens` and `messages` belong."
+      },
+      {
+        "id": "b",
+        "text": "Creating a message is a `GET`, so the key and the parameters belong in the query string",
+        "reason": "Messages are created with `POST /v1/messages`, and credentials are never query parameters; they are request headers."
+      },
+      {
+        "id": "c",
+        "text": "The API key and `anthropic-version` are HTTP headers, not fields of the JSON body",
+        "reason": "Correct: the API reads authentication (`Authorization: Bearer` or `x-api-key`), `anthropic-version` and `content-type` from the headers. In the body they are just unknown fields."
+      },
+      {
+        "id": "d",
+        "text": "The key must be sent in an `Authorization` header **and** repeated inside the body",
+        "reason": "One header is enough: `Authorization: Bearer <key>` or the legacy `x-api-key`. Nothing credential-related goes in the body."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Credentials and the API version travel as headers; the JSON body carries only the request parameters.",
+    "explanation": "The REST split is headers for metadata about the request (who is calling, which API version, what content type) and the body for the resource you are creating. This request put the key and version inside the JSON, so the server saw no authentication header at all. An SDK sends these headers for you, which is why the mistake only shows up when you drop to raw HTTP. Choice a inverts the rule: the model and token limit are parameters of the message and stay in the body.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-version",
+      "c-client-sdks"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-retry-tool-side-effect",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Idempotent retries",
+    "stem": "Your agent's tools call a carrier API: `GET /tracking/{id}` and `POST /shipments`. A wrapper retries any tool call that times out, and duplicate shipments have started to appear. Which two changes fix this soundly?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry the `POST` only when the timeout fired before any response bytes arrived, which proves the server never saw it",
+        "reason": "A client timeout says nothing about what the server did. The request may have created the shipment just before the deadline, and the resend creates another."
+      },
+      {
+        "id": "b",
+        "text": "Keep automatic retries for the `GET` tracking lookup",
+        "reason": "Correct: `GET` is a safe, idempotent method, so several identical requests have the same intended effect on the server as one."
+      },
+      {
+        "id": "c",
+        "text": "Switch the create route to `PUT` without changing what the server does on a repeat",
+        "reason": "Idempotency is a contract the server must honour; a server can expose a non-idempotent endpoint under `PUT`. Renaming the method changes nothing."
+      },
+      {
+        "id": "d",
+        "text": "Before resending the create, check whether that shipment already exists, so a repeat has the same effect as one call",
+        "reason": "Correct: idempotent means the effect of several identical requests equals the effect of one. A create that first checks for an existing shipment behaves that way, so retrying it is safe."
+      },
+      {
+        "id": "e",
+        "text": "Lower the timeout so that fewer retries fire",
+        "reason": "Every retry that does fire still duplicates a shipment. The fix is to make the repeated request safe, not rarer."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Retry freely only what is idempotent; make side-effecting creates safe to repeat before you retry them.",
+    "explanation": "A retry wrapper is only safe around requests whose repeated effect equals a single one. The lookup is a `GET`, so re-sending it is harmless (b). The create is a `POST`, which is not guaranteed idempotent, so the wrapper must make a repeat safe, for example by checking for an existing shipment first (d). Choice c is the tempting shortcut: changing the method name to `PUT` promises idempotency to clients, but it is the server's implementation that must honour it.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Decide per request before you retry it.",
+      "steps": [
+        {
+          "label": "Tool call times out"
+        },
+        {
+          "label": "Idempotent?",
+          "sublabel": "GET yes, POST not guaranteed"
+        },
+        {
+          "label": "Retry as-is",
+          "sublabel": "or make the repeat safe first"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Idempotent",
+      "title": "Idempotent",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-tool-result-content-string",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Tool result formatting",
+    "stem": "Your `lookup_orders` tool returns a list of dicts from the database. The code below builds the `tool_result`, and the request is rejected as invalid. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "rows = db.query(\n    \"select id, status from orders where ...\"\n)\nmessages.append({\n    \"role\": \"user\",\n    \"content\": [{\n        \"type\": \"tool_result\",\n        \"tool_use_id\": block.id,\n        \"content\": rows,\n    }],\n})"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Serialize `rows` to a string, for example with `json.dumps`",
+        "reason": "Correct: a `tool_result`'s `content` is a string or a list of content blocks (`text`, `image`, `document`, `search_result`), not an arbitrary object."
+      },
+      {
+        "id": "b",
+        "text": "Move the rows into the `input` of a new `tool_use` block that the user message carries back to Claude",
+        "reason": "`tool_use` blocks are Claude's calls and live in assistant turns. Results go back to Claude only as `tool_result` blocks."
+      },
+      {
+        "id": "c",
+        "text": "Put the rows in the top-level `system` parameter so Claude can read them there",
+        "reason": "The result must come back as a `tool_result` that immediately follows the tool call; otherwise the tool use is left without a result."
+      },
+      {
+        "id": "d",
+        "text": "Set `is_error: true` so the API accepts whatever shape the content has",
+        "reason": "`is_error` only tells Claude the tool failed. The content rules are the same either way."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A `tool_result`'s `content` is text (or content blocks): serialize structured data before sending it back.",
+    "explanation": "Tool results cross a JSON boundary. The API accepts `content` as a string or as a list of content blocks, so a Python list of dicts has to be serialized first, typically with `json.dumps`, or placed inside `text` blocks. Choice b is the tempting confusion of direction: `tool_use` is what Claude sends you, `tool_result` is what you send back.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-is-error",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-tool-schema-diff-contract",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Reviewing schema and prompt diffs",
+    "stem": "A PR touches only `tools.json`: it renames the `refund_order` parameter `customer_id` to `id` and cuts the description to \"Refunds an order.\" No application code changed, the unit tests mock the model, and CI is green. The handler reads `input[\"customer_id\"]`. What should the reviewer do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Approve: a change that touches no code and passes CI cannot break the application",
+        "reason": "Claude fills `input` from the schema, so the handler's `customer_id` lookup now finds nothing, and a one-line description changes when and how Claude calls the tool. CI never exercised either."
+      },
+      {
+        "id": "b",
+        "text": "Ask for `strict: true` on the tool so the API validates the renamed parameter at request time",
+        "reason": "Strict mode makes Claude's input follow the schema; it doesn't make your handler read the renamed field, and it says nothing about the description."
+      },
+      {
+        "id": "c",
+        "text": "Ask the author to pin the SDK version, since the generated tool types changed under the rename",
+        "reason": "The SDK didn't change. The contract between your schema, the model and your handler did, and no package version pins that."
+      },
+      {
+        "id": "d",
+        "text": "Treat it as an interface change: fix the handler and re-run the tool-use evals before merging",
+        "reason": "Correct: the schema is the contract the model follows. The description is the most important factor in tool performance, and the parameter name decides what the handler receives; no compiler checks either."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Tool schemas and descriptions are interfaces without a compiler: review their diffs as contract changes and verify with evals.",
+    "explanation": "Nothing in the toolchain checks a tool definition against the code that consumes it or against the model's behaviour. Renaming a property changes the keys Claude sends in `input`, so a handler that reads the old name silently breaks, and shortening the description changes when and how the tool is called. The reviewer's job is to treat the diff as an interface change: update the consumer and measure with evals. Choice a is the trap: green CI only means the mocked tests never saw the real contract.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition",
+      "c-tool-description"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-missing-await-handler",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Async handlers",
+    "stem": "When the Claude API fails, this handler's `catch` never runs: Node reports an unhandled promise rejection instead and the client never gets a response. Why, and what fixes it?",
+    "snippet": {
+      "language": "typescript",
+      "code": "app.post(\"/summarize\", async (req, res) => {\n  try {\n    client.messages\n      .create({\n        model: \"claude-sonnet-5-5\",\n        max_tokens: 400,\n        messages: [\n          { role: \"user\", content: req.body.text },\n        ],\n      })\n      .then((msg) => {\n        res.json({ summary: textOf(msg) });\n      });\n  } catch (err) {\n    res.status(500).json({ error: \"failed\" });\n  }\n});"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`try`/`catch` only sees synchronous throws; attach a `.catch()` to the promise and drop the `try` block entirely",
+        "reason": "`async`/`await` exists precisely so ordinary `try`/`catch` works around asynchronous code. The problem is that nothing here is awaited."
+      },
+      {
+        "id": "b",
+        "text": "Nothing awaits the promise, so the `try` block exits before it settles; `await` the call",
+        "reason": "Correct: `await` suspends the function until the promise is fulfilled or rejected, and a rejection then surfaces as an exception the `catch` can handle."
+      },
+      {
+        "id": "c",
+        "text": "Remove the `async` keyword, since `await` is only needed when calling other `async` functions",
+        "reason": "`await` works on any promise, including the SDK's, and it is only valid inside an `async` function."
+      },
+      {
+        "id": "d",
+        "text": "Wrap the `.then` chain in `new Promise(...)` so the error becomes synchronous",
+        "reason": "A promise inside another promise is still asynchronous. The `try` block still exits before the request settles."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "`await` the SDK promise inside `try`; a promise you do not await settles outside your `catch`.",
+    "explanation": "An async function runs synchronously up to its first `await`. Here there is none, so the `try` block starts the request, registers a `.then`, and exits. When the API later rejects, the `catch` is long gone and the runtime reports an unhandled rejection. Awaiting the call suspends the handler until the promise settles, so a rejection is thrown where `catch` can see it. Choice a is the common myth that try/catch and promises don't mix; they do, as long as you await.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function",
+      "title": "async function",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-async-client"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-abort-stream-on-disconnect",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Cancelling streams",
+    "stem": "Your Node service streams Claude's reply on to the browser. When a user closes the tab early, the server keeps receiving the rest of the reply for nobody. What should the disconnect handler do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stop consuming the stream: `break` out of the `for await` loop or call `stream.controller.abort()`",
+        "reason": "Correct: the SDK documents both ways to cancel a stream, breaking out of the loop or calling `stream.controller.abort()`. Cancellation is your code's decision."
+      },
+      {
+        "id": "b",
+        "text": "Nothing: the API notices that the browser has gone and ends the stream on its own",
+        "reason": "The browser is connected to your server, not to the API. Your server's stream continues until your code stops consuming or aborts it."
+      },
+      {
+        "id": "c",
+        "text": "Lower `max_tokens` on every request so that abandoned replies cost less before they run to completion",
+        "reason": "That shortens every reply for every user and still doesn't stop the one in flight."
+      },
+      {
+        "id": "d",
+        "text": "Switch the request to non-streaming so there is nothing left to cancel",
+        "reason": "A non-streaming call gives you nothing until the whole reply is generated, so the user waits longer and the disconnect problem is unchanged."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Cancellation is your job: break out of the loop or abort the stream when the consumer goes away.",
+    "explanation": "There are two connections here: browser to your server, and your server to the API. Closing the first does nothing to the second. The TypeScript SDK gives you two ways to end a stream you no longer want, breaking out of the `for await` loop or calling `stream.controller.abort()`, and a disconnect handler is where to do it. Choice b is the tempting assumption that cancellation propagates automatically; it does not.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript",
+      "title": "TypeScript SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-streaming",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-bisect-eval-regression",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Version control",
+    "stem": "Your nightly eval score fell from 94% to 81% somewhere in the last 60 commits, which touched prompts, tool descriptions and parsing code. You have a script that runs the eval and exits 1 when the score is below 90%. Which git workflow finds the offending commit fastest?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`git revert` all 60 commits, then re-apply them one at a time, re-running the eval after each until the score drops",
+        "reason": "That is a linear walk that also rips out unrelated work. Bisecting halves the range at each step instead."
+      },
+      {
+        "id": "b",
+        "text": "`git blame` the prompt file: the latest change to a prompt line must be the cause",
+        "reason": "Blame shows who last touched each line of one file. The regression could be in the tool descriptions or the parsing code, and blame can't test anything."
+      },
+      {
+        "id": "c",
+        "text": "`git bisect` between a known-good commit and the current one, with `git bisect run` driving the eval script",
+        "reason": "Correct: bisect binary-searches the range, checking out a middle commit each step; `bisect run` uses the script's exit code (0 good, 1 bad) to decide automatically."
+      },
+      {
+        "id": "d",
+        "text": "`git log --grep=prompt` and read each matching diff until something looks suspicious",
+        "reason": "Reading is not testing. You would still have to check the commits, and the culprit may not mention prompts at all."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "When a measurable property regressed somewhere in a range of commits, bisect it; give `git bisect run` a pass/fail script.",
+    "explanation": "The question has the three ingredients bisect needs: a known-good point, a known-bad point, and a repeatable test. Bisect picks a commit in the middle, asks whether it is good or bad, and keeps narrowing, so 60 commits take roughly six checks rather than sixty. Because the eval script exits 0 or 1, `git bisect run` can make those decisions without you. Choice b tempts because the prompt file is the obvious suspect, but blame only tells you who edited a line, not which commit changed the score.",
+    "difficulty": "hard",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Binary search over history, driven by a script.",
+      "steps": [
+        {
+          "label": "Mark good and bad"
+        },
+        {
+          "label": "Test the middle commit",
+          "sublabel": "script exit code"
+        },
+        {
+          "label": "Narrow the range"
+        },
+        {
+          "label": "First bad commit"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://git-scm.com/docs/git-bisect",
+      "title": "Git - git-bisect Documentation",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-topic-branch-prompt-changes",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Version control",
+    "stem": "Two developers keep editing `prompts/triage.md` and the tool definitions directly on `main`. Half-finished prompt wording ships, and reviewers can't tell which edits belong together. Which branching practice fixes this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "One long-lived `prompts` branch where every prompt change accumulates and is merged into `main` each quarter",
+        "reason": "That piles unrelated changes into one silo, which is the opposite of what makes review easy. Long-running branches are for stability levels, not for mixing topics."
+      },
+      {
+        "id": "b",
+        "text": "A short-lived topic branch per prompt or tool change, reviewed on its own and merged when it is ready",
+        "reason": "Correct: a topic branch holds a single piece of work, so reviewers see exactly what changed for that topic, and it merges when ready regardless of order."
+      },
+      {
+        "id": "c",
+        "text": "Keep editing `main`, but tag the repository before each prompt change so it can be found later",
+        "reason": "Tags mark points in history. They don't keep unfinished work off `main` or let a reviewer see one change in isolation."
+      },
+      {
+        "id": "d",
+        "text": "Move the prompts out of git into a shared document so edits no longer need branches",
+        "reason": "That loses history, review and the link to the tool code the prompts depend on. The prompt is part of the application."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Treat prompt and tool edits like code: one topic branch per change, reviewed on its own, merged when ready.",
+    "explanation": "Prompts and tool definitions change the application's behaviour, so they deserve the same workflow as code. A topic branch is a short-lived branch for one feature or related piece of work; it keeps work-in-progress off `main` and lets a reviewer see all and only the changes for that topic. Choice a sounds organised but recreates the problem one level up: unrelated prompt edits still land together, and nobody can review them separately.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows",
+      "title": "Git Branching - Branching Workflows",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop",
+      "c-eval-set"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-refactor-pr-mixed-behaviour",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Refactoring",
+    "stem": "A PR titled \"refactor: tidy the summarizer module\" extracts helpers and renames functions, but it also rewrites the system prompt and renames the JSON fields the module returns to callers. CI is green. As the reviewer, what do you ask for?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Approve it as is: the tests pass, and extracting helpers and renaming are behaviour-preserving",
+        "reason": "The structural part may be, but the prompt rewrite and the field renames change what callers and users get. The title doesn't make them a refactor."
+      },
+      {
+        "id": "b",
+        "text": "Reject the restructuring part, since reorganising working code only adds risk for no benefit",
+        "reason": "Refactoring is a disciplined technique of small behaviour-preserving steps, and each small step is less likely to go wrong. The problem is the mixing, not the refactoring."
+      },
+      {
+        "id": "c",
+        "text": "Ask for one larger PR that also migrates every caller to the new field names, so the whole change lands atomically",
+        "reason": "Bigger steps are more likely to go wrong. Refactoring works because each transformation is small and the system keeps working after each one."
+      },
+      {
+        "id": "d",
+        "text": "Split it: behaviour-preserving restructuring in one PR, prompt and output changes in another",
+        "reason": "Correct: a refactoring alters internal structure without changing external behaviour. Prompt and output changes are behaviour changes and need their own review."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A refactor changes structure, not behaviour; prompt and output changes are behaviour and get their own review.",
+    "explanation": "Refactoring has a precise meaning: restructuring code without changing its external behaviour, in small steps that keep the system working. A new system prompt and renamed output fields are visible to users and callers, so they are behaviour changes hiding under a refactor label, and they need the scrutiny (and evals) behaviour changes get. Choice a is the trap: a green test suite says the tests still pass, not that the external contract is unchanged.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://refactoring.com/",
+      "title": "Refactoring",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop",
+      "c-eval-set"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-large-change-spec-first",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Scoping large changes",
+    "stem": "You want Claude Code to move your assistant from a hand-written tool loop to the SDK's tool runner across six modules, with edge cases nobody has written down. A teammate wants to type \"migrate to the tool runner\" into a session and let it run. What is the better approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have Claude interview you and write a spec (files, scope, a verification step), then execute it in a fresh session",
+        "reason": "Correct: for larger features, have Claude interview you first and write a spec. Good specs name the files and interfaces, state what is out of scope and end with a verification step; a fresh session then implements it."
+      },
+      {
+        "id": "b",
+        "text": "Paste all six module files into CLAUDE.md first, so that every future session starts with the complete context of the migration",
+        "reason": "CLAUDE.md is for short, broadly applicable instructions. A bloated file makes Claude ignore the rules that matter, and it is loaded on every session."
+      },
+      {
+        "id": "c",
+        "text": "Start in plan mode and approve whatever plan appears, since planning already provides the safety margin",
+        "reason": "Plan mode exists so you can review the plan before any edits. Approving it unread gives up exactly that benefit."
+      },
+      {
+        "id": "d",
+        "text": "Skip planning entirely, because a migration like this can be described in a single sentence",
+        "reason": "That rule is for small, clearly scoped fixes. Multi-file changes to code whose edge cases are unknown are where planning pays off most."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For a large, uncertain change, spec first (files, scope, verification), then implement from clean context.",
+    "explanation": "The size and uncertainty of the change decide the workflow. A one-sentence fix can go straight to Claude, but a six-module migration with unknown edge cases is what the interview-then-spec pattern is for: Claude asks about implementation details, edge cases and trade-offs, writes a self-contained spec, and a fresh session executes it with clean context. Choice d quotes a real rule from the guide but applies it to the wrong size of task.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode",
+      "c-claude-md"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-review-every-line-ai-pr",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Reviewing AI code",
+    "stem": "Claude Code opened a 600-line PR adding a Claude-backed summarizer. CI is green and the description is thorough, so a reviewer plans to approve from the summary. Which two things should the reviewer do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Read every line of the change and make sure they understand what the code is doing, rather than skimming the description",
+        "reason": "Correct: in the general case, look at every line you are assigned to review and be sure you understand what all the code is doing."
+      },
+      {
+        "id": "b",
+        "text": "Approve on the strength of green CI, since passing tests are proof that the change is correct",
+        "reason": "Passing tests only prove the tests pass. The reviewer still has to judge whether the tests are correct, sensible and useful."
+      },
+      {
+        "id": "c",
+        "text": "Review only the files they personally own and skim the rest, because CI passed",
+        "reason": "The guidance lets you skim data files or mechanically generated artifacts, not logic. An AI-written class is still a class to be read and understood."
+      },
+      {
+        "id": "d",
+        "text": "Check that the added tests would actually fail if the code were broken, and that they arrived in the same change as the production code",
+        "reason": "Correct: tests should be added in the same change as the production code, and the reviewer should ask whether they would actually fail when the code is broken."
+      },
+      {
+        "id": "e",
+        "text": "Ask the author to run Claude over its own diff and accept that self-review in place of a human read",
+        "reason": "The reviewer's job is to understand the code and judge its design and functionality. A generated self-review doesn't discharge that."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "An AI-written diff gets the same review as a human one: every line read, tests that would catch breakage.",
+    "explanation": "Review standards don't change because a model wrote the code. Two of them are decisive here: the reviewer reads every line they were assigned and understands it (a), and checks that the tests are real safeguards, added alongside the code and able to fail when the code is wrong (d). Choice b is the tempting shortcut: green CI shows the tests passed, which says nothing about whether they test the right things.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://google.github.io/eng-practices/review/reviewer/looking-for.html",
+      "title": "What to look for in a code review",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-review-output-into-shell",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Validating model output",
+    "stem": "A PR adds a \"fix it for me\" feature: Claude proposes a shell command for a failed deploy, and the server runs it with `subprocess.run(cmd, shell=True)`. What should the reviewer require before this merges?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have Claude also return a `safe: true` flag with each command and run only the commands it marks safe",
+        "reason": "The flag is model output too. A mistaken or manipulated model can mark a destructive command safe; the check has to live in code that doesn't trust the output."
+      },
+      {
+        "id": "b",
+        "text": "Check the command against an allowlist of permitted commands and arguments; never pass raw model text to a shell",
+        "reason": "Correct: model output passed into a system shell or `exec` is a remote code execution risk. Treat the model as any other user, zero-trust, and validate before use."
+      },
+      {
+        "id": "c",
+        "text": "Rate-limit the feature so that a bad command can run at most once a minute",
+        "reason": "A limit on frequency still lets the destructive command run. It bounds how often, not whether."
+      },
+      {
+        "id": "d",
+        "text": "Switch the feature to a larger model, whose command suggestions are considerably more reliable",
+        "reason": "Model quality is not a security control. The vulnerability is in how the output is handled, not in which model produced it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Model output that reaches a shell, a query or a file path is untrusted input; validate it before it runs.",
+    "explanation": "The principle is improper output handling: model text that flows into a shell, a SQL query, a file path or a browser must be validated like input from an untrusted user. Here the output goes straight to `shell=True`, so anything Claude emits, including something an injected page or a confused prompt put there, executes on your server. Choice a is the tempting fix because it feels like a check, but the flag is just more model output; the control has to live in code that doesn't trust any of it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/",
+      "title": "LLM05:2025 Improper Output Handling",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-tests-before-ai-refactor",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Refactoring safely",
+    "stem": "You plan to have Claude Code restructure `billing/pricing.py`, a 900-line module with no tests that every invoice depends on. A teammate suggests opening the session with \"refactor this module and clean it up\". What should come first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pin the module's current behaviour with tests Claude can run, then refactor against them",
+        "reason": "Correct: give Claude a check it can run. Tests that capture today's outputs turn \"looks done\" into pass or fail, and Claude iterates until the refactor keeps them green."
+      },
+      {
+        "id": "b",
+        "text": "Have Claude refactor first and write tests for the new structure in the same session, so the tests match the cleaned-up code",
+        "reason": "Tests written from the refactored code describe the new behaviour, whatever it is. They can't tell you whether the old behaviour survived, which is the whole question for a refactor."
+      },
+      {
+        "id": "c",
+        "text": "Review the diff carefully by reading every line once the refactor is done",
+        "reason": "Reading a 900-line restructuring won't reveal a changed rounding rule. Without a check Claude can run, you become the verification loop and every mistake waits for you to notice."
+      },
+      {
+        "id": "d",
+        "text": "Run the session in plan mode, since an approved plan is sufficient protection for a refactor",
+        "reason": "Plan mode separates exploration from edits; it doesn't verify results. The guide pairs planning with a check Claude can run, not instead of one."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Before an AI-assisted refactor of untested code, write tests that pin current behaviour; a refactor is only safe against a check.",
+    "explanation": "A refactor must preserve behaviour, and the only thing that can confirm that is a check Claude can run. For an untested module the first job is to capture what it does today as tests (characterization tests), then let Claude restructure against them. Choice b is the trap: tests derived from the new code pass by construction and say nothing about the old behaviour. Choice c relies on human reading, which the guide calls the trust-then-verify gap.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode",
+      "c-eval-set"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-model-flag-rollout",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Feature toggles",
+    "stem": "Your service hardcodes `claude-sonnet-4-6`. The team wants to move to `claude-sonnet-5-5`, switching a slice of traffic first and rolling back within minutes, without a deploy, if quality dips. Which two practices apply?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep a long-lived `sonnet-5-5` git branch and deploy whichever branch is performing better that week",
+        "reason": "Toggles exist so behaviour can change without changing code. Swapping deployed branches is a deploy, which is what the team wants to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Put the model choice behind a toggle whose configuration lives outside the code path, so it can change without a code change",
+        "reason": "Correct: a feature toggle lets a team modify system behaviour without changing code, with its configuration supplied through environment, config files or a runtime setting."
+      },
+      {
+        "id": "c",
+        "text": "Keep both model code paths behind the toggle permanently, as a standing safety net",
+        "reason": "The article allows a few long-lived kill switches but treats toggles as inventory with a carrying cost: teams must be proactive in removing flags no longer needed, and a finished migration is exactly that."
+      },
+      {
+        "id": "d",
+        "text": "Hardcode the new model id and treat redeploying the previous build as the rollback plan",
+        "reason": "A rollback by redeploy is the slow path the team wants to escape; the point of a toggle is changing behaviour without a code change."
+      },
+      {
+        "id": "e",
+        "text": "Add a removal task to the backlog when the toggle is introduced, and delete it once the migration settles",
+        "reason": "Correct: the article recommends being proactive about removing flags, for example by adding a removal task to the backlog as soon as a toggle is created."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "A model switch is a release decision: toggle it from configuration, then retire the toggle.",
+    "explanation": "The requirement, change behaviour quickly without a deploy, is the definition of a feature toggle: the model id becomes a routing decision driven by configuration outside the code (b). The second half is discipline: a toggle is temporary inventory, so plan its removal when you create it (e). Choice c is the tempting over-correction, keeping both paths forever as insurance, which is how toggle debt accumulates.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Release the new model through configuration, then clean up.",
+      "steps": [
+        {
+          "label": "Toggle in config",
+          "sublabel": "not in code"
+        },
+        {
+          "label": "Route a slice",
+          "sublabel": "roll back by flipping it"
+        },
+        {
+          "label": "Migration settles"
+        },
+        {
+          "label": "Remove the toggle"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://martinfowler.com/articles/feature-toggles.html",
+      "title": "Feature Toggles (aka Feature Flags)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-model-lifecycle"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-swe2-one-change-per-eval-run",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Iterating on prompts",
+    "stem": "Your eval set has 300 graded cases. One PR rewrote the system prompt, added two examples and switched the model from Haiku 5.5 to Sonnet 5.5; the score rose from 84% to 90%. Finance asks whether the model switch, which triples the cost, was the part that mattered. How do you find out?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask Claude to read the diff and estimate which change contributed most to the gain",
+        "reason": "An estimate isn't a measurement. The eval set exists so that a change's effect can be compared against a baseline, not guessed from the diff."
+      },
+      {
+        "id": "b",
+        "text": "Keep all three changes, since separating them would require a new eval set for each",
+        "reason": "The eval set doesn't change; the prompt does. Comparing each variant against the same baseline on the same cases is exactly what the set is for."
+      },
+      {
+        "id": "c",
+        "text": "Revert to Haiku 5.5 on a handful of the failing cases and eyeball whether the answers look worse",
+        "reason": "A handful of hand-judged cases is the low-signal method the eval set replaced. The guidance is volume with automated grading, not eyeballing."
+      },
+      {
+        "id": "d",
+        "text": "Re-run the same eval set with one change at a time against the baseline",
+        "reason": "Correct: an A/B comparison against a baseline on the same task-specific cases isolates each change's effect, so you learn whether the prompt edits alone deliver the gain."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Change one variable per eval run against a fixed set and a baseline, or you can't tell which change paid for the gain.",
+    "explanation": "Three changes landed together, so the 6-point gain has no owner. The way to attribute it is to hold the eval set fixed and compare each variant against the baseline on its own: prompt edits alone, examples alone, model alone. Choice c is the trap: it reintroduces small, hand-judged samples, which is precisely the low-signal practice an automated eval set is built to replace.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-appd2-sdk-default-prompt-minimal",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Interfaces",
+    "stem": "Your team moved a nightly code-review job from `claude -p` to the Agent SDK, keeping the same prompt, tools and CLAUDE.md. Under the SDK the agent no longer shows the safety habits and tool conventions it had in the CLI. What explains it, and what restores them?",
+    "snippet": {
+      "language": "python",
+      "code": "from claude_agent_sdk import (\n    query, ClaudeAgentOptions)\n\nasync for msg in query(\n    prompt=\"Review the diff on this branch\",\n    options=ClaudeAgentOptions(\n        allowed_tools=[\"Read\", \"Grep\", \"Bash\"],\n    ),\n):\n    handle(msg)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "CLAUDE.md stopped loading; add `setting_sources=[\"project\"]` so the SDK reads it again",
+        "reason": "Default `query()` options already enable the project and user sources, so CLAUDE.md loads. It is injected into the conversation and never replaces the system prompt."
+      },
+      {
+        "id": "b",
+        "text": "The SDK ignores instructions it isn't given; pass the review rules as a plain `system_prompt` string",
+        "reason": "A custom string replaces the whole system prompt with only what you write, so you would still owe the agent the tool guidance and safety instructions the CLI prompt carries."
+      },
+      {
+        "id": "c",
+        "text": "The SDK doesn't inherit Claude Code's system prompt; opt into the `claude_code` preset",
+        "reason": "Correct: with no `system_prompt`, the SDK sends a minimal prompt that covers tool calling and omits the rest of the Claude Code prompt, including its safety instructions. `claude -p` uses that prompt by default."
+      },
+      {
+        "id": "d",
+        "text": "Approvals were lost; set `permission_mode=\"default\"` so the CLI's confirmation flow returns",
+        "reason": "The difference is the system prompt: the SDK's default is minimal and `claude -p` uses Claude Code's. Permission mode governs approvals, not those instructions."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The Agent SDK doesn't inherit Claude Code's instructions: its default prompt is minimal, so opt into the `claude_code` preset when you want CLI behaviour.",
+    "explanation": "The same prompt behaves differently because the two surfaces start from different system prompts. `claude -p` uses the Claude Code system prompt by default, while the SDK with no `system_prompt` option sends only a minimal prompt that covers tool calling. The preset restores the CLI's tool guidance and safety instructions, and `append` can add team rules on top. Choice a is tempting, but default `query()` options already load CLAUDE.md, and CLAUDE.md is injected into the conversation rather than replacing the system prompt.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/modifying-system-prompts",
+      "title": "Modifying system prompts",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-claude-md"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-claude-ai-prompt-api-differs",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Interfaces",
+    "stem": "A product manager perfected a prompt in claude.ai: code always arrived as Markdown snippets and the assistant's habits matched the brief. Your service sends the same text as `system` through the API, and code comes back unformatted with different habits. What should the team conclude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API uses an older model snapshot than claude.ai, so behaviour differs until the ids are aligned",
+        "reason": "Model choice isn't the gap. claude.ai starts each conversation with a maintained system prompt that shapes behaviour, and that prompt isn't applied to API requests."
+      },
+      {
+        "id": "b",
+        "text": "claude.ai wraps every chat in Anthropic's own system prompt; the API applies none of it",
+        "reason": "Correct: the web and mobile apps use a system prompt that provides context and encourages behaviours such as giving code in Markdown; those prompts do not apply to the API, so your request contains only what you send."
+      },
+      {
+        "id": "c",
+        "text": "The PM's text belongs in the first user message, where claude.ai placed it, not in `system`",
+        "reason": "Placement isn't the problem. The missing piece is the app's own system prompt, which no user-message position supplies."
+      },
+      {
+        "id": "d",
+        "text": "Markdown is a rendering feature of the claude.ai client, so the model never produced it",
+        "reason": "The app's system prompt encourages providing code snippets in Markdown; the model produces the formatting. Through the API it does so only if your prompt asks."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A prompt tuned in claude.ai rode on the app's hidden system prompt; through the API you supply every instruction yourself.",
+    "explanation": "The surfaces differ in what surrounds your text. claude.ai begins every conversation with a system prompt Anthropic maintains, which supplies context and encourages behaviours such as Markdown code snippets; the API applies none of it, so the request your service sends is the whole prompt. The design lesson is to prototype where the shipping surface's behaviour is reproduced, or to write the behaviours you want into your own `system`. Choice a is the trap: the gap is the prompt around the text, not the model.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/release-notes/system-prompts",
+      "title": "System prompts",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-system-parameter",
+      "c-role-prompting"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-claude-md-emphasis-vs-hook",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Guidance vs enforcement",
+    "stem": "Your CLAUDE.md has grown to about 60 rules. Claude follows most of them, but once a week it skips \"never run database migrations against the shared staging DB\". The proposed fix is to put that line in capitals, mark it IMPORTANT and repeat it in three sections. What is the better design?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the rule to the top of CLAUDE.md and mark it IMPORTANT, keeping the other rules where they are",
+        "reason": "Emphasis on one line helps only when the file is otherwise lean; a bloated CLAUDE.md gets ignored, and a rule that must never fail isn't a candidate for advice at all."
+      },
+      {
+        "id": "b",
+        "text": "Repeat the rule in a skill and in the system prompt as well, so Claude meets it on every path",
+        "reason": "More copies of advice are still advice. Whatever the path, Claude is choosing to comply, and the stem says that choice fails once a week."
+      },
+      {
+        "id": "c",
+        "text": "Keep CLAUDE.md as it is and switch to a larger model, which follows long rule sets more reliably",
+        "reason": "No model turns an advisory file into a guarantee, and a long CLAUDE.md loses its instructions with any model. The guide's fix is to cut, not to upgrade."
+      },
+      {
+        "id": "d",
+        "text": "Enforce the migration rule with a hook, and prune CLAUDE.md so the rest is followed",
+        "reason": "Correct: CLAUDE.md instructions are advisory; hooks are deterministic and guarantee the action. A must-never rule becomes a hook, and pruning makes the remaining guidance land."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "CLAUDE.md is guidance Claude reads; a rule that must hold every time belongs in a hook or setting, and the file stays short.",
+    "explanation": "Two things decide this. CLAUDE.md is advisory, so no amount of emphasis turns a rule into a guarantee, and a rule with zero tolerance for failure is exactly what hooks exist for. And a 60-rule file is over-specified: important rules get lost in the noise, which is why the guide says to prune and to convert what must always happen into a hook. Choice a is the trap: emphasis works on a single line in a lean file, and even then it remains advice.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-api-job-no-memory",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Session hygiene",
+    "stem": "For weeks a developer ran a release-notes agent in Claude Code and corrected it along the way; it now follows the team's conventions without being told. The same system prompt moved into a nightly Messages API job, and every night the job ignores those conventions. Why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API uses a different model snapshot, so weeks of corrections have to be repeated for it",
+        "reason": "The model learned nothing in either place. Claude Code carries knowledge across sessions through files it reads at startup, not through the model."
+      },
+      {
+        "id": "b",
+        "text": "Claude Code reloads CLAUDE.md and auto memory each session; the API job gets only what it sends",
+        "reason": "Correct: each Claude Code session starts with a fresh context window, and CLAUDE.md plus auto memory carry knowledge across sessions. A Messages API request contains only the prompt and messages you send."
+      },
+      {
+        "id": "c",
+        "text": "Corrections are stored against the API key; the job must run under the developer's key",
+        "reason": "No per-key memory exists. The conventions lived in files on the developer's machine, loaded at the start of each Claude Code session."
+      },
+      {
+        "id": "d",
+        "text": "The nightly job should resume the developer's last Claude Code session id instead of starting cold",
+        "reason": "A Claude Code session transcript isn't something a Messages API request can resume. The durable part was the files, and those can be read and sent."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Nothing persists in the model: Claude Code's continuity comes from files loaded each session; an API job must send every convention it needs.",
+    "explanation": "The continuity in Claude Code was never in the model. Every session starts with a fresh context window, and the conventions came back because CLAUDE.md and auto memory were loaded at the start of each one. A Messages API request has no such startup step: it contains the system prompt and messages your code sends, nothing more, so the job must include those conventions itself, for example by reading the same files. Choice a is the trap: it assumes the model changed, when what changed is what gets loaded around the prompt.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-stateless-api"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-plugin-components-by-surface",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Plugin management",
+    "stem": "Your team publishes one plugin with a skill, a `PostToolUse` hook and a local stdio MCP server. In Claude Code everything works. Colleagues who installed it on their claude.ai account report that in chat the skill works but the hook never fires and the MCP tools are missing. What explains this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Each surface loads its own subset: chat ignores a plugin's hooks and local MCP servers",
+        "reason": "Correct: the platform-support table marks hooks and local MCP servers as ignored in chat, while Claude Code loads all three. A surface skips what it doesn't load."
+      },
+      {
+        "id": "b",
+        "text": "The plugin was installed at user scope, and chat only sees project-scope plugins",
+        "reason": "Chat and Cowork read plugins from your claude.ai account; Claude Code's user, project and local scopes are attached to the machine and don't apply in chat."
+      },
+      {
+        "id": "c",
+        "text": "Hooks and MCP servers only load in chat once the plugin is published to Anthropic's directory and reviewed there",
+        "reason": "The directory derives the surfaces a plugin supports from the same per-surface rules; it doesn't unlock components that chat ignores."
+      },
+      {
+        "id": "d",
+        "text": "The plugin must be re-uploaded as a zip for chat to load the remaining components",
+        "reason": "Upload is just another install path. What loads is decided per surface, and chat skips hooks and local servers however the plugin was installed."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "One plugin folder installs everywhere, but chat, Cowork and Claude Code each load a different subset; hooks and local MCP servers are not chat features.",
+    "explanation": "The same plugin folder installs on chat, Cowork and Claude Code, but each surface loads only the components it supports and skips the rest, so a plugin can look complete in one place and partial in another. Skills load everywhere; hooks and a local MCP server that the app starts are ignored in chat and load in Claude Code. Choice b is the trap: Claude Code's user, project and local scopes are machine-level, while chat reads plugins from the claude.ai account, so scope isn't what differs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://claude.com/docs/plugins/platform-support",
+      "title": "Plugin feature support across platforms",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-untrusted-content-in-tool-result",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Content boundaries",
+    "stem": "Your research agent assembles each request from: your operator instructions, the user's question, page text returned by `fetch_page`, and customer emails returned by `read_inbox`. Some pages and emails contain hidden instructions. Which two pieces must arrive inside `tool_result` blocks, treated as untrusted?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Your operator instructions",
+        "reason": "Those are yours and belong in the `system` prompt; the point of the boundary is that they keep that trusted position."
+      },
+      {
+        "id": "b",
+        "text": "The page text returned by `fetch_page`",
+        "reason": "Correct: tool results often carry content from sources outside your control; keeping it inside `tool_result` blocks, not `system` or plain user text, marks it as data to assess."
+      },
+      {
+        "id": "c",
+        "text": "The user's own question, typed into the chat",
+        "reason": "The user's words are the user turn. Moving them into a tool result would mislabel the one party whose request the agent is meant to serve."
+      },
+      {
+        "id": "d",
+        "text": "The customer emails returned by `read_inbox`",
+        "reason": "Correct: email is third-party content an attacker can influence; returning it as a `tool_result` keeps it out of the instruction layers and lets Claude treat it as untrusted."
+      },
+      {
+        "id": "e",
+        "text": "The JSON schemas of the two tools",
+        "reason": "Tool definitions go in the `tools` parameter. They describe what Claude may call; they aren't content from outside your control."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Content you don't control (pages, email, uploads, third-party APIs) arrives as `tool_result` blocks; `system` and user text are for your instructions and your user.",
+    "explanation": "The boundary is structural: whatever comes from outside your control, web pages, email, uploads or third-party API responses, stays inside `tool_result` blocks, so Claude reads it as data to assess rather than as instructions. The operator's rules keep the `system` position (a) and the user's question stays the user turn (c). Choice e is the distractor for people who equate \"not written by us\" with untrusted; the schemas are yours.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-is-error"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-schema-complexity-two-fixes",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Schema design",
+    "stem": "Your extraction endpoint sends a JSON output schema: a report object with six optional nested sub-objects, each holding more optional fields. Requests now fail with a 400 error, \"Schema is too complex for compilation.\" Which two changes address it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Flatten the deeply nested structures where possible",
+        "reason": "Correct: the guide lists simplifying nested structures, because deeply nested objects with optional fields compound the complexity of the compiled grammar."
+      },
+      {
+        "id": "b",
+        "text": "Raise `max_tokens` so the longer schema has room to compile",
+        "reason": "The limit is on the grammar compiled from the schema, not on output length; `max_tokens` doesn't change the schema's complexity."
+      },
+      {
+        "id": "c",
+        "text": "Add `minLength` and `maximum` constraints so the grammar has fewer possibilities",
+        "reason": "Numerical and string-length constraints aren't supported in the schema the API compiles; sent raw, one returns a 400 of its own."
+      },
+      {
+        "id": "d",
+        "text": "Make parameters `required` where a reasonable default exists, having Claude supply the default explicitly",
+        "reason": "Correct: the guide says to reduce optional parameters, since each optional parameter roughly doubles a portion of the grammar's state space."
+      },
+      {
+        "id": "e",
+        "text": "Retry the request, since the compiled grammar is cached after the first attempt",
+        "reason": "The 400 means the schema exceeded a complexity limit; sending the same schema again hits the same limit. Caching only applies to grammars that compiled."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Grammar complexity grows with nesting and optional fields: flatten the shape and make fields required where a default exists.",
+    "explanation": "Structured outputs compile the schema into a grammar, and the API rejects schemas whose grammar would be too large. The guide's ordered fixes are to mark only critical tools strict, reduce optional parameters, simplify nested structures, and split across requests. The stem's schema is nested and full of optional fields, so a and d apply directly. Choice e is the trap: a 400 for complexity is deterministic for that schema, and choice c adds constraints the feature doesn't support.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-json-outputs",
+      "c-grammar-caching"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-enum-for-classification-labels",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Schema design",
+    "stem": "A ticket-triage service asks Claude for a `category` as a free-text string and routes on exact matches to `billing`, `bug` or `account`. Logs show values like \"Billing\", \"billing issue\" and \"bug / crash\", which fall through to the default queue. What's the best schema-level fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower the temperature to 0 so the wording stabilizes across runs and the router's exact matches start to hit",
+        "reason": "Sampling settings don't restrict the value set. The prompting guide's fix for classification is a fixed set of valid labels in the schema itself."
+      },
+      {
+        "id": "b",
+        "text": "List the three labels in the field's `description` and keep the string type",
+        "reason": "A description guides Claude but doesn't constrain the value; the guide's recommendation is an enum of the valid labels, or structured outputs."
+      },
+      {
+        "id": "c",
+        "text": "Make `category` an `enum` of the valid labels in the schema",
+        "reason": "Correct: for classification tasks the guide says to use either tools with an enum field containing your valid labels or structured outputs, so the value set belongs to the schema."
+      },
+      {
+        "id": "d",
+        "text": "Prefill the assistant turn with `{\"category\": \"` so Claude completes a label",
+        "reason": "Prefilled responses on the last assistant turn are no longer supported from Claude 4.6 models onward and return a 400; the guide's migration for classification is an enum field or structured outputs."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "When the output must be one of a fixed set of labels, put the set in the schema as an `enum`; prose descriptions and sampling settings don't enforce it.",
+    "explanation": "The field's type is the problem: a free-text string lets Claude phrase the category any way it likes, and the router accepts only three exact values. Classification belongs in the schema as a fixed set, which the guide gives as a tool with an enum field of valid labels or structured outputs. Choice b is tempting because the labels are at least visible to Claude, but a description is guidance, not a constraint, and choice d relies on prefill, which current models reject.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-enum-casing",
+      "c-json-outputs"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-input-examples-nested-input",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Schema design",
+    "stem": "Your `search_orders` tool takes a nested `filters` object with a date range in a specific format. Its description is already several sentences long, yet Claude often builds the `filters` object wrong. What should you add?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Force the tool with `tool_choice` so Claude stops deliberating about the call",
+        "reason": "`tool_choice` decides whether and which tool is called; it does nothing to show Claude how to shape a nested, format-sensitive input."
+      },
+      {
+        "id": "b",
+        "text": "Add a `reasoning` parameter so Claude thinks through the filter format step by step before filling it in",
+        "reason": "A parameter that asks for step-by-step reasoning may lead to a `reasoning_extraction` refusal; the guide says to ask only for a short explanation if you need one."
+      },
+      {
+        "id": "c",
+        "text": "Split `filters` into a separate tool per filter, each with a flat schema",
+        "reason": "The guide recommends consolidating related operations into fewer tools; more tools raise selection ambiguity without teaching the date format."
+      },
+      {
+        "id": "d",
+        "text": "Provide `input_examples` showing the nested object and the date format",
+        "reason": "Correct: the guide says to prioritize descriptions but use `input_examples` for complex tools with nested objects, optional parameters or format-sensitive inputs."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Descriptions come first; for nested or format-sensitive inputs, add `input_examples` so Claude sees concrete, well-formed calls.",
+    "explanation": "The description already says what the tool does; what Claude lacks is a concrete picture of a well-formed call. `input_examples` are example input objects, validated against the schema and included alongside it, that show when to include optional parameters, what formats to use and how to structure complex inputs. Choice c is the trap: splitting into many flat tools contradicts the guide's consolidation advice and still leaves the date format unexplained.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-description"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-rewind-failed-detour",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Session hygiene",
+    "stem": "An hour into a Claude Code session you have a solid migration plan and several good edits. The last 40 minutes were a wrong turn: a failed approach that filled context with error output and changed four files. You want to retry from just before the detour, with those edits gone. What fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`/rewind` to the prompt that started the detour and restore code and conversation",
+        "reason": "Correct: checkpointing captures code state before each prompt that starts a turn, and this action reverts both the files and the conversation to that point."
+      },
+      {
+        "id": "b",
+        "text": "Run `/clear` and describe the plan again from memory",
+        "reason": "`/clear` resets the whole context, including the hour of good work, and the detour's file edits stay on disk."
+      },
+      {
+        "id": "c",
+        "text": "`/compact Focus on the migration plan`, so the detour is summarized away and the files are left as they are",
+        "reason": "Compaction summarizes the conversation but keeps the detour in condensed form, and summarizing doesn't change files on disk."
+      },
+      {
+        "id": "d",
+        "text": "Run `/branch` and continue in the copy",
+        "reason": "`/branch` copies the conversation, detour included, to try another approach while preserving the original; it doesn't revert code or drop the bad turn."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Checkpoints make a wrong turn cheap: rewind to the prompt before it and restore conversation, code, or both.",
+    "explanation": "Every prompt that starts a turn creates a checkpoint, and the rewind menu can restore the conversation, the code, or both to that point. The stem wants the earlier context kept and the detour's conversation and file edits removed, which is exactly **Restore code and conversation**. Choice c is tempting because it frees context, but summarizing keeps the detour's content in condensed form and leaves the four files changed. Checkpoints also don't cover edits made by Bash commands, so check with git if the detour ran scripts.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/checkpointing",
+      "title": "Checkpointing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-continue-resume"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-spec-then-fresh-session",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Session hygiene",
+    "stem": "You had Claude Code interview you about a new feature and write `SPEC.md`. The session now holds a long back-and-forth of options you rejected, and you're about to start implementing. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run `/compact` focused on the spec and implement in the same session",
+        "reason": "Compaction keeps a summary of the discussion in context. The guide's point is that implementation gets a clean context plus the written spec to reference."
+      },
+      {
+        "id": "b",
+        "text": "Start a fresh session and point it at `SPEC.md`",
+        "reason": "Correct: once the spec is complete, start a fresh session to execute it. The new session has clean context focused entirely on implementation, and you have a written spec to reference."
+      },
+      {
+        "id": "c",
+        "text": "Paste the spec into CLAUDE.md so no session can lose it",
+        "reason": "CLAUDE.md is loaded every session, so it should hold only things that apply broadly; a one-feature spec bloats it, and bloated files cause Claude to ignore the real instructions."
+      },
+      {
+        "id": "d",
+        "text": "Send the implementation prompts with `/btw` so they don't grow the context",
+        "reason": "`/btw` is for side questions whose answers never enter conversation history; implementation work has to be in the conversation."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Persist decisions in a file, then start a new session: clean context for implementation, with the spec as the reference.",
+    "explanation": "The interview session's value is now captured in `SPEC.md`; what remains in context is rejected options and discussion that would compete with implementation. The guide says to start a fresh session once the spec is complete, so the new session has clean context focused entirely on implementation and a written spec to reference. Choice a is the common habit, but compaction still carries a summary of the debate; choice c misuses CLAUDE.md, which should contain only what applies broadly to every session.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/best-practices",
+      "title": "Best practices for Claude Code",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-md",
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-plugin-vs-claude-md-conventions",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Plugin management",
+    "stem": "A platform team wants twelve repositories to share a release-checklist workflow, a lint-on-save hook and an MCP server for the ticket tracker, with updates rolled out centrally. Each repo also has its own build commands and style quirks. How should the pieces be distributed?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Everything in each repo's CLAUDE.md, including the hook and MCP configuration, so one file carries it all",
+        "reason": "CLAUDE.md holds instructions. It can't carry a hook or an MCP server, and twelve hand-synced copies give no central update path."
+      },
+      {
+        "id": "b",
+        "text": "A single skill file copied into every repository, since skills can run hooks and start MCP servers",
+        "reason": "A skill is instructions Claude loads when relevant; it doesn't register hooks or start servers. A plugin packages those as one unit."
+      },
+      {
+        "id": "c",
+        "text": "An organization-wide CLAUDE.md for the shared pieces, with each repo's quirks appended below it",
+        "reason": "Shared text may be fine that way, but a hook and an MCP server are components, not instructions; they need a package with an update path."
+      },
+      {
+        "id": "d",
+        "text": "A plugin from an internal marketplace for the shared pieces; CLAUDE.md per repo for its quirks",
+        "reason": "Correct: a plugin bundles skills, hooks and MCP servers into one unit installed from a marketplace with updates; per-repo build commands and quirks are what CLAUDE.md is for."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Shared components (skills, hooks, MCP servers) ship as a plugin with marketplace updates; a repo's own conventions stay in its CLAUDE.md.",
+    "explanation": "Sort the pieces by kind. A workflow, a hook and an MCP server are components, and a plugin is the unit that packages them, installs them in many projects and takes updates from its marketplace. Build commands and style quirks are repository instructions, which is what CLAUDE.md holds. Choice c is the trap: a shared CLAUDE.md can spread text across repos, but it can't carry the hook or the server.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins",
+      "title": "Plugins overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-claude-md"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-plugin-pin-and-update-control",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Plugin management",
+    "stem": "Your team installs `review-tools` from an internal marketplace. Mid-sprint a plugin update changed a hook's behaviour on every developer's machine at once, and nobody had tested it. Which two changes give the team control over when a new version reaches developers?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Install the plugin at project scope, so updates arrive only when the repository's settings change",
+        "reason": "Scope decides who has the plugin enabled and which settings file records it, not which version is fetched or when."
+      },
+      {
+        "id": "b",
+        "text": "Register the marketplace pinned to a tag, and move the tag only after a release has been tested",
+        "reason": "Correct: a marketplace source can carry `#ref` to pin a branch or tag, so developers fetch what the tag points at, and the team advances it after testing."
+      },
+      {
+        "id": "c",
+        "text": "Ask developers to skip `/reload-plugins`, since a running session keeps the version it loaded",
+        "reason": "That only delays the change until the next session; the on-disk copy has already been updated, and the next start loads it."
+      },
+      {
+        "id": "d",
+        "text": "Turn auto-update off for that marketplace and roll versions forward with a deliberate update",
+        "reason": "Correct: auto-update is a per-marketplace setting. With it off, plugins stay at their installed versions until someone runs an update deliberately."
+      },
+      {
+        "id": "e",
+        "text": "Bump the manifest `version` on every commit so each change is tracked as its own release",
+        "reason": "A version bump per commit makes every change flow out faster. The problem is the lack of a gate, not the lack of version numbers."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Control plugin rollout at the marketplace: pin it to a tested tag and keep auto-update off, then update deliberately.",
+    "explanation": "Two levers decide when developers get a new plugin version, and both live at the marketplace level. Pinning the marketplace source to a tag means an update only reaches people when the team moves the tag, after testing. Turning auto-update off for that marketplace stops background updates entirely, so versions move only on a deliberate update. Choice c is the trap: a running session does keep its loaded version, but the update has already landed on disk and the next session picks it up.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/install",
+      "title": "Install and manage plugins",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-manifest",
+      "c-plugin-trust"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-appd2-surface-client-sdk",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Interfaces",
+    "stem": "Your web app needs one feature: when a user saves a support ticket, classify it into one of six queues and store the label. No files, no shell, no multi-step tool use, and the handler must return in under a second. Which Anthropic surface fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The client SDK: a direct Messages API call from the handler",
+        "reason": "Correct: the client SDK is direct access to the Claude API from your own code. A single classification needs no agent loop, tools, permissions or sessions, so the agent surfaces add machinery for nothing."
+      },
+      {
+        "id": "b",
+        "text": "The Agent SDK, so the classification runs through Claude Code's agent loop and built-in tools",
+        "reason": "The Agent SDK runs the Claude Code binary with its tools, permissions and sessions. That harness is for agents that plan steps and act; a one-shot label needs none of it."
+      },
+      {
+        "id": "c",
+        "text": "The Claude Code CLI run as a subprocess with `-p`, which gives the handler the same agent loop",
+        "reason": "A CLI subprocess is the route to the agent loop from other languages. Spawning a process per ticket is the heaviest way to make one API call."
+      },
+      {
+        "id": "d",
+        "text": "Managed Agents, so Anthropic hosts the classification in a sandboxed session per ticket",
+        "reason": "Managed Agents is for having Anthropic host an agent loop in a cloud sandbox. A sandboxed session per ticket is far more machinery than a classification call."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Match the surface to the job: a one-shot call with no tools is a client SDK request; agent surfaces are for work that plans and acts.",
+    "explanation": "The surfaces differ in who runs the agent and what comes built in. A classification is a single request with a single response: no planning, no tools, no session to maintain. That is the client SDK's row: direct access to the API from your code. Choice b is the trap for teams that reach for the newest surface; the Agent SDK's value is the harness around multi-step tool use, which this feature never exercises.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-claude-agent-sdk"
+    ],
+    "lessonId": "l-app-design"
+  },
+  {
+    "id": "q-gap-prompt-version-record",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Prompt versioning",
+    "stem": "Your support bot's answers changed last week. Its system prompt lives in an admin dashboard text box that several people edit, and nobody can say which wording was live on which day. Which two practices would let you answer that?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the prompt in the source repository and change it only through reviewed commits",
+        "reason": "Correct: release engineering stores configuration in the primary source repository and puts every change through strict code review, so each edit has an author, a reviewer and a date."
+      },
+      {
+        "id": "b",
+        "text": "Stamp each deployment with an identifier that maps back to the exact prompt text it shipped",
+        "reason": "Correct: a build identifier lets you reconstruct the configuration at a specific point in time, and every binary can print its identifier on request, so \"which prompt was live on Tuesday\" has a definite answer."
+      },
+      {
+        "id": "c",
+        "text": "Pin the model to a dated snapshot, since prompt edits rarely change answers this much",
+        "reason": "The stem's change was a prompt edit. A model pin fixes the model, and records nothing about which prompt wording was deployed when."
+      },
+      {
+        "id": "d",
+        "text": "Ask the dashboard editors to post a note in the team chat whenever they change the text",
+        "reason": "An informal notice isn't a reviewed change and can't be used to reconstruct the configuration later; the record of truth is the repository and the build identifier."
+      },
+      {
+        "id": "e",
+        "text": "Store every reply with a timestamp so the live prompt can be inferred from the outputs",
+        "reason": "Outputs don't reconstruct the configuration that produced them. Release engineering reconstructs config from its version identifier, not by reverse-engineering behaviour."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Treat prompts as configuration: keep them in **version control** with reviewed changes, and record an identifier that maps each deployment to its exact text.",
+    "explanation": "The problem is a missing record of what was deployed when. Configuration management solves it with two things: the prompt lives in the repository and changes through reviewed commits (a), and each deployment carries an identifier that reconstructs the exact configuration at that point in time (b). Choice e is the trap: logging replies feels like evidence, but outputs can't tell you which wording produced them.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://sre.google/sre-book/release-engineering/",
+      "title": "Release Engineering",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-gap-prompt-behind-flag",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Rollback plan",
+    "stem": "A prompt change for your Claude-backed help centre shipped at 9 a.m. By noon support noticed degraded answers, and engineers spent three hours writing and deploying a corrected prompt. For the next change, what should be in place so a bad prompt can be undone in minutes?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ship the new prompt behind a feature flag that can be switched off on its own",
+        "reason": "Correct: a feature-flag framework lets each change be reverted on its own, immediately, in the event of serious bugs or side effects, rather than waiting for a new release."
+      },
+      {
+        "id": "b",
+        "text": "Bundle the next prompt change into the weekly release so it gets the full QA cycle",
+        "reason": "A QA cycle may catch some problems, but it gives no fast way back once a change ships. The chapter's answer to serious bugs is independent, immediate reversion."
+      },
+      {
+        "id": "c",
+        "text": "Have the nightly eval compare answers against the previous day's and page the on-call engineer if quality drops",
+        "reason": "That is detection, not reversal. The team would still spend hours building a corrected prompt; the chapter couples detection with being able to roll the change back."
+      },
+      {
+        "id": "d",
+        "text": "Keep a second Claude model configured as a fallback for when the prompt misbehaves",
+        "reason": "The model wasn't what changed. The thing to revert is the prompt, and a model swap neither restores the old prompt nor reverts the change on its own."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Every risky change, prompts included, needs a **revert path that takes minutes**: ship it behind a flag you can switch off independently.",
+    "explanation": "The three hours were spent rolling forward because there was no way to roll back. Launch practice at scale is to put each change behind a flag so it can be reverted independently and immediately, then iterate calmly. Choice c is the trap: faster detection shortens the time to notice, but without a revert path the time to recover stays the same.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://sre.google/sre-book/reliable-product-launches/",
+      "title": "Reliable Product Launches at Scale",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-eng-loop"
+    ],
+    "lessonId": "l-systems-lifecycle"
+  },
+  {
+    "id": "q-gap-x-image-content-block",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Image input",
+    "stem": "A new teammate wires a receipt-reading feature so the API call sends `{\"type\": \"text\", \"text\": \"/uploads/receipt.jpg\"}` and asks Claude to extract the total. Claude replies that it cannot see any image. What should the request send instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An `image` content block with a base64, URL or Files API source",
+        "reason": "Correct: on the API, images go to Claude as `image` content blocks using one of three source types: base64 data in the request, a URL to a hosted image, or a `file_id` from the Files API."
+      },
+      {
+        "id": "b",
+        "text": "The text the server extracted from the receipt with an OCR library, since the model only reads text",
+        "reason": "Claude reads images directly. Pre-OCR discards layout and anything a text extractor misreads; the model needs the pixels, not a transcript."
+      },
+      {
+        "id": "c",
+        "text": "A multipart upload of the JPEG on the Messages request, with the file attached beside the JSON body",
+        "reason": "The Messages request is JSON. Bytes travel inside it as base64, or you upload once to the Files API and reference the returned `file_id`."
+      },
+      {
+        "id": "d",
+        "text": "The same path, but as a `document` block so the API opens the file from your server",
+        "reason": "The API never reads your filesystem. A path is just a string to the model; the image data or a reference to it has to be in the request."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Images reach the API as `image` content blocks (base64, URL or `file_id`), never as file paths or pre-extracted text.",
+    "explanation": "The model only sees what is in the request, and a path string is text, not an image. Vision input is an `image` content block whose source is base64 data embedded in the body, a URL to a hosted image, or a `file_id` from an earlier Files API upload. Choice b is the trap: OCR-ing first throws away exactly what vision is for, and Claude can read the receipt itself.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-image-sources",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-api-basics"
+  },
+  {
+    "id": "q-gap-x-model-prompt-per-environment",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Environment configuration",
+    "stem": "To try Opus 5.5 and a reworked prompt, a developer edited the one `MODEL` constant and prompt file the service reads, then deployed to staging. The same build went to production that evening, and customers got the untested combination. Which two changes prevent a repeat?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use the model alias in production so it tracks the newest model automatically and staging tests become unnecessary",
+        "reason": "Current model ids are pinned snapshots, not evergreen pointers: an update ships under a new id. Nothing updates itself, and skipping staging is the opposite of the fix."
+      },
+      {
+        "id": "b",
+        "text": "Read the model id from per-environment configuration, so staging and production each pin their own",
+        "reason": "Correct: a model id identifies a pinned version, so which id each environment sends is a configuration decision. Keeping it per environment means staging can change without production moving."
+      },
+      {
+        "id": "c",
+        "text": "Let each API request choose the model, so experiments are routed by the caller rather than by the build",
+        "reason": "That hands the choice to callers and makes production behaviour depend on who called. Environments, not requests, should decide."
+      },
+      {
+        "id": "d",
+        "text": "Version the prompt and promote a specific version to production only after it passes in staging",
+        "reason": "Correct: the prompt is configuration too. A versioned prompt promoted deliberately means a staging rewrite reaches customers only after it has passed."
+      },
+      {
+        "id": "e",
+        "text": "Keep the constant but switch to a dated model id, which the API only serves to staging keys",
+        "reason": "A dated or dateless id resolves to the same pinned snapshot for every caller; nothing about an id is environment-specific. The constant both environments share is the problem."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Model id and prompt version are per-environment configuration: staging pins its own, production changes only by deliberate promotion.",
+    "explanation": "A single constant and a single prompt file mean every environment runs the same combination, so a staging experiment is a production change waiting for the next deploy. Treat both as configuration that each environment pins (b) and that is promoted deliberately once tested (d). Choice a is the trap: it assumes an id drifts to the newest model, when ids are fixed snapshots and new versions arrive under new ids.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions",
+      "title": "Model IDs and versioning",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-model-snapshot-id",
+      "c-model-alias"
+    ],
+    "lessonId": "l-config-management"
+  },
+  {
+    "id": "q-gap-x-small-eval-swing-noise",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval signal",
+    "stem": "Your eval set has 20 hand-graded cases. After a one-word prompt edit the score moved from 16/20 to 14/20 and the team opened a regression ticket. A re-run with no changes at all came back 15/20. What should the team conclude?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The edit caused a real regression; two failing cases is a 10-point drop and must be reverted",
+        "reason": "Two cases out of twenty is noise-sized: the unchanged re-run moved by a case too. A small, hand-graded set can't resolve differences that fine."
+      },
+      {
+        "id": "b",
+        "text": "A two-case swing on 20 items is within run-to-run noise; grow the set before trusting such deltas",
+        "reason": "Correct: more questions with slightly lower-signal automated grading beat fewer hand-graded ones. Only a larger, automatically graded set makes a two-case difference mean anything."
+      },
+      {
+        "id": "c",
+        "text": "The grader is broken, since a correct eval returns the same score on every run of the same prompt",
+        "reason": "The stem's own re-run shows scores on an unchanged prompt can differ between runs. A grader that reports that isn't broken; a tiny set that magnifies it is the issue."
+      },
+      {
+        "id": "d",
+        "text": "Replace the 20 cases with five harder ones graded carefully by a senior reviewer, so each result carries more weight",
+        "reason": "That shrinks the set further. The guidance is volume over per-case polish, because a handful of cases can't distinguish signal from variance."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "On a small eval set a one- or two-item swing is noise; build volume with automated grading before reading deltas as regressions.",
+    "explanation": "The unchanged re-run is the tell: the score moved by a case with nothing edited, so the set's own variance is at least that large and a two-case drop proves nothing. Statistical resolution comes from volume, which is why the guidance favours many automatically graded cases over a few hand-graded ones. Choice c is the trap: run-to-run variation is normal, not a grader defect.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set",
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
   }
 ]

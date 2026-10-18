@@ -8184,5 +8184,51 @@
       "c-plugin-manifest"
     ],
     "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-gap-idempotency-key-retry",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "External system calls",
+    "stem": "This handler backs your agent's `create_order` tool. During an incident the order service answered slowly, the loop retried, and some customers received two or three identical orders. Which fix makes the retry safe?",
+    "snippet": {
+      "language": "python",
+      "code": "def create_order(cart_id: str, address: str):\n    for attempt in range(3):\n        try:\n            r = http.post(\n                f\"{ORDERS}/orders\",\n                json={\"cart\": cart_id,\n                      \"ship_to\": address},\n                timeout=5,\n            )\n            return r.json()\n        except http.Timeout:\n            continue\n    return {\"error\": \"order service timed out\"}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Lower `timeout` to 2 seconds so a slow service fails fast and fewer retries overlap",
+        "reason": "A timeout still leaves the client unable to tell whether the order was created, and a repeated POST can still create a duplicate. Faster failure changes nothing about that."
+      },
+      {
+        "id": "b",
+        "text": "Send a unique `Idempotency-Key` per order on the first attempt and on every retry",
+        "reason": "Correct: with a client-generated unique key, the service recognises a retry of the same request and responds with the result of the operation it already completed instead of creating another order."
+      },
+      {
+        "id": "c",
+        "text": "Add \"never call `create_order` twice for the same cart\" to the tool description",
+        "reason": "The duplicates come from this handler's own retry loop, not from Claude. And a repeated POST stays non-idempotent no matter what the description says."
+      },
+      {
+        "id": "d",
+        "text": "Remove the loop and return the timeout error so Claude, which can see the conversation, decides whether to call again",
+        "reason": "A second POST issued by Claude is the same unsafe repeat. The point is to make the retry recognisable to the server, whoever sends it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A tool that creates something must retry with an **idempotency key**, so the service can tell a retry from a new request.",
+    "explanation": "POST is not idempotent, so after a timeout the handler can't know whether the order exists, and each retry may create another. The idempotency key makes repeats recognisable: the same unique key on every attempt lets the server return the first attempt's result. Choice d is tempting because it stops the loop, but it just moves the unsafe repeat to Claude.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-idempotency-key-header",
+      "title": "The Idempotency-Key HTTP Header Field",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-tool-definition"
+    ],
+    "lessonId": "l-tool-implementation"
   }
 ]

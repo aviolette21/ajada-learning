@@ -4843,5 +4843,140 @@
       "c-tool-output-screen"
     ],
     "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-gap-pii-in-dashboard",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "PII handling",
+    "stem": "Your support assistant writes each full prompt and reply, including customers' names, addresses and order histories, to an observability dashboard that every engineer can open and that keeps records indefinitely. Which two changes address the sensitive-information risk?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Redact or tokenize personal data before it is stored, so the dashboard holds sanitized records",
+        "reason": "Correct: OWASP lists tokenization and redaction of sensitive content before processing as controls against sensitive information disclosure."
+      },
+      {
+        "id": "b",
+        "text": "Add a system-prompt rule telling Claude never to repeat personal data in its replies",
+        "reason": "The exposure is in the stored prompts themselves, which contain the data before Claude says anything. An instruction to the model doesn't change what the application writes to the dashboard."
+      },
+      {
+        "id": "c",
+        "text": "Limit dashboard access to the few people who need it and set how long records are retained",
+        "reason": "Correct: OWASP says to limit access to sensitive data on the principle of least privilege and to have clear data policies covering retention, usage and deletion."
+      },
+      {
+        "id": "d",
+        "text": "Replace the customer's email with a numeric ID but keep the full prompt and reply text",
+        "reason": "Names, addresses and order histories remain in the text. Pseudonymising one field isn't the sanitization OWASP describes."
+      },
+      {
+        "id": "e",
+        "text": "Switch to a larger model, which handles personal data more responsibly",
+        "reason": "The disclosure path is your logging pipeline, not the model's behaviour; no model choice changes who can read the dashboard."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Confidentiality covers your own logs: **redact before storing**, grant **least-privilege** access, and set a **retention** limit.",
+    "explanation": "The customer data leaks through a side channel you built: the observability store. OWASP's controls for sensitive information disclosure apply to it directly: sanitize (redact or tokenize) before data is stored (a), and restrict access on least privilege with a defined retention policy (c). Choice b is the trap: it addresses what Claude says, while the risk is what your application already recorded.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02:2025 Sensitive Information Disclosure",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-leak",
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-app-security"
+  },
+  {
+    "id": "q-gap-app-authenticates-user",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "End-user authentication",
+    "stem": "A banking chatbot asks customers to type their account number, then passes it to a `get_balance` tool. Anyone who knows a number can read that account's balance. What should change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a system-prompt rule that Claude must confirm the customer owns the account, by asking security questions, before calling the tool",
+        "reason": "OWASP's complete-mediation guidance is to implement authorization in downstream systems rather than rely on an LLM to decide whether an action is allowed."
+      },
+      {
+        "id": "b",
+        "text": "Ask for the account number plus date of birth in the chat before running the lookup",
+        "reason": "Both values are still claims typed into the conversation and forwarded by the model. Nothing authenticates the person, so anyone with those two facts gets the balance."
+      },
+      {
+        "id": "c",
+        "text": "Authenticate the user in the app and run `get_balance` in that user's context, scoped to their own accounts",
+        "reason": "Correct: OWASP says to track the user's authorization and security scope so actions on their behalf execute in that user's context with minimum privileges; identity is established by the app, not by the model."
+      },
+      {
+        "id": "d",
+        "text": "Remove `get_balance` and have Claude answer from a nightly export of all balances in its context",
+        "reason": "That hands the model every customer's balance with no per-user scope at all, the opposite of executing in the user's context with minimum privilege."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The **application authenticates** the user and runs tools in that verified identity's scope; the model never establishes who someone is.",
+    "explanation": "The flaw is that identity is a string the user types and the model relays. OWASP's excessive-agency controls put authentication and authorization in the application and downstream systems, so tools run in the authenticated user's context with minimum privilege. Choice a is the trap: it asks the model to make an authorization decision, which is exactly what complete mediation says not to do.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06:2025 Excessive Agency",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-trust-boundaries"
+  },
+  {
+    "id": "q-gap-output-filter-layer",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Guardrail layering",
+    "stem": "A public chatbot screens incoming messages with a lightweight classifier and has a strict system prompt, yet a few replies that violate your content policy still reach users. Which layer is missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A second input screen with a different prompt and a stricter threshold, since one classifier isn't enough",
+        "reason": "The slips are in what the model produced. Another input-side check still never inspects a reply before it is shown."
+      },
+      {
+        "id": "b",
+        "text": "An output filter that checks each reply against your sensitive categories before display",
+        "reason": "Correct: OWASP lists input and output filtering together: define sensitive categories, construct rules for them, and apply semantic filters and string checks to scan responses for non-allowed content."
+      },
+      {
+        "id": "c",
+        "text": "More forceful refusal wording in the system prompt",
+        "reason": "Constraining behaviour through the system prompt is already in place. OWASP notes it is unclear whether any fool-proof prevention of prompt injection exists, so wording can't guarantee what reaches users."
+      },
+      {
+        "id": "d",
+        "text": "Nothing: a reply can't violate policy once its input has passed screening",
+        "reason": "OWASP lists output filtering as its own control beside input filtering; an input screen never inspects what the model produced."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Guardrails are layered: screen input **and** check output against your policy before it is rendered.",
+    "explanation": "The stem already has the first two layers, an input screen and a constrained system prompt, and the failure is at the output. OWASP's mitigation list names output filtering as a separate control: define sensitive categories and scan responses for non-allowed content. Choice c is the trap because it strengthens a layer that is already present and cannot be made fool-proof.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "title": "LLM01:2025 Prompt Injection",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-harmlessness-screen"
+    ],
+    "lessonId": "l-guardrails"
   }
 ]

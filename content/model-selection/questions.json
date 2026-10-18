@@ -6329,5 +6329,584 @@
       "c-orchestrator-workers"
     ],
     "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-tech2-raw-http-no-sdk",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "SDK vs raw HTTP",
+    "stem": "Your backend is written in Rust, which has no official Anthropic SDK, so the team will call the Messages API over HTTPS directly. In the design review, which two statements are correct?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Every endpoint, including `POST /v1/messages`, is plain HTTPS; nothing is reserved for the SDKs",
+        "reason": "Correct: the Claude API is a RESTful API at `api.anthropic.com`. The SDKs are a convenience layer over it, so any HTTPS client can call every endpoint."
+      },
+      {
+        "id": "b",
+        "text": "Raw clients must go through the Message Batches API, because only the SDKs can call `POST /v1/messages` directly",
+        "reason": "There is no SDK-only endpoint. `POST /v1/messages` is an ordinary HTTP request whatever client sends it."
+      },
+      {
+        "id": "c",
+        "text": "Counting tokens locally, because the raw API only accepts pre-tokenized input",
+        "reason": "You send JSON text to the API either way. If you want counts ahead of time, there is a Token Counting endpoint; nothing has to be tokenized client-side."
+      },
+      {
+        "id": "d",
+        "text": "Request timeouts and connection management become your code's responsibility",
+        "reason": "Correct: request timeouts and connection management are listed SDK benefits, alongside retries and typed handling. Without an SDK they are yours to write."
+      },
+      {
+        "id": "e",
+        "text": "Requesting a separate raw-HTTP key type from the Console",
+        "reason": "The same Console API key works for SDK and raw HTTP callers alike. There is no special key type for direct calls."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Raw HTTP is legitimate: the API is REST over HTTPS, but timeouts, connection handling and retries become your code.",
+    "explanation": "The Claude API is a RESTful API, so a language without an official SDK can still call it with any HTTPS client, and no endpoint is reserved for the SDKs (a). What you lose is the convenience layer: timeouts, connection management, retries and typed handling now have to be written and maintained by you (d). Choice b is the tempting misconception that some endpoints are SDK-only; all of them are ordinary HTTP.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-anthropic-version"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-use-sdk-types",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "SDK typing",
+    "stem": "In review you find these hand-written interfaces in a TypeScript service. After an SDK upgrade, the message arrays and tool definitions built from them no longer match what `client.messages.create` accepts. What should the reviewer suggest?",
+    "snippet": {
+      "language": "typescript",
+      "code": "interface ChatMessage {\n  role: string;\n  content: unknown;\n}\n\ninterface ToolDef {\n  name: string;\n  description: string;\n  schema: Record<string, unknown>;\n}\n\nconst history: ChatMessage[] = [];\nconst tools: ToolDef[] = [];"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Cast the arrays to `any` at the call site so the compiler stops reporting the mismatch",
+        "reason": "That discards the type checking that just caught a real drift between your copies and the API."
+      },
+      {
+        "id": "b",
+        "text": "Pin the SDK version permanently so the hand-written interfaces never fall out of date again",
+        "reason": "Freezing the SDK locks you out of fixes, and the interfaces are still a second copy of the API shape that nobody maintains."
+      },
+      {
+        "id": "c",
+        "text": "Generate the interfaces once from a saved API response and check that file into the repository as the source of truth",
+        "reason": "Still a copy that drifts. The SDK already ships maintained definitions for every request parameter and response field."
+      },
+      {
+        "id": "d",
+        "text": "Import the SDK's exported request and response types instead of hand-written copies",
+        "reason": "Correct: the library includes TypeScript definitions for all request parameters and response fields, documented in docstrings that appear on hover."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "An SDK's typing is only useful if you use its types: import them rather than maintaining your own copies.",
+    "explanation": "Type safety is one of the main things an SDK adds over raw HTTP, but only if the code uses the SDK's types. Hand-written interfaces are a parallel definition of the API that silently drifts, which is exactly the failure here. Importing the exported types keeps request and response shapes in step with the SDK release you install. Choice a makes the error disappear by removing the check, which is the opposite of what review should ask for.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript",
+      "title": "TypeScript SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-content-blocks"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-stream-is-sse-not-ws",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Streaming transport",
+    "stem": "A teammate wants to show Claude's reply as it is generated and proposes opening a WebSocket connection to `api.anthropic.com` for it. How does the Messages API actually deliver streamed output?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Over a WebSocket you open after the initial request, which carries deltas in both directions for the rest of the turn",
+        "reason": "There is no WebSocket endpoint. Streamed output arrives on the HTTP response of the request you already made."
+      },
+      {
+        "id": "b",
+        "text": "As server-sent events on the response to the same `POST` request",
+        "reason": "Correct: setting `\"stream\": true` makes the API stream the response incrementally as server-sent events, each with a named event type and JSON data."
+      },
+      {
+        "id": "c",
+        "text": "Through repeated `GET` polling of the message by its id until `stop_reason` is set",
+        "reason": "There is nothing to poll. The events (`message_start`, content block deltas, `message_stop`) arrive on the open response as they are generated."
+      },
+      {
+        "id": "d",
+        "text": "Only through the SDK helpers; a raw HTTP client cannot receive the stream at all",
+        "reason": "The page shows a raw `curl` request receiving `event:`/`data:` lines. The SDK helpers add accumulation and convenience, not the capability."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Streaming is server-sent events on the same HTTPS request you already make, not a WebSocket.",
+    "explanation": "Streaming does not change the transport. You send the usual `POST /v1/messages` with `\"stream\": true`, and the response body becomes a stream of server-sent events that your client (or the SDK on its behalf) reads until `message_stop`. Choice a is the natural guess for anyone who equates real-time with WebSockets, but the API never asks you to open a second, bidirectional connection.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "One request, one response, read as events.",
+      "steps": [
+        {
+          "label": "POST /v1/messages",
+          "sublabel": "\"stream\": true"
+        },
+        {
+          "label": "message_start"
+        },
+        {
+          "label": "content block deltas"
+        },
+        {
+          "label": "message_stop"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-streaming",
+      "c-stream-event-flow"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-per-request-timeout",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Timeouts",
+    "stem": "One shared Python client serves two paths: a chat endpoint whose users give up after a few seconds, and a report job that legitimately runs for minutes. The team wants a short timeout for chat without breaking reports. What fits?",
+    "snippet": {
+      "language": "python",
+      "code": "client = Anthropic()  # default timeout: 10 min\n\ndef chat(messages):\n    return client.messages.create(\n        model=\"claude-haiku-5-5\",\n        max_tokens=300,\n        messages=messages,\n    )\n\ndef report(messages):\n    with client.messages.stream(\n        model=\"claude-opus-5-5\",\n        max_tokens=16000,\n        messages=messages,\n    ) as s:\n        return s.get_final_message()"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set `Anthropic(timeout=5.0)` on the shared client; report calls that need longer simply retry until they finish",
+        "reason": "A timed-out request is retried twice by default and then raises `APITimeoutError`. It never runs to completion, so reports would fail."
+      },
+      {
+        "id": "b",
+        "text": "Keep the default timeout and rely on `max_retries` to shorten the wait on the chat path",
+        "reason": "Retries happen after a timeout and make the wait longer, not shorter. They don't bound how long one attempt may take."
+      },
+      {
+        "id": "c",
+        "text": "Override per request for chat with `with_options(timeout=5.0)` and handle `APITimeoutError`",
+        "reason": "Correct: `with_options(timeout=...)` overrides the timeout for that call only, leaving the client default for reports. On expiry the SDK raises `APITimeoutError`."
+      },
+      {
+        "id": "d",
+        "text": "Create a second client with `timeout=5.0` and route both the chat and the report paths through it",
+        "reason": "That applies the short timeout to the report job too, which is exactly what the team is trying to avoid."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Set the timeout where the workload differs: `with_options(timeout=...)` per request, and handle `APITimeoutError`.",
+    "explanation": "The SDK lets you set a timeout at two levels: a client default and a per-request override through `with_options`. Two workloads with different latency budgets on one client is the case the per-request form is for: chat gets a few seconds, reports keep the long default and stream. Choice a is the tempting one-liner, but a request that hits its timeout is retried and then fails; it is not allowed to finish.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries",
+      "c-sdk-final-message"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-poll-batch-interval",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Polling batches",
+    "stem": "This loop waits for a Message Batch. Soon after it starts, the job's other API calls begin failing with rate-limit errors. What should change?",
+    "snippet": {
+      "language": "python",
+      "code": "batch = client.messages.batches.create(\n    requests=reqs\n)\n\nwhile True:\n    b = client.messages.batches.retrieve(batch.id)\n    if b.processing_status == \"ended\":\n        break\n\nfor r in client.messages.batches.results(batch.id):\n    handle(r)"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call `results()` inside the loop instead of `retrieve`, and keep calling until result lines start arriving",
+        "reason": "Results are available only once processing has ended, and a tight loop of `results()` calls hammers the API just as hard as the `retrieve` loop does."
+      },
+      {
+        "id": "b",
+        "text": "Cancel and recreate the batch whenever it is still `in_progress` after ten minutes",
+        "reason": "Most batches finish within an hour, and some take longer. Recreating only restarts the work from zero."
+      },
+      {
+        "id": "c",
+        "text": "Poll `batches.list()` instead, which is exempt from rate limits because it is a read",
+        "reason": "Listing is an API request like any other. Rate limits apply to Batches API HTTP requests regardless of which endpoint the loop hits."
+      },
+      {
+        "id": "d",
+        "text": "Pause between status checks: the docs' loops sleep about a minute, since each check counts toward rate limits",
+        "reason": "Correct: the polling loops in the batch guide check status periodically with a sleep between attempts, and rate limits apply to Batches API HTTP requests."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Poll a batch gently: a pause between status checks, because every check is an API request that counts toward your limits.",
+    "explanation": "The loop is correct about what to wait for and wrong about how often to ask. Every `retrieve` is an HTTP request that counts against your rate limits, and with no pause the loop fires them continuously, so the rest of the job starves. Batches are built for waiting, which is why the documented loops sleep about a minute between checks. Choice a looks like a shortcut but combines two mistakes: hammering the API for results that do not exist until the batch has ended.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The batch lifecycle your client should follow.",
+      "steps": [
+        {
+          "label": "Create batch",
+          "sublabel": "in_progress"
+        },
+        {
+          "label": "Retrieve status",
+          "sublabel": "pause between checks"
+        },
+        {
+          "label": "ended"
+        },
+        {
+          "label": "Stream results",
+          "sublabel": "match by custom_id"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-timeout-circuit-breaker",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Resilience in a request path",
+    "stem": "Your checkout API calls an internal Claude-backed `describe_cart` service synchronously, with no timeout. When that service slowed to a crawl, every checkout thread sat waiting on it, the thread pool filled, and checkout itself went down. What protects checkout next time?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A timeout on the call, wrapped in a circuit breaker that fails fast once failures pass a threshold",
+        "reason": "Correct: the timeout bounds how long any one call waits, and once failures reach the threshold the breaker returns an error without making the call, so checkout stops spending threads on a struggling dependency."
+      },
+      {
+        "id": "b",
+        "text": "Automatic retries with exponential backoff on the call, so a slow response is tried again until it eventually succeeds",
+        "reason": "Retries add load to a service that is already struggling and keep each thread waiting even longer. The pattern is to stop calling, not to call more."
+      },
+      {
+        "id": "c",
+        "text": "A larger thread pool for the checkout service, sized to the slow service's worst case",
+        "reason": "A bigger pool fills more slowly and then fails the same way. The problem is callers waiting without bound, not pool size."
+      },
+      {
+        "id": "d",
+        "text": "A `max_tokens` cap on the Claude request inside `describe_cart` so each reply finishes sooner",
+        "reason": "That shortens one reply inside the dependency; it doesn't stop checkout from blocking on a service that is slow or down for other reasons."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A synchronous dependency needs a timeout and a circuit breaker: bound each wait, then fail fast while the dependency is struggling.",
+    "explanation": "The failure cascaded because a remote call that hangs holds a thread until some timeout, and here there was none, so a slow dependency consumed checkout's whole pool. A timeout bounds each wait; a circuit breaker counts failures and, past a threshold, fails calls immediately without making them, then tries a trial call after an interval. Choice b is the trap: retrying a struggling service multiplies load and waiting time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://martinfowler.com/bliki/CircuitBreaker.html",
+      "title": "Circuit Breaker",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-sdk-retries",
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-browser-key-exposure",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client-side keys",
+    "stem": "To cut latency, a front-end developer wants the React app to call the Claude API directly with the TypeScript SDK, skipping your backend. The SDK refuses to run in the browser unless `dangerouslyAllowBrowser: true` is set. What is the right call?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set the flag: the SDK blocks browsers only to avoid CORS problems, which your domain allowlist already handles",
+        "reason": "The block has nothing to do with CORS. Browser support is disabled by default to avoid exposing your secret API credentials in client-side code."
+      },
+      {
+        "id": "b",
+        "text": "Set the flag, but obfuscate the key inside the bundle so that users cannot read it",
+        "reason": "Any user with access to the browser can inspect, extract and misuse credentials shipped in client-side code. Obfuscation only delays that."
+      },
+      {
+        "id": "c",
+        "text": "Keep the calls on the server: a browser bundle exposes the key to every visitor",
+        "reason": "Correct: the page describes enabling the flag as dangerous because it exposes credentials, with narrow exceptions such as trusted internal tools or temporary, short-lived development keys."
+      },
+      {
+        "id": "d",
+        "text": "Set the flag for the production app and rotate the key monthly, which makes any exposure short-lived and therefore harmless",
+        "reason": "The carve-out is for temporary development or debugging use (short-lived, non-production or frequently rotated keys), not a production app. Until the next rotation anyone who extracted the key can use it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A browser cannot keep a secret: keep the API key and the Claude calls on your server.",
+    "explanation": "An SDK can run in a browser, but a browser cannot protect a secret: the key ships inside code any visitor can read. That is why the TypeScript SDK disables browser use by default and names the override `dangerouslyAllowBrowser`, and its docs call it acceptable only for trusted internal tools or temporary development use. A public React app is neither, so the latency win is not worth handing out your key. Choice a is the plausible-sounding misdiagnosis; the guard is about credentials, not CORS.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/typescript",
+      "title": "TypeScript SDK",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-bounded-worker-pool",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Concurrency control",
+    "stem": "This backfill classifies about 5,000 tickets. Seconds after it starts, most calls fail with 429 `rate_limit_error`, although the account's per-minute limit would cover the whole run in a few minutes. What should change?",
+    "snippet": {
+      "language": "typescript",
+      "code": "const items = await loadTickets(); // ~5,000\n\nconst results = await Promise.all(\n  items.map((t) =>\n    client.messages.create({\n      model: \"claude-haiku-5-5\",\n      max_tokens: 200,\n      messages: [\n        { role: \"user\", content: classify(t) },\n      ],\n    }),\n  ),\n);"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise `maxRetries` on the client so each failed call is retried until the limit frees up",
+        "reason": "Retries keep the same burst in flight. Limits can be enforced over intervals shorter than a minute, so thousands of simultaneous requests still trip them, retried or not."
+      },
+      {
+        "id": "b",
+        "text": "Run the calls through a bounded pool of a few workers and honour `retry-after` on any 429",
+        "reason": "Correct: a small fixed number of in-flight requests turns a burst into a steady rate the limit can absorb, and when a 429 does arrive, `retry-after` says how many seconds to wait before retrying."
+      },
+      {
+        "id": "c",
+        "text": "Split the array into chunks of 500 and `await Promise.all` on each chunk in turn, pausing one second between chunks",
+        "reason": "A chunk of 500 is still a burst, and a fixed pause ignores what the API asks for. Bounding concurrency keeps the rate smooth; `retry-after` tells you when to resume."
+      },
+      {
+        "id": "d",
+        "text": "Switch each call to streaming so the connections stay open and the API paces the requests itself",
+        "reason": "Streaming changes how a response is delivered, not how many requests you start. Five thousand simultaneous requests are the problem either way."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Fan-out needs a bounded worker pool: a few requests in flight, a steady rate, and `retry-after` honoured when a 429 arrives.",
+    "explanation": "`Promise.all` over the whole array starts every request at once. Rate limits can be enforced over intervals shorter than a minute, so the burst trips them even though the minute's total would fit. The fix is structural: keep a small, fixed number of requests in flight so the rate stays steady, and when a 429 arrives wait the seconds `retry-after` gives before retrying. Choice c is the trap: smaller bursts are still bursts, and a fixed sleep ignores the API's own signal.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-retry-after",
+      "c-token-bucket"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-tech2-sdk-over-raw-http",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "SDK vs raw HTTP",
+    "stem": "A senior engineer on your Python team proposes calling the Messages API through a hand-written `requests` wrapper rather than the official SDK, \"to keep control and avoid a dependency\". The service will stream replies to users and must survive transient errors. Which is the better default?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The wrapper: an SDK adds a network hop and latency that a direct HTTP call avoids",
+        "reason": "The SDK calls the same endpoint over the same HTTPS connection; there is no extra hop. What it adds is header management, retries and error handling."
+      },
+      {
+        "id": "b",
+        "text": "The wrapper for production and the SDK for prototypes, since production code should own its HTTP layer",
+        "reason": "That inverts the trade-off. The requirements named, streaming and surviving transient errors, are exactly what the SDK's retry logic and streaming support provide."
+      },
+      {
+        "id": "c",
+        "text": "The SDK: auth headers, retries, timeouts, typed responses and streaming helpers come maintained",
+        "reason": "Correct: the official SDKs handle authentication and header management, typed requests and responses, retry logic and error handling, streaming, and request timeouts. Raw HTTP fits when no SDK exists."
+      },
+      {
+        "id": "d",
+        "text": "The wrapper, because the SDK's typed responses cannot represent streamed content blocks or tool calls",
+        "reason": "Streaming support is a listed SDK benefit. Raw HTTP means parsing server-sent events and writing retry rules yourself."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Default to the official SDK; drop to raw HTTP only where no SDK exists or a gateway demands it.",
+    "explanation": "The decision turns on what you would otherwise have to build and maintain: authentication headers, retries with backoff, timeouts, typed request and response handling, and streaming helpers, all listed as SDK benefits. A hand-written wrapper buys independence from one dependency at the price of owning all of that. Choice b is the trap: it treats the SDK as a prototyping convenience when its value is highest in production, where retries and streaming matter most.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/overview",
+      "title": "API overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-client-sdks",
+      "c-sdk-retries"
+    ],
+    "lessonId": "l-technical-fundamentals"
+  },
+  {
+    "id": "q-gap-tokens-not-words",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Tokens",
+    "stem": "A document-QA feature truncates uploads to a fixed word count chosen from context-window figures measured on an older Claude model with English text. Long German and Japanese documents now fail with context-window errors on Opus 5.5. Which correction applies?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Truncate by characters instead of words, since characters map one-to-one onto tokens in every language",
+        "reason": "Tokens are the model's smallest units and can be words, subwords, characters or even bytes; the number of characters a token represents depends on the language."
+      },
+      {
+        "id": "b",
+        "text": "Non-English text is converted to English before tokenization, so the language makes no difference to the count",
+        "reason": "No such conversion happens. The text is encoded straight into tokens, and the number of characters a token represents depends on the language."
+      },
+      {
+        "id": "c",
+        "text": "Token counts are a property of the text alone, so the older model's figures still hold",
+        "reason": "Counts depend on the model too: Claude 4.7 and later use a newer tokenizer that produces roughly 30 percent more tokens for the same text than earlier models."
+      },
+      {
+        "id": "d",
+        "text": "Tokens are sub-word pieces whose size varies by model and language; measure on the target model",
+        "reason": "Correct: a token's size depends on the model and the language, so word budgets and older-model figures both mislead. Get exact counts with token counting for the model you plan to use."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Truncate and budget in **tokens**, not words or characters: token size depends on language and model, so measure on the model you'll call.",
+    "explanation": "Two assumptions in the stem fail for the same reason: tokens are sub-word units whose size depends on both the language and the model. German and Japanese text tokenize differently from English, and a newer tokenizer counts the same text higher than an older model did, so a word limit calibrated elsewhere overshoots the window. Choice a is the trap; characters are no more stable than words, and the fix is to measure with token counting rather than estimate.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-token",
+      "c-token-counting"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-gap-reason-before-verdict",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Next-token prediction",
+    "stem": "A reviewer asks your contract-screening prompt, which runs with thinking disabled, to output `Decision: approve/reject` first and the reasoning afterwards, so the UI can show the verdict at once. Accuracy on hard clauses drops compared with reasoning first. Which property of the model explains this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "At temperature 0 the first word is locked in, so the model can't revise its verdict later",
+        "reason": "Temperature controls how random the predictions are, not the order dependence; the glossary notes even temperature 0 isn't fully deterministic."
+      },
+      {
+        "id": "b",
+        "text": "It predicts each token from the text so far, so reasoning written after the verdict can't inform it",
+        "reason": "Correct: Claude's underlying model is autoregressive, predicting the next word from the previous context. Whatever comes after the decision is conditioned on it, not the other way round."
+      },
+      {
+        "id": "c",
+        "text": "The reasoning section overflows the context window, so the model drops it",
+        "reason": "The context window is the working memory for the whole exchange. A verdict plus a paragraph of reasoning is nowhere near it, and overflow wouldn't make an early verdict worse."
+      },
+      {
+        "id": "d",
+        "text": "The model drafts the whole answer internally and reorders it on output, so the order of sections is cosmetic",
+        "reason": "Autoregressive generation produces text in sequence, each token given the previous context. Nothing is drafted whole and then rearranged."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Generation is **autoregressive**: each token depends on what came before, so put the reasoning before the answer, not after it.",
+    "explanation": "The deciding detail is the order: verdict first, reasoning second. Because the model predicts each next token from the previous context, text written after the decision can't feed back into it, so the verdict is made with less deliberation. Choice d is the tempting misconception that the model plans the whole reply and merely prints it in some order; it doesn't.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-pretraining"
+    ],
+    "lessonId": "l-llm-fundamentals"
+  },
+  {
+    "id": "q-gap-x-cache-write-read-asymmetry",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching economics",
+    "stem": "A teammate added `cache_control` to a 30k-token system prompt on an endpoint that gets one request every few hours, expecting the bill to fall. Instead each request now costs slightly more than before. What explains it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Cache reads are billed at the full input rate, so caching only ever saves latency, never money",
+        "reason": "Reads are billed at a fraction of the base input price; that is where the saving comes from. The problem here is that no read ever happens."
+      },
+      {
+        "id": "b",
+        "text": "The breakpoint itself is charged on every request, so a cached prompt costs more until the breakpoint is removed",
+        "reason": "Cache breakpoints add no cost on their own. What costs more is writing an entry on every request and never reading one."
+      },
+      {
+        "id": "c",
+        "text": "Every request is a cache write, which costs more than plain input; the entry expires before the next read",
+        "reason": "Correct: writing to the cache is priced above the base input rate and reading from it well below. With hours between requests, the entry has expired by the next call, so every request pays the write and none gets a read."
+      },
+      {
+        "id": "d",
+        "text": "Prompts above a size threshold are ineligible, so the request falls back to uncached input plus a surcharge",
+        "reason": "There is a minimum cacheable length, not a maximum that disqualifies long prompts, and there is no surcharge for ineligibility."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Caching pays only when a prefix is read again before it expires: writes cost more than base input, reads cost a fraction.",
+    "explanation": "Cache pricing is asymmetric. Writing an entry costs more than sending the same tokens uncached, and reading one costs a fraction of the base price, so the saving depends on reads outnumbering writes. The lifetime is refreshed on each use and expires after an idle window, so with hours between requests every call writes and nothing reads. Choice a is the trap: it gets the asymmetry backwards; reads are the cheap side.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-caching",
+      "c-cache-control"
+    ],
+    "lessonId": "l-prompt-caching"
   }
 ]
