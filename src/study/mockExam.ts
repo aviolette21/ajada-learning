@@ -32,6 +32,16 @@ export function allocate(domains: Pick<Domain, 'id' | 'weight'>[], total: number
   return new Map(rows.map((r) => [r.id, r.count]));
 }
 
+/** Every sub-skill with its exam weight; one without a published weight shares what's left of its domain's. */
+export function subSkillWeights(domains: Domain[]): { id: string; domainId: string; weight: number }[] {
+  return domains.flatMap((d) => {
+    const weighted = d.subSkills.filter((s) => s.weight !== undefined);
+    const rest = Math.max(0, d.weight - weighted.reduce((s, x) => s + (x.weight ?? 0), 0));
+    const unweighted = d.subSkills.length - weighted.length;
+    return d.subSkills.map((s) => ({ id: s.id, domainId: d.id, weight: s.weight ?? rest / unweighted }));
+  });
+}
+
 export function buildMockExam(args: {
   id: string;
   domains: Domain[];
@@ -42,29 +52,41 @@ export function buildMockExam(args: {
 }): MockSession {
   const { id, domains, questions, attempts, rng, now } = args;
   const total = Math.min(MOCK_QUESTION_COUNT, questions.length);
-  const alloc = allocate(domains, total);
+  // Allocate by sub-skill, not just domain: the exam weights each skill, and the bank's share of a domain's questions
+  // doesn't match them (an exam puts far more on SWE foundations than on the systems life cycle, say).
+  const skills = subSkillWeights(domains);
+  const alloc = allocate(skills, total);
   const seen = new Set(attempts.map((a) => a.questionId));
-  const pools = new Map(
-    domains.map((d) => {
-      const inDomain = questions.filter((q) => q.domainId === d.id);
-      return [d.id, [...shuffle(inDomain.filter((q) => !seen.has(q.id)), rng), ...shuffle(inDomain.filter((q) => seen.has(q.id)), rng)]];
-    }),
-  );
+  const byRecency = (qs: Question[]) => [...shuffle(qs.filter((q) => !seen.has(q.id)), rng), ...shuffle(qs.filter((q) => seen.has(q.id)), rng)];
+  const pools = new Map(skills.map((s) => [s.id, byRecency(questions.filter((q) => q.subSkillId === s.id))]));
 
   const picked: Question[] = [];
+  const domainShortfall = new Map<string, number>();
+  for (const s of skills) {
+    const want = alloc.get(s.id) ?? 0;
+    const taken = pools.get(s.id)!.splice(0, want);
+    picked.push(...taken);
+    domainShortfall.set(s.domainId, (domainShortfall.get(s.domainId) ?? 0) + want - taken.length);
+  }
+  // A short sub-skill borrows from the rest of its domain first, so the per-domain mix on the score report holds.
   let shortfall = 0;
   for (const d of domains) {
-    const want = alloc.get(d.id) ?? 0;
-    const taken = pools.get(d.id)!.splice(0, want);
-    picked.push(...taken);
-    shortfall += want - taken.length;
+    let need = domainShortfall.get(d.id) ?? 0;
+    const rest = byRecency(skills.filter((s) => s.domainId === d.id).flatMap((s) => pools.get(s.id)!));
+    for (const q of rest) {
+      if (need === 0) break;
+      picked.push(q);
+      pools.get(q.subSkillId)!.splice(pools.get(q.subSkillId)!.indexOf(q), 1);
+      need--;
+    }
+    shortfall += need;
   }
   const byWeight = [...domains].sort((a, b) => b.weight - a.weight);
   while (shortfall > 0) {
     let progressed = false;
     for (const d of byWeight) {
       if (shortfall === 0) break;
-      const q = pools.get(d.id)!.shift();
+      const q = skills.filter((s) => s.domainId === d.id).map((s) => pools.get(s.id)!.shift()).find(Boolean);
       if (q) {
         picked.push(q);
         shortfall--;

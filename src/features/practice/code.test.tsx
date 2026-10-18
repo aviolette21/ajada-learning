@@ -21,7 +21,7 @@ describe('question snippets', () => {
 describe('CodeDrillPage', () => {
   it('is linked from Practice with the snippet count', async () => {
     await renderWithApp(<PracticePage />, { route: '/practice', path: '/practice' });
-    const link = await screen.findByRole('link', { name: /Code & payloads/ });
+    const link = await screen.findByRole('link', { name: /Code & traces/ });
     expect(link).toHaveAttribute('href', '/practice/code');
     expect(link).toHaveTextContent('1 questions');
   });

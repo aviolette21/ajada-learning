@@ -14,6 +14,7 @@ Contents:
 9. Workflow
 10. Where Anthropic's official docs live
 11. Fact-checker checklist
+12. The official item style (course checkpoints and exam samples)
 
 ---
 
@@ -432,3 +433,16 @@ Prefer an Anthropic page whenever one covers the point. The other rules are unch
 ### The `explanation` field
 
 Every question has an `explanation` (≤ 600 characters, 2–4 sentences) shown as "Why" after the learner answers, above the takeaway. It states the principle being tested, points at the detail in the stem that decides the answer, and names the most tempting wrong choice by letter and why it fails. It uses only facts already in the item (stem, choices, reasons, takeaway), so it needs no extra source. The answer sheet also lists every glossary term the question mentions, with its definition, so don't define terms inside the explanation.
+
+## 12. The official item style (course checkpoints and exam samples)
+
+The learner screenshotted every quiz and checkpoint in the official Skilljar course (`Notes/Screenshots/`), and the exam guide's three sample questions are in `docs/exam-blueprint.md`. Together they show the shape to imitate:
+
+- **Stem:** one concrete situation in one or two sentences, then a direct question: "Which shape fits?", "Which choice is best?", "What should change?", "Where should a human gate sit for that one action?".
+- **Choices:** four, close in length; wrong ones are real misconceptions in 4–10 words. In decision questions the correct choice names its deciding constraint or mechanism ("Haiku, because the eval shows it holds the bar and cost-at-volume decides"; "stdio + local scope"; "treat fetched content as data").
+- **Trace diagnosis:** a short session, connection, comparison or test-run trace (tool calls with result sizes, client log lines with status codes, pass/fail steps) in a `snippet` with `language: "text"`, then "name the mechanism and pick the targeted fix". Wrong options fix the wrong layer (reword the prompt when the bug is in the handoff; rotate the key when the problem is where the key lives).
+- **Config assembly:** "select TWO" settings pieces as short code spans, or a config snippet with a blank and four candidates.
+- **Matching:** the course's match-the-scenario items become one question per row (transport + scope per deployment; lifecycle phase per activity; model + constraint per workload).
+- **Never:** arithmetic, exact limits, flag or option spellings, version boundaries, or a second subtle fact that flips the answer. Everything turns on one decision rule the course teaches.
+
+Questions written in this shape carry the `course-checkpoints` focus area in `content/focus.json`, so the learner can drill them on their own.

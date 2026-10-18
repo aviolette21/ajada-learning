@@ -17,5 +17,5 @@ export function CodeDrillPage() {
   const [summary, setSummary] = useState<RunSummary | null>(null);
   const back = () => navigate('/practice');
   if (summary) return <SessionSummary summary={summary} extra="Run it again for a new set of snippets." onDone={back} />;
-  return <QuestionRunner questions={picked} mode="quiz" title="Code & payloads" onFinish={setSummary} onExit={back} />;
+  return <QuestionRunner questions={picked} mode="quiz" title="Code & traces" onFinish={setSummary} onExit={back} />;
 }

@@ -47,7 +47,7 @@ export function PracticePage() {
       )}
       {snippets > 0 && (
         <Link className="panel panel-link" to="/practice/code">
-          <span className="grow"><h2>Code & payloads</h2><span className="muted">Read a snippet, request or config and say what it does · {snippets} questions</span></span>
+          <span className="grow"><h2>Code & traces</h2><span className="muted">Read a snippet, a session trace or a config and say what's going on · {snippets} questions</span></span>
           <span className="chev"><IconChevron /></span>
         </Link>
       )}

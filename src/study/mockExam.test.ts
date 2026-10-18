@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import domainsJson from '../../content/domains.json';
 import { fixtureContent, manyQuestionsContent, multiQuestion } from '../content/fixtures';
 import { QuestionSchema } from '../content/schema';
-import { allocate, buildMockExam, MOCK_DURATION_MS, mockAttempts, scoreMock } from './mockExam';
+import { buildContent } from '../content/validate';
+import { allocate, buildMockExam, MOCK_DURATION_MS, mockAttempts, scoreMock, subSkillWeights } from './mockExam';
 import { mulberry32 } from './random';
 import type { Attempt, MockSession } from './types';
 
@@ -42,6 +43,29 @@ describe('buildMockExam', () => {
     expect(new Set(s.questionIds).size).toBe(53);
     expect(s.questionIds.filter((id) => id.startsWith('q-beta')).length).toBe(10);
     for (let i = 20; i < 60; i++) expect(s.questionIds).toContain(`q-alpha-gen-${i}`);
+  });
+
+  it('weights sub-skills like the exam, not like the bank', () => {
+    const base = fixtureContent();
+    const domains = [{ ...base.domains[0], weight: 100, subSkills: [
+      { id: 'big', name: 'Big', weight: 75, official: true }, { id: 'small', name: 'Small', weight: 25, official: true },
+    ] }];
+    const q = base.questionById.get('q-alpha-1')!;
+    const questions = [
+      ...Array.from({ length: 40 }, (_, i) => ({ ...q, id: `q-big-${i}`, subSkillId: 'big' })),
+      ...Array.from({ length: 40 }, (_, i) => ({ ...q, id: `q-small-${i}`, subSkillId: 'small' })),
+    ];
+    const c = buildContent(domains, questions, base.cards, []);
+    const s = buildMockExam({ id: 'm3', domains: c.domains, questions: c.questions, attempts: [], rng: mulberry32(3), now: 0 });
+    expect(s.questionIds.filter((id) => id.startsWith('q-big-'))).toHaveLength(40);
+    expect(s.questionIds.filter((id) => id.startsWith('q-small-'))).toHaveLength(13);
+  });
+
+  it('shares a domain weight among sub-skills without one', () => {
+    expect(subSkillWeights(fixtureContent().domains)).toEqual([
+      { id: 'a1', domainId: 'alpha', weight: 60 }, { id: 'b1', domainId: 'beta', weight: 40 },
+    ]);
+    expect(subSkillWeights(domainsJson as never).reduce((s, x) => s + x.weight, 0)).toBeCloseTo(100, 0);
   });
 });
 
