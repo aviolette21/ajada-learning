@@ -4553,5 +4553,295 @@
       "c-tool-output-screen"
     ],
     "lessonId": "l-course-injection-defense"
+  },
+  {
+    "id": "q-cp-s3-hook-script-blank-exit",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook exit codes",
+    "stem": "This script is registered as a `PreToolUse` command hook with the matcher `Edit|Write`. It must stop any write to `secrets/live.env` before it happens and tell Claude why. Which line fills the blank?",
+    "snippet": {
+      "language": "bash",
+      "code": "#!/bin/bash\n# PreToolUse hook, matcher: Edit|Write\nFILE=$(jq -r '.tool_input.file_path // empty')\ncase \"$FILE\" in\n  *secrets/live.env)\n    ____\n    ;;\nesac\nexit 0"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`echo \"Blocked: live secrets\" >&2; exit 2`",
+        "reason": "Correct: exit 2 blocks the action, and the reason written to stderr is fed back to Claude so it can adjust its approach."
+      },
+      {
+        "id": "b",
+        "text": "`echo \"$FILE\" >> .claude/audit.log; exit 0`",
+        "reason": "Exit 0 means success: the write goes ahead. Logging records the action rather than blocking it, and for `PreToolUse` an exit 0 doesn't even decide the permission."
+      },
+      {
+        "id": "c",
+        "text": "`echo \"Warning: live secrets file\"; exit 0`",
+        "reason": "With exit 0 the write proceeds; a printed warning isn't a decision. Blocking needs exit 2, or exit 0 with a JSON permission decision, which this line doesn't produce."
+      },
+      {
+        "id": "d",
+        "text": "`echo \"Blocked: live secrets file\" >&2; exit 1`",
+        "reason": "Exit 1 is a non-blocking error: Claude Code reports the failure and the action proceeds anyway. Only exit 2 blocks through the exit code alone."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A command hook blocks with exit 2 and a stderr reason; exit 0 or any other code lets the action proceed.",
+    "explanation": "Command hooks talk to Claude Code through exit codes: 0 means the action goes ahead, 2 blocks it, and anything else is a non-blocking error. Because the requirement is to stop the write and explain why, the script needs exit 2 with the reason on stderr (a). Choice d looks right because it prints the same message, but exit 1 doesn't block, so the write happens anyway.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-hook-exit-code-2",
+      "c-claude-code-hooks"
+    ],
+    "lessonId": "l-claude-hooks"
+  },
+  {
+    "id": "q-cp-s3-trace-ci-401-credential-file",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "MCP authentication",
+    "stem": "A nightly CI job runs Claude Code headlessly against a remote MCP server and fails. Read the connection trace. What is the mechanism, and which fix targets it?",
+    "snippet": {
+      "language": "text",
+      "code": "CONNECTION TRACE  job: nightly-triage (CI)\n[cfg] --mcp-config .ci/mcp.json (committed)\n[cfg] server \"tickets\"  type: http\n      url: https://tickets.corp.example/mcp\n      headers.Authorization: Bearer tk_live_9f3…\n      (literal value, unchanged for 14 months)\n[mcp] POST /mcp ............ 401 Unauthorized\n[mcp] retry 1/3 ............ 401 Unauthorized\n[mcp] retry 2/3 ............ 401 Unauthorized\n[mcp] retry 3/3 ............ 401 Unauthorized\n[mcp] giving up: authentication failed"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The server is overloaded or rate-limiting the runner; raise the retry count and wait longer between attempts before giving up",
+        "reason": "Every attempt was answered with 401, the server rejecting the credential. Resending the same token more slowly doesn't change the answer."
+      },
+      {
+        "id": "b",
+        "text": "The committed key is rejected; rotate it into the CI secret store and reference `${TICKETS_TOKEN}` from the config",
+        "reason": "Correct: `${VAR}` expansion in the MCP config exists for sensitive values like API keys, so the secret lives in the runner's environment rather than in a file in version control."
+      },
+      {
+        "id": "c",
+        "text": "The key has simply expired; paste a freshly issued key into `.ci/mcp.json`, commit it and rerun tonight's job",
+        "reason": "That restores access but keeps a credential in version control, which the docs' local-scope and `${VAR}` guidance exists to avoid, and sets up the same failure at the next expiry."
+      },
+      {
+        "id": "d",
+        "text": "The server now expects OAuth; switch the entry to OAuth and run the browser sign-in at the start of each job",
+        "reason": "OAuth is the interactive path: you run `/mcp` and complete the sign-in. A nightly CI job has nobody to do that; a service credential from the environment fits unattended runs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A 401 on a long-lived committed credential: rotate it, move it to the environment, and have the config reference the variable.",
+    "explanation": "The trace isolates the layer: identical 401s on every attempt mean the server rejects the credential itself, not the network or load. The credential has sat in a committed file for over a year, so the fix is both a new key and a new home: the CI secret store, exposed as an environment variable that the config references with `${VAR}` (b). Choice c fixes today's value but leaves the secret in the repo; choice a treats an authentication failure as a transient one.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The secret lives in the environment; the config only references it.",
+      "steps": [
+        {
+          "label": "CI secret store"
+        },
+        {
+          "label": "Env var on the runner"
+        },
+        {
+          "label": "`${TICKETS_TOKEN}` in config"
+        },
+        {
+          "label": "Bearer header to server"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-json",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-cp-s3-trace-403-insufficient-scope",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "MCP authorization",
+    "stem": "Claude Code connects to a remote MCP server. Sign-in works, but a `close_ticket` call fails and the client keeps signing in again. Read the trace. What is the mechanism, and which fix targets it?",
+    "snippet": {
+      "language": "text",
+      "code": "CONNECTION TRACE  remote MCP server (HTTP)\n[auth] GET /mcp ................ 401\n       WWW-Authenticate: scope=\"tickets:read\"\n[auth] browser sign-in, user approved\n[auth] token issued, scope=tickets:read\n[mcp]  tools/list .............. 200 (9 tools)\n[mcp]  tools/call close_ticket .. 403 Forbidden\n       error=\"insufficient_scope\"\n       scope=\"tickets:write\"\n[auth] re-running sign-in, scope=tickets:read\n[mcp]  tools/call close_ticket .. 403 Forbidden\n[auth] re-running sign-in, scope=tickets:read\n[mcp]  tools/call close_ticket .. 403 Forbidden"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The token is invalid; keep re-running the same sign-in until the authorization server issues a token the MCP server accepts",
+        "reason": "An invalid or expired token gets a 401. This token is accepted for `tools/list`; the 403 says the token is valid but lacks the permission."
+      },
+      {
+        "id": "b",
+        "text": "The token should be read from an environment variable named in the config rather than kept in the client's own token store",
+        "reason": "Where the token is stored doesn't change what it's allowed to do. The server already accepted it; it rejected the scope."
+      },
+      {
+        "id": "c",
+        "text": "The token lacks `tickets:write`; re-authorize for that scope plus the ones already held, with a cap on retries",
+        "reason": "Correct: a 403 with `insufficient_scope` names the scopes the operation needs. Clients respond by requesting a new token with the union of previous and required scopes, with retry limits."
+      },
+      {
+        "id": "d",
+        "text": "OAuth is the wrong layer for this server; switch it to the stdio transport so the credential comes from the environment instead",
+        "reason": "stdio servers take credentials from the environment because the OAuth spec covers HTTP transports, but this server is remote, and changing transport grants no permission."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "401 means authenticate; 403 with `insufficient_scope` means re-authorize for more scope. Repeating the same sign-in fixes neither.",
+    "explanation": "The trace separates two failures. The first 401 was answered by sign-in, and the token then works for `tools/list`, so authentication is fine. The 403 names a different problem: the operation needs `tickets:write`, which the token doesn't carry. The spec's answer is a step-up authorization for the missing scope, keeping the scopes already held and capping retries (c). Choice a repeats the same request and so gets the same 403.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "title": "Authorization",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-cp-s3-identity-people-vs-nightly-job",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "MCP authentication",
+    "stem": "A remote ticketing MCP server will be used two ways: by developers in their Claude Code sessions, each of whom should act as themselves, and by an unattended nightly job with nobody at a keyboard. Which authentication setup fits both?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Both use one service key committed in `.mcp.json`, since a single credential is simpler to rotate and to audit",
+        "reason": "A committed key puts a credential in version control, and one shared key means every action looks the same whoever ran it."
+      },
+      {
+        "id": "b",
+        "text": "Both use OAuth; an engineer completes the job's sign-in once and commits the resulting token into the config",
+        "reason": "OAuth tokens are stored by the client and refreshed automatically; copying one into a committed file turns it into a secret in the repo."
+      },
+      {
+        "id": "c",
+        "text": "Developers paste personal API keys into their user settings; the job authenticates with OAuth at the start of each run",
+        "reason": "This inverts the patterns: the job has nobody to complete a browser sign-in, while the people are exactly who OAuth's sign-in is for."
+      },
+      {
+        "id": "d",
+        "text": "Developers sign in with OAuth via `/mcp`; the job uses a service account's key read from an environment variable",
+        "reason": "Correct: Claude Code supports OAuth for remote servers, with tokens stored securely, and `${VAR}` expansion lets a config reference an API key kept in the environment."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "User identity → OAuth sign-in, token held by the client. Service identity → a key in an environment variable the config references.",
+    "explanation": "Match the credential to the identity. People can complete a sign-in, and OAuth makes each of them act as themselves with the client holding the token. An unattended job can't sign in, so it gets a service credential supplied through the environment and referenced with `${VAR}` (d). Choice a is tempting for simplicity, but it commits a secret and erases who did what; choice b commits a token, which is the same mistake.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-api-key-types",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-enterprise-auth"
+  },
+  {
+    "id": "q-cp-s4-defense-overbroad-access",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Defense checklist",
+    "stem": "A security review of your document-triage agent finds its service account holds the CRM's full admin role, though the agent only reads contact records. No incident has occurred. Which item on the defense checklist is this, and what's the matching control?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Prompt injection; treat fetched documents as data and add a hook that refuses any action a document tries to trigger",
+        "reason": "Injection is about instructions embedded in content the agent processes; the finding is about what the agent's identity can do, which matters whether or not an injection ever lands."
+      },
+      {
+        "id": "b",
+        "text": "Jailbreak; validate user input and constrain in the system prompt what the model is allowed to do",
+        "reason": "Nothing here concerns a user crafting input; the gap is an identity scoped far wider than the task."
+      },
+      {
+        "id": "c",
+        "text": "Over-broad access; a least-privilege identity, credentials kept outside the agent, privileged actions logged",
+        "reason": "Correct: restrict the agent to the capabilities its task requires, keep credentials outside its boundary (for example injected by a proxy), and log requests there for audit."
+      },
+      {
+        "id": "d",
+        "text": "Sandbox escape; OS-level sandboxing that confines the agent's shell commands to the working directory and allowed hosts",
+        "reason": "A sandbox limits the filesystem and network reach of what the agent runs; it doesn't shrink the rights of the account the agent calls the CRM with."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "An identity scoped wider than the task is a finding on its own: fix it with **least privilege**, credentials outside the boundary, and an audit log.",
+    "explanation": "The checklist is organized by threat, and the clue is in what was found: not hostile content, not a hostile user, not a shell breaking out, but an account that can do far more than its job. That is over-broad access, and the control is least privilege with credentials held outside the agent and privileged actions logged. Option a is tempting because injection is the headline agent threat, but least privilege is what limits an injection's damage either way.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/secure-deployment",
+      "title": "Securely deploying AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection"
+    ],
+    "lessonId": "l-course-injection-defense"
+  },
+  {
+    "id": "q-cp-s5-boundary-blanks",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Trust boundaries",
+    "stem": "You're filling in the integration map for a three-component application. Which pair of values belongs in the two blanks?",
+    "snippet": {
+      "language": "yaml",
+      "code": "components:\n  web_app:          # Claude API\n    ingests: customer uploads\n    policy: ____          # blank 1\n  triage_task:      # Claude Code in CI\n    ingests: web_app summaries\n    policy: data_only\n  billing_server:   # MCP, reaches invoice DB\n    identity: service account\n    access: ____          # blank 2"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`data_only` and `read_only_minimum`",
+        "reason": "Correct: content Claude reads on a user's behalf is untrusted data that must never override instructions, and the component with the widest reach gets the narrowest permissions a successful injection could abuse."
+      },
+      {
+        "id": "b",
+        "text": "`obey_as_instructions` and `full_admin`",
+        "reason": "Uploads are third-party content; letting them act as instructions is the indirect-injection failure, and full database access maximizes what such an injection could do."
+      },
+      {
+        "id": "c",
+        "text": "`data_only` and `full_admin`",
+        "reason": "The first value is right, but the most privileged component is where least privilege matters most: don't give access a successful injection could exploit."
+      },
+      {
+        "id": "d",
+        "text": "`obey_as_instructions` and `read_only_minimum`",
+        "reason": "The second value is right, but customer uploads can carry adversarial instructions; they're data to report on, not commands to follow."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "At every seam, fetched content is **data**; at the most privileged component, access is **least privilege**. Both hold whether or not an injection ever arrives.",
+    "explanation": "The map asks the two questions a trust-boundary review always asks: how is incoming content treated, and how much can the most powerful component do? Uploads come from outside your control, so they are data; the billing server reaches the invoice database, so it gets read-only, least-privilege access. Options c and d are tempting because each gets one blank right, but a boundary with one weak side is still open.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-prompt-injection",
+      "c-tool-output-screen"
+    ],
+    "lessonId": "l-course-trust-boundaries"
   }
 ]

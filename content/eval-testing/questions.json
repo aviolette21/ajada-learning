@@ -1898,5 +1898,295 @@
       "c-exponential-backoff"
     ],
     "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-cp-s4-trace-handoff-integration",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels and traces",
+    "stem": "Your code-review bot's test results and the trace of the failing case are below. What's the mechanism, and which fix is targeted?",
+    "snippet": {
+      "language": "text",
+      "code": "TEST RUN  review-bot  2026-10-16\nunit   parse_diff()        PASS\nunit   build_prompt()      PASS\nfunc   one model call      PASS (comments: 5)\ne2e    review PR #881      FAIL\n  expected: comments cite changed lines\n  actual:   \"Consider adding tests.\" x3\n\nTRACE  e2e review PR #881\n1 load_diff(881) -> 4 hunks\n    hunk = {path, patch}\n2 build_prompt(hunks)\n    prompt includes: src/a.py, src/b.py\n    prompt includes patch text: NO\n3 model request -> 3 generic comments\n4 post_comments() -> 201 OK"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The model ignores long diffs; reword the prompt to demand line-specific comments, raise `max_tokens` and rerun the e2e test",
+        "reason": "The trace shows the prompt never contained the patch text, so the model answered from file names; prompting harder can't supply input it never received."
+      },
+      {
+        "id": "b",
+        "text": "`build_prompt` drops each hunk's `patch`; pass it through and add an integration test on `load_diff()` → `build_prompt()`",
+        "reason": "Correct: units pass and e2e fails because the seam between two passing components drops data; fix the handoff and test the assembled pair, which is what an integration test verifies."
+      },
+      {
+        "id": "c",
+        "text": "`parse_diff` mis-parses hunks; fix the parser and add more unit tests for it",
+        "reason": "Step 1 returned four hunks with `path` and `patch`, and the parser's unit test passes; the data was lost after parsing."
+      },
+      {
+        "id": "d",
+        "text": "`post_comments` posts the wrong payload; add retries around the POST and an e2e test",
+        "reason": "Step 4 returned 201 OK; the comments were posted as written. Retrying a successful call changes nothing."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When every unit passes and the whole flow fails, look at the **handoff** between units and add an integration test there.",
+    "explanation": "A trace locates the first step whose output is wrong. Here step 1 is right and step 3's input is already missing the patch text, so the break is in step 2, the handoff. Integration tests exist for exactly this: components that pass alone are assembled and checked together. Option a is tempting because the symptom looks like generic model output, but the model only ever saw file names.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The first wrong output is at the handoff, not in the model.",
+      "steps": [
+        {
+          "label": "load_diff",
+          "sublabel": "4 hunks, OK"
+        },
+        {
+          "label": "build_prompt",
+          "sublabel": "patch dropped"
+        },
+        {
+          "label": "model",
+          "sublabel": "generic comments"
+        },
+        {
+          "label": "post_comments",
+          "sublabel": "201 OK"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "title": "Testing for Reliability",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-cp-s4-trace-model-step-origin",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Test levels and traces",
+    "stem": "Every level up to the model call passes, yet the end-to-end case fails. Where did the failure originate, and what's the targeted fix?",
+    "snippet": {
+      "language": "text",
+      "code": "TEST RUN  policy-qa  2026-10-16\nunit   retrieve()           PASS\nunit   build_prompt()       PASS\ninteg  retrieve->prompt     PASS\ne2e    case 42              FAIL\n  expected: cites [doc-3]\n  actual:   cites [doc-9]\n\nTRACE  e2e case 42\n1 retrieve(\"parental leave\") -> doc-3, doc-5\n2 build_prompt -> prompt has doc-3, doc-5\n    \"cite only the provided documents\"\n3 model request -> answer cites doc-9\n4 parse_answer() -> {citations: [doc-9]}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "In the integration layer: `retrieve()` returned the wrong documents, so tune the retriever's ranking and rerun the integration test",
+        "reason": "Step 1 returned doc-3, the document the case expects, and step 2 put it in the prompt; the inputs to the model were right."
+      },
+      {
+        "id": "b",
+        "text": "In the parser: `parse_answer()` misread the citation, so fix it and add a unit test for citation parsing",
+        "reason": "The parser reported what the model wrote: the answer itself cites doc-9. Fixing the parser can't change the model's citation."
+      },
+      {
+        "id": "c",
+        "text": "In the prompt handoff: add another integration test on `retrieve()` → `build_prompt()` to catch dropped documents",
+        "reason": "That seam already passes and the trace shows the prompt contained both documents; another test of a working handoff finds nothing."
+      },
+      {
+        "id": "d",
+        "text": "In the model's output: the prompt held doc-3 and the model cited doc-9, so fix the model step and run more trials of this case",
+        "reason": "Correct: reading the transcript shows the agent made a genuine mistake with correct inputs, so the fix belongs at the model step; run several trials to see how often it recurs."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "If a step's inputs are right and its output is wrong, the problem is that step's: here the **model output**, not the plumbing around it.",
+    "explanation": "Isolating origin means finding the first step whose output is wrong given correct inputs. Steps 1 and 2 are correct, so the model step produced the bad citation and the parser faithfully reported it. Option c is tempting because handoffs are a common break, but this one is verified both by the trace and by a passing integration test.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-testing-tracing"
+  },
+  {
+    "id": "q-cp-s4-trace-429-retry-after",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Rate limits and retries",
+    "stem": "This log is from your chat backend during a traffic spike. What went wrong in the handler, and what should it do instead?",
+    "snippet": {
+      "language": "text",
+      "code": "[client] POST /v1/messages\n[api]    429 rate_limit_error\n         retry-after: 12\n[client] retry 1 after 0.2s -> 429\n[client] retry 2 after 0.4s -> 429\n[client] retry 3 after 0.8s -> 429\n[client] giving up (1.4s total)\n[app]    user shown: \"Something went wrong\""
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "It treated a terminal error as retriable; a 429 means the request is malformed, so fix the request body and never retry it",
+        "reason": "429 is `rate_limit_error`: the organization hit a rate limit, not a malformed request. The identical request can succeed once capacity replenishes."
+      },
+      {
+        "id": "b",
+        "text": "It retried too few times; keep retrying without a limit until the API accepts the request, since rate limits always clear",
+        "reason": "Retries that arrive before the `retry-after` window ends fail; unlimited retries during a spike only add load and keep the user waiting."
+      },
+      {
+        "id": "c",
+        "text": "It ignored `retry-after`; wait the 12 seconds it names, then back off, cap the attempts and return a clean error",
+        "reason": "Correct: when a 429 carries `retry-after`, wait that many seconds before retrying; earlier retries fail. Then back off, cap attempts, and surface a clean error."
+      },
+      {
+        "id": "d",
+        "text": "It hit the monthly spend cap; stop retrying until next month, since no retry can succeed, and alert finance",
+        "reason": "A spend-cap 429 never carries `retry-after` and keeps failing until access resumes; this one names a 12-second wait, so it's an ordinary rate limit."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A 429 with `retry-after` is retriable **after** that many seconds; sub-second retries are guaranteed failures.",
+    "explanation": "The header told the client when the next attempt could succeed, and the client retried three times inside two seconds instead. Rate limits are retriable with backoff, honoring `retry-after`, with a cap on attempts before a clean error. Option d is tempting because a spend cap also returns 429, but that response carries no `retry-after`; this one does.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "Honor the header first, then back off, then give up cleanly.",
+      "steps": [
+        {
+          "label": "429",
+          "sublabel": "retry-after: 12"
+        },
+        {
+          "label": "wait 12 s"
+        },
+        {
+          "label": "retry with backoff"
+        },
+        {
+          "label": "cap reached",
+          "sublabel": "clean error"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-retry-after",
+      "c-exponential-backoff"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-cp-s4-529-not-your-limit",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Overload vs rate limit",
+    "stem": "During a busy afternoon, about one in twenty of your enrichment worker's requests fails with `529 overloaded_error`. A teammate proposes halving the worker's request rate and asking Anthropic for a higher rate limit. What should the team do instead?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry each 529 with exponential backoff, since it reflects high traffic across all users, not your rate limit",
+        "reason": "Correct: 529 means the API is temporarily overloaded, which can occur with high traffic across all users; it's transient, so retry with exponential backoff, as the SDK does for 5xx errors."
+      },
+      {
+        "id": "b",
+        "text": "Halve the request rate and ask for a higher rate limit, since 529 means your organization exceeded its usage tier's limits",
+        "reason": "Exceeding your own limits produces 429 `rate_limit_error`. Lowering your rate or raising your tier doesn't change platform-wide load."
+      },
+      {
+        "id": "c",
+        "text": "Treat it as terminal and fix the request body, since a 5xx status means the payload was rejected",
+        "reason": "A rejected payload is a 400 `invalid_request_error`. A 529 says nothing is wrong with the request, which is why retrying it can succeed."
+      },
+      {
+        "id": "d",
+        "text": "Rotate the API key, since repeated 5xx errors indicate a key problem",
+        "reason": "Key problems surface as 401 `authentication_error`. A 529 is about capacity, and rotating credentials won't change it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "**529** is Anthropic-side load, not your rate limit: back off and retry; **429** is the one your own traffic can fix.",
+    "explanation": "The error class decides the response. 529 is overload across all users, so the identical request can succeed later: retry with backoff. Option b is tempting because the fix would be right for a 429, but a higher tier or a lower rate doesn't change platform load.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-overloaded-error",
+      "c-api-error-types"
+    ],
+    "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-cp-s4-refusal-stored-as-output",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Refusal handling",
+    "stem": "Your nightly summarization pipeline treats any HTTP 200 as success. One item produced the response below. What's the mechanism, and what should the pipeline do?",
+    "snippet": {
+      "language": "text",
+      "code": "response for item 1187 (HTTP 200):\n  \"stop_reason\": \"refusal\",\n  \"content\": [],\n  \"usage\": {\"input_tokens\": 2210,\n            \"output_tokens\": 0}\n\npipeline log:\n[job] item 1187 ok  summary_len=0  saved\n[job] batch done: 1200/1200 succeeded"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A transient server fault; retry the identical request on the same model with exponential backoff until a non-empty summary comes back",
+        "reason": "A refusal is not a server fault: it's a normal response, not an error, and the same request to the same model would predictably be declined again."
+      },
+      {
+        "id": "b",
+        "text": "A classifier refusal in a normal response; branch on `stop_reason`, don't save the empty text, and retry on a fallback model",
+        "reason": "Correct: safety classifiers return `stop_reason: \"refusal\"` with HTTP 200 and empty content; the pipeline must detect it rather than treat it as valid output, and can usually get an answer from another Claude model."
+      },
+      {
+        "id": "c",
+        "text": "A malformed request that the API rejected; mark the item failed and fix the input before resending it",
+        "reason": "A refusal is a normal response, not an error; nothing was rejected as malformed, and the response arrived with HTTP 200."
+      },
+      {
+        "id": "d",
+        "text": "A `max_tokens` cut-off that ended the summary early; raise `max_tokens` and rerun the item",
+        "reason": "This response generated zero output tokens and its `stop_reason` says `refusal`, so no length limit was hit."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "HTTP 200 is not success on its own: read `stop_reason`, and never save a **refusal** as if it were the model's answer.",
+    "explanation": "The pipeline's success test is the HTTP status, but a refusal arrives as a normal 200 response with empty content, so an empty summary was saved and counted as done. The fix is to branch on `stop_reason`: log the refusal and retry on another model. Option a is tempting because retries fix transient failures, but a refusal is a classifier decision, not a fault, and the same model would decline again.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A 200 still needs its stop reason read before the text is trusted.",
+      "steps": [
+        {
+          "label": "HTTP 200"
+        },
+        {
+          "label": "read stop_reason"
+        },
+        {
+          "label": "refusal",
+          "sublabel": "content empty"
+        },
+        {
+          "label": "log + fallback model"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-refusal-fallback",
+      "c-stop-reason"
+    ],
+    "lessonId": "l-course-failure-handling"
   }
 ]

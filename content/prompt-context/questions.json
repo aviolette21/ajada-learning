@@ -4849,5 +4849,199 @@
       "c-strict-tool-use"
     ],
     "lessonId": "l-course-structured-outputs"
+  },
+  {
+    "id": "q-cp-s1-examples-when-already-passing",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Few-shot prompting",
+    "stem": "A short, well-specified prompt labels incoming emails as `billing`, `bug` or `other`, and it passes your eval with instructions alone. A teammate wants to add a handful of labelled examples \"to be safe\". What does that most likely do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Adds prompt text to every request for little or no gain, since nothing in the output needs steering",
+        "reason": "Correct: the page recommends examples to \"steer Claude's output format, tone, and structure\" and improve consistency. A prompt that already passes has no such failure, so the examples are extra prompt text with no job."
+      },
+      {
+        "id": "b",
+        "text": "Raises accuracy noticeably, because shown examples always beat written instructions, even on a task that passes",
+        "reason": "Examples are \"one of the most reliable ways to steer\" format and structure; the page doesn't claim they beat clear instructions on every task, and there is no failure here for them to correct."
+      },
+      {
+        "id": "c",
+        "text": "Swaps in a fine-tuned variant that has learned the shown pattern, so the labels now come from a different model",
+        "reason": "Examples are prompt content, wrapped in `<example>` tags so Claude can tell them from instructions; they don't change the model that runs."
+      },
+      {
+        "id": "d",
+        "text": "Makes the labels deterministic, so the same email receives the same label on every run from now on",
+        "reason": "Examples \"improve accuracy and consistency\"; nothing on the page says they make outputs deterministic."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Add examples to fix a format or consistency failure you've observed, not as insurance on a prompt that already passes.",
+    "explanation": "Examples are a targeted tool: the docs recommend them when format, tone, structure or consistency need steering. The deciding detail is that this prompt already passes its eval with instructions alone, so there is no failure for examples to address, and every request would carry the extra text. Option b is the trap: examples are reliable for the failures they fix, not a universal accuracy upgrade.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-few-shot-prompting"
+    ],
+    "lessonId": "l-course-prompting-shots"
+  },
+  {
+    "id": "q-cp-s1-predict-structure-after-examples",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Few-shot prompting",
+    "stem": "Your clause-extraction prompt describes the output layout in words, yet Claude keeps arranging the fields differently. You add a handful of real input-to-output examples in `<example>` tags. Which prediction is accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The examples permanently retrain the model on your layout, so later requests can leave them out",
+        "reason": "Examples are prompt content; nothing is trained or stored between requests. Drop them and the steering goes with them."
+      },
+      {
+        "id": "b",
+        "text": "The layout becomes much more consistent: examples are among the most reliable ways to steer format and structure",
+        "reason": "Correct: \"Examples are one of the most reliable ways to steer Claude's output format, tone, and structure.\" Keep them relevant and diverse, and include 3–5 for best results."
+      },
+      {
+        "id": "c",
+        "text": "Nothing changes: output structure is controlled only by `effort` and the choice of model, never by prompt content such as examples",
+        "reason": "The page names examples as the reliable lever for format and structure; they are prompt content that works on any current model."
+      },
+      {
+        "id": "d",
+        "text": "Each request gets cheaper, because showing the pattern lets Claude answer with fewer tokens",
+        "reason": "Examples add text to the prompt. The page recommends them for format, tone, structure and consistency, not as a cost lever."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When structure is invented or drifts, show it: a few relevant, diverse examples beat more adjectives.",
+    "explanation": "The failure type decides the technique: the instructions describe the layout but the structure still varies, which is exactly what examples fix. The docs call few-shot examples one of the most reliable ways to steer format and structure, recommending 3–5 relevant, diverse ones in `<example>` tags. Option a is the trap: examples live in the prompt and must stay there; nothing is retrained.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-few-shot-prompting",
+      "c-xml-tags"
+    ],
+    "lessonId": "l-course-prompting-shots"
+  },
+  {
+    "id": "q-cp-s2-trace-tool-output-crowding",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context budget",
+    "stem": "The first four calls were correct. From T6 the agent picks the wrong tool, then gives up without the clause-rule tool ever running. Nothing was rejected or truncated. Identify the mechanism and the targeted fix.",
+    "snippet": {
+      "language": "text",
+      "code": "SESSION TRACE  (lease-review agent, 1M window)\nT1 user: \"Can tenant T-88 end the lease early?\n         Apply the clause rules and answer.\"\nT2 asst: tool_use fetch_lease_section(sec=1)\nT2 user: tool_result  41,200 tokens\nT3 asst: tool_use fetch_lease_section(sec=2)\nT3 user: tool_result  39,800 tokens\nT4 asst: tool_use fetch_lease_section(sec=3)\nT4 user: tool_result  44,100 tokens\nT5 asst: tool_use fetch_lease_section(sec=4)\nT5 user: tool_result  40,600 tokens\nT6 asst: tool_use search_precedents(\"early exit\")\nT6 user: tool_result  33,000 tokens\nT7 asst: tool_use search_precedents(\"tenant T-88\")\nT7 user: tool_result  31,500 tokens\nT8 asst: text \"I could not determine whether\n         early termination is allowed.\"\n         stop_reason=end_turn\nnote: apply_exit_clause_rule never called;\n      no 400, no max_tokens stop"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The `search_precedents` description is too vague; add a sentence saying when not to use it, and Claude will pick `apply_exit_clause_rule`",
+        "reason": "Selection was right for four turns with the same descriptions. The drift began only after some 165k tokens of raw results had piled up, which points at context, not at the schema."
+      },
+      {
+        "id": "b",
+        "text": "Accumulated raw results are degrading recall of the instructions; clear each result once used and compact before continuing",
+        "reason": "Correct: \"As token count grows, accuracy and recall degrade, a phenomenon known as context rot.\" Tool results count toward the window; the page offers tool result clearing and compaction for exactly this."
+      },
+      {
+        "id": "c",
+        "text": "Raise `max_tokens` so Claude has room to finish its reasoning in T8 and finally reach the rule tool",
+        "reason": "Nothing stopped on `max_tokens`. That cap limits output length; the problem here is on the input side, where the request keeps growing."
+      },
+      {
+        "id": "d",
+        "text": "Switch to a model with a larger context window so all four lease sections fit with room to spare",
+        "reason": "The 1M window was never exceeded. \"More context isn't automatically better\": the degradation comes from how much is in context, not from running out of room."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Tool outputs spend the context budget fastest; prune results you've used and compact before the agent drifts.",
+    "explanation": "Context is a fixed budget with diminishing returns: the four big lease sections stayed in the request as raw tool results, and as the token count grew the model's recall of the original instructions degraded until it reached for the wrong tool and gave up. Nothing errored, which rules out overflow. The fix is to clear each result once it has been used and compact before the next step. Option a is the trap: a clearer description cannot explain four correct selections followed by drift.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "By T7 the instructions are a sliver next to six raw tool results.",
+      "segments": [
+        {
+          "label": "Instructions",
+          "sublabel": "T1",
+          "weight": 1,
+          "tone": "accent"
+        },
+        {
+          "label": "Raw tool results",
+          "sublabel": "T2–T7 · ~230k tokens",
+          "weight": 12,
+          "tone": "error"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-context-rot",
+      "c-tool-result-clearing",
+      "c-compaction"
+    ],
+    "lessonId": "l-course-context-budget"
+  },
+  {
+    "id": "q-cp-s2-scope-drift-technique",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Prompt adjustment",
+    "stem": "A product-help assistant returns answers in exactly the JSON your parser expects, and its wording is consistent. But on some questions it drifts into giving general legal advice that is outside the product's remit. Which technique is missing?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A JSON schema in `output_config.format`, so the response shape is enforced on every reply",
+        "reason": "The shape is already right. A schema constrains structure; it says nothing about which topics the assistant should take on."
+      },
+      {
+        "id": "b",
+        "text": "Three to five examples of good answers, so Claude picks up the pattern more reliably",
+        "reason": "Examples steer \"output format, tone, and structure\", which are already fine here. The failure is content scope."
+      },
+      {
+        "id": "c",
+        "text": "A higher `effort` level, so Claude reasons more carefully before answering each question",
+        "reason": "Effort changes how much work goes into a response, not the boundaries of the assistant's role."
+      },
+      {
+        "id": "d",
+        "text": "System-prompt instructions that set the assistant's role and what is in and out of scope",
+        "reason": "Correct: \"Setting a role in the system prompt focuses Claude's behavior and tone for your use case\", and the page's first principle is to be clear and direct about what you want."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Diagnose first: wrong shape needs a constraint, drifting content needs a scoped system prompt.",
+    "explanation": "Name the failure before picking the technique. Here the shape and consistency are fine, so schemas and examples have nothing to fix; the content is drifting outside the assistant's remit, which is what a system prompt that sets the role and scope addresses. Option a is the trap: structured outputs are the reflex for \"JSON assistant\" problems, but they only constrain form.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-role-prompting",
+      "c-system-parameter"
+    ],
+    "lessonId": "l-course-structured-outputs"
   }
 ]

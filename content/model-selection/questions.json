@@ -5766,5 +5766,568 @@
       "c-model-start-strategy"
     ],
     "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-cp-s1-same-prompt-same-text",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Non-determinism",
+    "stem": "Two reviewers ran the same evaluation prompt on the same transcript, with the same model and settings, and got differently worded verdicts that reach the same conclusion. One files a bug. What is the most accurate response?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A real bug: with identical request bodies the API returns identical text, so something must have altered one request",
+        "reason": "The glossary says the opposite: \"identical inputs may produce different outputs across API calls\", so differing wording needs no altered request to explain it."
+      },
+      {
+        "id": "b",
+        "text": "Not a bug: identical inputs can produce different outputs across calls, so compare the verdicts, not the wording",
+        "reason": "Correct: the glossary notes that users \"may encounter non-determinism in APIs\" and that even at temperature 0 \"identical inputs may produce different outputs across API calls\"."
+      },
+      {
+        "id": "c",
+        "text": "Expected only because one reviewer streamed the reply; non-streamed requests return the same text every time",
+        "reason": "The glossary ties the variation to generation itself, across API calls as such; it makes no exception for non-streamed requests."
+      },
+      {
+        "id": "d",
+        "text": "Expected only on smaller models; the most capable tier returns identical text for identical inputs",
+        "reason": "The non-determinism note is about the API in general, not a model tier, and the glossary says it applies on Anthropic's own service and through third-party cloud providers alike."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Identical inputs can yield different outputs across calls; judge replies on substance, not on exact text.",
+    "explanation": "The principle is non-determinism: the glossary states that identical inputs may produce different outputs across API calls, even with temperature at 0, so two runs of the same eval prompt can differ in wording with nothing wrong. The deciding detail is that the verdicts agree while only the wording differs. Option c is the tempting trap: streaming changes how a reply is delivered, not the generation that produces the variation.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-non-determinism"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-cp-s1-model-vs-thinking-levers",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Choosing a model",
+    "stem": "A teammate says: \"If we want Claude to reason more carefully on this task, we have to switch to a different model.\" Which statement best separates model choice from reasoning depth?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "They are one lever: choosing Opus switches thinking on and choosing Haiku switches it off, so the model you pick decides the reasoning",
+        "reason": "The per-model table shows Claude Haiku 5.5 and Claude Sonnet 5.5 running adaptive thinking too; which family member you pick doesn't decide whether thinking happens."
+      },
+      {
+        "id": "b",
+        "text": "Reasoning depth is fixed per account by Anthropic, so changing the model is the only way to get deeper reasoning",
+        "reason": "`thinking` and `output_config.effort` are request parameters; nothing about reasoning depth is set per account."
+      },
+      {
+        "id": "c",
+        "text": "Model choice picks the family member; `thinking` and `effort` are per-request settings for whether and how deeply it reasons",
+        "reason": "Correct: \"The `thinking` parameter controls whether Claude thinks ... the `effort` parameter controls how much work Claude puts into the whole response\", and both are sent on each request."
+      },
+      {
+        "id": "d",
+        "text": "Thinking is a separate reasoning model you call instead of the chat model, so it is a model switch after all",
+        "reason": "Thinking is content the same model produces before its answer: \"That up-front thinking arrives in `thinking` content blocks ahead of the response.\" No second model is involved."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Pick the model for capability and price; set `thinking` and `effort` per request for reasoning depth.",
+    "explanation": "Model choice and reasoning depth are two separate, composable levers: which model serves the request, and whether and how deeply it thinks, controlled per request with `thinking` and `effort`. The teammate's claim collapses them into one. Option a is the trap: it assumes thinking belongs to a tier, but the current Haiku and Sonnet models run adaptive thinking as well, so a model switch is not how you get more reasoning.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-effort"
+    ],
+    "lessonId": "l-course-models-reasoning"
+  },
+  {
+    "id": "q-cp-s1-predict-history-growth",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "A design review asks what happens to a chat assistant whose stored history is appended to on every turn and never trimmed, as weeks of conversation accumulate. Which prediction is accurate?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The API silently drops the oldest turns so the newest message always fits, so nothing in the app needs to change as history grows",
+        "reason": "In API requests \"previous turns are preserved completely\"; rolling first-in, first-out trimming is something chat interfaces do, not the API."
+      },
+      {
+        "id": "b",
+        "text": "The window expands on demand to hold the extra turns; the only effect is a higher bill for the additional tokens",
+        "reason": "The context window is a fixed per-model limit. Tokens beyond it are rejected or end generation; they aren't billed as overflow."
+      },
+      {
+        "id": "c",
+        "text": "Oversized input gets a 400 before generation; if generation hits the limit, output stops with `model_context_window_exceeded`",
+        "reason": "Correct: \"If the input alone already exceeds the model's context window, the API returns a 400 invalid_request_error\", and generation that reaches the limit \"stops with stop_reason: model_context_window_exceeded\"."
+      },
+      {
+        "id": "d",
+        "text": "Nothing changes until `max_tokens` is reached, because the window limits the output Claude writes, not the input",
+        "reason": "The window \"holds the conversation history plus the new output\"; every message, tool result and tool definition in the request counts toward it."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "The window is a fixed budget for input plus output; trimming or compacting history is the application's job.",
+    "explanation": "A context window is a fixed budget that holds the whole history plus the new output, so an untrimmed history eventually fills it. Two behaviours follow: input already over the limit fails with a 400 before generation, and generation that reaches the limit stops with `model_context_window_exceeded` and truncated output. Managing history is the app's job. Option a is the trap: FIFO trimming is a chat-interface behaviour, not something the API does for you.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-context-window",
+      "c-context-window-exceeded"
+    ],
+    "lessonId": "l-course-how-llms-behave"
+  },
+  {
+    "id": "q-cp-s2-thinking-off-for-bulk-labels",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Effort",
+    "stem": "A nightly job on Claude Haiku 5.5 sorts the day's support emails, tens of thousands of them, into eight fixed categories. Latency and cost per email matter, and each decision is a quick lookup rather than a multi-step problem. How should thinking be set?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise `effort` to `max`, because at this volume every misfiled email is expensive and deeper reasoning prevents it",
+        "reason": "`max` makes Claude think \"the most readily and at the greatest depth\"; thinking tokens are billed as output on every one of tens of thousands of requests, for a task that doesn't need reasoning."
+      },
+      {
+        "id": "b",
+        "text": "Keep the default effort and tell it in the system prompt to answer directly without deliberating on each email",
+        "reason": "The page says to lower effort before prompt-based steering, and that in Anthropic's testing telling Claude Haiku 5.5 to answer directly \"didn't stop it from thinking\"."
+      },
+      {
+        "id": "c",
+        "text": "Move the job to Claude Opus 5.5 at its default effort, since a stronger model reasons more reliably",
+        "reason": "This raises cost without touching the control that matters: effort decides how readily Claude thinks, and the task needs less thinking, not a bigger model."
+      },
+      {
+        "id": "d",
+        "text": "Lower `effort` to `low` so simple lookups skip thinking; disable thinking outright if evals still hold",
+        "reason": "Correct: at `low`, \"Claude minimizes thinking. Skips thinking for simple tasks where speed matters most\", and lowering effort is the recommended first lever for less thinking."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Mechanical, lookup-style work gets the lowest effort; reach for prompt steering only after effort is set.",
+    "explanation": "Match reasoning depth to the task before tuning anything else: fixed-category classification is a lookup, so the lowest effort (which skips thinking on simple tasks) is right, and thinking can be disabled where the model allows it. The deciding details are \"quick lookup\" and \"cost per email\". Option b is the trap: on Haiku 5.5 a prompt instruction to answer directly did not reliably reduce thinking in Anthropic's testing; effort is the calibrated control.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost",
+      "title": "Steering thinking",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-effort"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-cp-s2-thinking-decisions-two",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Adaptive thinking",
+    "stem": "You're writing the thinking policy for three workloads: a record-format conversion job, a tool-using agent, and a data-pipeline redesign planner whose steps depend on each other. Which two decisions are right?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pipeline redesign planner: keep thinking on and raise `effort` if its plans come out shallow",
+        "reason": "Correct: thinking helps \"complex tasks like math, coding, analysis, and long-running agentic work\", and when Claude is \"thinking too rarely or too shallowly: raise effort\"."
+      },
+      {
+        "id": "b",
+        "text": "Format conversion job: raise `effort` to `max`, because volume makes any mistake costly",
+        "reason": "For lower cost or latency the page says to \"lower effort first\"; thinking is billed as output tokens, so maximum effort on a mechanical job multiplies cost for no reasoning benefit."
+      },
+      {
+        "id": "c",
+        "text": "Tool-using agent: echo each assistant turn back unchanged, thinking blocks included, when returning tool results",
+        "reason": "Correct: \"Required: within a tool-use turn, pass thinking blocks back\", complete and unmodified; \"Modified thinking blocks are rejected with a 400 error.\""
+      },
+      {
+        "id": "d",
+        "text": "Tool-using agent: strip thinking blocks before returning tool results to save context",
+        "reason": "Inside a tool-use turn the blocks are required, and \"You don't need to prune old thinking yourself\": pass everything back and the API filters prior-turn blocks per model."
+      },
+      {
+        "id": "e",
+        "text": "Pipeline redesign planner: set `output_config.effort` to `adaptive` so Claude chooses its own depth on every planning step",
+        "reason": "\"Don't pass `adaptive` as an `effort` value: `adaptive` is a thinking mode, not an effort level.\" Effort levels are `low` through `max`."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Match effort to the task's reasoning load, and never edit or drop thinking blocks inside a tool-use turn.",
+    "explanation": "Two rules from the thinking docs: effort is the dial for reasoning depth (raise it for dependent multi-step planning, lower it for mechanical work), and within a tool-use turn the thinking blocks must go back exactly as received. Option d is the trap: stripping blocks to save context breaks the turn, and the API already prunes prior-turn thinking where the model does so. Option e misuses `adaptive`, which is a thinking mode, not an effort level.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/thinking",
+      "title": "Thinking",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-thinking-blocks-unchanged",
+      "c-effort"
+    ],
+    "lessonId": "l-course-extended-thinking"
+  },
+  {
+    "id": "q-cp-s2-image-encoding-pairings",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Image inputs",
+    "stem": "You're deciding how each image reaches the API in an equipment-inspection app. The same equipment schematic accompanies every inspection; a technician occasionally attaches a one-off photo of a fault. Which two pairings fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Equipment schematic: upload it once to the Files API and reference its `file_id` in each request",
+        "reason": "Correct: \"For images you'll use repeatedly ... upload the image once, then reference the returned `file_id` in subsequent messages instead of resending base64 data.\""
+      },
+      {
+        "id": "b",
+        "text": "One-off fault photo: embed it as a base64 `image` block in that single request",
+        "reason": "Correct: a base64-encoded image embedded in the request body is one of the three documented sources, and the Files API is positioned for images you'll use repeatedly."
+      },
+      {
+        "id": "c",
+        "text": "Equipment schematic: send base64 on every request, because the Files API only accepts PDFs",
+        "reason": "The page shows an `image` block whose `source` is `{\"type\": \"file\", \"file_id\": ...}`; images are a supported Files API type."
+      },
+      {
+        "id": "d",
+        "text": "One-off photo: route it through the Files API first, since base64 image sources are deprecated",
+        "reason": "Base64 is a current source type, and on Amazon Bedrock and Google Cloud it is the only one available; nothing marks it deprecated."
+      },
+      {
+        "id": "e",
+        "text": "Multi-turn review of one schematic: re-send it as base64 on every turn so Claude doesn't forget what it looks like",
+        "reason": "\"Claude has access to every image from earlier turns\", and base64 in history means \"the full image bytes are included in the payload on every turn\", growing request size and latency."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Upload what repeats and reference it by `file_id`; inline base64 is fine for an image you send once.",
+    "explanation": "The rule is reuse: an image that goes into many requests should be uploaded once and referenced by `file_id`, which keeps every payload small; an image sent once can simply be embedded as base64. Option e is the trap: Claude already sees earlier turns' images, so re-sending base64 each turn only bloats the request. Options c and d both misstate what the Files API and base64 support.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-files-api",
+      "c-image-sources"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-cp-s2-batch-workloads-two",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Message Batches",
+    "stem": "Your cost review lists five Claude workloads. Which two should move to the Message Batches API?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Re-scoring 30,000 archived product reviews for sentiment overnight",
+        "reason": "Correct: bulk work that needs no immediate result. The page lists summaries and insights for large datasets among batch uses, and all usage is charged at 50% of standard prices."
+      },
+      {
+        "id": "b",
+        "text": "The checkout page's address-correction suggestion the shopper is waiting on",
+        "reason": "Someone is waiting. Batches are for tasks that \"do not require immediate responses\"; results arrive when processing ends, up to 24 hours later."
+      },
+      {
+        "id": "c",
+        "text": "A regression eval over the saved test set before each release",
+        "reason": "Correct: the page lists \"Large-scale evaluations: Process thousands of test cases efficiently\" as a typical batch use."
+      },
+      {
+        "id": "d",
+        "text": "Live translation of each message in a support chat",
+        "reason": "A live reply needs an immediate response, which the asynchronous batch path doesn't provide."
+      },
+      {
+        "id": "e",
+        "text": "A nightly report whose single request must be guaranteed to finish within one minute",
+        "reason": "Batches offer no completion-time guarantee: most finish within 1 hour, results are available by 24 hours at the latest, and requests can expire."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Batch what nobody waits on: bulk jobs and eval runs; keep user-facing turns synchronous.",
+    "explanation": "The deciding question is whether anyone waits on the result. Overnight review scoring and a pre-release eval run are bulk, offline work, which the Batches API handles asynchronously at half price. The shopper's address check and each live translation have a person waiting, so they stay synchronous. Option e is the trap: it is offline, but a hard one-minute deadline is something a batch cannot promise.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-course-batch-multimodal"
+  },
+  {
+    "id": "q-cp-s4-model-volume-haiku",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model selection",
+    "stem": "A logistics platform labels every package-scan note (damaged, delayed, delivered) in real time, tens of millions a day. Your eval on real notes shows Claude Haiku 5.5 meets the accuracy bar. Which choice fits, and what decides it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5, because the most capable model is the safest default for any production workload",
+        "reason": "Opus is the suggested start when you're unsure, but the eval already answers the question; paying its higher per-token price for tens of millions of notes buys nothing the bar requires."
+      },
+      {
+        "id": "b",
+        "text": "Claude Sonnet 5.5, because a middle tier hedges against the eval being wrong on rare note types",
+        "reason": "An eval on real notes is the evidence; hedging with a slower, pricier tier doesn't address a gap the eval didn't find."
+      },
+      {
+        "id": "c",
+        "text": "Claude Fable 5.1, because volume this high needs the strongest reasoning available",
+        "reason": "Fable is for demanding reasoning and long-horizon agentic work, or when evals on Opus at higher effort still fall short; a simple label is neither."
+      },
+      {
+        "id": "d",
+        "text": "Claude Haiku 5.5, because the eval already clears the bar and price at this volume is what is left to decide",
+        "reason": "Correct: Haiku 5.5 is for high-volume, latency-sensitive tasks such as classification, extraction and routing; once the eval confirms quality, cost at volume decides."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "High volume plus an eval that passes on the smallest tier means **Haiku**: the bar is met, so cost at volume is the deciding constraint.",
+    "explanation": "Model choice pairs a tier with the constraint that decides it. The eval removes quality as the open question, leaving volume, so the fastest and cheapest tier wins. Option a is tempting because Opus is the suggested start for most workloads when unsure, but this team isn't unsure: it has an eval.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-cp-s4-model-costly-errors-opus",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model selection",
+    "stem": "An agent analyzes a contract in stages that each build on the last; an error in an early stage invalidates everything after it. Your eval shows Claude Sonnet 5.5 fails on the most intricate contracts. Which choice fits, and what decides it?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5, because quality on hard reasoning decides when a wrong step is costly",
+        "reason": "Correct: start capability-first when accuracy outweighs cost, as in complex reasoning and high-autonomy agentic work; Opus is the strongest starting point short of Fable."
+      },
+      {
+        "id": "b",
+        "text": "Claude Haiku 5.5, because the stages are small and speed keeps the analysis short",
+        "reason": "Efficiency-first suits high-volume, straightforward tasks and tight latency budgets; nobody is waiting on this analysis, and the intricate contracts are the risk."
+      },
+      {
+        "id": "c",
+        "text": "Claude Sonnet 5.5 with retries, because rerunning a failed stage is cheaper than a bigger model",
+        "reason": "The eval shows Sonnet fails the most intricate contracts; retrying the same model doesn't close a capability gap, and each early error here voids the stages after it."
+      },
+      {
+        "id": "d",
+        "text": "Claude Sonnet 5.5, because the balance of speed and intelligence suits every agentic job",
+        "reason": "Sonnet is the speed-and-capability balance for everyday work, but the eval says this job's hardest cases exceed it, which is the specific capability gap that justifies upgrading."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When an error is expensive and the eval shows the cheaper tier missing hard cases, the deciding constraint is **quality**: go up a tier.",
+    "explanation": "The two facts that decide this are the cost of an early error and the eval result. Together they make quality on hard reasoning the constraint, which is the capability-first case. Option c is tempting because retries are cheap, but retries don't close a capability gap the eval has already shown, and here each miss invalidates everything after it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/choosing-a-model",
+      "title": "Choosing the right model",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-current-models",
+      "c-model-start-strategy"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-cp-s4-model-mixed-traffic-route",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model routing",
+    "stem": "An internal IT helpdesk assistant gets mostly simple requests (password resets, where-is-this-setting) and a few long troubleshooting threads that need real synthesis. Finance wants the common path cheap. Which setup fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Claude Opus 5.5 for every request, because the hard troubleshooting threads set the quality bar for the entire service",
+        "reason": "Running the most capable model on the common, simple path pays frontier prices for work a smaller model handles; routing keeps that spend for the hard cases."
+      },
+      {
+        "id": "b",
+        "text": "Claude Haiku 5.5 for everything, because most requests are simple and the hard ones can be retried",
+        "reason": "Routing sends hard or unusual questions to a more capable model precisely because the small one handles them poorly; retrying doesn't add capability."
+      },
+      {
+        "id": "c",
+        "text": "A fast default with an override to Claude Opus 5.5 when a signal marks the request complex",
+        "reason": "Correct: routing classifies an input and directs it to the right follow-up, such as easy questions to a smaller, cost-efficient model and hard ones to a more capable model; it fits when categories are distinct."
+      },
+      {
+        "id": "d",
+        "text": "Claude Sonnet 5.5 for everything, because one middle tier avoids building and maintaining a classifier",
+        "reason": "One tier for mixed traffic overpays simple requests or underserves the hard threads; routing works well when there are distinct categories better handled separately."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Mixed traffic calls for **routing**: a cheap default plus an override to a capable model when a task signal says the request is hard.",
+    "explanation": "The stem gives two distinct categories with different needs and a cost target on the common path, which is the routing pattern's home ground. Option d is tempting as a compromise, but a single tier can't be cheap for the simple majority and strong for the few hard threads at once.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Most requests take the cheap path; a signal sends the hard ones up a tier.",
+      "segments": [
+        {
+          "label": "Simple requests",
+          "sublabel": "fast default model",
+          "weight": 9,
+          "tone": "success"
+        },
+        {
+          "label": "Complex",
+          "sublabel": "Opus override",
+          "weight": 1,
+          "tone": "accent"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-routing",
+      "c-current-models"
+    ],
+    "lessonId": "l-course-model-routing"
+  },
+  {
+    "id": "q-cp-s4-cost-task-pairings",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cost and orchestration",
+    "stem": "You're matching workloads to designs under a tight budget. Which two pairings fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Live chat where the user watches the reply → send it through the Batch API to get the discount",
+        "reason": "The Batch API is for requests no one is waiting on, with results arriving any time within 24 hours; the interactive path stays synchronous."
+      },
+      {
+        "id": "b",
+        "text": "Weekly due-diligence scan of 400 independent company filings → a frontier orchestrator delegating the bulk reading to lower-cost workers",
+        "reason": "Correct: the orchestrator strategy fits work that fans out across genuinely independent files, documents or cases, with the frontier model planning and synthesizing."
+      },
+      {
+        "id": "c",
+        "text": "One short policy question answered from a stable handbook → a lead agent fanning out to parallel subagents for accuracy",
+        "reason": "Work that fits in a single context without a long cost tail came out ahead on a single model; fan-out adds coordination and tokens for nothing."
+      },
+      {
+        "id": "d",
+        "text": "Nightly re-tagging of old tickets nobody reads until morning → the Batch API with prompt caching on the shared instructions",
+        "reason": "Correct: route work no one is waiting on through the Batch API, which takes 50% off every token, and turn on prompt caching for the repeated prefix."
+      },
+      {
+        "id": "e",
+        "text": "A schema migration whose steps each depend on the last → split it across parallel workers to finish sooner",
+        "reason": "When the work is one dependent chain, a single model at lower effort came out ahead in every case measured; parallel workers can't run steps that wait on each other."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Fan out only when the work splits into independent parts; batch only when nobody is waiting; everything else is a single agent.",
+    "explanation": "Each pairing turns on one question: does the work split (orchestrator), and is anyone waiting (batch)? Pairing b splits across independent filings and d is unattended, so both fit. Options a and e are tempting because batches are cheap and parallelism is fast, but a user is waiting in a, and e's steps depend on one another.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-orchestrator-workers"
+    ],
+    "lessonId": "l-course-cost-orchestration"
+  },
+  {
+    "id": "q-cp-s4-cost-handbook-lookup-single-agent",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cost and orchestration",
+    "stem": "An HR assistant answers single-fact questions (holiday allowance, expense limits) from a 40-page handbook that changes once a year. A proposal replaces it with a lead agent on Claude Opus 5.5 that fans out to four research subagents per question. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Adopt it: several agents reading the same handbook in parallel raise accuracy on every question and cut latency",
+        "reason": "Delegation saved money only for routine work with a long cost tail or work larger than one context window; a 40-page handbook is neither."
+      },
+      {
+        "id": "b",
+        "text": "Keep one model answering from the handbook; fan-out pays off when work splits across independent documents",
+        "reason": "Correct: when the work fits in a single context without a long cost tail, the orchestrator's model alone at lower effort came out ahead in every case measured."
+      },
+      {
+        "id": "c",
+        "text": "Adopt it, but run the four subagents on Claude Haiku 5.5 so the whole fan-out costs about the same as a single call",
+        "reason": "Cheaper workers don't remove the orchestrator's planning, dispatch and synthesis; a pairing has to beat a single model's whole curve of score against spend, and here it can't."
+      },
+      {
+        "id": "d",
+        "text": "Keep one agent but move it to Claude Fable 5.1, because the questions deserve the most capable model",
+        "reason": "Fable is for demanding reasoning and long-horizon agentic work, or when evals on Opus at higher effort still fall short; a single-fact lookup isn't that."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A single-fact lookup over a stable corpus is one agent, one model, fetch once; **orchestration** is for work that genuinely fans out.",
+    "explanation": "The deciding detail is that each question is one fact from a corpus that fits in a single context. Multi-model orchestration earns its extra tokens only when work splits across independent documents or exceeds a context window. Option c is tempting because cheap workers sound free, but the pairing still has to beat a single model's cost-versus-score curve, and this workload gives it nothing to win on.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence",
+      "title": "Optimizing for cost and intelligence",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-multi-agent-token-cost",
+      "c-orchestrator-workers"
+    ],
+    "lessonId": "l-course-cost-orchestration"
   }
 ]

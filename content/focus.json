@@ -1,5 +1,66 @@
 [
   {
+    "id": "course-checkpoints",
+    "title": "Course checkpoints",
+    "summary": "Questions shaped like the official course's module quizzes and checkpoints: short scenarios, decision-with-reason choices, trace diagnosis and config assembly. The closest thing to the real item style.",
+    "questionIds": [
+      "q-cp-s1-same-prompt-same-text",
+      "q-cp-s1-model-vs-thinking-levers",
+      "q-cp-s1-examples-when-already-passing",
+      "q-cp-s1-offline-bulk-lowest-cost",
+      "q-cp-s1-predict-history-growth",
+      "q-cp-s1-predict-structure-after-examples",
+      "q-cp-s2-thinking-off-for-bulk-labels",
+      "q-cp-s2-thinking-decisions-two",
+      "q-cp-s2-trace-tool-use-id-mismatch",
+      "q-cp-s2-trace-missing-parallel-result",
+      "q-cp-s2-trace-tool-output-crowding",
+      "q-cp-s2-image-encoding-pairings",
+      "q-cp-s2-batch-workloads-two",
+      "q-cp-s2-scope-drift-technique",
+      "q-cp-s2-human-gate-placement",
+      "q-cp-s2-exit-condition-sentinel",
+      "q-cp-s3-settings-pieces-local-refactor",
+      "q-cp-s3-human-gate-shared-config",
+      "q-cp-s3-hook-script-blank-exit",
+      "q-cp-s3-packaging-procedure-on-demand",
+      "q-cp-s3-plugin-footprint-every-session",
+      "q-cp-s3-api-skill-missing-code-execution",
+      "q-cp-s3-sdk-setting-sources-blank",
+      "q-cp-s3-hosted-agent-skill-no-local-files",
+      "q-cp-s3-skill-md-absolute-path-defect",
+      "q-cp-s3-skill-md-path-fix",
+      "q-cp-s3-transport-scope-laptop-profiler",
+      "q-cp-s3-transport-scope-team-docs-server",
+      "q-cp-s3-scope-prototype-vs-org-wide",
+      "q-cp-s3-trace-ci-401-credential-file",
+      "q-cp-s3-trace-403-insufficient-scope",
+      "q-cp-s3-identity-people-vs-nightly-job",
+      "q-cp-s4-grader-open-ended-judge",
+      "q-cp-s4-grader-code-output-check",
+      "q-cp-s4-eval-case-expected-behavior",
+      "q-cp-s4-judge-top-band",
+      "q-cp-s4-trace-handoff-integration",
+      "q-cp-s4-trace-model-step-origin",
+      "q-cp-s4-trace-429-retry-after",
+      "q-cp-s4-529-not-your-limit",
+      "q-cp-s4-refusal-stored-as-output",
+      "q-cp-s4-model-volume-haiku",
+      "q-cp-s4-model-costly-errors-opus",
+      "q-cp-s4-model-mixed-traffic-route",
+      "q-cp-s4-cost-task-pairings",
+      "q-cp-s4-cost-handbook-lookup-single-agent",
+      "q-cp-s4-defense-overbroad-access",
+      "q-cp-s5-team-plugin-release-readiness",
+      "q-cp-s5-channel-readiness-pairings",
+      "q-cp-s5-requirement-functional-vs-infra",
+      "q-cp-s5-phase-instrument-operate",
+      "q-cp-s5-bedrock-identity-residency",
+      "q-cp-s5-comparison-trace-residency",
+      "q-cp-s5-boundary-blanks"
+    ]
+  },
+  {
     "id": "structured-outputs",
     "title": "Structured outputs and their failures",
     "summary": "How structured outputs work, how to validate what comes back, when they're the wrong tool, and how a bad result spreads downstream. People often underestimate this one.",
@@ -36,7 +97,8 @@
       "q-cc-print-json",
       "q-code-so-optional-field",
       "q-code-so-truncated-unhandled",
-      "q-code-so-cap-in-description"
+      "q-code-so-cap-in-description",
+      "q-cp-s2-scope-drift-technique"
     ]
   },
   {
@@ -67,7 +129,9 @@
       "q-cc-stream-json-tokens",
       "q-code-headless-python-returncode",
       "q-code-headless-untrusted-pr-config",
-      "q-code-headless-dontask-no-edit"
+      "q-code-headless-dontask-no-edit",
+      "q-cp-s3-trace-ci-401-credential-file",
+      "q-cp-s3-identity-people-vs-nightly-job"
     ]
   },
   {
@@ -120,7 +184,15 @@
       "q-code-connection-error-uncaught",
       "q-code-fetch-unchecked-status",
       "q-code-stream-cutoff-partial",
-      "q-code-batch-errored-resubmit-all"
+      "q-code-batch-errored-resubmit-all",
+      "q-cp-s1-predict-history-growth",
+      "q-cp-s2-trace-tool-use-id-mismatch",
+      "q-cp-s2-trace-missing-parallel-result",
+      "q-cp-s3-trace-ci-401-credential-file",
+      "q-cp-s3-trace-403-insufficient-scope",
+      "q-cp-s4-trace-429-retry-after",
+      "q-cp-s4-529-not-your-limit",
+      "q-cp-s4-refusal-stored-as-output"
     ]
   },
   {
@@ -160,7 +232,12 @@
       "q-s4cost-multi-agent-tradeoffs",
       "q-s4cost-dependent-steps-no-fanout",
       "q-s4cost-parallel-subagents-latency",
-      "q-s4cost-cap-subagent-tree"
+      "q-s4cost-cap-subagent-tree",
+      "q-cp-s2-human-gate-placement",
+      "q-cp-s2-exit-condition-sentinel",
+      "q-cp-s4-model-mixed-traffic-route",
+      "q-cp-s4-cost-task-pairings",
+      "q-cp-s4-cost-handbook-lookup-single-agent"
     ]
   },
   {
@@ -187,7 +264,12 @@
       "q-focus-skmcp-skill-without-access",
       "q-focus-skmcp-which-need-mcp",
       "q-focus-skmcp-overloaded-setup",
-      "q-focus-skmcp-incident-three-parts"
+      "q-focus-skmcp-incident-three-parts",
+      "q-cp-s3-packaging-procedure-on-demand",
+      "q-cp-s3-api-skill-missing-code-execution",
+      "q-cp-s3-skill-md-absolute-path-defect",
+      "q-cp-s3-skill-md-path-fix",
+      "q-cp-s3-hosted-agent-skill-no-local-files"
     ]
   },
   {
@@ -223,7 +305,10 @@
       "q-focus-mcptr-local-http-guard",
       "q-focus-mcptr-stdio-lifetime",
       "q-code-mcp-json-two-entries",
-      "q-code-mcp-stdio-print-breaks"
+      "q-code-mcp-stdio-print-breaks",
+      "q-cp-s3-transport-scope-laptop-profiler",
+      "q-cp-s3-transport-scope-team-docs-server",
+      "q-cp-s3-scope-prototype-vs-org-wide"
     ]
   },
   {
@@ -271,7 +356,11 @@
       "q-code-loop-separate-result-messages",
       "q-code-loop-skipped-failed-call",
       "q-code-loop-fill-results-line",
-      "q-code-tool-choice-forced-first-block"
+      "q-code-tool-choice-forced-first-block",
+      "q-cp-s2-thinking-decisions-two",
+      "q-cp-s2-trace-tool-use-id-mismatch",
+      "q-cp-s2-trace-missing-parallel-result",
+      "q-cp-s2-exit-condition-sentinel"
     ]
   },
   {
@@ -306,7 +395,12 @@
       "q-focus-model-orchestrator-fit",
       "q-focus-model-advisor-escalation",
       "q-focus-scq-live-feature-plan",
-      "q-code-model-router-swapped"
+      "q-code-model-router-swapped",
+      "q-cp-s1-model-vs-thinking-levers",
+      "q-cp-s4-model-volume-haiku",
+      "q-cp-s4-model-costly-errors-opus",
+      "q-cp-s4-model-mixed-traffic-route",
+      "q-cp-s4-cost-handbook-lookup-single-agent"
     ]
   },
   {
@@ -351,7 +445,14 @@
       "q-focus-scq-caching-vs-smaller-model",
       "q-focus-scq-live-feature-plan",
       "q-batch-cost-calculation",
-      "q-batch-custom-id-rules"
+      "q-batch-custom-id-rules",
+      "q-cp-s1-examples-when-already-passing",
+      "q-cp-s2-thinking-off-for-bulk-labels",
+      "q-cp-s2-image-encoding-pairings",
+      "q-cp-s4-model-volume-haiku",
+      "q-cp-s4-model-mixed-traffic-route",
+      "q-cp-s4-cost-task-pairings",
+      "q-cp-s4-cost-handbook-lookup-single-agent"
     ]
   },
   {
@@ -408,7 +509,10 @@
       "q-code-stream-delta-types",
       "q-code-stream-save-on-block-stop",
       "q-code-batch-zip-results",
-      "q-code-batch-errored-resubmit-all"
+      "q-code-batch-errored-resubmit-all",
+      "q-cp-s1-offline-bulk-lowest-cost",
+      "q-cp-s2-batch-workloads-two",
+      "q-cp-s4-cost-task-pairings"
     ]
   },
   {
@@ -443,7 +547,8 @@
       "q-code-hook-log-and-block-both-run",
       "q-code-hook-matcher-misses-edit",
       "q-code-hook-json-deny-exit-0",
-      "q-code-hook-formatter-wrong-event"
+      "q-code-hook-formatter-wrong-event",
+      "q-cp-s3-hook-script-blank-exit"
     ]
   },
   {
@@ -477,7 +582,8 @@
       "q-focus-sdk-input-mode-by-deployment",
       "q-code-sdk-result-subtype-check",
       "q-code-sdk-tools-vs-allowed-tools",
-      "q-code-sdk-two-queries-no-memory"
+      "q-code-sdk-two-queries-no-memory",
+      "q-cp-s3-sdk-setting-sources-blank"
     ]
   }
 ]

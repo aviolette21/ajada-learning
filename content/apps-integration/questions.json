@@ -10092,5 +10092,427 @@
       "c-stream-error-recovery"
     ],
     "lessonId": "l-swe-foundations"
+  },
+  {
+    "id": "q-cp-s1-offline-bulk-lowest-cost",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Message Batches",
+    "stem": "A compliance team must classify a backlog of 90,000 archived chat transcripts by the end of the month. Nobody is waiting on any individual result, and the lowest possible cost matters most. Which request shape fits?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A synchronous loop over the Messages API, one transcript per call, spread across several worker machines",
+        "reason": "This pays the standard price for responses nobody needs immediately. The Batches API is described as \"well-suited to tasks that do not require immediate responses\" at a 50% discount."
+      },
+      {
+        "id": "b",
+        "text": "Streaming requests, so each classification starts arriving as soon as possible",
+        "reason": "Streaming is about delivering a reply to someone waiting; the page's cost-saving option for work that doesn't need immediate responses is the batch, not the delivery mode."
+      },
+      {
+        "id": "c",
+        "text": "A model with a larger context window, so many transcripts fit into each request",
+        "reason": "Window size changes how much one request can hold, not the per-token price. In a batch, each request is \"handled independently\" and all usage is charged at 50% of standard prices."
+      },
+      {
+        "id": "d",
+        "text": "A Message Batch holding all 90,000 requests, polled until processing has ended and results are ready",
+        "reason": "Correct: a batch is processed asynchronously at 50% of standard prices, \"with most batches finishing in less than 1 hour\" and results available once processing has ended, within 24 hours."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Bulk work that nobody waits on belongs in a Message Batch: half price, asynchronous, results by polling.",
+    "explanation": "The rule is to match the API to the workload: when immediate responses aren't required and cost matters, the Message Batches API processes requests asynchronously at a 50% discount, and you poll for results. The deciding details are \"nobody is waiting\" and \"lowest possible cost\". Option a is the trap: a loop of synchronous calls finishes the job but pays full price for an immediacy nobody uses.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The batch path: submit, poll, then read results when processing has ended.",
+      "steps": [
+        {
+          "label": "Create batch",
+          "sublabel": "up to 100k requests"
+        },
+        {
+          "label": "Poll status",
+          "sublabel": "in_progress"
+        },
+        {
+          "label": "ended",
+          "sublabel": "most within 1 hour"
+        },
+        {
+          "label": "Fetch results"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-message-batches",
+      "c-batch-vs-realtime"
+    ],
+    "lessonId": "l-course-api-substrate"
+  },
+  {
+    "id": "q-cp-s4-grader-open-ended-judge",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval grading methods",
+    "stem": "Your eval checks whether the model's rewrite of a dense policy paragraph is clear and keeps every obligation. Two good rewrites can be worded very differently. Which grader fits this check?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Exact match against one reference rewrite, because it's the cheapest and most reproducible grader",
+        "reason": "Exact match is brittle to valid variations: a correct rewrite worded differently from the reference fails, so the eval punishes good answers."
+      },
+      {
+        "id": "b",
+        "text": "An LLM judge with a clear rubric, calibrated against expert human grades, because the check needs judgment",
+        "reason": "Correct: open-ended quality calls for an LLM judge, used where necessary or for flexibility, with a clear rubric and verdicts calibrated against human experts."
+      },
+      {
+        "id": "c",
+        "text": "A code check that the rewrite parses and has the expected length, because code graders are fast, cheap and reproducible",
+        "reason": "A code check is fast and reproducible but lacks nuance: it can't tell whether the rewrite is clear or kept every obligation."
+      },
+      {
+        "id": "d",
+        "text": "Human grading of every case, because only people can judge clarity",
+        "reason": "Human grading is expensive, slow and needs experts at scale; once a judge is calibrated, occasional human review is enough."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Open-ended quality gets an **LLM judge** with a rubric and human calibration; exact match and code checks only grade what a rule can state.",
+    "explanation": "The deciding detail is that two good rewrites can differ in wording and the check is about clarity and completeness, which is a judgment call. Deterministic graders are preferred where possible, but they only grade what a rule can state. Option a is tempting because it's cheap and reproducible, yet it fails any valid rewrite that doesn't match the reference.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-cp-s4-grader-code-output-check",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval grading methods",
+    "stem": "An eval case asks the model to write a Python function from a short spec, and the team has test cases for it. One grader must decide pass or fail for each run. Which grader fits, and what does it leave unchecked?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "An LLM judge that reads the code and rates it correct, because it can reason about the author's intent; it leaves nothing unchecked",
+        "reason": "Model graders are non-deterministic, cost more than code and need calibration with human graders; a judge reading code isn't a check that it runs."
+      },
+      {
+        "id": "b",
+        "text": "Exact match against one reference implementation, because it's cheap and reproducible; it leaves style unchecked",
+        "reason": "Exact match is brittle to valid variations: a different but correct implementation fails, so the grader punishes working code."
+      },
+      {
+        "id": "c",
+        "text": "Human review of every function, because people catch subtle bugs; it leaves grading speed unchecked",
+        "reason": "Human graders are expensive and slow and need experts at scale; use them to calibrate, not to grade every run."
+      },
+      {
+        "id": "d",
+        "text": "Running the test cases against the function in code, because it's fast and objective; it leaves readability unchecked",
+        "reason": "Correct: a code-based grader is fast, cheap, objective and reproducible, and is the first choice wherever a deterministic check exists. It lacks nuance, so readability stays ungraded."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Structured or code output gets a **code-graded** check: fast and objective, but silent on qualities a rule can't state.",
+    "explanation": "Pick the grader by the shape of the output. A function with test cases has a deterministic pass or fail, so code grading is the recommended choice, and its known weakness is nuance such as readability. Option a is tempting because a judge can read intent, but it is non-deterministic and needs calibration, and it claims to leave nothing unchecked, which no grader does.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-cp-s4-eval-case-expected-behavior",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Eval case design",
+    "stem": "You're completing an eval case for a feature that drafts release notes from a sprint's pull requests. A judge will grade each run against `expected_behavior`. Which value makes the case gradable?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"id\": \"release-notes-07\",\n  \"input\": {\n    \"merged_prs\": [\n      \"#412 Add CSV export\",\n      \"#415 Fix timezone bug in reports\",\n      \"#418 Rename settings page\"\n    ],\n    \"reverted_prs\": [\"#416 Dark mode\"]\n  },\n  \"expected_behavior\": \"____\"\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "\"The notes read well and sound professional\"",
+        "reason": "A vague rubric produces inconsistent judgments: two judges, or two runs of one judge, can disagree about what reads well."
+      },
+      {
+        "id": "b",
+        "text": "\"The model calls `list_prs` before it writes anything\"",
+        "reason": "That grades the path, not the result; agents find valid approaches designers didn't anticipate, so grade what was produced."
+      },
+      {
+        "id": "c",
+        "text": "\"Notes mention all three merged changes and leave out the reverted dark-mode PR\"",
+        "reason": "Correct: it states the required content and the exclusion, so the judge checks the output against something concrete, and any valid wording passes."
+      },
+      {
+        "id": "d",
+        "text": "\"Notes equal: 'This sprint adds CSV export, fixes a timezone bug and renames the settings page.'\"",
+        "reason": "Requiring exact text is brittle to valid variations: a complete, faithful note worded differently would fail."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "An `expected_behavior` names what the output must contain and omit, not how it should sound or which path produced it.",
+    "explanation": "A case is gradable when its expected behavior is specific about the outcome. The input holds three merged PRs and one reverted one, so the behavior to check is that all three appear and the reverted one doesn't. Option d is tempting because it is precise, but precision about wording is brittleness: a correct note phrased differently fails.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+      "title": "Demystifying evals for AI agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-set"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-cp-s4-judge-top-band",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "LLM-as-judge rubric",
+    "stem": "You're finishing the rubric for an LLM judge that scores incident summaries from 1 to 5. Which description belongs in the top band so the judge's scores mean something?",
+    "snippet": {
+      "language": "yaml",
+      "code": "judge_rubric:\n  task: summarize an incident report\n  required_content:\n    - root cause\n    - customer impact\n    - owner of each follow-up\n  score_bands:\n    \"1-2\": a required item is missing\n    \"3-4\": all items present, but something\n           is added or garbled\n    \"5\": ____\n  output: a number only"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "all three required items, with nothing invented beyond the report",
+        "reason": "Correct: a detailed, clear rubric states what earns each score; the top band is the summary that covers every required item and invents nothing."
+      },
+      {
+        "id": "b",
+        "text": "the most detailed summary in the batch, judged by how many sentences it contains",
+        "reason": "Length is not a rubric criterion; a rubric names the required content, and padding a summary doesn't make it complete or faithful."
+      },
+      {
+        "id": "c",
+        "text": "identical, word for word, to the reference summary a human reviewer wrote earlier",
+        "reason": "Word-for-word equality is an exact-match check, which suits clear-cut categorical answers; a summary can be complete and faithful in different words."
+      },
+      {
+        "id": "d",
+        "text": "generated faster than the other summaries in the batch",
+        "reason": "Speed isn't what this rubric scores; the bands describe the content of the response, and the output is a number for that content."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Score bands describe **content**: missing, partial, complete and faithful. Length, speed and exact wording are not what a judge grades.",
+    "explanation": "LLM grading works when the rubric is detailed and the scale is specific, so each band says what the output must contain. The top band is the summary that covers all required items and stays faithful to the report. Option c is tempting because it is unambiguous, but exact match suits clear-cut categorical answers, not open-ended summaries.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/develop-tests",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-eval-grading-methods"
+    ],
+    "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-cp-s5-requirement-functional-vs-infra",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Functional requirements",
+    "stem": "A utility in Canada wants Claude to summarize outage-report calls. Each summary must be approved by a dispatcher before it's logged, regulators require call data to stay in Canada, and summaries should be ready within a minute. Which item is the **functional** requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call audio and transcripts are stored and processed only in Canadian regions",
+        "reason": "Where data may be processed is a constraint on the infrastructure, not a statement of the task the application performs; such requirements shape design and technology choices."
+      },
+      {
+        "id": "b",
+        "text": "A dispatcher signs off on each generated summary before it enters the outage log",
+        "reason": "Correct: functional requirements determine whether an application performs its task; producing a summary and routing it through sign-off is the task."
+      },
+      {
+        "id": "c",
+        "text": "A summary is ready within a minute of the call ending",
+        "reason": "A time target is a nonfunctional requirement: it determines how well the application performs, like latency, availability and scalability."
+      },
+      {
+        "id": "d",
+        "text": "The model is called through the utility's existing cloud account rather than a new vendor key",
+        "reason": "How the model is reached is a technology decision that requirements influence; it isn't a statement of what the system must do."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "**Functional** = what the app must do; latency and residency say how well, and where, it must do it.",
+    "explanation": "Sort each statement by the question it answers. Only one describes the task the system performs: summarize, then get sign-off before logging. Residency and the time target describe where and how well, and the account choice is a decision those requirements drive. Option c is tempting because it is specific and testable, but specificity doesn't make a quality attribute functional.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/guide/design-principles/build-for-business",
+      "title": "Build for business needs",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-success-criteria"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-cp-s5-phase-instrument-operate",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Lifecycle phases",
+    "stem": "Your Claude support app is live. The team starts recording tokens, latency and error rate for every call, and pages someone when any of them drifts. In the application lifecycle, which phase does this work belong to?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Operate, because it's monitoring and troubleshooting the app in production",
+        "reason": "Correct: the operations phase is maintaining, monitoring and troubleshooting applications in production, which needs rich telemetry and actionable alerting."
+      },
+      {
+        "id": "b",
+        "text": "Requirements, because the team is deciding which metrics and thresholds matter",
+        "reason": "Planning is where teams define and describe the features and capabilities to build; this work instruments a system that already runs."
+      },
+      {
+        "id": "c",
+        "text": "Test, because the metrics check the running app against its quality targets",
+        "reason": "Writing, testing, reviewing and integrating code belong to the development phase; production telemetry watches the system after release."
+      },
+      {
+        "id": "d",
+        "text": "Deploy, because telemetry is configured as part of pushing the release out",
+        "reason": "Delivery is deploying applications into production through release gates and approval stages; what the app reports once it runs there is operations."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Telemetry, alerts and troubleshooting on the live system are **Operate**; what they reveal feeds the next round of requirements.",
+    "explanation": "The deciding detail is 'live': the app is in production and the work is watching it. That is the operations phase by definition. Option d is tempting because the instrumentation is set up around a release, but delivery ends when the release is out; monitoring what it does afterwards is operations.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://learn.microsoft.com/en-us/devops/what-is-devops",
+      "title": "What is DevOps?",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-sdk-otel"
+    ],
+    "lessonId": "l-course-requirements-lifecycle"
+  },
+  {
+    "id": "q-cp-s5-bedrock-identity-residency",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Deployment platforms",
+    "stem": "A German retailer runs on AWS and will call Claude in Amazon Bedrock. Its rules: no Anthropic Console keys in the service, and inference must stay in the EU. Which two configuration choices satisfy them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "A Claude Console API key (`sk-ant-…`) stored in AWS Secrets Manager",
+        "reason": "Bedrock authenticates with AWS credentials: a service role, an IAM assumed role or a short-term bearer token; a Claude Console key isn't one of its paths."
+      },
+      {
+        "id": "b",
+        "text": "`AnthropicBedrockMantle(aws_region=\"eu-central-1\")` with an IAM role scoped to the Claude models",
+        "reason": "Correct: the SDK's Bedrock client signs requests with AWS credentials resolved through the standard chain, and an IAM role scoped to the allowed model ARNs is the identity-federated path."
+      },
+      {
+        "id": "c",
+        "text": "The global endpoint, for maximum availability across regions",
+        "reason": "The global endpoint routes dynamically across all available regions, so EU-only residency isn't guaranteed."
+      },
+      {
+        "id": "d",
+        "text": "A long-lived Bedrock bearer token checked into the deployment config",
+        "reason": "Bearer tokens are the least preferred path, capped at 12 hours and meant for short-term access; a long-lived token in config is the opposite of what the page recommends."
+      },
+      {
+        "id": "e",
+        "text": "An EU regional endpoint or EU inference profile, accepting the regional pricing premium",
+        "reason": "Correct: a regional endpoint resolves to the single region you specify, for data-residency requirements, and an inference profile routes within a geography such as the EU; regional carries a 10% premium."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "On Bedrock, identity is **AWS IAM** and residency is the **endpoint**: regional or an in-geography profile, never the global route.",
+    "explanation": "Each rule maps to one setting. 'No Console keys' points at AWS-native identity, which the Bedrock client provides through IAM. 'Stay in the EU' points at where the endpoint routes, which only a regional endpoint or an EU inference profile guarantees. Option c is tempting because availability sounds safe, but global routing is exactly what residency forbids.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-anthropic-api-key-env",
+      "c-api-key-types"
+    ],
+    "lessonId": "l-course-deployment-versioning"
+  },
+  {
+    "id": "q-cp-s5-comparison-trace-residency",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Platform comparison",
+    "stem": "Compliance rejected your platform comparison. What should change before you resubmit?",
+    "snippet": {
+      "language": "text",
+      "code": "PLATFORM COMPARISON  claims-summary  v1\ncandidate:   Bedrock, global endpoint\nchosen by:   team already uses it\nlatency:     p50 240 ms time to first token\nmeasured:    dev laptop, Berlin\nprompts:     \"hello\" x 20\ncustomer:    users + data in Japan\ncompliance:  data processed in Japan only\nresidency:   global routing (any region)\n\nREVIEW: REJECTED\nreason: inference may run outside Japan"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to a smaller model to bring the 240 ms down further, then resubmit the comparison with the lower number",
+        "reason": "A smaller model changes cost and speed, not where inference runs; the rejection is about residency, which no latency number answers."
+      },
+      {
+        "id": "b",
+        "text": "Report end-to-end time measured with realistic prompts instead of time to first token on \"hello\"",
+        "reason": "Better measurement is needed, but it is the second fix: the comparison failed on data location, and a different timing metric doesn't move the data."
+      },
+      {
+        "id": "c",
+        "text": "Keep the global endpoint and add a note that Japanese regions are among those its dynamic routing can use",
+        "reason": "The global endpoint routes dynamically across all available regions for availability; including Japan doesn't exclude the others."
+      },
+      {
+        "id": "d",
+        "text": "Choose a Japan regional endpoint or JP inference profile, then re-measure from Japan with real prompts",
+        "reason": "Correct: a regional endpoint resolves to the single region you specify, for data-residency requirements, and a JP inference profile routes within Japan. A new endpoint also invalidates a figure measured elsewhere."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Compliance decides first: fix the dimension the review failed on (**residency**), then re-measure latency where the customer actually is.",
+    "explanation": "The trace shows two problems, and the review named the fatal one: global routing can process data outside Japan. Residency is a hard constraint, so the platform setting changes first, and the latency figure, measured from another continent with toy prompts, must be redone from the customer's region. Options a and b are tempting because they improve a number, but no number satisfies a residency rule.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock",
+      "title": "Claude in Amazon Bedrock (Opus 4.7 and later)",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-latency-levers",
+      "c-ttft"
+    ],
+    "lessonId": "l-course-platform-comparison"
   }
 ]

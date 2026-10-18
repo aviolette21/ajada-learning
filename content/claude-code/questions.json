@@ -2227,5 +2227,116 @@
       "c-hook-workspace-trust"
     ],
     "lessonId": "l-cc-operation"
+  },
+  {
+    "id": "q-cp-s3-settings-pieces-local-refactor",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission rules",
+    "stem": "You're setting up `.claude/settings.json` for a refactor on your own machine. Requirements: file edits in the repo apply without a prompt; `curl` and `git push` never run; the file `secrets/live.env` is never read. Which two pieces belong in the settings?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`\"permissions\": {\"defaultMode\": \"acceptEdits\"}`",
+        "reason": "Correct: `acceptEdits` automatically accepts file edits and common filesystem commands for paths in the working directory, which is the \"edits without a prompt\" requirement."
+      },
+      {
+        "id": "b",
+        "text": "`\"deny\": [\"Bash(curl *)\", \"Bash(git push *)\", \"Read(./secrets/live.env)\"]`",
+        "reason": "Correct: rules are evaluated deny first, and an allow rule can't carve an exception out of a deny. A `Read(./path)` deny rule is how you stop Claude's file tools reading a file."
+      },
+      {
+        "id": "c",
+        "text": "`\"permissions\": {\"defaultMode\": \"bypassPermissions\"}`",
+        "reason": "`bypassPermissions` skips permission prompts, including for writes to protected paths. The docs say to use it only in isolated environments such as containers or VMs, not on your own machine."
+      },
+      {
+        "id": "d",
+        "text": "`\"allow\": [\"Bash(*)\", \"Edit(*)\"]`",
+        "reason": "`Bash(*)` approves every shell command, `curl` and `git push` included. Allow rules widen what runs without asking; only a deny rule keeps a command from ever running."
+      },
+      {
+        "id": "e",
+        "text": "`\"permissions\": {\"defaultMode\": \"plan\"}`",
+        "reason": "Plan mode has Claude research and propose changes without making them, so no edit would apply at all, prompt or no prompt."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Auto-approve the routine work with `acceptEdits`; forbid the dangerous commands and the secret file with `deny` rules, which win over any allow.",
+    "explanation": "Two different needs, two different mechanisms. Edits without prompts come from the mode: `acceptEdits` accepts file edits in the working directory. The hard limits come from `deny` rules, which are checked first and can't be overridden by an allow. Choice d is tempting as the \"no interruptions\" option, but a broad allow also approves `curl` and `git push`, and choice c removes every safeguard.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-read-deny-rule",
+      "c-cc-settings-scopes"
+    ],
+    "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-cp-s3-human-gate-shared-config",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Human gates",
+    "stem": "During a refactor, Claude Code proposes editing `gateway/limits.toml`, the file the payments gateway loads on every deploy. The session's other edits are routine. Where should a human gate sit for that one action?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nowhere: run the whole session in `acceptEdits`, since the other edits are routine and prompts would only slow the refactor",
+        "reason": "`acceptEdits` auto-approves file edits in the working directory. The docs pair it with iterating on code you're reviewing, not with a file a production gateway loads."
+      },
+      {
+        "id": "b",
+        "text": "Before the write: a person approves that one edit, because its value reaches a live system",
+        "reason": "Correct: a permission mode decides which actions run without asking first. Manual mode stops and asks before file edits, which is the gate this edit needs before it lands."
+      },
+      {
+        "id": "c",
+        "text": "At session start: approve the refactor plan once in plan mode, then let every edit in the plan run without further prompts",
+        "reason": "Plan mode is for researching and proposing before changes are made; approving a plan doesn't re-check the one write whose effect leaves the repo, which is where the prompt belongs."
+      },
+      {
+        "id": "d",
+        "text": "After the write, in the next pull request: git can revert the file if the value turns out to be wrong",
+        "reason": "A pull-request review comes after the write has already happened. The gate a permission mode gives you is a prompt before the action, which is what an edit with outside effects needs."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Place the human gate before the action whose worst outcome reaches beyond the repo; the permission prompt is that gate.",
+    "explanation": "A permission mode sets which actions Claude can take without asking first, so the gate it offers is always before the action. The deciding detail is that this file is loaded by a production gateway: a wrong value spreads outside the repository, so a person should approve the write itself (b). Choice d is tempting because reviews catch mistakes, but a review after the write can't stop one that already landed.",
+    "difficulty": "easy",
+    "diagram": {
+      "kind": "flow",
+      "caption": "The gate sits before the write, not after it.",
+      "steps": [
+        {
+          "label": "Claude proposes edit"
+        },
+        {
+          "label": "Person approves"
+        },
+        {
+          "label": "Write executes"
+        },
+        {
+          "label": "Gateway loads the file"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-cc-plan-mode"
+    ],
+    "lessonId": "l-course-permission-modes"
   }
 ]

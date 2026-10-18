@@ -4055,5 +4055,113 @@
       "c-claude-agent-sdk"
     ],
     "lessonId": "l-agent-construction"
+  },
+  {
+    "id": "q-cp-s2-human-gate-placement",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Human checkpoints",
+    "stem": "A release agent reads build logs, edits a config file on a branch, runs the test suite, then pushes to the shared main branch and posts a summary in the team channel. Where should the human gate sit for this run?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Before the push and the post: they're hard to reverse or visible to others; the local edits and test runs can proceed",
+        "reason": "Correct: the guidance encourages \"local, reversible actions like editing files or running tests\"; for actions that \"are hard to reverse, affect shared systems, or could be destructive, ask the user before proceeding\"."
+      },
+      {
+        "id": "b",
+        "text": "Before every tool call, including each file read, since an agent should never take any action without a person confirming it",
+        "reason": "The sample prompt encourages local, reversible actions to proceed. Gating reads and test runs adds no safety and stalls the run."
+      },
+      {
+        "id": "c",
+        "text": "After the push, when the team reviews the change at the next day's stand-up and reverts if needed",
+        "reason": "A review after the fact can't stop a bad push to a shared branch. The guidance places the question before the action that is hard to reverse."
+      },
+      {
+        "id": "d",
+        "text": "Nowhere, provided the system prompt says to be careful: careful phrasing makes confirmation redundant",
+        "reason": "The recommended prompt tells Claude to consider reversibility and impact and then \"ask the user before proceeding\"; being careful is what triggers the gate, not a substitute for it."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Gate the step that's hard to undo or visible to others; let local, reversible steps run.",
+    "explanation": "Human checkpoints are placed by reversibility and blast radius. Editing a file on a branch and running tests are local and reversible; pushing to a shared branch and posting to a channel are visible to others and hard to undo, so the confirmation belongs right before those two actions. Option c is the trap: review after the fact is still worth doing, but it cannot prevent the push.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-pretooluse-hook"
+    ],
+    "lessonId": "l-course-agent-construction"
+  },
+  {
+    "id": "q-cp-s2-exit-condition-sentinel",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Stopping conditions",
+    "stem": "Read the loop design and the observation from a production run. What should change?",
+    "snippet": {
+      "language": "text",
+      "code": "LOOP DESIGN REVIEW  (\"inbox triage\" agent)\ntools: list_threads, read_thread,\n       label_thread, draft_reply\nsystem prompt ends: \"...when every thread\n  is handled, reply with the word DONE\"\nloop:\n  resp = create(messages, tools)\n  append resp; run tool calls; append\n  if \"DONE\" in text(resp): break\nobserved, run #14:\n  212 tool calls over 3 hours\n  Claude re-read the same threads\n  \"DONE\" never appeared"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put DONE in capitals and repeat the instruction three times in the system prompt, so Claude is far more likely to say it",
+        "reason": "Termination would still depend on the model volunteering a phrase, and run #14 shows that can simply not happen."
+      },
+      {
+        "id": "b",
+        "text": "Raise `max_tokens` so Claude can handle more threads per turn and therefore reach DONE in fewer iterations",
+        "reason": "`max_tokens` caps one response's output. It doesn't bound how many times the loop runs."
+      },
+      {
+        "id": "c",
+        "text": "Give the loop its own stopping condition, such as a maximum iteration count, instead of relying on Claude to say DONE",
+        "reason": "Correct: tasks often terminate on completion, \"but it's also common to include stopping conditions (such as a maximum number of iterations) to maintain control\"."
+      },
+      {
+        "id": "d",
+        "text": "Remove `read_thread` so Claude can't loop on re-reading; it can label from the subject lines alone",
+        "reason": "Agents need to \"gain 'ground truth' from the environment at each step\"; taking away the read tool breaks the task rather than bounding the loop."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Exit conditions belong to the loop: a cap the code enforces, not a phrase the model may or may not say.",
+    "explanation": "The only exit in this design is Claude choosing to write a sentinel word, so when it never does, nothing stops the run. Anthropic's guidance is to include stopping conditions the loop itself enforces, such as a maximum number of iterations, so control doesn't rest on the model. Option a is the trap: louder instructions still leave termination to the model's discretion.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "flow",
+      "caption": "A loop that owns its exit checks a cap on every pass, not just for a magic word.",
+      "steps": [
+        {
+          "label": "Send request"
+        },
+        {
+          "label": "Run tool calls"
+        },
+        {
+          "label": "Check exit",
+          "sublabel": "done, or cap reached?"
+        },
+        {
+          "label": "Stop"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-stopping-condition",
+      "c-max-turns-budget"
+    ],
+    "lessonId": "l-course-agent-construction"
   }
 ]

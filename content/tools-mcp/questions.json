@@ -7522,5 +7522,667 @@
       "c-tool-choice"
     ],
     "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-cp-s2-trace-tool-use-id-mismatch",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use bugs",
+    "stem": "An agent that handles product returns fails on its first tool call. Read the trace. Identify the mechanism and choose the targeted fix.",
+    "snippet": {
+      "language": "text",
+      "code": "SESSION TRACE  (returns assistant, turn 3)\nT3 assistant:\n  text: \"Let me look up that return.\"\n  tool_use  id=toolu_01Kp7  name=get_return\n            input={\"rma\":\"R-5520\"}\n[app] get_return -> 180 chars (ok)\nT3 user:\n  tool_result  tool_use_id=toolu_01Kq9\n               content=\"status: received ...\"\n[api] 400 invalid_request_error:\n  tool_result id has no matching tool_use"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The result's `tool_use_id` doesn't match the id Claude issued; set it to `toolu_01Kp7` so the result pairs with its call",
+        "reason": "Correct: `tool_use_id` is \"the id of the tool use request this is a result for\", and the `id` on each `tool_use` block \"will be used to match up the tool results later\"."
+      },
+      {
+        "id": "b",
+        "text": "The tool description doesn't say what it returns; add a return-format sentence so Claude issues the call correctly",
+        "reason": "Claude picked the right tool with a valid input and the tool ran fine. The failure is in how the app formatted the result, not in the tool's description."
+      },
+      {
+        "id": "c",
+        "text": "A `tool_result` must also name the tool; add `name: get_return` to the block so the API can pair it with the call",
+        "reason": "A `tool_result` carries `tool_use_id`, optional `content` and optional `is_error`. There is no `name` field; pairing is done by id alone."
+      },
+      {
+        "id": "d",
+        "text": "The text block before the `tool_use` confused the API; strip text blocks from assistant turns before replaying them in history",
+        "reason": "An assistant turn with a `text` block followed by a `tool_use` block is the documented normal shape; it is not what the 400 is about."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A `tool_result` is paired with its call by `tool_use_id`; copy the `id` from the `tool_use` block Claude returned.",
+    "explanation": "The integration layer, not the model, broke here: the assistant turn issued `toolu_01Kp7`, the app replied with `toolu_01Kq9`, and the API rejected a result that matches no call. The fix is to carry the exact `id` from the `tool_use` block into `tool_use_id`. Options b and c are traps because they fix the schema layer, which worked: Claude chose the right tool with a valid input.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-content-blocks",
+      "c-tool-definition"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-cp-s2-trace-missing-parallel-result",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool-use bugs",
+    "stem": "Claude requested two tools in one turn. One lookup timed out, and the app's loop only returns results for calls that succeeded. Read the trace. What is the mechanism, and what should change?",
+    "snippet": {
+      "language": "text",
+      "code": "SESSION TRACE  (travel agent, turn 2)\nT2 assistant:  stop_reason=tool_use\n  tool_use id=toolu_0A1 name=get_flights\n  tool_use id=toolu_0A2 name=get_hotels\n[app] get_flights -> 1,900 chars\n[app] get_hotels  -> TimeoutError (skipped)\nT2 user:\n  tool_result tool_use_id=toolu_0A1 ...\n[api] 400 invalid_request_error:\n  tool_use ids were found without\n  tool_result blocks immediately after"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "The hotel call ran too long; raise `max_tokens` so Claude has room to wait for both lookups before it continues",
+        "reason": "`max_tokens` caps the length of Claude's output. It has nothing to do with the app's timeout or with the result block that was never sent."
+      },
+      {
+        "id": "b",
+        "text": "Two tool calls in one turn aren't allowed; set `disable_parallel_tool_use` so the loop only ever has to handle one call at a time",
+        "reason": "Several `tool_use` blocks in one response are normal. Serialising them hides the real bug: the next timeout would still leave a call unanswered."
+      },
+      {
+        "id": "c",
+        "text": "Every `tool_use` needs a `tool_result` in that user message; add one for `toolu_0A2` with the error text and `is_error: true`",
+        "reason": "Correct: this error means a `tool_use` had no result; the page's fix for a failing tool is a `tool_result` carrying the error message with `\"is_error\": true`, so Claude can react."
+      },
+      {
+        "id": "d",
+        "text": "Send the hotel result later, in a follow-up user message after Claude's next reply, once the retry succeeds",
+        "reason": "\"Tool result blocks must immediately follow their corresponding tool use blocks\"; no messages may sit between the tool-use turn and its results."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Answer every tool call in the same user message, and report failures with `is_error: true` instead of skipping them.",
+    "explanation": "The loop violated the tool-use contract: both `tool_use` blocks from one assistant turn must be answered in the immediately following user message, and a failed tool is reported, not omitted. Sending a `tool_result` for `toolu_0A2` with the timeout text and `is_error: true` satisfies the API and lets Claude recover. Option b is the trap: disabling parallel calls removes the symptom this time but leaves the same bug for the next failure.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-parallel-tool-use",
+      "c-is-error"
+    ],
+    "lessonId": "l-course-tool-use-loop"
+  },
+  {
+    "id": "q-cp-s3-packaging-procedure-on-demand",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills vs plugins",
+    "stem": "Your team has a 40-step database-migration procedure that's needed a few times a quarter. Claude should pick it up on its own whenever someone asks to migrate a table, and it shouldn't cost context the rest of the time. Which packaging fits, and why?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "CLAUDE.md, because Claude can only follow instructions that are already loaded into every session it starts",
+        "reason": "CLAUDE.md content loads every session. A skill's body loads only when it's used, and its description lets Claude load it automatically when relevant."
+      },
+      {
+        "id": "b",
+        "text": "A plugin, because any procedure that comes with supporting files has to be distributed as a plugin",
+        "reason": "Skills work on their own: a skill directory can hold supporting files, and a project skill in `.claude/skills/` loads for everyone who clones the repo."
+      },
+      {
+        "id": "c",
+        "text": "A skill in `.claude/skills/`: its description says when to use it, and its body loads only when used",
+        "reason": "Correct: Claude uses skills when relevant, deciding from the `description`, and unlike CLAUDE.md the body costs nothing until the skill runs."
+      },
+      {
+        "id": "d",
+        "text": "A skill with `disable-model-invocation: true`, because a long procedure should only ever run when typed by name",
+        "reason": "That setting stops Claude loading the skill on its own, so people would have to type `/migrate` each time. The scenario wants Claude to pick it up when the task matches."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "An occasional procedure Claude should recognise on its own is a skill: a matching `description`, a body that loads on demand.",
+    "explanation": "The decision rule is loading behaviour. A skill's description is what Claude matches a task against, and its body enters context only when used, which fits a long, occasional procedure. Choice d is the tempting near miss: it is also a skill, but `disable-model-invocation: true` is for workflows you trigger manually, and this one should trigger when the task matches.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-plugin-footprint-every-session",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Plugins",
+    "stem": "A platform team wants to enable a plugin with 12 skills, two hooks and an MCP server for every developer. Which two are true of what the enabled plugin adds to each developer's sessions?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "The name and description of each skill Claude can invoke on its own sit in context on every turn, even in sessions that never use the plugin",
+        "reason": "Correct: for each skill, agent and command Claude can invoke on its own, the name and description are in context on every turn, and those tokens count toward usage."
+      },
+      {
+        "id": "b",
+        "text": "The full text of all 12 skills is loaded at session start, so the plugin's context cost is fixed and known up front",
+        "reason": "The full text of a skill or agent loads only when it's used; only names and descriptions are present on every turn."
+      },
+      {
+        "id": "c",
+        "text": "Its MCP server runs alongside every session where the plugin is enabled, and its hooks fire at their events",
+        "reason": "Correct: MCP servers the plugin defines run alongside each session where it's enabled, and its hooks fire at their events, whether or not a skill from the plugin is used."
+      },
+      {
+        "id": "d",
+        "text": "Its hooks fire only in sessions where someone invokes one of the plugin's skills",
+        "reason": "Hooks fire at their lifecycle events in every enabled session; invoking a skill isn't what arms them."
+      },
+      {
+        "id": "e",
+        "text": "What the plugin runs is sandboxed away from the developer's own permissions",
+        "reason": "What a plugin runs, it runs as you, with your user privileges, which is why the docs say to review a plugin's security before installing it."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "An enabled plugin is part of every session: descriptions in context each turn, servers running, hooks armed; only skill bodies wait until used.",
+    "explanation": "The overview separates what a plugin costs every session from what loads on demand. Names and descriptions of invocable skills, agents and commands are in context on every turn (a), and the plugin's MCP servers run and its hooks fire wherever it's enabled (c). Choice b overstates the cost: full skill text loads only when used. Choice e understates the risk: plugin code runs as you.",
+    "difficulty": "medium",
+    "diagram": {
+      "kind": "segmented-bar",
+      "caption": "Per turn, only names and descriptions are in context; bodies load when used.",
+      "segments": [
+        {
+          "label": "Names + descriptions",
+          "sublabel": "every turn",
+          "weight": 1,
+          "tone": "accent"
+        },
+        {
+          "label": "Full skill bodies",
+          "sublabel": "only when used",
+          "weight": 4,
+          "tone": "neutral"
+        }
+      ]
+    },
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/overview",
+      "title": "Plugins overview",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust",
+      "c-skill-progressive-disclosure"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-api-skill-missing-code-execution",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in the API",
+    "stem": "Your team uploaded a custom reporting skill and sends this Messages API request. A reviewer says the skill can't run as written. What's missing?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-sonnet-5-5\",\n  \"max_tokens\": 8000,\n  \"container\": {\n    \"skills\": [{\n      \"type\": \"custom\",\n      \"skill_id\": \"skill_01Hq7VarianceReport\",\n      \"version\": \"latest\"\n    }]\n  },\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"Build the Q3 variance workbook.\"\n  }]\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "A `settingSources` entry so the API discovers the skill from the project's `.claude/skills/` folder",
+        "reason": "`settingSources` is an Agent SDK option for loading filesystem settings; the Messages API reads no folders on your machine. The skill is already uploaded and named by `skill_id`."
+      },
+      {
+        "id": "b",
+        "text": "A `SKILL.md` upload through the Files API, attached with a container upload block",
+        "reason": "Files API uploads are input files for a skill to work on. The skill itself is uploaded through the Skills API, which this team already did; the `skill_id` proves it."
+      },
+      {
+        "id": "c",
+        "text": "The skill's instructions copied into `system`, since the container only holds its scripts",
+        "reason": "Claude loads a skill's full instructions only when needed, from the skill files copied into the container; pasting them into `system` isn't part of the integration."
+      },
+      {
+        "id": "d",
+        "text": "The code execution tool in `tools`, because Skills run in its container and require it",
+        "reason": "Correct: Skills integrate with the Messages API through the code execution tool, which is required; pre-built and custom skills both use the same `container` structure alongside it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "On the API a skill is `container.skills` plus the code execution tool; it is uploaded once, not pasted into `system` or read from disk.",
+    "explanation": "Skills on the API run inside the code execution container, so the request must enable the code execution tool as well as naming the skill in `container.skills`. The snippet has the container entry but no `tools` array, which is the defect (d). Choice a is the wrong layer: `settingSources` is how the Agent SDK finds skills on disk. Choice b confuses the Files API (input files) with the Skills API (the skill itself).",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/skills-guide",
+      "title": "Using Agent Skills with the API",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-sdk-setting-sources-blank",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in the Agent SDK",
+    "stem": "A scheduled job runs this Agent SDK query on a CI runner, inside a checkout of the repo whose `.claude/skills/nightly-triage/SKILL.md` holds the procedure. The runner's service account has no skills of its own. Which value fills the blank so the skill is discovered?",
+    "snippet": {
+      "language": "typescript",
+      "code": "for await (const msg of query({\n  prompt: \"/nightly-triage\",\n  options: {\n    cwd: \"/srv/checkout\",\n    settingSources: [\"____\"],\n    skills: \"all\",\n    allowedTools: [\"Read\", \"Grep\"]\n  }\n})) {\n  if (msg.type === \"result\") console.log(msg);\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "`\"user\"`",
+        "reason": "`user` loads the `~/.claude/` of the account running the job, which holds no skills here. The repo's skills are project skills."
+      },
+      {
+        "id": "b",
+        "text": "`\"project\"`",
+        "reason": "Correct: project skills live in `<cwd>/.claude/skills/`, and the SDK loads them only when `settingSources` includes `'project'`. Set explicitly without it, the SDK doesn't load them."
+      },
+      {
+        "id": "c",
+        "text": "`\"local\"`",
+        "reason": "Skills are discovered through the `user` and `project` setting sources; `local` isn't one of the sources skills come from."
+      },
+      {
+        "id": "d",
+        "text": "`\"all\"`",
+        "reason": "`\"all\"` is a value of the `skills` option, which decides which already-discovered skills Claude may invoke. It isn't a setting source and discovers nothing by itself."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "In the SDK, a repo's skills come through the `project` setting source; an explicit `settingSources` list that omits it loads none of them.",
+    "explanation": "The SDK discovers skills through filesystem setting sources: `user` for `~/.claude/skills/` and `project` for `.claude/skills/` under the working directory. The skill in this job is in the checkout, so `project` is the source that finds it (b). Choice d mixes up two options: `skills: \"all\"` only controls which already-discovered skills Claude can invoke; it discovers nothing by itself.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/skills",
+      "title": "Extend agents with skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-claude-agent-sdk",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-hosted-agent-skill-no-local-files",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills in Managed Agents",
+    "stem": "A release-notes skill works in a developer's Claude Code sessions; its step 2 runs a script from `~/tools/` on his laptop. You're attaching the skill to a Claude Managed Agent, which Anthropic hosts and your services reach by agent ID. What must change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: when a session starts, the hosted agent reads the attached skill and its script from the developer's machine",
+        "reason": "Custom skills are uploaded to the workspace as a directory holding `SKILL.md` plus supporting files and attached by `skill_id`; a hosted session never sees a developer's machine."
+      },
+      {
+        "id": "b",
+        "text": "Add the laptop's `~/tools/` path to the agent's allowed directories so the sandbox can reach the script",
+        "reason": "The sandbox is Anthropic-hosted; there is no laptop path to allow. Supporting files travel inside the uploaded skill or in a repository mounted on the session."
+      },
+      {
+        "id": "c",
+        "text": "Rewrite step 2 to use a script bundled in the uploaded skill, because the hosted sandbox can't see his laptop",
+        "reason": "Correct: a custom skill is a directory containing `SKILL.md` plus any supporting files, uploaded to your workspace; the agent reads the skill, including any scripts it ships, inside the session's sandbox."
+      },
+      {
+        "id": "d",
+        "text": "Replace the skill with a `.claude/commands/` file, since hosted agents run commands but can't load skills",
+        "reason": "Managed Agents take skills, attached by `skill_id` or discovered in a mounted repository's `.claude/skills`; the fix is to make the skill self-contained, not to change its format."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A skill for a hosted agent must carry everything it needs: scripts and resources ship inside the skill, never on someone's machine.",
+    "explanation": "The decision rule is where the skill actually runs. A Managed Agent runs in an Anthropic-hosted sandbox, so a step that reaches for a file on a developer's laptop has nothing to find; the script has to travel inside the uploaded skill bundle (or a mounted repository). Choice b is the trap: it treats the sandbox like a local process whose filesystem you can widen, but there is no path from the hosted session to the laptop.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/skills",
+      "title": "Skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-managed-agents",
+      "c-agent-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-skill-md-absolute-path-defect",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Portable skills",
+    "stem": "A teammate wrote this project skill. It works on her machine and fails for everyone else who runs it. Which part is the defect?",
+    "snippet": {
+      "language": "text",
+      "code": ".claude/skills/link-check/SKILL.md\n---\nname: link-check\ndescription: Find broken links before a release.\n---\n1. Build the docs site with `npm run build`.\n2. Run the checker:\n   python /home/priya/docs-site/tools/links.py\n3. Fix each broken link it reports.\n4. Summarize what changed for the user."
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Step 2 runs the script by an absolute path under one person's home directory",
+        "reason": "Correct: `/home/priya/...` exists only on her machine. The docs provide `${CLAUDE_PROJECT_DIR}` and `${CLAUDE_SKILL_DIR}` so a skill can reference scripts independent of where it's installed."
+      },
+      {
+        "id": "b",
+        "text": "The skill is under `.claude/skills/` instead of `.claude/commands/`, so `/link-check` is never created",
+        "reason": "Both locations create `/link-check` and work the same way; custom commands were merged into skills."
+      },
+      {
+        "id": "c",
+        "text": "The frontmatter lacks `disable-model-invocation`, so Claude can't load the skill on its own",
+        "reason": "That field defaults to `false`: Claude loads a skill automatically when its description matches. Setting it to `true` would make the skill manual-only."
+      },
+      {
+        "id": "d",
+        "text": "The description says when to use the skill, which belongs in the body instead",
+        "reason": "The description is meant to say what the skill does and when to use it; that's what Claude matches a task against."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A skill that only works on its author's machine usually hard-codes a path; reference scripts through `${CLAUDE_PROJECT_DIR}` or `${CLAUDE_SKILL_DIR}`.",
+    "explanation": "The symptom, works for the author and fails for everyone else, points at something machine-specific, and the only such thing here is the absolute path in step 2 (a). The other parts follow the docs: skills in `.claude/skills/` create the command, Claude may invoke a skill unless `disable-model-invocation` is set, and the description should include when to use it. Choice c inverts what that field does.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-skill-md-path-fix",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Portable skills",
+    "stem": "You've found the defect in the `link-check` skill: step 2 runs `python /home/priya/docs-site/tools/links.py`. The script is committed in the repo at `tools/links.py`, outside the skill folder. Which rewrite fixes the step on every machine?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`python /opt/shared-tools/links.py`, after asking everyone to copy the script there",
+        "reason": "That moves the assumption instead of removing it: still a machine-specific absolute path, plus a manual setup step the repository can't enforce."
+      },
+      {
+        "id": "b",
+        "text": "`python ~/docs-site/tools/links.py`",
+        "reason": "`~` expands to each user's home directory, and the checkout isn't necessarily there: it lives wherever each person cloned the repository."
+      },
+      {
+        "id": "c",
+        "text": "`python ${CLAUDE_SKILL_DIR}/links.py`",
+        "reason": "`${CLAUDE_SKILL_DIR}` is the directory holding `SKILL.md`, for scripts bundled inside the skill. This script lives in the repo's `tools/`, not in the skill folder."
+      },
+      {
+        "id": "d",
+        "text": "`python ${CLAUDE_PROJECT_DIR}/tools/links.py`",
+        "reason": "Correct: `${CLAUDE_PROJECT_DIR}` is the project root, so the step finds the repo's script on any machine, independent of where the skill is installed."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Reference project files through `${CLAUDE_PROJECT_DIR}` and skill-bundled files through `${CLAUDE_SKILL_DIR}`; never a path from one machine.",
+    "explanation": "The fix must name the script relative to something every machine shares. The script is part of the repository, so the project root is that anchor: `${CLAUDE_PROJECT_DIR}` resolves to it wherever the checkout lives (d). Choice c is the near miss: `${CLAUDE_SKILL_DIR}` is right for files shipped inside the skill folder, which this script isn't. Choices a and b just move the hard-coded assumption.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-agent-skill",
+      "c-cc-custom-skill"
+    ],
+    "lessonId": "l-course-packaging-plugins"
+  },
+  {
+    "id": "q-cp-s3-transport-scope-laptop-profiler",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transport and scope",
+    "stem": "A data engineer wrote a CSV-profiling MCP server that she runs only on her own laptop, in one project. Which transport and scope fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`stdio` + local scope",
+        "reason": "Correct: stdio servers run as local processes on your machine, and local scope, the default, loads a server only in the project where you added it and keeps it private to you."
+      },
+      {
+        "id": "b",
+        "text": "`HTTP` + project scope (`.mcp.json`)",
+        "reason": "HTTP is the transport for remote servers, and project scope commits the entry to `.mcp.json` so the whole team gets it. Neither matches a personal local tool."
+      },
+      {
+        "id": "c",
+        "text": "`HTTP` + managed configuration",
+        "reason": "Managed configuration is how administrators deploy servers to every user in an organization, the opposite of one person's own tool."
+      },
+      {
+        "id": "d",
+        "text": "`stdio` + project scope",
+        "reason": "stdio is right for a local process, but project scope writes the server into the repo's `.mcp.json` for every teammate, which she doesn't want."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Personal, local, one project: run it over stdio at local scope, the default.",
+    "explanation": "Transport follows where the server runs: a process on your own machine is stdio. Scope follows who should load it: just you, in this project, is local scope, which is also the default when you add a server. Choice d is tempting because the transport is right, but project scope shares the server through a committed file, which this engineer doesn't want.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-cp-s3-transport-scope-team-docs-server",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP transport and scope",
+    "stem": "Your company hosts an API-catalog MCP server at an internal URL. Everyone who clones the backend repo should get it without any setup. Which transport and scope fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "`stdio` + project scope (`.mcp.json`)",
+        "reason": "stdio runs a local process on each machine. This server is hosted remotely at a URL, so Claude Code should connect to it over HTTP."
+      },
+      {
+        "id": "b",
+        "text": "`HTTP` + local scope (`~/.claude.json`)",
+        "reason": "Local scope keeps the server private to you in one project; teammates who clone the repo wouldn't get it."
+      },
+      {
+        "id": "c",
+        "text": "`HTTP` + project scope",
+        "reason": "Correct: HTTP is the recommended transport for remote servers, and project-scoped servers live in `.mcp.json` at the project root, checked in so everyone on the team gets the same tools."
+      },
+      {
+        "id": "d",
+        "text": "`HTTP` + user scope (`~/.claude.json`)",
+        "reason": "User scope makes a server available across all your projects but private to your account; it's stored in `~/.claude.json`, not shared through the repo."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Remote server, whole team, this repo: HTTP transport, project scope, `.mcp.json` committed.",
+    "explanation": "Two independent choices. The server is reached at a URL, so the transport is HTTP. The requirement that every cloner gets it with no setup points at project scope, whose `.mcp.json` travels with the repository. Choice d is the common slip: user scope sounds like \"for people\", but it means all of your projects, private to you.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-transports",
+      "c-mcp-json"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-cp-s3-scope-prototype-vs-org-wide",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP server scopes",
+    "stem": "Two MCP servers are being set up: a PDF-parsing prototype one developer is still experimenting with, and a license-audit server the platform team wants in every developer's Claude Code. Which two placements are right?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Parser: local scope, over stdio or HTTP, so it stays in that developer's project until it's ready",
+        "reason": "Correct: local scope is for personal development servers and experimental configurations; the transport is a separate choice."
+      },
+      {
+        "id": "b",
+        "text": "Parser: project scope, so teammates can try it as soon as it's committed",
+        "reason": "Project scope checks the entry into `.mcp.json` for the whole team, which is sharing a server that isn't ready to share."
+      },
+      {
+        "id": "c",
+        "text": "Audit server: deployed by administrators through managed configuration, so every user receives it",
+        "reason": "Correct: administrators deploy or provide servers for every user through managed configuration, which is how a server reaches the whole organization."
+      },
+      {
+        "id": "d",
+        "text": "Audit server: each developer adds it at user scope, which covers all of their projects",
+        "reason": "User scope reaches all of one person's projects but is private to that account; it relies on every developer adding it themselves."
+      },
+      {
+        "id": "e",
+        "text": "Audit server: project scope in each repository's `.mcp.json`, since committed files reach every developer",
+        "reason": "A `.mcp.json` reaches only the people working in that repository, one repo at a time; it isn't an organization-wide deployment."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Not ready to share: local scope. Required for everyone: admin-managed configuration, not a scope each person opts into.",
+    "explanation": "Scope answers \"who should load this server?\". A prototype belongs to one person in one project, so local scope, whatever its transport (a). A server the whole organization must have is deployed by administrators through managed configuration rather than added by each user (c). Choice d is tempting because user scope sounds wide, but it widens one person's reach across projects; it doesn't reach other people.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "Connect Claude Code to tools via MCP",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-mcp-scopes"
+    ],
+    "lessonId": "l-course-mcp-servers"
+  },
+  {
+    "id": "q-cp-s5-team-plugin-release-readiness",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Release readiness",
+    "stem": "Your team's plugin goes into its private marketplace tomorrow. A teammate says it's ready because it works when she loads it with `--plugin-dir` from her checkout. What is still missing before the first release?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing: loading the folder with `--plugin-dir` exercises the same path an install from the marketplace will take",
+        "reason": "A folder load skips the catalog entirely. The name, the version, validation and an install from a marketplace are what decide whether a release works for the people who install it."
+      },
+      {
+        "id": "b",
+        "text": "A review in Anthropic's developer portal, because every marketplace release is checked there before users can see it",
+        "reason": "Your own marketplace publishes the moment the file is in the repository, with no submission form; the developer portal is for Anthropic's directory."
+      },
+      {
+        "id": "c",
+        "text": "A `.zip` of the plugin attached to the release, so users have a copy to fall back on if the marketplace fails",
+        "reason": "Sending a folder or `.zip` is the no-marketplace route, and people who load it get no updates; marketplace users update with a command instead."
+      },
+      {
+        "id": "d",
+        "text": "A validation pass and an install from a local marketplace, which are what decide whether a release works",
+        "reason": "Correct: before a release, run `claude plugin validate --strict`, then add a local marketplace that lists the plugin, install from it and start a session to confirm it loads."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A plugin is release-ready when it validates and installs from a marketplace, not when it loads from a folder.",
+    "explanation": "Readiness is judged on the path users will take: they install from a catalog, so the release has to validate and install from a marketplace, which a `--plugin-dir` load never exercises. Option a is the trap because the plugin does work; it just hasn't been proven through the install path. Option b confuses your own marketplace, which needs no submission, with Anthropic's directory.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/publish",
+      "title": "Publish and distribute a plugin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust",
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
+  },
+  {
+    "id": "q-cp-s5-channel-readiness-pairings",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Contribution channels",
+    "stem": "Your group has three plugins to share: one wraps an internal API for the whole company, one is general enough for any Claude user, and one is a client-engagement build full of client-specific hooks and internal servers. Which two channel-and-readiness pairings fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Internal-API plugin → your own marketplace in a private repo; ready once it validates and installs from a local marketplace",
+        "reason": "Correct: a `marketplace.json` in a private repository lets anyone who can clone it install by name and get updates, and the pre-release checks are validation and a local-marketplace install."
+      },
+      {
+        "id": "b",
+        "text": "General-purpose plugin → Anthropic's directory; ready once it validates locally and you've checked which components load outside Claude Code",
+        "reason": "Correct: one directory listing reaches people on claude.ai, in Cowork and in Claude Code; before submitting, validate locally and check the component support table, since some components are Claude Code-only."
+      },
+      {
+        "id": "c",
+        "text": "Engagement build → Anthropic's directory as-is; ready once the README explains the client context",
+        "reason": "A directory listing reaches the public on claude.ai, Cowork and Claude Code; hooks and servers tied to one client's network serve nobody there, and a README doesn't change that."
+      },
+      {
+        "id": "d",
+        "text": "Internal-API plugin → a `.zip` emailed to every engineer; ready once it loads with `--plugin-dir` on one laptop",
+        "reason": "Sending a folder or `.zip` gives no updates: people keep loading the copy you sent, so every fix means re-sending it to everyone."
+      },
+      {
+        "id": "e",
+        "text": "General-purpose plugin → `claude-plugins-official` via the developer portal; ready once the portal's validation passes",
+        "reason": "`claude-plugins-official` doesn't take submissions through the directory portal; listings there go through an Anthropic partner contact."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Match the channel to the audience, then prove readiness on that channel's own path: validate, install, check what loads.",
+    "explanation": "Channel follows audience: a company-only tool belongs in a private-repository marketplace, and a plugin anyone could use belongs in Anthropic's directory. Readiness is whatever that channel's install path needs: validation plus a local-marketplace install for your own marketplace, local validation plus a component check for the directory. Option c is the trap: a build tied to one client has no public audience, and a README can't supply one.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins/publish",
+      "title": "Publish and distribute a plugin",
+      "checkedOn": "2026-10-17"
+    },
+    "relatedCardIds": [
+      "c-plugin-trust",
+      "c-plugin-manifest"
+    ],
+    "lessonId": "l-course-contributing-back"
   }
 ]
