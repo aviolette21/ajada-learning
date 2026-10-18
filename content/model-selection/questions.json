@@ -450,37 +450,37 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "topic": "Client SDKs",
-    "stem": "Your backend is written in Ruby. You want an official, general-purpose client for the Messages API with built-in streaming, retries and error handling. What should you use?",
+    "stem": "A team starting a new backend proposes a thin hand-written HTTP client for the Messages API instead of the official SDK for their language, arguing that a request is just one POST. What would they be taking on themselves?",
     "choices": [
       {
         "id": "a",
-        "text": "The OpenAI SDK compatibility layer, since there is no official Ruby SDK",
-        "reason": "There is an official Ruby SDK. Compatibility layers expose Claude through another framework's API and are not general-purpose Messages API clients."
+        "text": "Nothing beyond typing the URL: streaming, retries and error handling behave the same either way",
+        "reason": "Each client SDK provides idiomatic interfaces, type safety, and built-in support for streaming, retries and error handling. A hand-written client has to supply all of that itself."
       },
       {
         "id": "b",
-        "text": "The Claude Agent SDK",
-        "reason": "The Agent SDK works at a higher level, providing the agent loop and tool execution, rather than being a client you call per request."
+        "text": "The agent loop and tool execution, which the official SDK would otherwise run for them",
+        "reason": "A client SDK is a general-purpose Messages API client: you still send each request and handle each response. The agent loop comes from Claude Code, the Agent SDK or Managed Agents."
       },
       {
         "id": "c",
-        "text": "The official Ruby client SDK",
-        "reason": "Correct: Anthropic ships official client SDKs for Python, TypeScript, C#, Go, Java, PHP and Ruby, each with built-in streaming, retries and error handling."
+        "text": "Streaming, retries, error handling and typed interfaces, which the SDK otherwise provides built in",
+        "reason": "Correct: the overview describes each client SDK as a general-purpose Messages API client with idiomatic interfaces, type safety, and built-in support for streaming, retries and error handling."
       },
       {
         "id": "d",
-        "text": "Shell out to the `ant` CLI from Ruby",
-        "reason": "The `ant` CLI is for shell scripting and interactive use; the client SDKs are the general-purpose API clients."
+        "text": "Shell scripting glue, since a backend without the SDK is expected to call the `ant` command-line tool",
+        "reason": "The `ant` CLI is for shell scripting and interactive use. The general-purpose way to call the Messages API from application code is a client SDK, not shelling out."
       }
     ],
     "answer": "c",
-    "takeaway": "Official client SDKs cover **Python, TypeScript, C#, Go, Java, PHP and Ruby**.",
-    "explanation": "The stem asks for an **official, general-purpose client** with streaming, retries and error handling, and Anthropic ships official client SDKs for Python, TypeScript, C#, Go, Java, PHP and Ruby, so C fits directly. Option A is the trap: it assumes Ruby has no official SDK, and compatibility layers aren't general-purpose Messages API clients anyway. The Agent SDK (B) works at a higher level, providing the agent loop, and the `ant` CLI (D) is meant for shell scripting and interactive use.",
+    "takeaway": "Hand-rolled HTTP means hand-rolled **streaming, retries, error handling and types**; a client SDK ships them built in.",
+    "explanation": "A single POST is easy; what the SDK removes is everything around it that a production client has to get right: streaming, retries for transient failures, error handling and typed interfaces. Choice b is the tempting overreach: the client SDK is still a per-request client, not an agent runtime, which is what Claude Code, the Agent SDK and Managed Agents provide. Choice d confuses the CLI, meant for shell scripting, with the client library a backend would use.",
     "difficulty": "easy",
     "source": {
       "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/overview",
-      "title": "CLI, SDKs, and libraries",
-      "checkedOn": "2026-09-27"
+      "title": "SDKs, CLI, and libraries",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-client-sdks"
@@ -492,38 +492,38 @@
     "domainId": "model-selection",
     "subSkillId": "technical-fundamentals",
     "topic": "SDK retries",
-    "stem": "Your Python service wraps every SDK call in its own retry loop for 5xx errors. Logs show a single failing request reaching the API far more often than your loop should allow. What explains this?",
+    "stem": "Your service wraps every official-SDK call in its own retry loop for 5xx errors. Logs show a single failing request reaching the API several times more often than your loop should allow. What explains this?",
     "choices": [
       {
         "id": "a",
-        "text": "The SDK already retries transient errors twice by default; tune it with `max_retries`",
-        "reason": "Correct: the SDK retries transient errors twice by default, so each of your tries can make several attempts. `max_retries` configures or disables the SDK's retries."
+        "text": "The SDK already retries transient failures itself; configure its retries instead of adding a second loop",
+        "reason": "Correct: the SDK retries transient failures such as connection errors, rate limits and 5xx errors with exponential backoff, so each of your tries can become several attempts. A client setting configures or disables this."
       },
       {
         "id": "b",
-        "text": "The SDK never retries on its own, so the API must be replaying failed requests server-side",
-        "reason": "The official SDKs do retry automatically: connection errors, rate limits and 5xx errors, twice by default."
+        "text": "The SDK never retries anything on its own, so the API must be replaying failed requests on the server side",
+        "reason": "The official SDK does retry automatically: connection errors, rate limits and 5xx server errors, with exponential backoff."
       },
       {
         "id": "c",
         "text": "The SDK retries only 400 errors, so the extra attempts must come from elsewhere in your stack",
-        "reason": "The SDKs retry **transient** failures such as connection errors, rate limits and 5xx errors; a 400 means a problem with the request itself."
+        "reason": "The SDK retries **transient** failures. A 400 means a problem with the request's format or content, which retrying wouldn't fix."
       },
       {
         "id": "d",
-        "text": "The SDK ignores `retry-after` and retries at once; lower your own loop's delay to match",
-        "reason": "The SDKs retry with exponential backoff and honor the `retry-after` header when present."
+        "text": "The SDK retries immediately with no delay at all; shorten your own loop's delay to match it",
+        "reason": "The SDK retries with exponential backoff and honors the server's `retry-after` header when present."
       }
     ],
     "answer": "a",
-    "takeaway": "The SDKs retry transient failures **twice by default**; set `max_retries` rather than stacking a second retry loop.",
-    "explanation": "The SDKs already retry transient failures such as 5xx errors **twice by default**, so every try your own loop makes can turn into several SDK attempts (A). Tune or disable this with `max_retries` rather than stacking a second loop on top. The SDK does retry on its own (B), it doesn't retry 400s (C), and it honors `retry-after` with exponential backoff (D).",
-    "mnemonic": "SDK retries twice, so check before you wrap it.",
+    "takeaway": "The SDK retries transient failures **on its own**: configure its retries rather than wrapping it in another loop.",
+    "explanation": "Two retry layers multiply: your loop retries a call that the SDK has already retried internally with backoff, so one failing request hits the API many times (A). The fix is to decide which layer owns retries and configure the SDK's setting accordingly, rather than guessing. The SDK does retry on its own (B), it retries transient failures rather than 400s (C), and it backs off rather than hammering (D).",
+    "mnemonic": "Check what the SDK retries before you wrap it.",
     "difficulty": "medium",
     "source": {
       "url": "https://platform.claude.com/docs/en/api/errors",
       "title": "Claude API errors",
-      "checkedOn": "2026-10-13"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-sdk-retries",
@@ -2729,37 +2729,37 @@
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
     "topic": "Temperature",
-    "stem": "A grading job runs on Claude Haiku 4.5, an older model that still accepts `temperature`, and answers multiple-choice questions. Per the Messages API reference, which `temperature` suits this task?",
+    "stem": "A product Q&A bot sometimes states prices that changed last quarter. The product manager proposes lowering the temperature setting, reasoning that less randomness will make the answers more accurate. What would lowering it actually do?",
     "choices": [
       {
         "id": "a",
-        "text": "Closer to 1.0, the default, so the answers stay diverse",
-        "reason": "The reference suggests values closer to 1.0 for creative and generative tasks, not multiple choice."
+        "text": "Make the model prefer correct facts over incorrect ones, so the stale prices disappear",
+        "reason": "Temperature controls the randomness of the model's predictions; it doesn't change what the model knows. Stale knowledge stays stale at any setting."
       },
       {
         "id": "b",
-        "text": "Closer to 0.0, as suggested for analytical and multiple-choice tasks",
-        "reason": "Correct: the reference says to use `temperature` closer to 0.0 for analytical or multiple-choice tasks."
+        "text": "Make replies more conservative and consistent, but not more current; ground them in up-to-date data instead",
+        "reason": "Correct: lower temperature gives more conservative outputs that stick to the most probable phrasing and answers. For current facts, retrieval grounds the response in up-to-date information."
       },
       {
         "id": "c",
-        "text": "Above 1.0, so the model weighs each option more carefully",
-        "reason": "`temperature` ranges from 0.0 to 1.0, so a value above 1.0 isn't valid."
+        "text": "Nothing useful; raise it so the model explores more candidate answers until it reaches the current price",
+        "reason": "Higher temperature makes outputs more diverse and surprising, not more correct. Exploring rarer word choices doesn't reach facts the model doesn't have."
       },
       {
         "id": "d",
-        "text": "Any value, since the API rejects every non-default `temperature`",
-        "reason": "That rule applies to models released after Claude Opus 4.6; on an older model the parameter still works."
+        "text": "Make every answer identical for identical questions, so wrong prices become easy to audit",
+        "reason": "Even with temperature set to 0, identical inputs may produce different outputs across API calls, on Anthropic's service and third-party providers alike."
       }
     ],
     "answer": "b",
-    "takeaway": "Where `temperature` still works, go **closer to 0.0** for analytical work and closer to 1.0 for creative work.",
-    "explanation": "The Messages API reference gives a range of 0.0 to 1.0 (default 1.0) and recommends values closer to 0.0 for analytical and multiple-choice tasks, so B fits. A describes the advice for creative and generative tasks. D is the tempting trap: the 400 for non-default values applies only to models released after Claude Opus 4.6, and the stem says this older model still accepts `temperature`.",
-    "difficulty": "easy",
+    "takeaway": "Temperature trades **variety for consistency**; it adds no knowledge. Fix stale facts with grounding, not sampling.",
+    "explanation": "Temperature only shapes how the next token is sampled: lower values stick to the most probable phrasing and answers, higher values explore rarer ones. The bot's problem is knowledge that went out of date, which no sampling setting repairs; retrieval augmented generation grounds answers in current information. Choice a is the trap: 'less random' sounds like 'more correct', but the two are unrelated.",
+    "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/api/messages/create",
-      "title": "Create a Message",
-      "checkedOn": "2026-10-14"
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-temperature"
@@ -3507,42 +3507,41 @@
     "id": "q-course-toggle-thinking-mid-turn",
     "domainId": "model-selection",
     "subSkillId": "llm-fundamentals",
-    "topic": "Model migration",
-    "stem": "A report generator on Claude Opus 4.6 uses `thinking: {\"type\": \"enabled\", \"budget_tokens\": 10000}`. After moving it to Claude Opus 5.5, every request returns a 400 error. Which change does the migration guide prescribe?",
+    "topic": "Tokens",
+    "stem": "A product manager budgets a new feature's context and cost by word count, applying one fixed words-to-tokens ratio to English prose and to the Japanese and German text the feature will also handle. Which fact about tokens should change the plan?",
     "choices": [
       {
         "id": "a",
-        "text": "Lower `budget_tokens` to a smaller value that Opus 5.5 will accept",
-        "reason": "Manual thinking budgets are rejected outright on Claude Opus 5.5, whatever the value."
+        "text": "A token is one word in every language, so the word count already is the token count for any text",
+        "reason": "Tokens can be words, subwords, characters or even bytes; one word often spans several tokens, so word counts don't convert reliably."
       },
       {
         "id": "b",
-        "text": "Move `budget_tokens` into `output_config` next to `effort`",
-        "reason": "Effort replaces the thinking budget as the way to control how much the model reasons; there's no budget field to move."
+        "text": "A token is a fixed number of characters whatever the language, so a character count converts exactly",
+        "reason": "For Claude, the number of characters a token represents depends on the language as well as the model, so no single character ratio holds across languages."
       },
       {
         "id": "c",
-        "text": "Use adaptive thinking (or omit `thinking`) and tune depth with `effort`",
-        "reason": "Correct: manual budgets return a 400 error on Claude Opus 4.7 and later; switch to adaptive thinking and use the effort parameter to control depth."
+        "text": "Tokens are sub-word pieces whose size varies by language and model, so count the real text with token counting",
+        "reason": "Correct: tokens correspond to words, subwords, characters or bytes, their size varies with language and model, and the glossary says to get exact counts with token counting for the model you'll use."
       },
       {
         "id": "d",
-        "text": "Convert the old budget into one exactly matching effort level",
-        "reason": "The guide says to run an effort sweep on your own evals rather than translating a `budget_tokens` value."
+        "text": "Token counts are identical on every Claude model, so one measurement covers later migrations too",
+        "reason": "Newer models use a different tokenizer that produces more tokens for the same text (approximately 30 percent more), so counts have to be redone per model."
       }
     ],
     "answer": "c",
-    "takeaway": "Moving to a newer model can mean **replacing `budget_tokens` with adaptive thinking plus `effort`**, tuned on your evals.",
-    "explanation": "Manual extended thinking was removed in Claude Opus 4.7 and later, so the fix is adaptive thinking with effort as the depth control (C). No budget value is accepted (A), effort replaces the budget rather than sitting beside it (B), and the guide says to sweep effort on your evals instead of mapping the old number (D).",
-    "difficulty": "medium",
+    "takeaway": "Budget in **measured tokens**, not words: token size shifts with language and model, so count the actual text.",
+    "explanation": "Tokens are the unit the API meters, and they aren't words: they're variable-size pieces of text, and how much text one token covers depends on the language and on the model's tokenizer. A single words-to-tokens ratio therefore misestimates the non-English text in this feature. Choice b is the tempting refinement, since characters feel more precise than words, but the character-per-token ratio also varies by language.",
+    "difficulty": "easy",
     "source": {
-      "url": "https://platform.claude.com/docs/en/models/opus-5-5/migration-guide",
-      "title": "Claude Opus 5.5 migration guide",
-      "checkedOn": "2026-10-14"
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-thinking-budget",
-      "c-effort"
+      "c-token"
     ],
     "lessonId": "l-course-extended-thinking"
   },

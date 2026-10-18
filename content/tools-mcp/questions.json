@@ -4049,40 +4049,41 @@
     "domainId": "tools-mcp",
     "subSkillId": "agentic-customisation",
     "topic": "Explicit entry points",
-    "stem": "Your project has 25 skills that are manual procedures, such as `/release` and `/rotate-keys`, which people only ever run by typing them. Their descriptions still take up Claude's context on every turn. Which change fits?",
+    "stem": "You're adding four skills to a project. By default Claude can load any of them when its description matches the conversation. Which one should be set up so that it runs only when a person explicitly invokes it, never because Claude decided it was relevant?",
     "choices": [
       {
         "id": "a",
-        "text": "Delete each skill's `description` field, which takes the skill out of Claude's context",
-        "reason": "Without a `description`, Claude Code uses the first non-empty line of the skill's content instead, so something still describes it."
+        "text": "A skill that explains how the legacy billing system works, for whenever that code comes up",
+        "reason": "That's background knowledge Claude should pull in when relevant. The docs even suggest hiding such skills from people, not from Claude."
       },
       {
         "id": "b",
-        "text": "Set `user-invocable: false`, which keeps the skills out of Claude's context",
-        "reason": "That does the opposite: it hides the skill from the `/` menu so only Claude invokes it, and its description stays in context."
+        "text": "A skill holding the team's code review checklist, applied whenever Claude reviews a diff",
+        "reason": "A checklist has no side effects and is most useful when Claude applies it on its own whenever a review comes up."
       },
       {
         "id": "c",
-        "text": "Move the 25 procedures into CLAUDE.md, which loads only when it's needed",
-        "reason": "CLAUDE.md isn't loaded on demand. Skills are the mechanism whose full content loads only when invoked."
+        "text": "A skill that summarizes uncommitted changes and flags anything risky in the diff",
+        "reason": "This is the docs' own example of a skill described for automatic use: it only reads and reports, so there's no harm in Claude invoking it."
       },
       {
         "id": "d",
-        "text": "Set `disable-model-invocation: true`, so each loads only when someone runs it",
-        "reason": "Correct: with this setting you can still invoke the skill, Claude can't on its own, and its description isn't in context until the full skill loads on invoke."
+        "text": "A skill that posts the release announcement to the company's customer channel",
+        "reason": "Correct: a workflow with side effects, or whose timing you want to control, is one Claude shouldn't start on its own. You don't want Claude announcing because the release looks done."
       }
     ],
     "answer": "d",
-    "takeaway": "`disable-model-invocation: true` turns a skill into a manual entry point: you run it, Claude doesn't, and its description leaves context.",
-    "explanation": "Manual-only skills don't need Claude to know about them in advance, and `disable-model-invocation: true` removes them from Claude's view until a person runs them. The deciding detail is that people only ever type these procedures. Choice b is tempting because it also limits who invokes a skill, but it limits the other side and leaves the description in context.",
-    "difficulty": "medium",
+    "takeaway": "Let Claude auto-load **knowledge and read-only helpers**; keep **side-effect workflows** behind a person's explicit invocation.",
+    "explanation": "The test is consequence and timing. A skill that only informs or reads can safely trigger from its description, since a wrong guess costs nothing. A skill that acts on the outside world, such as announcing a release, deploying or messaging people, should run only when a person invokes it. Choice c is tempting because it touches the repository, but it only reads and reports; choice d sends something customers see.",
+    "difficulty": "easy",
     "source": {
       "url": "https://code.claude.com/docs/en/skills",
       "title": "Extend Claude with skills",
-      "checkedOn": "2026-10-15"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-disable-model-invocation"
+      "c-disable-model-invocation",
+      "c-agent-skill"
     ],
     "lessonId": "l-course-packaging-plugins"
   },
@@ -4864,37 +4865,37 @@
     "domainId": "tools-mcp",
     "subSkillId": "mcp-server-dev",
     "topic": "MCP tool search",
-    "stem": "With tool search on, Claude Code defers your MCP tools. One small internal server has three tools Claude uses on nearly every turn, and the search step before each use slows things down. Your ten other servers are rarely used. What's the best fix?",
+    "stem": "Claude Code connects to eleven MCP servers. One small internal server has three tools Claude uses on nearly every turn; the other ten are used rarely. With tool search deferring every server's tools, Claude pays a search step before each of those three tools. What's the best arrangement?",
     "choices": [
       {
         "id": "a",
-        "text": "Set `ENABLE_TOOL_SEARCH=false` so that those three tools are always visible to Claude",
-        "reason": "That loads every MCP tool upfront with no deferral, including all ten rarely used servers."
+        "text": "Load every server's tools upfront, so that no tool ever needs a search step",
+        "reason": "That puts all eleven servers' definitions in context on every turn, the cost tool search exists to avoid."
       },
       {
         "id": "b",
-        "text": "Set `ENABLE_TOOL_SEARCH=auto` so the three tools load upfront and the rest stay deferred",
-        "reason": "`auto` loads all deferrable tools upfront while they total under a set share of context, or defers all of them; it doesn't pick servers."
+        "text": "Keep everything deferred and shorten the three tools' descriptions so the search step gets faster",
+        "reason": "Deferral still means a search before each use. The guide's answer for a few tools Claude needs on every turn is to load those upfront."
       },
       {
         "id": "c",
-        "text": "Set `alwaysLoad: true` on just the internal server's entry in your MCP configuration",
-        "reason": "Correct: that server's tools then load into context regardless of tool search, which suits a few tools Claude needs every turn."
+        "text": "Keep the ten rarely used servers deferred and have only the internal server's tools load upfront",
+        "reason": "Correct: exempt a server whose tools should always be visible without a search step. The guide reserves this for a small number of tools Claude needs on every turn, since each upfront tool consumes context."
       },
       {
         "id": "d",
-        "text": "Set `alwaysLoad: false` on the internal server's entry so its tools are never deferred",
-        "reason": "`alwaysLoad: false` does the opposite: it keeps all of a server's tools behind tool search."
+        "text": "Defer the internal server's tools and load the ten rarely used servers upfront, since they're bigger",
+        "reason": "Backwards: upfront loading should go to the few tools used constantly; rarely used tools are exactly what deferral is for, and loading ten servers wastes context."
       }
     ],
     "answer": "c",
-    "takeaway": "Exempt only the few tools needed every turn with `alwaysLoad: true`; every upfront tool costs context.",
-    "explanation": "Tool search saves context by deferring tools, but a tool Claude needs constantly pays for a search step each time. The deciding detail is that one small server is used constantly and ten are rarely used, so exempt just that server. Choice a is tempting because it removes the search step, but it loads every server's tools upfront, the cost tool search exists to avoid.",
-    "difficulty": "hard",
+    "takeaway": "Defer the long tail, keep the **core tools** always visible: upfront loading is for the few tools Claude needs every turn.",
+    "explanation": "Tool search saves context by deferring tool definitions until Claude needs them, but a tool Claude needs constantly pays a search step each time. The deciding detail is the split: three tools used every turn, ten servers used rarely. Load the constant three upfront and leave the rest deferred. Choice a is tempting because it removes every search step, but it also loads every rarely used tool into context on every turn.",
+    "difficulty": "medium",
     "source": {
       "url": "https://code.claude.com/docs/en/mcp",
       "title": "Connect Claude Code to tools via MCP",
-      "checkedOn": "2026-10-15"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
       "c-mcp-tool-search"
@@ -5244,41 +5245,41 @@
     "id": "q-s5contrib-no-license-default-copyright",
     "domainId": "tools-mcp",
     "subSkillId": "agentic-customisation",
-    "topic": "Licensing and attribution",
-    "stem": "Your team pushed a useful set of skills to a public GitHub repository with no license file. A partner company wants to copy and adapt them, reasoning that anything in a public repository is free to reuse. What's the situation?",
+    "topic": "Contribution review",
+    "stem": "You ran the developer portal's validation on your plugin and the report shows no findings. A teammate says that means it's ready to submit to Anthropic's plugin directory. According to the pre-submission checklist, what's still missing?",
     "choices": [
       {
         "id": "a",
-        "text": "They can reuse it freely, since publishing publicly puts the code in the public domain",
-        "reason": "Publishing doesn't give up your rights. Without a license, default copyright law applies and you keep all rights to the code."
+        "text": "Nothing: validation and the security scan together confirm that the plugin helps the people who install it",
+        "reason": "Validation and the scan check how the plugin is built. They don't check whether the plugin helps the people who install it."
       },
       {
         "id": "b",
-        "text": "They can adapt it but not redistribute it, since public repositories allow private changes",
-        "reason": "Others can view and fork a public repository on GitHub, but without a license no one may reproduce, distribute or create derivative works."
+        "text": "The local validate command, which checks the directory requirements that the portal skips",
+        "reason": "It's the other way round: the local command only checks that files are well-formed, while the portal's validation covers the directory's requirements."
       },
       {
         "id": "c",
-        "text": "Default copyright applies, so add a license stating what others may do with the skills",
-        "reason": "Correct: without a license, default copyright applies and no one may reproduce, distribute or create derivative works. A license tells others what they can and can't do."
+        "text": "Behavior tests: compare output with and without the plugin, and load it on each surface users will use",
+        "reason": "Correct: the checklist asks you to test the plugin's output against what Claude produces without it, and to load it on each surface your users will use, because validation doesn't cover that."
       },
       {
         "id": "d",
-        "text": "It depends on the partner's own license, which then covers anything they copy in",
-        "reason": "Rights to your code come from you: a software license tells others what they can and can't do with your source code, and you haven't given one."
+        "text": "Minified scripts, so the security scan has less code to read when it runs after you submit",
+        "reason": "The opposite: commit readable source. Code the security scan can't read is held for a reviewer."
       }
     ],
     "answer": "c",
-    "takeaway": "No license means **default copyright**: others can't reuse your code until a license says they may.",
-    "explanation": "Rights come before anything else in a contribution. GitHub's licensing docs say that without a license, default copyright applies: you keep all rights, and no one may reproduce, distribute or create derivative works. Choice a is tempting because the repository is public, but public only means others can view and fork it on GitHub, not reuse it.",
+    "takeaway": "Passing the automated checks says the plugin is **well-formed**, not that it works: test its behavior before you submit.",
+    "explanation": "Automated validation checks structure: files, manifest, README, license and what the plugin runs. Whether the plugin actually improves Claude's output is a separate question that only a behavior test answers, by comparing results with and without the plugin and loading it on each surface. Choice a is the trap: a clean report feels like approval, but the checklist says the checks don't judge whether the plugin helps anyone.",
     "difficulty": "easy",
     "source": {
-      "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository",
-      "title": "Licensing a repository",
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
       "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-agent-skill"
+      "c-plugin-manifest"
     ],
     "lessonId": "l-course-contributing-back"
   },
@@ -5286,37 +5287,37 @@
     "id": "q-s5contrib-mit-keep-notices",
     "domainId": "tools-mcp",
     "subSkillId": "agentic-customisation",
-    "topic": "Licensing and attribution",
-    "stem": "Your plugin's helper script includes a substantial chunk of code copied from an MIT-licensed open-source project. You're about to contribute the plugin to a shared marketplace. What does the MIT license require you to do about that code?",
+    "topic": "Contribution review",
+    "stem": "Your repository is a marketplace holding five plugins that all call helper scripts in a shared `tools/` folder at the repository root. You want to submit one of the plugins to Anthropic's plugin directory. How should you prepare the submission?",
     "choices": [
       {
         "id": "a",
-        "text": "Nothing, since MIT is permissive and lets anyone use the code without conditions",
-        "reason": "MIT permits use, copying, modification and distribution, but subject to a condition: the copyright notice and permission notice stay with the code."
+        "text": "Submit the whole repository, so reviewers see the shared scripts alongside all five plugins",
+        "reason": "The directory takes one plugin at a time: in a marketplace repository, each plugin folder is validated and submitted on its own."
       },
       {
         "id": "b",
-        "text": "Relicense the whole plugin under MIT, since any MIT code makes the project MIT",
-        "reason": "MIT's condition is that its notices be included in copies or substantial portions of that software; it sets no condition on the rest of your project."
+        "text": "Reference the shared scripts by a path above the plugin folder, since the repository is public anyway",
+        "reason": "A component path that points outside the plugin folder blocks validation. People who install the plugin get only the plugin folder, so the scripts wouldn't be there."
       },
       {
         "id": "c",
-        "text": "Get written permission from the original authors before including their code",
-        "reason": "The license already grants permission, free of charge, to anyone who obtains a copy. Its condition is keeping the notices, not asking again."
+        "text": "Add symbolic links inside the plugin folder that point at the shared scripts in `tools/`",
+        "reason": "Validation blocks a symbolic link that the plugin loads; it expects regular files and folders committed for everything the plugin runs."
       },
       {
         "id": "d",
-        "text": "Keep the original copyright notice and MIT permission notice with the copied code",
-        "reason": "Correct: MIT requires that the copyright notice and permission notice be included in all copies or substantial portions of the software."
+        "text": "Submit that one plugin's folder on its own, with every script it runs placed inside it",
+        "reason": "Correct: the directory lists one plugin per submission, installers receive only the plugin folder, and everything a hook, server command or script uses must sit inside it."
       }
     ],
     "answer": "d",
-    "takeaway": "Permissive isn't condition-free: **attribution**, the original notices, travels with any code you reuse.",
-    "explanation": "Attribution is part of the rights check that comes before technical review. The MIT license grants broad permission to use, modify and distribute the software, on one condition: the copyright notice and permission notice must be included in all copies or substantial portions. Choice a is tempting because MIT is known as permissive, but dropping the notices breaks the one condition it sets.",
-    "difficulty": "easy",
+    "takeaway": "A contribution is **self-contained**: one plugin per submission, with everything it runs inside its own folder.",
+    "explanation": "A maintainer, and every installer, gets exactly the plugin folder and nothing else, so the contribution must be scoped to one plugin and complete in itself. The deciding detail is the shared `tools/` folder above the plugin: anything the plugin runs from there would be missing after install, and a path pointing outside the folder fails validation. Choice a is tempting because the shared scripts give context, but the directory validates and lists one plugin at a time.",
+    "difficulty": "medium",
     "source": {
-      "url": "https://opensource.org/license/mit",
-      "title": "The MIT License",
+      "url": "https://claude.com/docs/plugins/pre-submission-checklist",
+      "title": "Plugin pre-submission checklist",
       "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
@@ -5329,32 +5330,32 @@
     "domainId": "tools-mcp",
     "subSkillId": "agentic-customisation",
     "topic": "Licensing and attribution",
-    "stem": "A shared skills repository asks every contributor to sign off commits under the Developer Certificate of Origin. Part of the skill you want to contribute was first written during a customer engagement. What are you certifying when you sign off?",
+    "stem": "A maintainer offers to review your team's new skill this week. Part of it was written during a customer engagement, and nobody has checked whether that work may be shared. The repository requires a sign-off on every commit certifying its origin. What should happen first?",
     "choices": [
       {
         "id": "a",
-        "text": "That you created it, or it builds on open-source work, and you have the right to submit it",
-        "reason": "Correct: the DCO certifies the contribution's origin, that you created it or it builds on suitably licensed work, and your right to submit it under the project's license."
+        "text": "Confirm with the customer that you may contribute that work, before the review starts",
+        "reason": "Correct: the sign-off certifies that you created the contribution and have the right to submit it, or that it builds on suitably licensed work. That right has to exist before you certify it."
       },
       {
         "id": "b",
-        "text": "That the maintainers have already reviewed the code and confirmed it works as described",
-        "reason": "Sign-off is the contributor's own statement about where the contribution came from and their right to submit it, not a record of the maintainers' review."
+        "text": "Start the review now and settle the rights before the merge, since review is the slow part",
+        "reason": "The sign-off goes on the commits you submit, so you'd be certifying a right nobody has confirmed. The certificate is about origin and the right to submit, which a code review can't settle."
       },
       {
         "id": "c",
-        "text": "That the contribution is free of bugs and security issues, so reviewers can merge it quickly",
-        "reason": "The DCO is about where the contribution came from and your right to submit it, not about its quality or security."
+        "text": "Rewrite the engagement portion in your own words so that it counts as created by you",
+        "reason": "Creating the work is only half the certificate: you must also have the right to submit it. Rewriting work done for a customer doesn't settle who may share it."
       },
       {
         "id": "d",
-        "text": "That the contribution stays private to the project and its current group of contributors",
-        "reason": "The opposite: you certify that you understand the project and contribution are public, and that a record of the contribution is kept."
+        "text": "Remove the customer's name from the code and comments, since the certificate is about attribution",
+        "reason": "The certificate covers where the contribution came from and your right to submit it, not names in the code. It also states that the contribution and its record are public."
       }
     ],
     "answer": "a",
-    "takeaway": "Sign-off is a statement about **rights**, so settle who owns engagement code before you contribute it.",
-    "explanation": "Rights and attribution come before technical review. The Developer Certificate of Origin is the contributor's certification that they created the work, or that it's based on suitably licensed work, and that they have the right to submit it under the project's license. Part of this skill came from a customer engagement, so confirm you hold that right before signing. Choice b is tempting because sign-off feels like approval, but it's about origin, not review.",
+    "takeaway": "Settle **rights** before review: a sign-off certifies your right to submit, which a code review can't establish.",
+    "explanation": "Rights come before technical review. The Developer Certificate of Origin is the contributor's own statement that they created the work, or that it builds on suitably licensed work, and that they have the right to submit it. Work done for a customer may not be yours to share, so that question is answered first. Choice b is tempting because review takes time, but the sign-off is made on the commits you submit, so starting review means certifying a right nobody has checked.",
     "difficulty": "medium",
     "source": {
       "url": "https://developercertificate.org/",

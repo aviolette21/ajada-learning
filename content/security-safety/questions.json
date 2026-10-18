@@ -1955,41 +1955,41 @@
     "id": "q-guard-code-review-merge-gate",
     "domainId": "security-safety",
     "subSkillId": "guardrails",
-    "topic": "Code Review",
-    "stem": "Your team wants pull requests that have an **Important** Code Review finding to be unable to merge until it's fixed. How does the Code Review documentation say to set that up?",
+    "topic": "Defense in depth",
+    "stem": "A public chatbot pre-screens every user message with a lightweight model, yet a few replies that violate your content policy still reach users. A teammate's plan is to tighten the input screen's threshold and call it done. What does Anthropic's guide suggest instead?",
     "choices": [
       {
         "id": "a",
-        "text": "Require the Claude Code Review check, which fails when it finds an Important bug",
-        "reason": "The check run never concludes as a failure, so a finished review doesn't fail a required check, whatever it found."
+        "text": "Tighten only the input screen's threshold, since anything that reached a reply must be an input the screen missed",
+        "reason": "The guide layers safeguards rather than relying on one. A screen judges the input; it says nothing about the reply that was eventually produced."
       },
       {
         "id": "b",
-        "text": "Have your own CI read the check run's severity counts and fail on any Important",
-        "reason": "Correct: to gate merges on findings, read the severity breakdown from the check run output in your own CI; the Details text ends with a machine-readable summary."
+        "text": "Add output monitoring: analyze what the bot says and feed findings back into prompts, validation and filtering",
+        "reason": "Correct: the guide says to regularly analyze outputs for signs of successful injection and to use that monitoring to refine your prompts, validation and filtering, chaining safeguards together."
       },
       {
         "id": "c",
-        "text": "Add a rule to `REVIEW.md` telling Code Review to block any PR with a bug",
-        "reason": "REVIEW.md tunes what gets flagged and at what severity. Findings still don't approve or block the PR."
+        "text": "Drop the screen and rely on a longer system prompt that spells out every refusal case in detail",
+        "reason": "Prompt engineering is one layer the guide combines with screens and validation, not a replacement for them."
       },
       {
         "id": "d",
-        "text": "Comment `@claude review always` so later pushes are held until the fix lands",
-        "reason": "That subscribes the PR to a review on each later push; the reviews still don't block merging."
+        "text": "Ban any user whose message the screen flags at all, so that a violating reply can never be produced",
+        "reason": "The guide reserves throttling or banning for users who repeatedly try to circumvent guardrails, and it still wouldn't catch a reply that passed the screen."
       }
     ],
     "answer": "b",
-    "takeaway": "Code Review never blocks a merge; to gate on findings, **read the severity counts in your own CI**.",
-    "explanation": "Code Review leaves the merge decision with your team: its findings never approve or block, and its check run never concludes as a failure. If your team wants a hard gate, that decision lives in your own CI, which reads the severity breakdown and fails the build. Choice a is the trap: requiring a check that never fails gates nothing.",
+    "takeaway": "Guardrails are **layered**: screen inputs, harden the prompt, and monitor outputs, feeding each failure back into the other layers.",
+    "explanation": "No single layer catches everything, which is why the guide chains safeguards: input screening, validation, prompt engineering, action on repeat offenders and continuous monitoring of outputs. The deciding detail is that the failures are visible only in the replies, so the missing layer is on the output side. Choice a is the trap: a stricter screen still inspects only inputs and can't see the reply that slipped out.",
     "difficulty": "medium",
     "source": {
-      "url": "https://code.claude.com/docs/en/code-review-pull-requests",
-      "title": "Read and request reviews on a pull request",
-      "checkedOn": "2026-10-15"
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
+      "title": "Mitigate jailbreaks and prompt injections",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-claude-md"
+      "c-harmlessness-screen"
     ],
     "lessonId": "l-course-permission-modes"
   },
@@ -2625,41 +2625,42 @@
     "id": "q-ent-plan-mode-next-phase",
     "domainId": "security-safety",
     "subSkillId": "app-security",
-    "topic": "Phase approval",
-    "stem": "Your team gates a legacy rewrite in phases: Claude explores and proposes, the module owner approves, then Claude edits. Phase 1 ran in plan mode, and the owner chose \"Yes, manually approve edits.\" Phase 2 must also start from an approved plan. What should you know?",
+    "topic": "Privileged actions",
+    "stem": "Phase 1 of a legacy rewrite let Claude Code map the billing schema with a read-only database identity. Phase 2 will run a migration that rewrites production tables, and a teammate suggests handing the agent the team's shared admin credential so it \"just works\". What should be in place before the migration runs?",
     "choices": [
       {
         "id": "a",
-        "text": "The session stays in plan mode, so Claude will propose phase 2's plan automatically",
-        "reason": "Approving a plan exits plan mode and switches the session to the mode that the chosen option describes."
+        "text": "The shared admin credential, since the module owner has already approved the overall plan for this phase",
+        "reason": "Permissions broader than the step needs are excessive permissions, and approving a plan isn't the same as a human approving each high-impact action before it's taken."
       },
       {
         "id": "b",
-        "text": "Approving exited plan mode: re-enter it with `Shift+Tab` or `/plan` for phase 2",
-        "reason": "Correct: approving exits plan mode. To plan again, cycle back to plan mode with `Shift+Tab` or prefix the next prompt with `/plan`."
+        "text": "A credential limited to the tables the migration touches, plus a person's approval of that step",
+        "reason": "Correct: limit the extension's permissions to the minimum necessary, and use human-in-the-loop control so a person approves a high-impact action before it's taken."
       },
       {
         "id": "c",
-        "text": "Phase 2 can skip planning, since edits need no review once one plan is approved",
-        "reason": "With \"Yes, manually approve edits\" each edit is still reviewed, and gating phase 2 on a plan means entering plan mode again."
+        "text": "A system prompt rule telling the agent to double-check with itself before any destructive change",
+        "reason": "That leaves the LLM deciding whether the action is allowed. Authorization belongs in the downstream systems, not in a prompt."
       },
       {
         "id": "d",
-        "text": "Switch to `acceptEdits` for phase 2, which also holds edits until a plan is approved",
-        "reason": "`acceptEdits` runs file edits without asking. Plan mode is the mode that blocks edits until you approve a plan."
+        "text": "Full logging of every statement the agent runs, so that any damage can be traced and reversed afterwards",
+        "reason": "Logging and monitoring help identify undesirable actions but don't prevent them; they limit damage rather than stopping a wrong migration from running."
       }
     ],
     "answer": "b",
-    "takeaway": "Plan mode gates **one** plan: approving it exits plan mode, so each new phase needs plan mode again.",
-    "explanation": "Plan mode separates exploration from execution, but the gate closes behind you: approving switches the session to an editing mode. For a phased process, re-enter plan mode before each phase, and decide separately who is allowed to approve. Choice a is tempting because the session began in plan mode, but approval moves it to the mode that the chosen option describes.",
+    "takeaway": "Before a privileged step: **verify the access level** it really needs, grant only that, and put a person's approval in front of it.",
+    "explanation": "A privileged action needs two checks made outside the model: an identity whose permissions match the step, not a shared admin credential, and a human approval of that high-impact action before it runs. The deciding detail is the move from read-only mapping to rewriting production tables: the access level changes, so it must be reviewed and granted deliberately. Choice a is tempting because a plan was approved, but a plan approval isn't approval of each high-impact action, and the credential is far broader than the step.",
     "difficulty": "medium",
     "source": {
-      "url": "https://code.claude.com/docs/en/permission-modes",
-      "title": "Choose a permission mode",
-      "checkedOn": "2026-10-15"
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06:2025 Excessive Agency",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-cc-plan-mode"
+      "c-api-key-types",
+      "c-pretooluse-hook"
     ],
     "lessonId": "l-course-enterprise-auth"
   },
@@ -3341,42 +3342,41 @@
     "id": "q-s4sec-repeat-jailbreaker",
     "domainId": "security-safety",
     "subSkillId": "app-security",
-    "topic": "Threat models",
-    "stem": "A signed-in user of your public chatbot keeps rewording role-play prompts to get content your policy bans, and keeps triggering the same refusal. Which response does Anthropic's guide suggest?",
+    "topic": "End-user authentication",
+    "stem": "A bank's support chatbot asks each user to type their account number, then calls a `get_balance` tool with whatever number was typed. In testing, someone entered a colleague's number and saw that balance. What's the right fix?",
     "choices": [
       {
         "id": "a",
-        "text": "Move the user's messages into `tool_result` blocks, so that Claude treats all they type as untrusted",
-        "reason": "`tool_result` blocks are for third-party content. For a user's own input, the guide pre-screens messages and handles repeat offenders."
+        "text": "Add a system prompt rule that Claude must ask two security questions before it performs any balance lookup",
+        "reason": "That still relies on the LLM to decide whether access is allowed. Authorization belongs in the downstream systems, not in the conversation."
       },
       {
         "id": "b",
-        "text": "Raise the model's temperature, so that its replies become much harder for the user to predict",
-        "reason": "Randomness isn't a guardrail. The guide's defenses are screening user input and responding to users who keep trying."
+        "text": "Have the tool reject account numbers that fail a format check before it queries the ledger",
+        "reason": "A well-formed number says nothing about whose it is. The check has to carry the user's actual authorization, not validate the input's shape."
       },
       {
         "id": "c",
-        "text": "Screen their input with a lightweight model, warn them, and consider throttling or banning them",
-        "reason": "Correct: the guide pre-screens user input and, for users who repeatedly try to get around guardrails, says to tell them and consider throttling or banning."
+        "text": "Authenticate the user in the app and run the tool in that user's context, so it reaches only their account",
+        "reason": "Correct: track the user's authorization and security scope so actions taken on their behalf run downstream as that specific user, with the minimum privileges needed."
       },
       {
         "id": "d",
-        "text": "Do nothing more, since Claude refused every time and each refusal shows the defenses worked",
-        "reason": "Repeated attempts are a signal to act on. The guide says to adjust responses and consider throttling or banning repeat offenders."
+        "text": "Log every balance lookup with the requesting session, so that misuse can be investigated afterwards",
+        "reason": "Logging and monitoring help detect undesirable actions but don't prevent them; the colleague's balance would still be exposed."
       }
     ],
     "answer": "c",
-    "takeaway": "When the **user** is the attacker (a jailbreak), screen their input and act on repeat offenders: warn, throttle or ban.",
-    "explanation": "This is a jailbreak: the user is the adversary, crafting inputs to bypass your guardrails. The guide's answer is to screen user input with a lightweight model and, for someone who keeps triggering refusals, tell them it violates usage policies and consider throttling or banning them. Choice d is tempting because the refusals held, but repeated attempts are exactly what the repeat-offender advice targets.",
-    "difficulty": "easy",
+    "takeaway": "The **application** establishes who the user is; the model never does. Tools act in the authenticated user's context.",
+    "explanation": "Identity is a property of the session, established by the application through sign-in, not something the model can learn from text in the chat. Once the user is authenticated, the balance tool runs in that user's security context and can only reach their data, whatever account number appears in the conversation. Choice a is tempting because it adds a check, but it leaves the LLM as the gatekeeper, and complete mediation means enforcing authorization downstream instead.",
+    "difficulty": "medium",
     "source": {
-      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks",
-      "title": "Mitigate jailbreaks and prompt injections",
-      "checkedOn": "2026-10-16"
+      "url": "https://genai.owasp.org/llmrisk/llm062025-excessive-agency/",
+      "title": "LLM06:2025 Excessive Agency",
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-harmlessness-screen",
-      "c-direct-prompt-injection"
+      "c-api-key-types"
     ],
     "lessonId": "l-course-injection-defense"
   },

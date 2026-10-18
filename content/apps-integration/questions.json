@@ -882,58 +882,59 @@
     "domainId": "apps-integration",
     "subSkillId": "api-mechanics",
     "topic": "Conversation turns",
-    "stem": "Your app sometimes sends two `user` messages in a row: a question, then a follow-up the user typed before Claude replied. What does the Messages API do with them?",
+    "stem": "Your chat backend stores only what users type. On each new message it sends the whole list of stored user messages to the Messages API, never Claude's replies. Users complain that Claude repeats itself and forgets what it just offered them. What should change?",
     "choices": [
       {
         "id": "a",
-        "text": "Rejects the request, because roles must strictly alternate",
-        "reason": "The reference says consecutive `user` or `assistant` turns are combined into a single turn, not rejected."
+        "text": "Add a system prompt line asking Claude to remember what it answered earlier in the conversation",
+        "reason": "The API is stateless: the model generates the next message from the turns in your request. An instruction can't recover replies that aren't in `messages`."
       },
       {
         "id": "b",
-        "text": "Answers only the last message and ignores the earlier one",
-        "reason": "Nothing is dropped: consecutive turns with the same role are combined into one turn."
+        "text": "Send only the newest user message each time, so the earlier turns can't confuse the model",
+        "reason": "That removes the remaining context too. Multi-turn conversations work by sending the prior turns with each request."
       },
       {
         "id": "c",
-        "text": "Combines them into a single `user` turn",
-        "reason": "Correct: models are trained on alternating turns, and consecutive `user` or `assistant` turns in a request are combined into a single turn."
+        "text": "Append each assistant reply to the stored history, so requests carry alternating user and assistant turns",
+        "reason": "Correct: models are trained to operate on alternating `user` and `assistant` turns, and the model generates the next message from the prior turns you supply, so its own replies must be in the history."
       },
       {
         "id": "d",
-        "text": "Treats the second message as an `assistant` turn",
-        "reason": "Roles stay as you set them; same-role turns are combined into a single turn."
+        "text": "Change nothing: the API merges consecutive user messages into one turn, so the conversation reaches Claude intact",
+        "reason": "Consecutive same-role turns are combined into one turn, which keeps the users' words but doesn't restore Claude's missing replies."
       }
     ],
     "answer": "c",
-    "takeaway": "Claude works on **alternating** turns; back-to-back messages with the same role are merged into one.",
-    "explanation": "Models are trained on alternating `user` and `assistant` turns, and when a request contains consecutive turns with the same role, the API combines them into a single turn. So the question and the follow-up become one `user` turn and both are seen. Option A is the tempting trap because alternation is the expected pattern, but the reference says same-role turns are combined, not rejected. Nothing is dropped (B), and roles are never reassigned (D).",
+    "takeaway": "Build history as **alternating turns**: after each response, append the assistant message before adding the next user message.",
+    "explanation": "The Messages API is stateless and the model operates on alternating user and assistant turns, generating the next message from whatever prior turns the request contains. A history made only of user messages has gaps where Claude's replies should be, so Claude can't see what it already said. Choice d is the trap: the API does combine consecutive same-role turns, but merging the user's messages doesn't bring back the assistant turns that were never stored.",
     "difficulty": "medium",
     "diagram": {
       "kind": "flow",
-      "caption": "Same-role turns in a row become one turn.",
+      "caption": "What the next request should carry.",
       "steps": [
         {
           "label": "user",
           "sublabel": "question"
         },
         {
-          "label": "user",
-          "sublabel": "follow-up"
+          "label": "assistant",
+          "sublabel": "reply, appended"
         },
         {
-          "label": "One user turn",
-          "sublabel": "combined"
+          "label": "user",
+          "sublabel": "follow-up"
         }
       ]
     },
     "source": {
       "url": "https://platform.claude.com/docs/en/api/messages/create",
       "title": "Create a Message",
-      "checkedOn": "2026-09-27"
+      "checkedOn": "2026-10-17"
     },
     "relatedCardIds": [
-      "c-alternating-turns"
+      "c-alternating-turns",
+      "c-stateless-api"
     ],
     "lessonId": "l-api-basics"
   },
