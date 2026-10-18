@@ -20,7 +20,7 @@ export function Explanation({ question }: { question: Question }) {
       {question.explanation && (
         <div className="why"><strong>🔍 Why:</strong> {renderInline(question.explanation, links)}</div>
       )}
-      <div className="takeaway"><strong>💡 In one line:</strong> {renderInline(question.takeaway, links)}</div>
+      {question.takeaway && <div className="takeaway"><strong>💡 In one line:</strong> {renderInline(question.takeaway, links)}</div>}
       {terms.length > 0 && (
         <Disclosure title={<>📚 Terms: <span className="muted">{terms.map((t) => t.term).join(', ')}</span></>}>
           <dl className="terms-list">

@@ -189,6 +189,34 @@ export const FocusAreaSchema = z.object({
 });
 export const FocusFileSchema = z.array(FocusAreaSchema);
 
+/**
+ * A third-party practice set (content/practice-sets.json), run on its own and kept out of the bank: it never enters
+ * quizzes, mocks or progress. Items keep their author's wording, so limits are looser and there are no per-choice reasons.
+ */
+export const PracticeSetQuestionSchema = z.object({
+  id: z.string().regex(/^q-[a-z0-9-]+$/),
+  domainId: text,
+  stem: upTo(600),
+  choices: z
+    .array(z.object({ id: ChoiceIdSchema, text: upTo(300) }))
+    .min(4)
+    .max(6)
+    .refine((cs) => cs.every((c, i) => c.id === CHOICE_IDS[i]), { message: 'choices must have ids a, b, c, … in order' }),
+  answer: z.union([ChoiceIdSchema, z.array(ChoiceIdSchema).min(2).max(3)]),
+  explanation: upTo(1200),
+});
+export const PracticeSetSchema = z.object({
+  id: slug,
+  title: upTo(60),
+  author: text,
+  sourceUrl: z.url({ protocol: /^https$/ }),
+  sourceTitle: text,
+  note: upTo(400),
+  checkedOn: z.iso.date(),
+  questions: z.array(PracticeSetQuestionSchema).min(1),
+});
+export const PracticeSetFileSchema = z.array(PracticeSetSchema);
+
 export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
 export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
@@ -204,6 +232,8 @@ export type Lesson = z.infer<typeof LessonSchema>;
 export type GlossaryTerm = z.infer<typeof GlossaryTermSchema>;
 export type CourseSection = z.infer<typeof CourseSectionSchema>;
 export type FocusArea = z.infer<typeof FocusAreaSchema>;
+export type PracticeSetQuestion = z.infer<typeof PracticeSetQuestionSchema>;
+export type PracticeSet = z.infer<typeof PracticeSetSchema>;
 
 export interface Content {
   domains: Domain[];
@@ -213,6 +243,7 @@ export interface Content {
   glossary: GlossaryTerm[];
   course: CourseSection[];
   focus: FocusArea[];
+  practiceSets: PracticeSet[];
   domainById: Map<string, Domain>;
   questionById: Map<string, Question>;
   cardById: Map<string, Card>;

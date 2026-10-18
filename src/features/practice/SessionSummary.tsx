@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../ui/Button';
 import type { RunSummary } from './QuestionRunner';
 
-export function SessionSummary({ summary, extra, onDone, doneLabel = 'Done' }: {
+export function SessionSummary({ summary, extra, onDone, doneLabel = 'Done', retryTo = (ids) => `/practice/mistakes?ids=${ids.join(',')}` }: {
   summary: RunSummary;
   extra?: string;
   onDone: () => void;
   doneLabel?: string;
+  /** Where "retry the ones you missed" goes; the mistakes pile by default. */
+  retryTo?: (ids: string[]) => string;
 }) {
   const ratio = summary.total === 0 ? 0 : summary.correct / summary.total;
   const [emoji, message] = ratio >= 0.8 ? ['🎉', 'Excellent work.'] : ratio >= 0.6 ? ['💪', 'Solid, keep going.'] : ['🌱', 'Every miss is now on your review list.'];
@@ -19,7 +21,7 @@ export function SessionSummary({ summary, extra, onDone, doneLabel = 'Done' }: {
       <p>{message}</p>
       {extra && <p className="muted">{extra}</p>}
       {summary.missedIds.length > 0 && (
-        <Link className="btn btn-secondary btn-block" to={`/practice/mistakes?ids=${summary.missedIds.join(',')}`}>
+        <Link className="btn btn-secondary btn-block" to={retryTo(summary.missedIds)}>
           Retry the {summary.missedIds.length} you missed or guessed
         </Link>
       )}

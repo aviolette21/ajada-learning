@@ -18,5 +18,7 @@ export function readContentDir(dir: string): RawContent {
   const course: unknown = existsSync(coursePath) ? JSON.parse(readFileSync(coursePath, 'utf8')) : undefined;
   const focusPath = join(dir, 'focus.json');
   const focus: unknown = existsSync(focusPath) ? JSON.parse(readFileSync(focusPath, 'utf8')) : undefined;
-  return { domains, glossary, course, focus, files };
+  const setsPath = join(dir, 'practice-sets.json');
+  const practiceSets: unknown = existsSync(setsPath) ? JSON.parse(readFileSync(setsPath, 'utf8')) : undefined;
+  return { domains, glossary, course, focus, practiceSets, files };
 }

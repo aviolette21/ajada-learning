@@ -11,7 +11,7 @@ import './practice.css';
 
 export function PracticePage() {
   const navigate = useNavigate();
-  const { domains, questions, focus } = useContent();
+  const { domains, questions, focus, practiceSets } = useContent();
   const [size, setSize] = useState<string>(String(QUIZ_SIZE));
   const { attempts, mockSessions } = useProgress();
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
@@ -51,6 +51,12 @@ export function PracticePage() {
           <span className="chev"><IconChevron /></span>
         </Link>
       )}
+      {practiceSets.map((s) => (
+        <Link key={s.id} className="panel panel-link" to={`/practice/set/${s.id}`}>
+          <span className="grow"><h2>{s.title}</h2><span className="muted">By {s.author} · {s.questions.length} questions · explanation after each · not scored</span></span>
+          <span className="chev"><IconChevron /></span>
+        </Link>
+      ))}
       <Link className="panel panel-link" to="/practice/mistakes">
         <span className="grow"><h2>My mistakes</h2><span className="muted">{missed > 0 ? `${missed} question${missed === 1 ? '' : 's'} to master · right on 2 different days clears one` : 'Nothing to review yet'}</span></span>
         <span className="chev"><IconChevron /></span>

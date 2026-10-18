@@ -53,6 +53,13 @@ export function fixtureRaw(): RawContent {
       },
     ],
     focus: [{ id: 'gizmos', title: 'Gizmo handling', summary: 'Gizmo summary', questionIds: ['q-alpha-1', 'q-beta-1'] }],
+    practiceSets: [{
+      id: 'sample-set', title: 'Sample set', author: 'A. Writer', sourceUrl: 'https://example.com/set', sourceTitle: 'Sample set', note: 'A test set.', checkedOn: '2026-10-18',
+      questions: [{
+        id: 'q-set-1', domainId: 'alpha', stem: 'Set stem?', answer: 'a', explanation: 'Because the gizmo says so.',
+        choices: [{ id: 'a', text: 'Set right' }, { id: 'b', text: 'Set wrong one' }, { id: 'c', text: 'Set wrong two' }, { id: 'd', text: 'Set wrong three' }],
+      }],
+    }],
     domains: [
       { id: 'alpha', name: 'Alpha Domain', shortName: 'Alpha', weight: 60, order: 0, subSkills: [{ id: 'a1', name: 'Alpha One', weight: 60, official: true }] },
       { id: 'beta', name: 'Beta Domain', shortName: 'Beta', weight: 40, order: 1, subSkills: [{ id: 'b1', name: 'Beta One', official: false }] },

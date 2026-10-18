@@ -5,6 +5,7 @@ import {
   DomainsFileSchema,
   FocusFileSchema,
   GlossaryFileSchema,
+  PracticeSetFileSchema,
   LessonSchema,
   QuestionSchema,
   type Card,
@@ -13,6 +14,7 @@ import {
   type Domain,
   type FocusArea,
   type GlossaryTerm,
+  type PracticeSet,
   type Lesson,
   type Question,
 } from './schema';
@@ -25,6 +27,8 @@ export interface RawContent {
   course?: unknown;
   /** content/focus.json; optional like the glossary. */
   focus?: unknown;
+  /** content/practice-sets.json; optional like the glossary. */
+  practiceSets?: unknown;
   /** Keyed by "<domain-id>/<questions|cards|lessons>.json". */
   files: Record<string, unknown>;
 }
@@ -41,6 +45,7 @@ function zodErrors(file: string, error: z.ZodError): string[] {
 export function buildContent(
   domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = [], course: CourseSection[] = [],
   focus: FocusArea[] = [],
+  practiceSets: PracticeSet[] = [],
 ): Content {
   return {
     domains,
@@ -50,6 +55,7 @@ export function buildContent(
     glossary,
     course,
     focus,
+    practiceSets,
     domainById: new Map(domains.map((d) => [d.id, d])),
     questionById: new Map(questions.map((q) => [q.id, q])),
     cardById: new Map(cards.map((c) => [c.id, c])),
@@ -188,6 +194,27 @@ export function validateContent(raw: RawContent): ValidationResult {
     }
   }
 
+  let practiceSets: PracticeSet[] = [];
+  if (raw.practiceSets !== undefined) {
+    const parsed = PracticeSetFileSchema.safeParse(raw.practiceSets);
+    if (!parsed.success) errors.push(...zodErrors('practice-sets.json', parsed.error));
+    else {
+      practiceSets = parsed.data;
+      for (const s of practiceSets) {
+        if (seen.has(s.id)) errors.push(`practice-sets.json: duplicate id "${s.id}"`);
+        seen.add(s.id);
+        for (const q of s.questions) {
+          if (seen.has(q.id)) errors.push(`practice-sets.json: ${s.id} duplicate id "${q.id}"`);
+          seen.add(q.id);
+          if (!domainById.has(q.domainId)) errors.push(`practice-sets.json: ${q.id} has unknown domainId "${q.domainId}"`);
+          const ids = q.choices.map((c) => c.id);
+          const answers = typeof q.answer === 'string' ? [q.answer] : q.answer;
+          if (answers.some((a) => !ids.includes(a))) errors.push(`practice-sets.json: ${q.id} answer is not a choice`);
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -199,6 +226,7 @@ export function validateContent(raw: RawContent): ValidationResult {
       glossary,
       course,
       focus,
+      practiceSets,
     ),
   };
 }

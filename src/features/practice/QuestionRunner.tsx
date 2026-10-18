@@ -14,12 +14,14 @@ import { VerdictSheet } from './VerdictSheet';
 /** missedIds: questions answered wrong or guessed, for a one-tap retry. */
 export interface RunSummary { correct: number; total: number; missedIds: string[] }
 
-export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
+export function QuestionRunner({ questions, mode, title, onFinish, onExit, record = true }: {
   questions: Question[];
   mode: AttemptMode;
   title: string;
   onFinish: (summary: RunSummary) => void;
   onExit: () => void;
+  /** Off for third-party practice sets, whose questions aren't in the bank and shouldn't touch progress. */
+  record?: boolean;
 }) {
   const { recordAnswer } = useProgress();
   const [index, setIndex] = useState(0);
@@ -49,7 +51,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit }: {
     const right = isCorrect(question, answer);
     if (right) setCorrect((c) => c + 1);
     if (!right || guessing) setMissedIds((m) => [...m, question.id]);
-    recordAnswer(question, answer, mode, guessing).catch(ignore);
+    if (record) recordAnswer(question, answer, mode, guessing).catch(ignore);
   };
   const multiple = isMultiple(question);
   const need = selectCount(question);

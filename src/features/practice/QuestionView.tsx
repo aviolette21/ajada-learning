@@ -69,7 +69,7 @@ export function QuestionView({ question, chosen, onChoose, mode, revealed, showR
                     {annotated && multiple && isAnswer && !isChosen && <em className="choice-yours"> · you missed this one</em>}
                   </span>
                   <AnimatePresence>
-                    {annotated && (
+                    {annotated && c.reason && (
                       <motion.span className="choice-reason" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                         transition={{ delay: 0.05 * i, duration: 0.25 }}>
                         {renderInline(c.reason, links)}
