@@ -34,6 +34,14 @@ describe('MockIntroPage', () => {
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent(`/practice/mock/mock-${NOW.getTime()}`));
     const [saved] = await db.getMockSessions();
     expect(saved.questionIds).toHaveLength(4);
+    expect(saved.feedback).toBe(false);
+  });
+  it('starts an exam that shows answers as you go when that is switched on', async () => {
+    const { db } = await renderWithApp(<MockIntroPage />, { now, route: '/practice/mock', path: '/practice/mock' });
+    await userEvent.click(await screen.findByRole('button', { name: /Show answers as I go/ }));
+    expect(screen.getByText(/a checked answer can't be changed/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Start a new mock exam' }));
+    await waitFor(async () => expect((await db.getMockSessions())[0]?.feedback).toBe(true));
   });
   it('stays put and says so when a new session cannot be saved', async () => {
     const db = await openTestDb();
@@ -139,6 +147,44 @@ describe('MockExamPage', () => {
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('/practice/mock/m1/results'));
     expect(spy).toHaveBeenCalledTimes(2);
     expect(await db.getAttempts()).toHaveLength(1);
+  });
+
+  it('with answers shown as you go, checks each pick, explains it, locks it and keeps a tally', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ feedback: true }));
+    await examAt(db);
+    await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
+    const verdict = screen.getByRole('dialog', { name: 'Answer explanation' });
+    expect(within(verdict).getByText(/Not quite\. The answer is A/)).toBeInTheDocument();
+    expect(screen.getByText('Why a is right for q-alpha-1')).toBeInTheDocument();
+    await waitFor(async () => expect((await db.getMockSessions())[0]).toMatchObject({ answers: { 'q-alpha-1': 'b' }, revealed: ['q-alpha-1'] }));
+    await userEvent.click(within(verdict).getByRole('button', { name: 'Next question' }));
+    expect(await screen.findByText('Question 2 of 4')).toBeInTheDocument();
+    expect(screen.getByText('✓ 0 of 1 checked so far right')).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-2/ }));
+    expect(within(screen.getByRole('dialog', { name: 'Answer explanation' })).getByText('Correct!')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Next question' }));
+    expect(await screen.findByText('✓ 1 of 2 checked so far right')).toBeInTheDocument();
+
+    // A checked answer can't be changed on the way back.
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    await userEvent.click(screen.getByRole('button', { name: /Wrong one q-alpha-2/ }));
+    await waitFor(async () => expect((await db.getMockSessions())[0].answers['q-alpha-2']).toBe('a'));
+    await userEvent.click(screen.getByRole('button', { name: /All questions/ }));
+    const nav = screen.getByRole('dialog', { name: 'Question navigator' });
+    expect(within(nav).getByRole('button', { name: 'Question 1, answered, wrong' })).toBeInTheDocument();
+    expect(within(nav).getByRole('button', { name: 'Question 2, answered, right' })).toBeInTheDocument();
+  });
+
+  it('can switch answers-as-you-go on mid-exam, then check an answer given earlier', async () => {
+    const db = await openTestDb();
+    await db.putMockSession(session({ answers: { 'q-alpha-1': 'a' } }));
+    await examAt(db);
+    await userEvent.click(await screen.findByRole('button', { name: /Show answers as I go/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    expect(within(screen.getByRole('dialog', { name: 'Answer explanation' })).getByText('Correct!')).toBeInTheDocument();
+    await waitFor(async () => expect((await db.getMockSessions())[0]).toMatchObject({ feedback: true, revealed: ['q-alpha-1'] }));
   });
 
   it('shows elapsed time and never auto-submits', async () => {

@@ -35,8 +35,8 @@ const FileSchema = z.object({
     })),
     mockSessions: z.array(z.looseObject({
       id: z.string(), startedAt: z.number(), durationMs: z.number().positive(), questionIds: z.array(z.string()),
-      answers: z.record(z.string(), ChosenSchema), flagged: z.array(z.string()), guessed: z.array(z.string()).optional(), currentIndex: count,
-      submittedAt: z.number().optional(),
+      answers: z.record(z.string(), ChosenSchema), flagged: z.array(z.string()), guessed: z.array(z.string()).optional(),
+      feedback: z.boolean().optional(), revealed: z.array(z.string()).optional(), currentIndex: count, submittedAt: z.number().optional(),
     }).refine((m) => m.currentIndex < m.questionIds.length)),
     lessonsDone: z.array(z.looseObject({ lessonId: z.string(), at: z.number() })),
     flags: z.array(z.looseObject({ itemId: z.string(), kind: z.enum(['question', 'card']), at: z.number() })),

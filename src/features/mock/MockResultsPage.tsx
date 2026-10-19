@@ -40,6 +40,7 @@ export function MockResultsPage() {
         <div>{result.passes ? 'Above' : 'Below'} the {PASS_SCORE} pass mark</div>
         <div className="muted">{result.correct} / {result.total} correct ({result.percent}%) · estimated scaled score</div>
         <div className="muted">Time taken: {formatClock(session.submittedAt - session.startedAt)} (the real exam allows 2:00:00)</div>
+        {session.feedback && <div className="muted">Taken with answers shown as you went</div>}
         {luckyGuesses > 0 && <div className="muted">{luckyGuesses} of those you marked as a guess</div>}
       </section>
       {retryIds.length > 0 && (

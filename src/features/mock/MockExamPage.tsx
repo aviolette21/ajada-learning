@@ -4,7 +4,7 @@ import { useNow } from '../../app/clock';
 import { useContent } from '../../app/ContentContext';
 import { ignore } from '../../app/Notifier';
 import { useProgress } from '../../app/ProgressProvider';
-import { chosenIds, isAnswered, isMultiple, selectCount } from '../../content/answers';
+import { chosenIds, isAnswered, isCorrect, isMultiple, selectCount } from '../../content/answers';
 import type { ChoiceId, Question } from '../../content/schema';
 import type { MockSession } from '../../study/types';
 import { Button } from '../../ui/Button';
@@ -14,6 +14,7 @@ import { Screen } from '../../ui/Screen';
 import { Sheet } from '../../ui/Sheet';
 import '../practice/practice.css';
 import { QuestionView } from '../practice/QuestionView';
+import { VerdictSheet } from '../practice/VerdictSheet';
 import './mock.css';
 
 export function formatClock(ms: number): string {
@@ -31,6 +32,7 @@ export function MockExamPage() {
   const { mockSessions, saveMockSession, submitMock } = useProgress();
   const [session, setSession] = useState<MockSession | undefined>(() => mockSessions.find((s) => s.id === sessionId));
   const [navOpen, setNavOpen] = useState(false);
+  const [verdictOpen, setVerdictOpen] = useState(false);
   const submitting = useRef(false);
   const time = useNow(1000);
   const elapsed = session ? Math.max(0, time.getTime() - session.startedAt) : 0;
@@ -67,9 +69,24 @@ export function MockExamPage() {
     return q ? isAnswered(q, session.answers[id]) : false;
   });
   const answered = answeredIds.length;
+  const feedback = session.feedback ?? false;
+  const revealedIds = session.revealed ?? [];
+  const revealed = revealedIds.includes(qid);
+  const rightSoFar = revealedIds.filter((id) => {
+    const q = questionById.get(id);
+    return q ? isCorrect(q, session.answers[id]) : false;
+  }).length;
+  // Checking locks the answer in and shows the verdict and explanation.
+  const check = (answers = session.answers) => {
+    update({ answers, revealed: [...revealedIds, qid] });
+    setVerdictOpen(true);
+  };
   const pick = (q: Question, id: ChoiceId) => {
+    if (revealed) return;
     if (!isMultiple(q)) {
-      update({ answers: { ...session.answers, [q.id]: id } });
+      const answers = { ...session.answers, [q.id]: id };
+      if (feedback) check(answers);
+      else update({ answers });
       return;
     }
     const picked = chosenIds(session.answers[q.id]);
@@ -81,9 +98,19 @@ export function MockExamPage() {
   const flagged = session.flagged.includes(qid);
   const guessed = session.guessed?.includes(qid) ?? false;
   const isLast = session.currentIndex === total - 1;
+  const goTo = (i: number) => {
+    setVerdictOpen(false);
+    update({ currentIndex: i });
+  };
+  const afterVerdict = () => {
+    setVerdictOpen(false);
+    if (isLast) setNavOpen(true);
+    else update({ currentIndex: session.currentIndex + 1 });
+  };
+  const canCheck = question !== undefined && feedback && !revealed && (isMultiple(question) || isAnswered(question, session.answers[qid]));
 
   return (
-    <div className="runner">
+    <div className={`runner ${verdictOpen ? 'has-sheet' : ''}`}>
       <header className="runner-head">
         <button type="button" className="icon-btn" aria-label="Leave exam (progress is saved)" onClick={() => navigate('/practice/mock')}>
           <IconClose />
@@ -94,11 +121,26 @@ export function MockExamPage() {
         </span>
       </header>
       <ProgressBar value={answered / total} label="Questions answered" />
+      {feedback && revealedIds.length > 0 && (
+        <p className="mock-tally muted">✓ {rightSoFar} of {revealedIds.length} checked so far right</p>
+      )}
       {question && (
-        <QuestionView question={question} chosen={session.answers[qid] ?? null} mode="exam" showReportFlag={false}
+        <QuestionView question={question} chosen={session.answers[qid] ?? null} mode={revealed ? 'answer' : 'exam'} revealed={revealed} showReportFlag={false}
           onChoose={(id: ChoiceId) => pick(question, id)} />
       )}
+      {canCheck && question && (
+        <div className="check-bar">
+          <Button block disabled={!isAnswered(question, session.answers[qid])} onClick={() => check()}>
+            {isAnswered(question, session.answers[qid]) ? 'Check answer' : `Pick ${selectCount(question) - chosenIds(session.answers[qid]).length} more`}
+          </Button>
+        </div>
+      )}
       <div className="mock-tools">
+        <button type="button" className={`chip ${feedback ? 'on' : ''}`} aria-pressed={feedback}
+          onClick={() => update({ feedback: !feedback })}>
+          💡 {feedback ? 'Showing answers as I go' : 'Show answers as I go'}
+        </button>
+        {revealed && <button type="button" className="chip" onClick={() => setVerdictOpen(true)}>See explanation</button>}
         <button type="button" className={`chip ${flagged ? 'on' : ''}`} aria-pressed={flagged}
           onClick={() => update({ flagged: flagged ? session.flagged.filter((x) => x !== qid) : [...session.flagged, qid] })}>
           {flagged ? '★ Flagged for review' : '☆ Flag for review'}
@@ -110,21 +152,23 @@ export function MockExamPage() {
         <button type="button" className="chip" onClick={() => setNavOpen(true)}>All questions ({answered}/{total})</button>
       </div>
       <div className="mock-nav">
-        <Button variant="secondary" disabled={session.currentIndex === 0} onClick={() => update({ currentIndex: session.currentIndex - 1 })}>Back</Button>
+        <Button variant="secondary" disabled={session.currentIndex === 0} onClick={() => goTo(session.currentIndex - 1)}>Back</Button>
         {isLast
           ? <Button onClick={() => setNavOpen(true)}>Review &amp; submit</Button>
-          : <Button onClick={() => update({ currentIndex: session.currentIndex + 1 })}>Next</Button>}
+          : <Button onClick={() => goTo(session.currentIndex + 1)}>Next</Button>}
       </div>
       <Sheet open={navOpen} label="Question navigator" onClose={() => setNavOpen(false)}>
         <div className="navgrid">
           {session.questionIds.map((id, i) => {
             const isDone = answeredIds.includes(id);
             const isFlagged = session.flagged.includes(id);
+            const q = questionById.get(id);
+            const result = q && revealedIds.includes(id) ? (isCorrect(q, session.answers[id]) ? 'right' : 'wrong') : null;
             return (
               <button key={id} type="button"
-                className={['navcell', isDone ? 'answered' : '', isFlagged ? 'flagged' : '', i === session.currentIndex ? 'current' : ''].join(' ')}
-                aria-label={`Question ${i + 1}${isDone ? ', answered' : ''}${isFlagged ? ', flagged' : ''}`}
-                onClick={() => { update({ currentIndex: i }); setNavOpen(false); }}>
+                className={['navcell', isDone ? 'answered' : '', result ?? '', isFlagged ? 'flagged' : '', i === session.currentIndex ? 'current' : ''].join(' ')}
+                aria-label={`Question ${i + 1}${isDone ? ', answered' : ''}${result ? `, ${result}` : ''}${isFlagged ? ', flagged' : ''}`}
+                onClick={() => { goTo(i); setNavOpen(false); }}>
                 {i + 1}
               </button>
             );
@@ -134,6 +178,10 @@ export function MockExamPage() {
         <Button block onClick={() => void submit()}>Submit exam</Button>
         <Button block variant="ghost" onClick={() => setNavOpen(false)}>Keep going</Button>
       </Sheet>
+      {question && revealed && (
+        <VerdictSheet question={question} chosen={session.answers[qid] ?? null} guessed={guessed} open={verdictOpen}
+          onContinue={afterVerdict} continueLabel={isLast ? 'Review & submit' : 'Next question'} />
+      )}
     </div>
   );
 }

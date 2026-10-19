@@ -36,6 +36,10 @@ export interface MockSession {
   flagged: string[];
   /** Questions the learner marked as a guess during the exam. */
   guessed?: string[];
+  /** Check each answer as it's given: the verdict and explanation show straight away, and the answer locks. */
+  feedback?: boolean;
+  /** Questions whose answer has been checked in feedback mode; these can't be changed. */
+  revealed?: string[];
   currentIndex: number;
   submittedAt?: number;
 }
