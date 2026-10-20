@@ -1,0 +1,413 @@
+[
+  {
+    "id": "harness",
+    "group": "Agents and where they run",
+    "title": "Harness",
+    "domainId": "agents-workflows",
+    "definition": "The software wrapped around the model that turns it into an agent. It sends each request, runs the tools Claude asks for, feeds the results back, and manages context, permissions and hooks along the way. The model decides what to do; the harness makes it happen.",
+    "example": "**Claude Code** is a harness: the same Claude model, plus a loop that reads files, runs commands, asks permission, compacts long sessions and fires hooks. The **Agent SDK** gives you that same harness as a library. When you write your own `while stop_reason == \"tool_use\"` loop, you're building a small harness yourself.\n\nHarnesses encode assumptions about what the model can't do. Anthropic found that a context-reset workaround built for one model became dead weight on a later one, so a harness is worth re-checking whenever the model improves.",
+    "exam": "Expect questions about who supplies the harness: you (a raw API loop), a library (the Agent SDK), or Anthropic (Managed Agents). Also: after a model upgrade, re-test old harness workarounds instead of keeping them by default.",
+    "questionIds": [
+      "q-harness-stale-assumptions",
+      "q-s5pack-record-model-assumptions",
+      "q-long-running-session-handoff",
+      "q-context-tell-claude-about-compaction",
+      "q-sdk-loop-what-you-stop-writing",
+      "q-req-hosted-agent-choice"
+    ]
+  },
+  {
+    "id": "runtime",
+    "group": "Agents and where they run",
+    "title": "Runtime",
+    "domainId": "agents-workflows",
+    "definition": "Where the agent actually runs: the process, container or sandbox that executes the loop and the tools, and holds its files and network access. The harness is the logic; the runtime is the place it runs, and whoever operates that place is responsible for securing it.",
+    "example": "- **Raw API loop or Agent SDK:** your server, laptop or CI container is the runtime. You host, secure and scale it.\n- **Claude Managed Agents:** Anthropic runs the loop. By default each session gets its own Anthropic-hosted container, so bash and file tools run there, not on your machines; a self-hosted sandbox option runs them on your own infrastructure instead.\n- **A stdio MCP server:** a local process on the user's machine, started by the client, with that user's permissions.",
+    "exam": "Runtime questions are really about ownership and trust: who hosts the compute, where the files live, what the network can reach, and so who must sandbox it. Choosing Managed Agents means accepting Anthropic's hosted service and its data handling; choosing the SDK means you own the runtime.",
+    "questionIds": [
+      "q-agent-sdk-what-you-still-own",
+      "q-course-skill-api-runs-in-container",
+      "q-cp-s3-hosted-agent-skill-no-local-files",
+      "q-ent-local-stdio-boundary",
+      "q-keys-credential-proxy",
+      "q-course-skill-api-no-network"
+    ]
+  },
+  {
+    "id": "three-surfaces",
+    "group": "Agents and where they run",
+    "title": "Raw Messages API loop, Agent SDK, Claude Managed Agents",
+    "domainId": "agents-workflows",
+    "definition": "The three ways the course compares for building an agent, from the most code you own to the least:\n- **Raw Messages API loop:** you call `/v1/messages`, run the tools yourself and loop. Full control; you build everything.\n- **Agent SDK:** Claude Code's harness as a Python or TypeScript library, with built-in file, bash and search tools, hooks, subagents and sessions. You still host it.\n- **Claude Managed Agents:** Anthropic runs the loop and, by default, a per-session container. You define the agent once, then start sessions over REST.",
+    "example": "- A support bot that classifies tickets and calls two internal APIs: a **raw loop**. It's small, and you want full control.\n- A coding agent that edits a repo inside your CI: the **Agent SDK**. You want Claude Code's tools on your own infrastructure.\n- A long-running research agent that needs its own workspace and none of your servers: **Managed Agents**.",
+    "exam": "A favourite scenario: given a requirement (own infrastructure, built-in tools, a hosted sandbox, a compliance rule), pick the surface. Two traps: the Agent SDK still needs you to host it, and Managed Agents' server-side state rules it out for zero data retention and HIPAA workloads.",
+    "questionIds": [
+      "q-course-managed-vs-messages-choice",
+      "q-appd2-surface-client-sdk",
+      "q-managed-vs-messages-api",
+      "q-req-managed-agents-fit",
+      "q-req-hosted-agent-choice",
+      "q-agent-sdk-choice",
+      "q-course-client-sdk-role"
+    ]
+  },
+  {
+    "id": "tool-use-loop",
+    "group": "Agents and where they run",
+    "title": "Tool use loop",
+    "domainId": "agents-workflows",
+    "definition": "The cycle behind every agent. Send the request with your tool definitions; Claude replies with `stop_reason: \"tool_use\"` and one or more `tool_use` blocks; your code runs each tool; you send back one user message of `tool_result` blocks, each matching its `tool_use_id`. Repeat until `stop_reason` is no longer `tool_use` (normally `end_turn`).",
+    "snippet": {
+      "language": "python",
+      "code": "messages = [{\"role\": \"user\", \"content\": task}]\nwhile True:\n    r = client.messages.create(\n        model=MODEL, max_tokens=16000,\n        tools=tools, messages=messages)\n    messages.append(\n        {\"role\": \"assistant\", \"content\": r.content})\n    if r.stop_reason != \"tool_use\":\n        break\n    results = [\n        {\"type\": \"tool_result\",\n         \"tool_use_id\": b.id,\n         \"content\": run_tool(b.name, b.input)}\n        for b in r.content if b.type == \"tool_use\"]\n    messages.append(\n        {\"role\": \"user\", \"content\": results})"
+    },
+    "example": "Claude asks for `get_weather` and `get_time` in the same turn. Run both, then return **both** results in **one** user message. If a tool fails, return its `tool_result` with `is_error: true` instead of dropping it, so Claude can recover.\n\nNote the loop appends `r.content`, the whole assistant turn, not just its text.",
+    "exam": "Trace-diagnosis items: a mismatched `tool_use_id`, a missing result for one of several parallel calls, results split across several messages, or a harness that appends only the text and loses the `tool_use` block. Know what each one breaks.",
+    "questionIds": [
+      "q-code-loop-missing-assistant-turn",
+      "q-cp-s2-trace-tool-use-id-mismatch",
+      "q-cp-s2-trace-missing-parallel-result",
+      "q-code-loop-separate-result-messages",
+      "q-loop-condition-other-stop-reasons",
+      "q-loop-next-request-contents",
+      "q-code-loop-skipped-failed-call",
+      "q-loop-no-tool-role"
+    ]
+  },
+  {
+    "id": "stateful",
+    "group": "Agents and where they run",
+    "title": "Stateful vs stateless",
+    "note": "Managed Agent sessions are stateful and stored server-side. That storage is the reason these sessions aren't currently eligible for Zero Data Retention or a HIPAA Business Associate Agreement.",
+    "domainId": "agents-workflows",
+    "definition": "**Stateful** means the system remembers things between calls. **Stateless** means every request carries everything needed. The Messages API is stateless: you resend the whole conversation each turn. Managed Agents sessions are stateful: the conversation history, sandbox state and outputs are stored server-side, so you send only the new message and the session carries on.",
+    "example": "- A chat on the **Messages API**: your app stores the history and resends it every turn.\n- The same chat on **Managed Agents**: you post one new user message to an existing session, which already has its history and workspace files.\n\nThat stored history is exactly why the note above holds: zero data retention means Anthropic doesn't store your data after the response is returned, and a stateful session has to keep it.",
+    "exam": "A scenario with PHI or a zero-data-retention requirement rules Managed Agents out. The fit is the stateless Messages API, with a loop you host, using only the features the arrangement covers.",
+    "questionIds": [
+      "q-course-managed-session-history-server-side",
+      "q-api-stateless-history",
+      "q-course-history-growth-input",
+      "q-code-chat-history-no-assistant",
+      "q-req-managed-agents-fit",
+      "q-req-zdr-batch-retention",
+      "q-managed-steer-session"
+    ]
+  },
+  {
+    "id": "frameworks",
+    "group": "Agents and where they run",
+    "title": "Strands, LangGraph, PydanticAI",
+    "domainId": "agents-workflows",
+    "definition": "Third-party agent frameworks that can run on Claude. They provide the building blocks for agents, so you don't hand-write them: the loop, tool wiring, multi-agent patterns and state.\n- **Strands Agents** (open source, from AWS): a model-driven loop, with multi-agent patterns such as agents-as-tools, swarms and graphs.\n- **LangGraph** (from LangChain): an agent as a graph of nodes and edges, with explicit state that can be checkpointed and resumed.\n- **PydanticAI** (from the Pydantic team): type-safe Python agents with validated structured outputs and tool arguments.",
+    "example": "- A team on AWS wants specialist agents an orchestrator can call: Strands' **agents as tools** (pass a specialist agent in the orchestrator's tools).\n- A workflow with branches, retries and a human approval step that must resume after a crash: LangGraph's **checkpointed graph**.\n- A Python service that must return validated, typed objects: **PydanticAI**.",
+    "exam": "The exam tests what frameworks give you and what they don't. They give orchestration abstractions; they don't make an agent reliable, and they don't replace an eval set. Weigh one against the Agent SDK or a raw loop by how much control and portability you need.",
+    "questionIds": [
+      "q-strands-agents-as-tools",
+      "q-strands-swarm-pattern",
+      "q-langgraph-interrupt-requirements",
+      "q-langgraph-store-vs-checkpointer",
+      "q-pydantic-output-type",
+      "q-gap-x-framework-gives-structure",
+      "q-framework-vs-own-loop",
+      "q-framework-first"
+    ]
+  },
+  {
+    "id": "claude-code-vs-sdk",
+    "group": "Claude Code configuration",
+    "title": "Claude Code vs the Agent SDK",
+    "domainId": "claude-code",
+    "definition": "The same engine, packaged two ways. **Claude Code** is the product a person drives: in the terminal, an IDE, the desktop app or the web. The **Agent SDK** is that engine as a library your program drives: you call `query()` with a prompt and options, and get the same tools, hooks, subagents, MCP and permissions with no human at the keyboard.",
+    "example": "- A developer refactoring a module by chatting with it: **Claude Code**.\n- A nightly job that triages new issues and opens pull requests with nobody watching: the **Agent SDK** inside that job. (For a one-off script, Claude Code's headless mode, `claude -p \"...\"`, also works.)",
+    "exam": "Watch for configuration differences. The CLI loads your settings files and CLAUDE.md automatically; the SDK does the same by default, but `settingSources` decides which of those filesystem sources it loads (next topic). The SDK is for building your own agent or product, not for using Claude interactively.",
+    "questionIds": [
+      "q-focus-sdk-cli-or-package",
+      "q-appd2-sdk-default-prompt-minimal",
+      "q-agent-sdk-choice",
+      "q-sdk-preset-append",
+      "q-focus-headless-open-investigation-interactive",
+      "q-focus-headless-routine-log-summary"
+    ]
+  },
+  {
+    "id": "setting-sources",
+    "group": "Claude Code configuration",
+    "title": "CLAUDE.md and settingSources",
+    "note": "In the Claude Code CLI, a CLAUDE.md file loads into every session regardless of what task is running. In the Agent SDK, whether filesystem settings including CLAUDE.md (and skills) load is controlled by the settingSources configuration.",
+    "domainId": "claude-code",
+    "definition": "`settingSources` is the Agent SDK option that lists which filesystem settings to load: `\"user\"` (your ~/.claude folder), `\"project\"` (the repo's .claude/ folder, its CLAUDE.md and its skills) and `\"local\"` (CLAUDE.local.md and .claude/settings.local.json). Leave it out and the SDK loads all three, like the CLI. Pass a list to load only those sources, or `[]` to load none and configure the agent in code. Set it explicitly for CI and deployed agents, so they don't pick up whatever settings happen to be on the machine.",
+    "snippet": {
+      "language": "typescript",
+      "code": "for await (const msg of query({\n  prompt: \"Fix the failing test\",\n  options: {\n    settingSources: [\"project\"],\n    allowedTools: [\"Read\", \"Edit\", \"Bash\"],\n  },\n})) {\n  // handle each message\n}"
+    },
+    "example": "Your repo's CLAUDE.md says \"run tests with pnpm\". In Claude Code that rule is in every session. A CI agent with `settingSources: [\"project\"]`, as in the snippet, follows it and finds the repo's skills in .claude/skills/, but ignores anyone's personal ~/.claude settings. An agent whose list leaves out `\"project\"`, or is `[]`, ignores the rule and the skills.",
+    "exam": "The classic item is \"why isn't my SDK agent following the project rules, or finding the skill?\" The fix is a setting-source list that includes `\"project\"` (with the right working directory), not pasting the rule into the prompt. Also remember that CLAUDE.md is always-on context, so keep it short and move occasional procedures into skills.",
+    "questionIds": [
+      "q-course-sdk-skills-setting-sources",
+      "q-cp-s3-sdk-setting-sources-blank",
+      "q-config-claude-md-trim",
+      "q-ctx-claude-md-imports-no-savings",
+      "q-cc-claude-md-load-order",
+      "q-focus-headless-skip-local-config"
+    ]
+  },
+  {
+    "id": "skills-vs-commands",
+    "group": "Claude Code configuration",
+    "title": "Skills vs slash commands",
+    "domainId": "claude-code",
+    "definition": "A **skill** is a folder with a SKILL.md file (frontmatter plus instructions, and optional scripts or reference files). Only its name and description load up front; Claude reads the rest when a task matches, or you run it yourself as `/name`. A **slash command** is a prompt you trigger by typing `/name`. In Claude Code, custom commands have been folded into skills: a file in .claude/commands/ still works, but a skill adds supporting files and lets Claude use it on its own.",
+    "example": "- A 40-step release checklist: make it a **skill**. It costs one line of context until someone actually releases.\n- \"Explain this diff\", which you only want when you ask: a command, or a skill with `disable-model-invocation: true` in its frontmatter so only you can trigger it.\n- Built-in commands such as `/clear` and `/compact` control the session itself.",
+    "exam": "Questions ask where a procedure belongs: CLAUDE.md (always loaded, every session), a skill (loaded on demand, by Claude or by you), a hook (deterministic, runs whatever the model decides) or a subagent (its own separate context). Loading only what's needed, when it's needed, is why skills scale.",
+    "questionIds": [
+      "q-course-command-file-to-skill",
+      "q-cc-team-skill",
+      "q-cc-skill-manual-only",
+      "q-skill-for-repeated-checklist",
+      "q-ctx-right-mechanism-each-concern",
+      "q-cp-s3-packaging-procedure-on-demand",
+      "q-skill-progressive-disclosure",
+      "q-course-manual-only-skill-context"
+    ]
+  },
+  {
+    "id": "frontmatter",
+    "group": "Claude Code configuration",
+    "title": "Frontmatter block",
+    "domainId": "claude-code",
+    "definition": "The YAML header between two `---` lines at the very top of a Markdown file. Claude Code reads it as configuration; everything below it is the instructions. Skills, subagents and commands all use one.",
+    "snippet": {
+      "language": "yaml",
+      "code": "---\nname: release-notes\ndescription: Drafts release notes from merged\n  pull requests. Use when the user asks for a\n  changelog or release notes.\n---\n\n# Release notes\n1. List PRs merged since the last tag.\n2. Group them by feature, fix and chore."
+    },
+    "example": "The `description` does the most work: it's what Claude reads to decide whether the skill applies, so say what the skill does **and** when to use it. A vague description (\"helps with docs\") means the skill rarely triggers. A subagent's frontmatter adds fields such as which `tools` and `model` it uses.",
+    "exam": "Expect a broken skill to diagnose: a missing or vague description, frontmatter that isn't at the very top of the file, or a path hard-coded for one person's machine. Know what goes in the frontmatter (configuration) versus the body (instructions); you don't need every field by heart.",
+    "questionIds": [
+      "q-skill-description-trigger",
+      "q-code-skill-description-holds-procedure",
+      "q-cp-s3-skill-md-absolute-path-defect",
+      "q-cc-subagent-readonly",
+      "q-subagent-skill-preload",
+      "q-ctx-subagent-block-skills",
+      "q-cc-path-scoped-rule",
+      "q-cc-skill-manual-only"
+    ]
+  },
+  {
+    "id": "sdk-vs-rest",
+    "group": "API mechanics",
+    "title": "SDK vs REST",
+    "domainId": "apps-integration",
+    "definition": "The **REST API** is the raw HTTPS interface: `POST https://api.anthropic.com/v1/messages` with an `x-api-key` header, an `anthropic-version` header and a JSON body. The official **SDKs** (Python, TypeScript, Java, Go, Ruby, C#, PHP) call those same endpoints and add typed objects, automatic retries on rate limits and server errors, streaming helpers and a tool runner.",
+    "snippet": {
+      "language": "bash",
+      "code": "curl https://api.anthropic.com/v1/messages \\\n  -H \"x-api-key: $ANTHROPIC_API_KEY\" \\\n  -H \"anthropic-version: 2023-06-01\" \\\n  -H \"content-type: application/json\" \\\n  -d '{\"model\": \"claude-opus-5-5\",\n       \"max_tokens\": 1024,\n       \"messages\": [{\"role\": \"user\",\n                     \"content\": \"Hello\"}]}'"
+    },
+    "example": "- A Python service: use the `anthropic` package's client rather than hand-written HTTP calls, and get retries and types for free.\n- A shell script, or a language with no official SDK: call the REST API directly, as above.\n\nThe features and the request shape are the same either way.",
+    "exam": "The SDK is the default; REST is for languages without an SDK, shell scripts and debugging. If a scenario has someone re-implementing retries or stream parsing by hand, the better answer is usually the SDK's built-in helper.",
+    "questionIds": [
+      "q-tech2-sdk-over-raw-http",
+      "q-tech2-raw-http-no-sdk",
+      "q-swe2-headers-vs-body",
+      "q-tech-sdk-vs-raw-http",
+      "q-tech-sdk-retries",
+      "q-tech-unknown-events",
+      "q-tech2-use-sdk-types",
+      "q-course-stream-sdk-parsed-input"
+    ]
+  },
+  {
+    "id": "streaming-deltas",
+    "group": "API mechanics",
+    "title": "Streaming deltas",
+    "domainId": "apps-integration",
+    "definition": "With streaming on, the response arrives as a series of server-sent events, and a **delta** is one small piece of a content block. The order is: `message_start`, then for each block a `content_block_start`, many `content_block_delta` events and a `content_block_stop`, then `message_delta` (the final `stop_reason` and usage), then `message_stop`.",
+    "example": "Each delta type builds one kind of block:\n- `text_delta`: the next bit of answer text. Append it to the screen as it arrives.\n- `input_json_delta`: a fragment of a tool's input, as a **partial JSON string**. Join the fragments and parse them only when the block stops.\n- `thinking_delta`: a piece of a thinking block (followed by a `signature_delta`).\n\nThe stop reason only arrives in `message_delta`, so decide whether to run tools once the stream has finished.",
+    "exam": "Streaming items check that you don't parse tool input mid-stream, that you read `stop_reason` from `message_delta`, and that you stream long requests (large `max_tokens`) to avoid HTTP timeouts. SDK helpers such as `finalMessage()` assemble the deltas for you.",
+    "questionIds": [
+      "q-tech-input-json-delta",
+      "q-course-stream-tool-start-empty",
+      "q-course-stream-stop-reason-location",
+      "q-code-stream-delta-types",
+      "q-course-stream-route-deltas-by-block",
+      "q-code-stream-save-on-block-stop",
+      "q-course-sdk-long-request-stream",
+      "q-api-stream-block-index"
+    ]
+  },
+  {
+    "id": "thinking-blocks",
+    "group": "API mechanics",
+    "title": "Thinking blocks (passed back unchanged)",
+    "domainId": "apps-integration",
+    "definition": "With extended or adaptive thinking on, Claude's reply can include `thinking` blocks: its reasoning, each carrying a cryptographic `signature`. In a tool use loop you send the assistant turn back exactly as you received it, thinking blocks included and unmodified, so Claude can pick up its reasoning after the tool result.",
+    "example": "Claude replies with `[thinking, tool_use]`. You run the tool. The next request's messages end with:\n- the assistant message containing that same thinking block (text and signature untouched) and the `tool_use` block, then\n- a user message with the `tool_result`.\n\nEditing, trimming or reordering the thinking block gets the request rejected with a 400 error, and leaving it out loses the reasoning. The simple rule: append the whole `response.content`.",
+    "exam": "The exam rewards the safe habit: pass the content back as-is, never just the text. Expect a harness that rebuilds the assistant turn from text only, or strips thinking mid-loop to save tokens; both are the defect.",
+    "questionIds": [
+      "q-loop-thinking-blocks-returned",
+      "q-debug-thinking-blocks-400",
+      "q-api-thinking-preserve-blocks",
+      "q-course-carry-back-rules",
+      "q-output-select-blocks-by-type"
+    ]
+  },
+  {
+    "id": "prompt-caching",
+    "group": "API mechanics",
+    "title": "Prompt caching and cache breakpoints",
+    "note": "You enable caching by marking a cache breakpoint with a cache_control field of type ephemeral on the last block you want cached.",
+    "domainId": "model-selection",
+    "definition": "Prompt caching stores the processed start (prefix) of a prompt, so later requests that begin with exactly the same prefix don't pay to process it again. A **cache breakpoint** marks where that prefix ends: put `cache_control: {\"type\": \"ephemeral\"}` on a block, and everything up to and including it is cached, in the order tools, then system, then messages.",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"model\": \"claude-opus-5-5\",\n  \"max_tokens\": 1024,\n  \"system\": [\n    {\"type\": \"text\",\n     \"text\": \"You answer questions on a contract.\"},\n    {\"type\": \"text\",\n     \"text\": \"<the full 80-page contract>\",\n     \"cache_control\": {\"type\": \"ephemeral\"}}\n  ],\n  \"messages\": [{\"role\": \"user\",\n    \"content\": \"What is the notice period?\"}]\n}"
+    },
+    "example": "Every question about the same contract reuses the cached system prompt. The first request writes the cache (costing a little more than normal input); later requests read it at a small fraction of the normal input price (a tenth on most models, less on the newest), until it expires: 5 minutes by default, reset on each hit, with a 1-hour option. A request can have up to 4 breakpoints. Check `usage.cache_read_input_tokens` to confirm you're getting hits.",
+    "exam": "Caching is an exact prefix match, so put stable content first and anything that changes (timestamps, the user's question) after the breakpoint. A timestamp in the system prompt or a reordered tool list silently stops every hit. Prefixes shorter than the model's minimum aren't cached at all.",
+    "questionIds": [
+      "q-code-cache-breakpoint-on-varying-block",
+      "q-cache-breakpoint-placement",
+      "q-s4cost-cache-varying-content-first",
+      "q-cache-conversation-checkpoint",
+      "q-cache-lifetime",
+      "q-gap-x-cache-write-read-asymmetry",
+      "q-cost-usage-input-tokens",
+      "q-api-batch-cache-hits"
+    ]
+  },
+  {
+    "id": "opus-upgrade-errors",
+    "group": "API mechanics",
+    "title": "Upgrading to Opus 4.8: validation errors",
+    "domainId": "model-selection",
+    "definition": "Moving older request code to Claude Opus 4.7 or 4.8 can fail with a `400 invalid_request_error`, because these models reject some request settings that earlier models accepted. The request is rejected before the model runs, so the fix is in the request payload, not the prompt.",
+    "example": "Remove or replace:\n- `thinking: {type: \"enabled\", budget_tokens: N}`: use `thinking: {type: \"adaptive\"}` and set depth with `output_config.effort`.\n- `temperature`, `top_p` and `top_k` set to anything but their defaults: remove them and steer with the prompt.\n- An assistant **prefill** (ending the messages with a partial assistant reply): already rejected since Opus 4.6, so it bites code from Opus 4.5 or earlier. Use structured outputs or a system-prompt instruction instead.\n\nGoing from 4.7 to 4.8 adds no new breaking changes: swap the model ID, then re-tune prompts and effort.",
+    "exam": "Migration scenarios show a failing request and ask which field to change. Also know that \"no error\" doesn't mean \"done\": a newer model behaves differently, so re-run your evals after an upgrade.",
+    "questionIds": [
+      "q-api-thinking-budget-rules",
+      "q-course-redacted-thinking-carry-back",
+      "q-course-latency-relative",
+      "q-prompt-prefill-migration",
+      "q-prompt-context-hydration",
+      "q-s5deploy-migrate-pinned-model",
+      "q-course-sonnet55-fresh-effort-sweep"
+    ]
+  },
+  {
+    "id": "evals",
+    "group": "Quality and retrieval",
+    "title": "Evals",
+    "domainId": "eval-testing",
+    "definition": "An eval is a repeatable test of your Claude application: a set of inputs that represent real use, the expected outcome for each, and a grader that scores each output. Run it whenever the prompt, model, tools or settings change, so you know whether the change helped or hurt.",
+    "example": "- A ticket classifier: 300 real tickets with known labels, graded by exact match (a **code-based** grader).\n- A summarizer: graded by an **LLM judge** against a rubric, e.g. \"mentions the refund amount; under 80 words\".\n- A small **human review** sample where judgement really matters.\n\nTrack the score for each version; a drop after a change is a regression.",
+    "exam": "Expect to choose a grader (code-based where possible, an LLM judge with a clear rubric where not), build the set from real cases plus edge cases, and measure before and after a change rather than eyeballing a few outputs. Evals are what make a model upgrade or a prompt edit safe.",
+    "questionIds": [
+      "q-eval-regression-set",
+      "q-s4eval-match-grader-to-output",
+      "q-cp-s4-grader-open-ended-judge",
+      "q-course-eval-code-graded-labels",
+      "q-lifecycle-regression-gate",
+      "q-s4model-eval-like-real-traffic",
+      "q-gap-x-small-eval-swing-noise",
+      "q-s4eval-loop-read-failures"
+    ]
+  },
+  {
+    "id": "rag",
+    "group": "Quality and retrieval",
+    "title": "RAG (retrieval-augmented generation)",
+    "domainId": "prompt-context",
+    "definition": "Before asking Claude, search a knowledge base for the passages relevant to the question and put them in the prompt. The answer is then grounded in your documents rather than in what the model remembers, and it can cite them.",
+    "example": "A support assistant over 20,000 help articles: split the articles into chunks and index them. At question time, retrieve the best few chunks (often semantic search combined with keyword search, then reranking) and pass them in with an instruction to answer only from them and cite.\n\nAnthropic's **contextual retrieval** adds a short, chunk-specific explanation to each chunk before indexing, which cuts failed retrievals. And if the whole knowledge base fits comfortably in the context window, you can skip RAG and include all of it, with prompt caching.",
+    "exam": "Questions ask when RAG is the right tool (a large or changing knowledge base, a need for citations) versus putting documents straight into the context, and how to fix bad answers caused by bad retrieval (chunking, hybrid search, reranking) rather than by the prompt.",
+    "questionIds": [
+      "q-rag-contextual-chunks",
+      "q-rag-exact-match-bm25",
+      "q-rag-rerank-hundreds-of-chunks",
+      "q-rag-chunk-boundary-break",
+      "q-rag-label-context-vs-chunk",
+      "q-app-long-context-vs-rag",
+      "q-s4test-trace-retrieval-input",
+      "q-api-search-results-granularity"
+    ]
+  },
+  {
+    "id": "stdio",
+    "group": "MCP",
+    "title": "stdio (standard input/output)",
+    "domainId": "tools-mcp",
+    "definition": "Standard input and standard output are the two text streams every program has. In MCP, the **stdio transport** means the client starts the server as a local subprocess and they exchange JSON-RPC messages over the server's stdin and stdout. The other transport, Streamable HTTP, is for servers reached over a network.",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"mcpServers\": {\n    \"docs\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\",\n        \"@modelcontextprotocol/server-filesystem\",\n        \"./docs\"]\n    }\n  }\n}"
+    },
+    "example": "With that .mcp.json, Claude Code launches the filesystem server on your own machine. Nothing listens on a network port, and the server runs with your user's permissions. Because stdout is the message channel, the server must write its logs to **stderr**; printing to stdout corrupts the protocol. A shared server that a whole team reaches over the network would use HTTP instead.",
+    "exam": "Pick the transport from where the server runs: a local tool on one machine means stdio; a hosted, shared or remote server means Streamable HTTP, usually with authentication. A scenario that mentions a URL, OAuth or many users isn't describing stdio.",
+    "questionIds": [
+      "q-mcp-stdio-logging",
+      "q-focus-mcptr-stdio-launch",
+      "q-focus-mcptr-stdio-lifetime",
+      "q-focus-mcptr-sort-deployments",
+      "q-focus-mcptr-stdio-to-shared-service",
+      "q-cp-s3-transport-scope-laptop-profiler",
+      "q-mcp-sdk-transport-pick",
+      "q-ent-local-stdio-boundary"
+    ]
+  },
+  {
+    "id": "uris",
+    "group": "MCP",
+    "title": "URIs (MCP resources)",
+    "domainId": "tools-mcp",
+    "definition": "A URI (Uniform Resource Identifier) is a string that names a resource, such as `file:///repo/README.md` or `https://example.com/page`. In MCP, every **resource** a server exposes has a URI: the client lists the resources and reads one by its URI. A server can also offer **resource templates**, URIs with placeholders the client fills in.",
+    "example": "A database server might expose `postgres://shop/schema` as a resource, plus a template `postgres://shop/tables/{table}`. Unlike tools, which Claude decides to call, resources are data that the application or the user chooses to attach. In Claude Code you attach one by typing `@` and picking it, for example `@github:issue://123`.",
+    "exam": "Know MCP's three building blocks and who controls each: **tools** (actions the model chooses to call), **resources** (data addressed by URI, attached by the application or user) and **prompts** (templates the user invokes). Read-only data that a user attaches points to a resource, not a tool.",
+    "questionIds": [
+      "q-mcp-primitives",
+      "q-mcp-cc-resource-at-mention",
+      "q-mcp-overlap-not-owner",
+      "q-mcp-protocol-scope",
+      "q-mcp-connector-vs-client-helpers",
+      "q-mcp-cc-prompt-as-command"
+    ]
+  },
+  {
+    "id": "bedrock-vertex",
+    "group": "Platforms and compliance",
+    "title": "Amazon Bedrock and Google Vertex AI",
+    "domainId": "apps-integration",
+    "definition": "Cloud platforms that offer Claude inside AWS and Google Cloud. You call Claude through the cloud's own endpoint, using that cloud's identity system (AWS IAM roles, Google Cloud credentials), billing, regions and compliance programs, instead of an Anthropic API key. Microsoft Foundry is the Azure equivalent.",
+    "example": "A company whose data, security reviews and spending commitments all live in AWS uses Claude through Bedrock, with IAM roles and traffic kept in its chosen region. Claude Code can run on these platforms too (for example with `CLAUDE_CODE_USE_BEDROCK=1` or `CLAUDE_CODE_USE_VERTEX=1`).\n\nRequests look much like the Claude API's, but model IDs and authentication differ, and some newer or beta features (Managed Agents, for one) aren't available there or arrive later.",
+    "exam": "Platform-choice items: compliance and existing cloud commitments usually decide the platform first. Then check that the features you need actually exist on it before you benchmark anything. Don't assume feature parity with the Claude API.",
+    "questionIds": [
+      "q-s5deploy-port-to-bedrock",
+      "q-s5deploy-verify-features-first",
+      "q-s5deploy-aws-security-boundary",
+      "q-s5deploy-scoped-cloud-role",
+      "q-s5deploy-gcp-native-start",
+      "q-api-bedrock-regional-endpoint",
+      "q-lifecycle-partner-retirement",
+      "q-cp-s5-bedrock-identity-residency"
+    ]
+  },
+  {
+    "id": "compliance",
+    "group": "Platforms and compliance",
+    "title": "Compliance requirements that decide the platform",
+    "note": "GDPR and data residency, FedRAMP and government, internal data-residency policy, HIPAA (PHI handling), attorney-client privilege.",
+    "domainId": "apps-integration",
+    "definition": "Rules about where data may go and who may keep it. On the exam they work as pass/fail filters: a platform or feature that can't meet one is out, however well it scores on cost or speed. So check them first.",
+    "example": "- **GDPR and data residency:** keep processing in an allowed region. Residency is set where you deploy: a per-request or workspace setting on the Claude API, the region or endpoint on a cloud platform. Where inference runs and where data is stored are separate controls; check both.\n- **FedRAMP and government:** an authorized environment is mandatory, and it often points to one specific cloud deployment, so confirm which platform holds the authorization you need.\n- **Internal data-residency policy:** the same mechanics as GDPR, but the rule is your company's. Meet it first, then choose the cheapest or most available routing within it.\n- **HIPAA (PHI):** on the Claude API, needs a signed BAA and a HIPAA-enabled organization, and covers eligible features only. Managed Agents isn't covered, and Claude Code is covered only through a HIPAA-configured Claude Enterprise plan.\n- **Attorney-client privilege:** keep confidential material with as few parties and stores as possible: minimal retention (zero data retention where approved), least-privilege access, out of shared logs.",
+    "exam": "The course lists these as the requirements that settle a deployment before anything else. Expect a scenario where a team benchmarked first and checked compliance last; the right answer reverses that order.",
+    "questionIds": [
+      "q-s5platform-fedramp-decides",
+      "q-ent-hipaa-claude-code",
+      "q-req-zdr-batch-retention",
+      "q-s5platform-retention-terms-recheck",
+      "q-s5deploy-eu-residency-routing",
+      "q-s5platform-residency-only-where-required",
+      "q-cp-s5-comparison-trace-residency",
+      "q-app-schema-phi"
+    ]
+  }
+]

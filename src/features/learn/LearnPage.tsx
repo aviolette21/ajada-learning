@@ -7,7 +7,7 @@ import { Screen } from '../../ui/Screen';
 import './learn.css';
 
 export function LearnPage() {
-  const { domains, lessons, course } = useContent();
+  const { domains, lessons, course, needsImprovement } = useContent();
   const { lessonsDone } = useProgress();
   const ordered = [...domains].sort((a, b) => b.weight - a.weight);
   return (
@@ -19,6 +19,15 @@ export function LearnPage() {
             <span className="muted d-block">
               {[...course].sort((a, b) => a.number - b.number).map((s) => `Section ${s.number}`).join(' · ')}: definitions, examples and quizzes
             </span>
+          </span>
+          <span className="chev"><IconChevron /></span>
+        </Link>
+      )}
+      {needsImprovement.length > 0 && (
+        <Link className="panel panel-link course-entry" to="/needs-improvement">
+          <span className="grow">
+            <strong>🛠️ Needs improvement</strong>
+            <span className="muted d-block">{needsImprovement.length} topics from your notes: definitions, examples and how the exam asks</span>
           </span>
           <span className="chev"><IconChevron /></span>
         </Link>

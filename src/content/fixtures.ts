@@ -53,6 +53,15 @@ export function fixtureRaw(): RawContent {
       },
     ],
     focus: [{ id: 'gizmos', title: 'Gizmo handling', summary: 'Gizmo summary', questionIds: ['q-alpha-1', 'q-beta-1'] }],
+    needsImprovement: [
+      {
+        id: 'gizmo-wiring', group: 'Gizmo basics', title: 'Gizmo wiring', note: 'Gizmos are wired at startup', domainId: 'alpha',
+        definition: 'Wiring connects the part to its source.', example: 'Wire it before turning it on.', exam: 'Wiring questions ask which end goes first.',
+        snippet: { language: 'json', code: '{"gizmo": "wired"}' },
+        questionIds: ['q-alpha-1'],
+      },
+      { id: 'gizmo-reading', group: 'Gizmo basics', title: 'Gizmo reading', domainId: 'beta', definition: 'Reading a gizmo.', example: 'Read it twice.', exam: 'Rarely asked.' },
+    ],
     practiceSets: [{
       id: 'sample-set', title: 'Sample set', author: 'A. Writer', sourceUrl: 'https://example.com/set', sourceTitle: 'Sample set', note: 'A test set.', checkedOn: '2026-10-18',
       questions: [{

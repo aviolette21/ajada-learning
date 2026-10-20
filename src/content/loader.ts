@@ -1,13 +1,13 @@
 import type { Content } from './schema';
 import { validateContent, type RawContent } from './validate';
 
-export function rawFromGlob(domains: unknown, modules: Record<string, unknown>, glossary?: unknown, course?: unknown, focus?: unknown, practiceSets?: unknown): RawContent {
+export function rawFromGlob(domains: unknown, modules: Record<string, unknown>, glossary?: unknown, course?: unknown, focus?: unknown, practiceSets?: unknown, needsImprovement?: unknown): RawContent {
   const files: Record<string, unknown> = {};
   for (const [path, data] of Object.entries(modules)) {
     const m = /content\/([^/]+\/[^/]+\.json)$/.exec(path);
     if (m) files[m[1]] = data;
   }
-  return { domains, glossary, course, focus, practiceSets, files };
+  return { domains, glossary, course, focus, practiceSets, needsImprovement, files };
 }
 
 export function loadContent(raw: RawContent): Content {

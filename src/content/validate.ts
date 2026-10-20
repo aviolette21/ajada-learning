@@ -7,6 +7,7 @@ import {
   GlossaryFileSchema,
   PracticeSetFileSchema,
   LessonSchema,
+  NeedsFileSchema,
   QuestionSchema,
   type Card,
   type Content,
@@ -16,6 +17,7 @@ import {
   type GlossaryTerm,
   type PracticeSet,
   type Lesson,
+  type NeedsTopic,
   type Question,
 } from './schema';
 
@@ -29,6 +31,8 @@ export interface RawContent {
   focus?: unknown;
   /** content/practice-sets.json; optional like the glossary. */
   practiceSets?: unknown;
+  /** content/needs-improvement.json; optional like the glossary. */
+  needsImprovement?: unknown;
   /** Keyed by "<domain-id>/<questions|cards|lessons>.json". */
   files: Record<string, unknown>;
 }
@@ -46,6 +50,7 @@ export function buildContent(
   domains: Domain[], questions: Question[], cards: Card[], lessons: Lesson[], glossary: GlossaryTerm[] = [], course: CourseSection[] = [],
   focus: FocusArea[] = [],
   practiceSets: PracticeSet[] = [],
+  needsImprovement: NeedsTopic[] = [],
 ): Content {
   return {
     domains,
@@ -56,6 +61,7 @@ export function buildContent(
     course,
     focus,
     practiceSets,
+    needsImprovement,
     domainById: new Map(domains.map((d) => [d.id, d])),
     questionById: new Map(questions.map((q) => [q.id, q])),
     cardById: new Map(cards.map((c) => [c.id, c])),
@@ -215,6 +221,27 @@ export function validateContent(raw: RawContent): ValidationResult {
     }
   }
 
+  let needsImprovement: NeedsTopic[] = [];
+  if (raw.needsImprovement !== undefined) {
+    const parsed = NeedsFileSchema.safeParse(raw.needsImprovement);
+    if (!parsed.success) errors.push(...zodErrors('needs-improvement.json', parsed.error));
+    else {
+      needsImprovement = parsed.data;
+      const topicIds = new Set<string>();
+      for (const t of needsImprovement) {
+        if (topicIds.has(t.id)) errors.push(`needs-improvement.json: duplicate topic id "${t.id}"`);
+        topicIds.add(t.id);
+        if (!domainById.has(t.domainId)) errors.push(`needs-improvement.json: ${t.id} has unknown domainId "${t.domainId}"`);
+        const inTopic = new Set<string>();
+        for (const id of t.questionIds) {
+          if (!questionIds.has(id)) errors.push(`needs-improvement.json: ${t.id} links unknown question "${id}"`);
+          if (inTopic.has(id)) errors.push(`needs-improvement.json: ${t.id} repeats question "${id}"`);
+          inTopic.add(id);
+        }
+      }
+    }
+  }
+
   if (errors.length > 0) return { ok: false, errors };
   return {
     ok: true,
@@ -227,6 +254,7 @@ export function validateContent(raw: RawContent): ValidationResult {
       course,
       focus,
       practiceSets,
+      needsImprovement,
     ),
   };
 }

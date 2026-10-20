@@ -217,6 +217,26 @@ export const PracticeSetSchema = z.object({
 });
 export const PracticeSetFileSchema = z.array(PracticeSetSchema);
 
+/**
+ * A topic the learner flagged as needing more explanation (content/needs-improvement.json, from Notes/HELP.md): a
+ * definition, a worked example and how the exam asks about it, plus bank questions that drill it.
+ */
+export const NeedsTopicSchema = z.object({
+  id: slug,
+  group: upTo(40),
+  title: upTo(80),
+  /** The learner's own note, when it was a statement to unpack rather than a bare term. */
+  note: upTo(400).optional(),
+  domainId: text,
+  definition: upTo(800),
+  snippet: SnippetSchema.optional(),
+  example: upTo(1400),
+  /** How the topic relates to the certification exam. */
+  exam: upTo(400),
+  questionIds: z.array(z.string()).default([]),
+});
+export const NeedsFileSchema = z.array(NeedsTopicSchema);
+
 export type ChoiceId = z.infer<typeof ChoiceIdSchema>;
 export type Chosen = z.infer<typeof ChosenSchema>;
 export type Source = z.infer<typeof SourceSchema>;
@@ -234,6 +254,7 @@ export type CourseSection = z.infer<typeof CourseSectionSchema>;
 export type FocusArea = z.infer<typeof FocusAreaSchema>;
 export type PracticeSetQuestion = z.infer<typeof PracticeSetQuestionSchema>;
 export type PracticeSet = z.infer<typeof PracticeSetSchema>;
+export type NeedsTopic = z.infer<typeof NeedsTopicSchema>;
 
 export interface Content {
   domains: Domain[];
@@ -244,6 +265,7 @@ export interface Content {
   course: CourseSection[];
   focus: FocusArea[];
   practiceSets: PracticeSet[];
+  needsImprovement: NeedsTopic[];
   domainById: Map<string, Domain>;
   questionById: Map<string, Question>;
   cardById: Map<string, Card>;

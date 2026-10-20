@@ -12,6 +12,7 @@ import { HistoryPage } from '../features/mock/HistoryPage';
 import { MockExamPage } from '../features/mock/MockExamPage';
 import { MockIntroPage } from '../features/mock/MockIntroPage';
 import { MockResultsPage } from '../features/mock/MockResultsPage';
+import { NeedsDrillPage, NeedsImprovementPage } from '../features/needs/NeedsImprovementPage';
 import { CodeDrillPage } from '../features/practice/CodeDrillPage';
 import { FocusDrillPage, FocusPage } from '../features/practice/FocusPage';
 import { PracticePage } from '../features/practice/PracticePage';
@@ -36,7 +37,7 @@ import { TermsProvider } from './Terms';
 const systemNow = () => new Date();
 
 /** Full-screen flows hide the tab bar. */
-const FULLSCREEN = /^\/(session|practice\/(quiz|weak|mistakes|code|focus\/[^/]+$|set\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
+const FULLSCREEN = /^\/(session|needs-improvement\/drill|practice\/(quiz|weak|mistakes|code|focus\/[^/]+$|set\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
 
 export function Shell() {
   const location = useLocation();
@@ -71,6 +72,8 @@ export function Shell() {
           <Route path="/course" element={<CoursePage />} />
           <Route path="/course/:sectionId" element={<CourseSectionPage />} />
           <Route path="/course/:sectionId/quiz" element={<CourseQuizPage />} />
+          <Route path="/needs-improvement" element={<NeedsImprovementPage />} />
+          <Route path="/needs-improvement/drill" element={<NeedsDrillPage />} />
           {/* ROUTES: later tasks add <Route> elements here */}
           <Route path="*" element={<TodayPage />} />
         </Routes>

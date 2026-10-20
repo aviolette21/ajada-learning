@@ -15,6 +15,16 @@ const SNIPPET_LABEL: Record<Snippet['language'], string> = {
   python: 'Python', typescript: 'TypeScript', json: 'JSON', bash: 'Shell', yaml: 'YAML', text: 'Text',
 };
 
+/** A labelled code block; scrolls sideways rather than wrapping. */
+export function SnippetBlock({ snippet }: { snippet: Snippet }) {
+  return (
+    <figure className="qv-code">
+      <figcaption>{SNIPPET_LABEL[snippet.language]}</figcaption>
+      <pre tabIndex={0}><code>{snippet.code}</code></pre>
+    </figure>
+  );
+}
+
 export function QuestionView({ question, chosen, onChoose, mode, revealed, showReportFlag = true }: {
   question: Question;
   chosen: Chosen | null;
@@ -40,12 +50,7 @@ export function QuestionView({ question, chosen, onChoose, mode, revealed, showR
         {showReportFlag && <FlagButton itemId={question.id} kind="question" />}
       </div>
       <h2 className="qv-stem">{renderInline(question.stem, links)}</h2>
-      {question.snippet && (
-        <figure className="qv-code">
-          <figcaption>{SNIPPET_LABEL[question.snippet.language]}</figcaption>
-          <pre tabIndex={0}><code>{question.snippet.code}</code></pre>
-        </figure>
-      )}
+      {question.snippet && <SnippetBlock snippet={question.snippet} />}
       {multiple && <p className="qv-select">{selectInstruction(question)}</p>}
       <ol className="qv-choices">
         {question.choices.map((c, i) => {
