@@ -4978,5 +4978,1004 @@
       "c-harmlessness-screen"
     ],
     "lessonId": "l-guardrails"
+  },
+  {
+    "id": "q-dq-sec-markdown-image-exfiltration",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your web app summarizes documents users upload and renders Claude's reply as Markdown. A tester's document hides an instruction that makes Claude add an image whose URL carries text from the private conversation to an outside server. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a system prompt line telling Claude never to include images or links in its summaries",
+        "reason": "Constraining behavior in the prompt helps, but no prompt is foolproof against injection; the leak happens when your page fetches the URL."
+      },
+      {
+        "id": "b",
+        "text": "Move to a more capable model, so hidden instructions in uploaded documents are ignored more reliably",
+        "reason": "A stronger model doesn't remove the risk; injected content can still steer output, so the rendering path needs its own control."
+      },
+      {
+        "id": "c",
+        "text": "Filter Claude's output before rendering, removing images and links to domains you haven't approved",
+        "reason": "Correct: OWASP lists output filtering and validating expected output formats as mitigations, and blocking unapproved image URLs stops the exfiltration request."
+      },
+      {
+        "id": "d",
+        "text": "Log every image URL the page renders, so security can review leaks the next morning",
+        "reason": "Logging records the leak after the data has already reached the attacker's server."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Injected output can leak data through what your app renders: filter links and images before display.",
+    "explanation": "OWASP's prompt injection entry includes this scenario: hidden instructions make the model insert an image linking to a URL, leaking the conversation. Because no method is foolproof, the control belongs where the damage happens, in output filtering before rendering (C). The system prompt line (A) is tempting and worth adding, but it relies on the model resisting the injection.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "title": "LLM01:2025 Prompt Injection",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-input-flood-controls",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Unbounded consumption",
+    "stem": "Bots are flooding your public summarizer with huge documents of varying length, and the service becomes unresponsive for everyone. Which two controls best address this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move to a model with the largest context window available, so even the biggest documents fit",
+        "reason": "Fitting bigger inputs makes each flooded request more expensive; it doesn't stop the flood."
+      },
+      {
+        "id": "b",
+        "text": "Reject inputs above a reasonable size before they ever reach the model",
+        "reason": "Correct: OWASP's first mitigation for unbounded consumption is strict input validation so inputs don't exceed reasonable size limits."
+      },
+      {
+        "id": "c",
+        "text": "Raise max_tokens, so each large document is summarized in a single request",
+        "reason": "Allowing longer outputs adds cost per request and does nothing to limit what attackers send."
+      },
+      {
+        "id": "d",
+        "text": "Keep the endpoint URL out of your public docs, so bots are less likely to find it",
+        "reason": "Obscurity doesn't limit consumption; anyone who finds the endpoint can still flood it."
+      },
+      {
+        "id": "e",
+        "text": "Set timeouts and throttle resource-intensive requests, so no single job runs unchecked",
+        "reason": "Correct: OWASP lists timeouts and throttling for resource-intensive operations to prevent prolonged resource consumption."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Variable-length input floods: cap input size up front and throttle or time out the expensive work.",
+    "explanation": "OWASP calls this a variable-length input flood under unbounded consumption: attackers send many inputs of varying length to exploit processing costs. Its mitigations include strict input size limits (B) and timeouts and throttling for resource-intensive operations (E). A bigger context window (A) is the tempting misread, because it makes each flooded request fit, and cost, more.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "title": "LLM10:2025 Unbounded Consumption",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-fabricated-legal-citations",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Misinformation",
+    "stem": "A legal drafting tool built on Claude sometimes produces citations to cases that don't exist, and associates have pasted them into court filings. Which two changes best reduce this risk?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ground drafts in cases retrieved from a trusted legal database at request time",
+        "reason": "Correct: OWASP recommends retrieval-augmented generation from trusted external data to make model output more reliable."
+      },
+      {
+        "id": "b",
+        "text": "Raise the effort level, so the model checks its own citations more carefully",
+        "reason": "More reasoning can reduce mistakes but doesn't verify citations against real sources, which is what filings require."
+      },
+      {
+        "id": "c",
+        "text": "Remove the \"AI-generated\" label from drafts, so associates focus on the content rather than its source",
+        "reason": "OWASP recommends the opposite: label AI-generated content and tell users about its limits."
+      },
+      {
+        "id": "d",
+        "text": "Require a person to check every citation against the source before anything is filed",
+        "reason": "Correct: cross-verification and human oversight are OWASP mitigations, and fabricated legal cases are its named example of the risk."
+      },
+      {
+        "id": "e",
+        "text": "Switch to the newest model, since current models no longer invent citations",
+        "reason": "LLMs can still produce false information that appears credible; no model choice removes the need to verify."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Overreliance is the risk: ground answers in trusted sources and keep a human verifying what goes out.",
+    "explanation": "OWASP's misinformation entry names fabricated legal cases as its example and pairs it with overreliance, where users trust output without checking it. Two of its mitigations fit directly: retrieval from trusted data (A) and cross-verification with human oversight (D). Raising effort (B) is tempting because it sounds like \"more careful\", but it isn't verification against a real source.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm092025-misinformation/",
+      "title": "LLM09:2025 Misinformation",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-rag-wiki-poisoning",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Data poisoning",
+    "stem": "Your support bot's retrieval index is rebuilt nightly from an internal wiki that any employee can edit. Someone added a page with a fake refund policy, and the bot now quotes it to customers. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Track where indexed content comes from, and index only vetted, version-controlled sources",
+        "reason": "Correct: OWASP's poisoning mitigations include tracking data origins and transformations and using data version control to detect manipulation."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude in the system prompt to ignore any refund policy that seems unusual or too generous",
+        "reason": "Claude can't reliably tell a well-written fake from the real policy; the poisoned page has to be kept out of the index."
+      },
+      {
+        "id": "c",
+        "text": "Rebuild the index every hour, so corrections to the wiki reach the bot sooner",
+        "reason": "Faster rebuilds also spread new fake pages faster; the problem is who can feed the index, not how often it updates."
+      },
+      {
+        "id": "d",
+        "text": "Move to a more capable model, so it can recognize the fake policy for what it is",
+        "reason": "The bot answered from retrieved content as designed; a stronger model is still grounded in whatever the index holds."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Poisoning is an integrity attack on your data: control and track what gets into the knowledge base.",
+    "explanation": "OWASP classes data poisoning as an integrity attack and notes that external or loosely controlled sources carry the most risk. Its mitigations start with tracking data origins and using version control so tampering is detected, which means indexing only vetted sources (A). The system prompt fix (B) is tempting, but a convincing fake looks exactly like policy to the model.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm042025-data-and-model-poisoning/",
+      "title": "LLM04:2025 Data and Model Poisoning",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-obfuscated-injection-filter",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your email agent blocks incoming messages that contain \"ignore previous instructions\". Testers get past it by Base64-encoding the instruction or writing it in another language, and the agent then forwards internal files. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add Base64 versions and translations of the phrase to the blocklist",
+        "reason": "Attackers can encode or phrase instructions in endless ways, so a growing blocklist is always one variant behind."
+      },
+      {
+        "id": "b",
+        "text": "Decode all Base64 before filtering, then block a longer list of suspicious phrases",
+        "reason": "This closes one trick but not the multilingual or emoji variants OWASP describes; the filter stays the only line of defense."
+      },
+      {
+        "id": "c",
+        "text": "Tell the agent in its system prompt to refuse any message that contains encoded or translated text",
+        "reason": "Legitimate email often includes encoded content, and a prompt instruction is not a reliable control on its own."
+      },
+      {
+        "id": "d",
+        "text": "Limit the agent's privileges and require human approval before it sends files, not just filters",
+        "reason": "Correct: OWASP stresses no method is foolproof and lists least privilege and human approval for high-risk actions, which hold even when a filter is bypassed."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Filters get bypassed by encoding and translation; limit what an injected agent can do.",
+    "explanation": "OWASP describes multilingual and encoded attacks, such as Base64 or emojis, used specifically to evade filters, and says no single mitigation is foolproof. The stem's damage is files being forwarded, so the durable fix is least privilege plus human approval for that action (D). Extending the blocklist (A or B) is tempting because it answers the test that failed, but the next variant gets through.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "title": "LLM01:2025 Prompt Injection",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-minimize-sensitive-fields",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Sensitive data",
+    "stem": "An HR assistant sends complete employee records, including national ID numbers and salaries, to Claude to answer questions that only need names and start dates. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude in the system prompt never to repeat ID numbers or salaries in its answers",
+        "reason": "The sensitive fields are still sent and processed; an instruction only affects what Claude repeats, not what it receives."
+      },
+      {
+        "id": "b",
+        "text": "Redact or tokenize the sensitive fields first, and pass only the data each question needs",
+        "reason": "Correct: OWASP recommends tokenization or redaction to sanitize sensitive information and least-privilege access to sensitive data."
+      },
+      {
+        "id": "c",
+        "text": "Encrypt the records while they travel to the API, so the sensitive fields are protected",
+        "reason": "Protection in transit doesn't reduce what the model and your logs receive once the request arrives."
+      },
+      {
+        "id": "d",
+        "text": "Shorten how long the assistant's replies are stored, so sensitive data is kept for less time",
+        "reason": "Shorter storage helps afterward, but it doesn't stop unnecessary sensitive data from being sent in the first place."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Send the model only what the task needs: redact or tokenize sensitive fields before the call.",
+    "explanation": "OWASP's guidance on sensitive information disclosure includes sanitizing data with tokenization or redaction and limiting access to sensitive data by least privilege. The questions need only names and dates, so ID numbers and salaries shouldn't be in the request at all (B). The system prompt rule (A) is tempting, but it governs output while the data is still exposed as input.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/",
+      "title": "LLM02:2025 Sensitive Information Disclosure",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-hallucinated-package",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Misinformation",
+    "stem": "Your coding assistant once suggested installing a library that didn't exist. A week later someone published a malicious package under that exact name, and a developer installed it. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Accept suggestions only from the most capable model, since stronger models don't invent libraries",
+        "reason": "Any LLM can suggest non-existent libraries; the defense has to check the suggestion, not trust the model."
+      },
+      {
+        "id": "b",
+        "text": "Install suggested packages in a sandbox, and keep them if the project's tests still pass",
+        "reason": "A malicious package can pass your tests while doing harm elsewhere, so passing tests doesn't establish trust."
+      },
+      {
+        "id": "c",
+        "text": "Check automatically that each suggested package exists and is trusted before anyone installs it",
+        "reason": "Correct: OWASP warns that attackers publish malicious packages under names models hallucinate, and recommends automatic validation of key outputs."
+      },
+      {
+        "id": "d",
+        "text": "Ask the assistant whether a package is safe before installing it, as a second opinion",
+        "reason": "The same model that invented the name can't vouch for it; validation has to come from outside the model."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Treat package names from a model as unverified: check they exist and are trusted before installing.",
+    "explanation": "OWASP's misinformation entry describes exactly this attack: models suggest non-existent libraries, and attackers publish malicious packages under the commonly hallucinated names. The fix is automatic validation outside the model before installation (C). Asking the assistant (D) is tempting because it is quick, but it asks the source of the error to check itself.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm092025-misinformation/",
+      "title": "LLM09:2025 Misinformation",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-model-extraction-queries",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Unbounded consumption",
+    "stem": "A competitor appears to be sending large volumes of carefully crafted queries to your Claude-powered API product, collecting the outputs to build a copycat model. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Apply per-account rate limits and quotas, and monitor usage for unusual query patterns",
+        "reason": "Correct: OWASP lists rate limiting, user quotas and monitoring with anomaly detection among its mitigations for unbounded consumption, which covers model extraction."
+      },
+      {
+        "id": "b",
+        "text": "Add a system prompt line telling Claude to refuse requests that look like they come from competitors",
+        "reason": "Claude can't tell who is behind a request from its text, and the attack relies on ordinary-looking queries."
+      },
+      {
+        "id": "c",
+        "text": "Move the product to a smaller model, so the collected outputs are worth less to the competitor",
+        "reason": "This lowers quality for every customer while the competitor keeps collecting outputs at the same rate."
+      },
+      {
+        "id": "d",
+        "text": "Take your public API documentation offline, so the competitor has a harder time querying it",
+        "reason": "Hiding documentation is obscurity; a determined caller who already has access can keep querying."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Defend against extraction like any abuse of volume: quotas, rate limits and anomaly monitoring.",
+    "explanation": "OWASP lists model extraction under unbounded consumption: crafted queries are used to collect enough outputs to replicate a model. Its mitigations include rate limiting, user quotas and monitoring usage for anomalies (A). The system prompt rule (B) is tempting because it targets the competitor directly, but nothing in a single request reveals who is sending it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/",
+      "title": "LLM10:2025 Unbounded Consumption",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-ai-generated-id-photos",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Identity validation",
+    "stem": "A fintech's onboarding flow asks Claude whether each uploaded ID photo is an AI-generated fake, and automatically approves every photo Claude doesn't flag. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the flow, but ask Claude to explain each judgment so that human reviewers can trust its approvals",
+        "reason": "An explanation doesn't make the judgment reliable; Claude can't determine whether an image is AI-generated."
+      },
+      {
+        "id": "b",
+        "text": "Send higher-resolution photos, so Claude can spot the artifacts in synthetic images",
+        "reason": "Resolution isn't the limitation; the guide says not to rely on Claude to detect fake or synthetic images at all."
+      },
+      {
+        "id": "c",
+        "text": "Ask Claude twice about each photo and auto-approve only when both answers agree",
+        "reason": "Two unreliable judgments that agree are still unreliable for a check this important."
+      },
+      {
+        "id": "d",
+        "text": "Stop relying on Claude for fake detection, and use a dedicated verification step with human review",
+        "reason": "Correct: the vision guide says Claude cannot determine whether an image is AI-generated, and high-stakes image analysis needs human oversight."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Claude can't tell real images from AI-generated ones: never let it be the gate for identity checks.",
+    "explanation": "The vision guide lists AI-generated images as a limitation: Claude cannot determine whether an image is AI-generated and shouldn't be relied on to detect fakes. It also says sensitive, high-stakes image analysis needs human oversight. An identity gate is exactly that case, so the check has to move to dedicated verification with people reviewing (D). Asking twice (C) looks like a safeguard but only repeats an unreliable signal.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-split-payload-resume",
+    "domainId": "security-safety",
+    "subSkillId": "app-security",
+    "topic": "Indirect prompt injection",
+    "stem": "Your resume screener scans each resume field separately for injected instructions before Claude scores the whole resume. An attacker splits an instruction across the name, skills and hobbies fields, and the combined text raises their score. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Scan pairs of fields together as well, so instructions split across two fields are caught",
+        "reason": "Attackers can split across three or more fields; scanning more combinations chases variants rather than limiting impact."
+      },
+      {
+        "id": "b",
+        "text": "Treat the assembled resume as untrusted data, and have a person approve every advance or rejection",
+        "reason": "Correct: OWASP describes payload splitting and recommends segregating external content and requiring human approval for high-risk actions."
+      },
+      {
+        "id": "c",
+        "text": "Shorten the limit on each field, so no single field can hold a whole instruction",
+        "reason": "Splitting is designed for exactly this: short pieces in several fields still combine into one instruction."
+      },
+      {
+        "id": "d",
+        "text": "Score resumes with a more capable model, since it will notice instructions hidden across the different fields",
+        "reason": "No model choice makes injection impossible; OWASP says mitigations reduce impact rather than eliminate the risk."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Split payloads beat per-field filters: treat the whole input as untrusted and keep humans on consequential decisions.",
+    "explanation": "Payload splitting hides an instruction in pieces that only combine once the model reads the whole document, so per-field scanning misses it by design. OWASP's mitigations that still hold are segregating external content and human approval for high-risk actions, which a hiring decision is (B). Scanning field pairs (A) is tempting because it extends the filter that failed, but the attacker just splits further.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "title": "LLM01:2025 Prompt Injection",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-best-of-n-hallucination-signal",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Hallucination checks",
+    "stem": "Reviewers spot-check your research assistant's answers but can't read them all. You want an automatic signal that an answer may contain hallucinated facts, so reviewers can focus there. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask Claude to rate its confidence in each answer, and send low-scoring ones to reviewers",
+        "reason": "A self-rating isn't one of the guide's verification techniques, and confident answers can still be wrong."
+      },
+      {
+        "id": "b",
+        "text": "Lower the effort level, so answers are shorter and contain fewer claims to check",
+        "reason": "Fewer claims doesn't make the remaining ones more accurate, and lower effort can reduce quality."
+      },
+      {
+        "id": "c",
+        "text": "Run the same prompt several times and flag answers whose facts differ between runs",
+        "reason": "Correct: the guide's best-of-N verification compares outputs from the same prompt; inconsistencies across them can indicate hallucinations."
+      },
+      {
+        "id": "d",
+        "text": "Flag answers that are longer than average, since longer answers usually contain more errors",
+        "reason": "Length is a weak proxy unrelated to the guide's techniques; it would flag thorough correct answers and miss short wrong ones."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Inconsistency across repeated runs is a practical automatic flag for possible hallucinations.",
+    "explanation": "The reduce-hallucinations guide lists best-of-N verification: run the same prompt multiple times and compare, because inconsistent outputs can indicate hallucination. That produces exactly the automatic triage signal reviewers need (C). Self-rated confidence (A) is tempting because it is cheap, but it isn't a verification technique, and fluent wrong answers can sound certain.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/reduce-hallucinations",
+      "title": "Reduce hallucinations",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-diagnostic-scans-oversight",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Safe deployment",
+    "stem": "A health startup wants Claude to read patients' MRI scans and send the diagnosis straight to each patient, with no clinician involved, to cut wait times. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep a clinician reviewing every scan, since Claude isn't designed to interpret complex diagnostic scans",
+        "reason": "Correct: the vision guide says Claude is not designed to interpret complex scans such as CTs or MRIs and is not a substitute for professional diagnosis."
+      },
+      {
+        "id": "b",
+        "text": "Send the scans at the highest resolution available, so Claude has enough detail for an accurate diagnosis",
+        "reason": "Resolution doesn't change the limitation: complex diagnostic scans are outside what Claude is designed for."
+      },
+      {
+        "id": "c",
+        "text": "Add a disclaimer to each message, then send the diagnoses to patients automatically",
+        "reason": "A disclaimer doesn't provide the professional review that a medical diagnosis needs before it reaches a patient."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude for a confidence score, and send only the high-confidence diagnoses directly",
+        "reason": "Confidence doesn't turn Claude into a diagnostic tool; high-stakes image analysis still needs human oversight."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "High-stakes image interpretation, especially medical, needs a qualified human in the loop.",
+    "explanation": "The vision guide is explicit: Claude can analyze general medical images but is not designed to interpret complex diagnostic scans such as MRIs, and its output is no substitute for professional diagnosis. It also says not to use Claude for sensitive image analysis without human oversight, so the clinician stays (A). The confidence filter (D) is tempting because it seems to keep only safe cases, but it doesn't change what Claude is designed for.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-label-ai-summaries",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Responsible deployment",
+    "stem": "Your news app shows Claude-written summaries next to staff-written articles, in the same layout. Readers have started quoting errors from the summaries as if they were the newsroom's own reporting. What is the best guardrail?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the summaries match the staff writers' style more closely, so they read as one voice",
+        "reason": "Blending them in makes readers trust the summaries even more, which is the overreliance problem."
+      },
+      {
+        "id": "b",
+        "text": "Remove source links from the summaries, so they stay short and easy to read",
+        "reason": "Without sources, readers have no way to check a summary, which makes errors harder to catch."
+      },
+      {
+        "id": "c",
+        "text": "Publish only the summaries that Claude rates as accurate, and drop the rest",
+        "reason": "Self-rating isn't verification; confident summaries can still contain errors."
+      },
+      {
+        "id": "d",
+        "text": "Label the AI-written summaries clearly and tell readers about their limits",
+        "reason": "Correct: OWASP recommends clearly labeling AI-generated content and communicating its limitations, so users don't over-rely on it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "If users can't tell AI output from human work, they over-trust it: label it and explain its limits.",
+    "explanation": "OWASP pairs misinformation with overreliance: users trusting generated content without checking it. Its guidance includes UI design that clearly labels AI-generated content and communication of the risks and limits to users (D). Matching the staff style (A) is the tempting product choice, but it hides exactly what readers need to know to calibrate their trust.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm092025-misinformation/",
+      "title": "LLM09:2025 Misinformation",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-ask-rule-in-auto-mode",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Auto mode",
+    "stem": "Your team runs Claude Code in auto mode for routine refactors, but wants a person to confirm every infrastructure apply command, even ones the classifier would allow. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude in chat at the start of each session to always ask before applying infrastructure",
+        "reason": "Boundaries stated in conversation can be lost if compaction removes them; for a guarantee the docs point to a permission rule."
+      },
+      {
+        "id": "b",
+        "text": "Add an ask rule for the apply command, since explicit ask rules still force a prompt in auto mode",
+        "reason": "Correct: in auto mode explicit ask rules still force a prompt, so the command always waits for a person."
+      },
+      {
+        "id": "c",
+        "text": "Switch the team to bypassPermissions for refactors, so auto mode's classifier is out of the picture",
+        "reason": "Bypass mode removes the checks entirely and is meant only for isolated containers and VMs, the opposite of the goal."
+      },
+      {
+        "id": "d",
+        "text": "Rely on the classifier, because it always blocks infrastructure changes without being told to",
+        "reason": "The classifier judges each action in context, so it may allow a routine apply; only an explicit ask rule guarantees a prompt."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Auto mode for the routine, ask rules for the commands a person must always confirm.",
+    "explanation": "Auto mode lets a classifier approve most actions, but explicit ask rules still force a permission prompt, which is the guaranteed checkpoint the team wants (B). Telling Claude in chat (A) is tempting because the classifier does treat stated boundaries as a block signal, but those boundaries are re-read from the transcript and can be lost when compaction removes the message.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-no-naming-people-in-photos",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Content policy",
+    "stem": "An event company wants Claude to name the attendees in its conference photos, so each person can be tagged automatically in the gallery. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give Claude the attendee list in the prompt, so it can match each face to a name",
+        "reason": "Providing names doesn't change the rule: Claude can't be used to name people in images."
+      },
+      {
+        "id": "b",
+        "text": "Crop each face into its own image, so Claude can identify people one at a time",
+        "reason": "Cropping changes the input, not the limitation; naming people from images is still not allowed."
+      },
+      {
+        "id": "c",
+        "text": "Use a different approach for tagging, because Claude can't be used to name people in images",
+        "reason": "Correct: the vision guide says Claude cannot be used to name people in images and refuses to do so."
+      },
+      {
+        "id": "d",
+        "text": "Retry the requests on a more capable model tier, which allows naming people in photos",
+        "reason": "This is a usage restriction under the Acceptable Use Policy, not a capability gap that a bigger model fills."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Naming people from photos is off-limits for Claude: design tagging another way.",
+    "explanation": "The vision guide lists people identification as a limitation: Claude cannot be used to name people in images, under the Acceptable Use Policy, and refuses to do so. Tagging has to come from another source, such as attendees tagging themselves (C). Supplying the attendee list (A) is tempting because it looks like help with matching, but the matching itself is what's ruled out.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-read-only-review-subagent",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Least privilege",
+    "stem": "Your security-review subagent reads untrusted code from pull requests and must never change files, whatever instructions it finds in that code. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give the subagent a tools allowlist of only read and search tools, so it can't edit files",
+        "reason": "Correct: subagents can enforce constraints by limiting which tools they can use; tools left off the allowlist aren't available to it."
+      },
+      {
+        "id": "b",
+        "text": "Write \"never edit files\" at the top of the subagent's system prompt in capital letters",
+        "reason": "A prompt instruction is guidance; injected text in the reviewed code could still steer it toward an edit tool it has."
+      },
+      {
+        "id": "c",
+        "text": "Run the review in the main conversation instead, and check its edits before you commit",
+        "reason": "This gives up the isolation and leaves edit tools available, so you are catching changes after they happen."
+      },
+      {
+        "id": "d",
+        "text": "Run the subagent on the most capable model available, so it follows the no-edit rule more reliably",
+        "reason": "Model choice doesn't remove the edit tools; only restricting the tools makes the rule hold."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Make \"never edit\" structural: give the subagent no edit tools at all.",
+    "explanation": "Subagent definitions can restrict tools, and the docs list enforcing constraints as one reason to use them. A subagent whose allowlist contains only read and search tools cannot edit files, whatever the reviewed code says (A). The system prompt rule (B) is tempting because it is easy, but it depends on the model resisting injected instructions while the edit tools stay within reach.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-validate-config-drafts",
+    "domainId": "security-safety",
+    "subSkillId": "guardrails",
+    "topic": "Guardrail layering",
+    "stem": "An agent drafts infrastructure config changes that engineers approve before they ship. Reviewers have started approving quickly, and last week a malformed config slipped through. What is the best guardrail to add?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the human review, since an automated check alone is enough for config changes",
+        "reason": "OWASP pairs automatic validation with human oversight; removing reviewers swaps one gap for another."
+      },
+      {
+        "id": "b",
+        "text": "Ask the agent to double-check its own drafts before sending them for approval",
+        "reason": "Self-checks by the same model aren't independent validation, and they don't address reviewers approving too quickly."
+      },
+      {
+        "id": "c",
+        "text": "Add more reviewers to each change, so a second person catches what the first one misses",
+        "reason": "More people approving quickly repeats the overreliance problem; nothing checks the config's validity automatically."
+      },
+      {
+        "id": "d",
+        "text": "Validate each draft automatically, such as with schema checks and dry runs, before review",
+        "reason": "Correct: OWASP recommends tools and processes that automatically validate key outputs, alongside human oversight trained against overreliance."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Don't let tired reviewers be the only check: validate key outputs automatically before they reach a person.",
+    "explanation": "OWASP's mitigations for misinformation and overreliance include automatic validation of key outputs and human oversight that guards against rubber-stamping. A malformed config is exactly what schema checks and dry runs catch, so adding them before review layers a reliable control under the people (D). More reviewers (C) is tempting, but it adds more of the same overreliance rather than an independent check.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://genai.owasp.org/llmrisk/llm092025-misinformation/",
+      "title": "LLM09:2025 Misinformation",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-exit-zero-not-approval",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hook exit codes",
+    "stem": "A teammate wrote a PreToolUse hook that exits 0 for commands on an approved list, then deleted the team's allow rules, expecting the hook to approve those commands. Now developers are prompted before every command again. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the hook exit 2 for approved commands, so Claude Code knows to let them through",
+        "reason": "Exit 2 blocks the action and sends the reason back; it is the opposite of approval."
+      },
+      {
+        "id": "b",
+        "text": "Restore the allow rules or return an explicit allow decision, since exit 0 doesn't approve",
+        "reason": "Correct: exit 0 from a PreToolUse hook means no objection, and the call still goes through the normal permission flow; approval needs an allow rule or a structured decision."
+      },
+      {
+        "id": "c",
+        "text": "Move the hook to PostToolUse, so it approves commands right after they are proposed",
+        "reason": "PostToolUse runs after a tool call succeeds, so it can't approve or block the call before it runs."
+      },
+      {
+        "id": "d",
+        "text": "Switch everyone to bypassPermissions, so the hook's approved list becomes the only check that applies",
+        "reason": "This removes all permission checks to fix a misunderstanding about exit codes, which is far less safe."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Exit 0 from PreToolUse means \"no objection\", not \"approved\": the normal permission flow still runs.",
+    "explanation": "The hooks guide is explicit that exiting 0 from a PreToolUse hook doesn't approve the call; it continues through the normal permission flow, which is why prompts returned once the allow rules were gone. Approval comes from allow rules or a structured allow decision returned by the hook (B). Exit 2 (A) is the tempting misreading of exit codes, but it blocks the action.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-prompt-hook-completion-check",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Prompt-based hooks",
+    "stem": "Before Claude Code ends a turn, you want to check whether it actually addressed every reviewer comment on the pull request. Deciding that needs judgment, not a fixed rule a script can test. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use a command hook on Stop that searches Claude's last message for the word \"done\"",
+        "reason": "A keyword check is a fixed rule; it can't judge whether every comment was really addressed."
+      },
+      {
+        "id": "b",
+        "text": "Add a line to CLAUDE.md asking Claude to confirm every comment is handled before it stops",
+        "reason": "CLAUDE.md is guidance Claude may not follow every time; a hook runs on the event regardless."
+      },
+      {
+        "id": "c",
+        "text": "Add a PreToolUse hook on edits, so each change is checked against the reviewer comments as it is made",
+        "reason": "This checks individual edits, not whether the whole set of comments was handled before the turn ends."
+      },
+      {
+        "id": "d",
+        "text": "Use a prompt-based Stop hook, so a model judges completion and sends Claude back with a reason",
+        "reason": "Correct: prompt-based hooks send the hook input to a Claude model for decisions that need judgment; on Stop, a \"not ok\" reason is fed back so Claude keeps working."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Hooks can use judgment too: a prompt-based Stop hook lets a model decide whether the work is really done.",
+    "explanation": "Command hooks suit deterministic rules, but the guide offers prompt-based hooks for decisions that require judgment: Claude Code sends your prompt and the hook input to a model, which returns ok or not ok. On the Stop event, a not-ok reason is fed back so Claude keeps working, which fits a completion check (D). The keyword search (A) is tempting because it is simple, but it can't tell whether the comments were addressed.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-subagent-scoped-hook",
+    "domainId": "security-safety",
+    "subSkillId": "claude-hooks",
+    "topic": "Hooks in subagents",
+    "stem": "Your database-reader subagent runs SQL through Bash and must be limited to read-only queries. The main session must keep running write migrations freely. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a project-wide PreToolUse hook that blocks every SQL write, so no session can change data",
+        "reason": "A project-wide hook fires in the main session too, which would block the migrations it must keep running."
+      },
+      {
+        "id": "b",
+        "text": "Tell the subagent in its system prompt to run only SELECT statements, so writes never happen",
+        "reason": "This is guidance the subagent may not follow every time; a hook validates each command regardless."
+      },
+      {
+        "id": "c",
+        "text": "Define a PreToolUse hook in the subagent's own definition, so validation runs only while it works",
+        "reason": "Correct: subagents can define hooks scoped to that subagent, as in the docs' read-only database example, so the check applies only while it runs."
+      },
+      {
+        "id": "d",
+        "text": "Remove Bash from every session, so neither the subagent nor the main session can run SQL",
+        "reason": "This breaks the main session's migrations and the subagent's own queries, which both need Bash."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Scope guardrails to where they belong: hooks in a subagent's definition apply only to that subagent.",
+    "explanation": "Subagent frontmatter can carry its own lifecycle hooks, and the docs' example is exactly this: a database reader whose PreToolUse hook validates queries as read-only. Those hooks run only while that subagent is active, so the main session's migrations are untouched (C). The project-wide hook (A) is tempting because it is the usual place for guardrails, but it would block the main session too.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-committed-key-in-history",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Leaked keys",
+    "stem": "A developer committed a Claude API key to a shared repository and removed it in the very next commit. Several teammates have pulled since. Which two steps should the team take?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Revoke or rotate the key first, since the earlier commit still contains it",
+        "reason": "Correct: GitHub's guidance is that the first step is to revoke and/or rotate the secret; once revoked it can no longer grant access."
+      },
+      {
+        "id": "b",
+        "text": "Do nothing, because the latest commit no longer contains the key",
+        "reason": "The key is still in the earlier commit, and in every clone, fork and cached view that includes it."
+      },
+      {
+        "id": "c",
+        "text": "If history is rewritten, ask teammates to clean their clones so the key isn't pushed back",
+        "reason": "Correct: other people's clones keep the data, and a collaborator with an old clone can push the sensitive data back after a rewrite."
+      },
+      {
+        "id": "d",
+        "text": "Rewrite the history and force-push, which makes rotating the key unnecessary",
+        "reason": "Rewriting doesn't reach clones, forks or cached views, so the key may still be exposed; rotation is the step that actually stops it working."
+      },
+      {
+        "id": "e",
+        "text": "Make the repository private, so the old commit is no longer visible to anyone outside",
+        "reason": "Everyone who already pulled still has the commit, and the key itself keeps working until it is revoked."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "A committed secret is compromised: rotate it first; history cleanup is secondary and needs everyone's clones.",
+    "explanation": "Deleting a secret in a later commit leaves it in history, clones and forks. GitHub's guidance puts revoking or rotating the credential first (A), because that ends its usefulness everywhere at once. If the team also rewrites history, collaborators must clean their clones or the key comes back (C). Rewriting history alone (D) is tempting because it feels like deleting the leak, but copies outside the repo are untouched.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
+      "title": "Removing sensitive data from a repository",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-push-protection",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Secret scanning",
+    "stem": "Developers keep accidentally committing API keys, and your current scanner raises an alert only after the push lands. You want leaked keys to never enter the repository's history. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn on push protection, so pushes containing supported secrets are blocked before they land",
+        "reason": "Correct: push protection blocks pushes that contain secrets before they reach the repository, rather than alerting after the fact."
+      },
+      {
+        "id": "b",
+        "text": "Run the existing scanner far more often, so alerts arrive within minutes of each push landing",
+        "reason": "Faster alerts still come after the secret is in the repository's history."
+      },
+      {
+        "id": "c",
+        "text": "Rewrite the repository history whenever the scanner raises an alert",
+        "reason": "History rewrites are disruptive and don't reach clones and forks; the goal is to stop the secret before it is pushed."
+      },
+      {
+        "id": "d",
+        "text": "Ask reviewers to look for keys in every pull request before approving it",
+        "reason": "The key is already pushed by the time a reviewer sees the pull request, and people miss things."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Prevent, don't just detect: push protection stops secrets at push time.",
+    "explanation": "The requirement is that keys never enter history, which rules out anything that acts after the push. Push protection blocks pushes containing supported secrets before they reach the repository, across command-line pushes, web commits and API requests (A). Running the scanner more often (B) is tempting because it is the tool already in place, but it can only report a leak that has already happened.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection",
+      "title": "Push protection",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-secret-in-container-image",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Secret storage",
+    "stem": "Your team bakes the Claude API key into its Docker image as an environment variable at build time, so containers start with the key already set. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Base64-encode the key in the image, so it isn't readable in plain text",
+        "reason": "Encoding isn't protection; anyone with the image can decode the key in seconds."
+      },
+      {
+        "id": "b",
+        "text": "Inject the key at runtime from a secrets manager or an orchestrator-mounted secret",
+        "reason": "Correct: OWASP rates build-time injection as not recommended, warns against hardcoding secrets with Docker ENV or ARG, and says mounted secrets come from the orchestrator."
+      },
+      {
+        "id": "c",
+        "text": "Push the image only to a private registry, so that just the team's own systems can pull it",
+        "reason": "Everyone who can pull the image gets the key, and the key travels with every copy of the image."
+      },
+      {
+        "id": "d",
+        "text": "Keep baking it in, but rotate the key once a year to limit the damage",
+        "reason": "Each image built before a rotation still carries a valid key until then, so exposure stays high."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Keep secrets out of images: inject them at runtime from a secrets manager or the orchestrator.",
+    "explanation": "OWASP's secrets cheat sheet lists build-time injection as not recommended and warns specifically against hardcoding secrets with Docker ENV or ARG, because the secret leaks with the container definition. Runtime injection from a secrets manager or an orchestrator-mounted secret keeps the key out of the image (B). The private registry (C) is tempting because it limits who sees the image, but everyone who pulls it still gets the key.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+      "title": "Secrets Management Cheat Sheet",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-short-lived-workshop-key",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Key expiration",
+    "stem": "A contractor needs Claude API access for a two-day workshop, and nobody wants to rely on remembering to clean up the credential afterward. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Share your own personal key for the two days, so nothing new has to be created",
+        "reason": "A personal key acts as you; sharing it gives the contractor your access and attributes their usage to you."
+      },
+      {
+        "id": "b",
+        "text": "Create a key that never expires, and add a calendar reminder to delete it after the workshop",
+        "reason": "This relies on the reminder; if it is missed, a working credential stays out there indefinitely."
+      },
+      {
+        "id": "c",
+        "text": "Create a legacy workspace key, so the access isn't tied to any person's identity",
+        "reason": "Workspace keys are legacy and outlive their creators; identity-backed keys are preferred, and this still needs cleanup."
+      },
+      {
+        "id": "d",
+        "text": "Create a key whose expiration matches the workshop, so it stops working on its own",
+        "reason": "Correct: keys can be created with a preset or custom expiration, which limits how long a leaked or forgotten credential stays usable."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Short-term access? Give the key a matching expiration so cleanup doesn't depend on memory.",
+    "explanation": "API keys can be created with an expiration, from a few hours to a custom duration, and an expired key returns an authentication error. That matches the requirement that cleanup not depend on someone remembering (D). The never-expiring key with a reminder (B) is tempting because it is how many teams work, but it fails exactly when the reminder is missed.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-sec-wif-upstream-static-secret",
+    "domainId": "security-safety",
+    "subSkillId": "secrets-keys",
+    "topic": "Workload Identity Federation",
+    "stem": "Your CI pipeline now authenticates to the Claude API with Workload Identity Federation, but the job still stores a long-lived static cloud credential that can mint those identity tokens. What should the team do next?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing more, since federation guarantees end-to-end security once it is set up",
+        "reason": "The docs say federation doesn't, on its own, guarantee end-to-end security; the trust chain is only as strong as what can mint tokens."
+      },
+      {
+        "id": "b",
+        "text": "Add a Claude API key to the job as a backup, in case the token exchange fails",
+        "reason": "A static API key brings back the long-lived secret that federation was adopted to remove."
+      },
+      {
+        "id": "c",
+        "text": "Replace that static credential with the platform's own short-lived identity for the job",
+        "reason": "Correct: the docs warn that a long-lived secret one hop upstream that can mint identity tokens can undermine federation."
+      },
+      {
+        "id": "d",
+        "text": "Rotate the short-lived Claude access tokens by hand every day, so they never get stale",
+        "reason": "The SDK refreshes the short-lived tokens automatically; the weak link is the static upstream credential."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Federation is only as strong as its upstream: remove static credentials that can mint the identity tokens.",
+    "explanation": "Workload Identity Federation swaps static Claude API keys for short-lived tokens exchanged from an identity provider. The docs add a caveat: a long-lived secret upstream, such as a static cloud credential that can mint identity tokens, can still undermine it. Removing that credential in favor of the platform's own identity closes the gap (C). Option A is tempting because the migration felt finished, but the docs say federation alone isn't a guarantee.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]

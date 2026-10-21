@@ -2338,5 +2338,1004 @@
       "c-cc-plan-mode"
     ],
     "lessonId": "l-course-permission-modes"
+  },
+  {
+    "id": "q-dq-cc-subdirectory-claude-md",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "CLAUDE.md",
+    "stem": "In a monorepo, `packages/web/CLAUDE.md` holds the frontend conventions. A developer starts Claude Code at the repo root and asks a general question, and Claude doesn't seem to know those conventions yet. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy the frontend conventions into the root CLAUDE.md, so every session in the repo loads them",
+        "reason": "Every session would then carry frontend rules it may not need; the guide moves part-of-the-codebase rules out of the root file, not into it."
+      },
+      {
+        "id": "b",
+        "text": "Rename the package file to CLAUDE.local.md, so Claude reads it before the root file",
+        "reason": "CLAUDE.local.md is for personal, uncommitted notes, and renaming doesn't change when a subdirectory file loads."
+      },
+      {
+        "id": "c",
+        "text": "Expect it to load once Claude works with files in that package, or start the session there",
+        "reason": "Correct: files above the working directory load at launch, while a subdirectory's CLAUDE.md loads when Claude reads or edits files in that subdirectory."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to read the package's CLAUDE.md at the start of every session, as a habit",
+        "reason": "This works only when someone remembers; the file already loads on its own once Claude touches that package's files."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Ancestor CLAUDE.md files load at launch; subdirectory ones load when Claude works in that subdirectory.",
+    "explanation": "Claude Code loads CLAUDE.md files from the working directory and every directory above it at launch, and loads subdirectory files on demand when Claude reads, writes or edits a file there. A general question at the root hasn't touched `packages/web` yet, so its file isn't in context (C). Copying the rules into the root file (A) is tempting, but it puts frontend rules into every session and works against keeping CLAUDE.md short.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-personal-project-notes",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "CLAUDE.md",
+    "stem": "A developer wants Claude Code to know their personal sandbox URL and test account for one project. These notes are just for them and must never be committed. Where should they put them?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "In a CLAUDE.local.md at the project root, added to the gitignore file",
+        "reason": "Correct: CLAUDE.local.md holds personal project-specific preferences such as sandbox URLs; it loads alongside CLAUDE.md and should be gitignored."
+      },
+      {
+        "id": "b",
+        "text": "In the project's CLAUDE.md, under a heading that says the section is personal",
+        "reason": "The project CLAUDE.md is shared with the team through source control, so the notes would be committed."
+      },
+      {
+        "id": "c",
+        "text": "In the user-level CLAUDE.md in their home folder, which never goes into the repository",
+        "reason": "That file applies to every project on their machine, while these notes belong to one project only."
+      },
+      {
+        "id": "d",
+        "text": "In a rules file inside the project's .claude folder, scoped to the paths of that project",
+        "reason": "Project rules live in the repository and are shared like CLAUDE.md, so the notes would be committed."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Personal, one-project, never committed: CLAUDE.local.md.",
+    "explanation": "The memory guide lists three everyday levels: the project CLAUDE.md shared with the team, a user-level file for all your projects, and CLAUDE.local.md for personal preferences in one project, such as sandbox URLs and test data. The stem asks for personal, one project and never committed, which is CLAUDE.local.md kept out of git (A). The user-level file (C) is tempting because it is private, but it applies everywhere.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-preserve-across-compaction",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Compaction",
+    "stem": "During long Claude Code sessions on a database migration, compaction keeps dropping the list of tables that are already migrated, so Claude repeats finished work. Which two approaches help keep that list?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn compaction off for the session, so the full history always stays in context",
+        "reason": "Claude Code manages context automatically as the window fills; keeping everything isn't an option once it runs out."
+      },
+      {
+        "id": "b",
+        "text": "Add a Compact Instructions section to CLAUDE.md that says the migration status must be kept",
+        "reason": "Correct: to control what is preserved during compaction, the guide says to add a \"Compact Instructions\" section to CLAUDE.md."
+      },
+      {
+        "id": "c",
+        "text": "Restate the list in chat every few turns, so a recent copy is always in the conversation",
+        "reason": "Chat messages are what compaction summarizes, and early detailed instructions are exactly what can get lost."
+      },
+      {
+        "id": "d",
+        "text": "Run compaction yourself with a focus on the migration status before the window fills",
+        "reason": "Correct: you can run compaction with a focus instruction, such as focusing on the API changes, to steer what the summary keeps."
+      },
+      {
+        "id": "e",
+        "text": "Switch the session to plan mode, so Claude stops editing until it rereads the history",
+        "reason": "Plan mode controls whether Claude edits files, not what survives compaction."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Steer compaction: a Compact Instructions section in CLAUDE.md, or a manual compact with a focus.",
+    "explanation": "When context fills, Claude Code clears older tool output and then summarizes, so detailed early information can be lost. The guide gives two levers: a \"Compact Instructions\" section in CLAUDE.md (B) and running compaction with a focus instruction (D). Restating the list in chat (C) is tempting, but those messages are what the next summary compresses.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "title": "How Claude Code works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-memory-index-concise",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Auto memory",
+    "stem": "A developer's auto memory index has grown to several hundred lines of detailed notes. Facts written near the bottom are never recalled at the start of new sessions. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste all the notes into the project CLAUDE.md, since CLAUDE.md always loads in full",
+        "reason": "CLAUDE.md is for instructions you write, and longer files cost context and reduce adherence; it isn't a store for learnings."
+      },
+      {
+        "id": "b",
+        "text": "Ask Claude at the start of every session to read the whole memory index first",
+        "reason": "This depends on remembering to ask each time; keeping the index short fixes the loading problem for good."
+      },
+      {
+        "id": "c",
+        "text": "Turn auto memory off and on again, so the index is rebuilt from scratch",
+        "reason": "Toggling doesn't change how much of the index loads; the entries beyond the limit still won't load."
+      },
+      {
+        "id": "d",
+        "text": "Keep the index to one line per memory and move the detail into topic files read on demand",
+        "reason": "Correct: only the first part of the index loads each session, and Claude reads topic files on demand, so a concise index keeps every memory reachable."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Auto memory's index loads only its first part: one line per memory, details in topic files.",
+    "explanation": "Auto memory loads the start of its index file at the beginning of every conversation, up to a line and size limit, and content past that isn't loaded. Topic files hold the detail and are read when needed, so a short index with one line per memory keeps everything reachable (D). Moving the notes into CLAUDE.md (A) is tempting because it loads in full, but it bloats the instructions file and lowers adherence.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-share-learning-via-claude-md",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Auto memory",
+    "stem": "On her laptop, Claude Code has learned that the API tests need a local Redis instance. A teammate working on another machine keeps hitting the same test failure. What is the best way to share this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask the teammate to turn on auto memory, so Claude learns the same fact on their machine too",
+        "reason": "It would have to be learned again from scratch, and auto memory still wouldn't reach the rest of the team."
+      },
+      {
+        "id": "b",
+        "text": "Add the fact to the project's CLAUDE.md, since auto memory stays on the machine that wrote it",
+        "reason": "Correct: auto memory is machine-local and not shared across machines, while the project CLAUDE.md is shared with the team through source control."
+      },
+      {
+        "id": "c",
+        "text": "Wait for Claude to notice the failure on the teammate's machine and save the fact itself",
+        "reason": "This repeats the same failure for every teammate until Claude happens to save the lesson on each machine."
+      },
+      {
+        "id": "d",
+        "text": "Copy her memory folder into the teammate's home directory, so both machines hold the same notes",
+        "reason": "This is a manual one-off copy that drifts; the shared place for project knowledge is CLAUDE.md."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Auto memory is per machine; knowledge the team needs goes in the shared CLAUDE.md.",
+    "explanation": "Auto memory is stored per repository on one machine and is not shared across machines or cloud environments. The project CLAUDE.md is the shared, version-controlled place for facts every session should know, such as test prerequisites (B). Copying the memory folder (D) is tempting because it is quick, but it reaches one person once and goes stale.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-skill-forked-context",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Skills",
+    "stem": "Your team's research skill reads dozens of files and floods the main conversation with their contents every time it runs. The skill doesn't need any of the conversation history. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the skill's instructions into CLAUDE.md, so they are loaded once at the start of each session",
+        "reason": "CLAUDE.md loads in every session and the file reads would still land in the main conversation."
+      },
+      {
+        "id": "b",
+        "text": "Make the skill user-invocable only, so it runs only when someone types its name",
+        "reason": "That controls who triggers the skill, not where its file reads end up; it would still flood the conversation."
+      },
+      {
+        "id": "c",
+        "text": "Have the skill run in a forked subagent, so only its summary returns to the conversation",
+        "reason": "Correct: a skill set to run with a forked context runs in a subagent that doesn't see your history, keeping its work out of the main conversation."
+      },
+      {
+        "id": "d",
+        "text": "Compact the conversation after every run of the skill, so the file contents are summarized away",
+        "reason": "This cleans up after the flood each time instead of preventing it, and compaction may drop other useful details."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A self-contained, noisy skill belongs in a forked subagent context.",
+    "explanation": "Skills can run in isolation: with a forked context, Claude Code starts a subagent, passes it the skill content and returns its result, and the subagent doesn't see your conversation history. That matches a self-contained research task whose file reads you don't want in the main conversation (C). Compacting after each run (D) is tempting, but it treats the symptom every time.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-skill-allowed-tools-not-a-limit",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Skills",
+    "stem": "A team gives its audit skill an allowed-tools list with only read and search tools, expecting the skill to be unable to edit files. During one run Claude still edits a file. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the audit in a subagent whose tools exclude editing, since a skill's allowed tools only pre-approve",
+        "reason": "Correct: allowed tools grant permission without prompting during the turn but don't restrict other tools; a subagent's tools list does limit what it can use."
+      },
+      {
+        "id": "b",
+        "text": "List more read-only tools in the skill's allowed tools, so editing is pushed out of the list",
+        "reason": "The list never excluded anything: tools left off it are still available, just with normal permission prompts."
+      },
+      {
+        "id": "c",
+        "text": "Add \"never edit files\" to the skill's instructions, so Claude knows the audit is read-only",
+        "reason": "This is a request Claude may not follow every time; the team wanted the edit to be impossible."
+      },
+      {
+        "id": "d",
+        "text": "Make the skill user-invocable only, so Claude can't start it during unrelated work",
+        "reason": "Who starts the skill doesn't change which tools it can use once it runs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A skill's allowed tools skip prompts for those tools; they don't forbid the others.",
+    "explanation": "The skills guide says allowed tools grant permission for the listed tools during the invoking turn and do not restrict other tools. To make editing impossible, the audit needs a context where edit tools aren't available, such as a subagent whose tools list leaves them out (A). Adding an instruction (C) is tempting, but it is guidance rather than a limit.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Extend Claude with skills",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-cheap-model-subagent",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Subagents",
+    "stem": "Your main Claude Code session runs on Opus. A frequent side task scans long log files and returns a short summary of errors, and its cost is adding up. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch the whole session to Haiku, so every task including the log scans costs less",
+        "reason": "The main work still benefits from Opus; dropping it for everything trades quality away to save on one side task."
+      },
+      {
+        "id": "b",
+        "text": "Paste the log files straight into the main conversation, so no extra agent is needed",
+        "reason": "The long logs would fill the main context on the expensive model, which raises cost rather than lowering it."
+      },
+      {
+        "id": "c",
+        "text": "Turn the log scan into a skill, so its instructions load only when the task comes up",
+        "reason": "A skill runs in the main conversation, so the log contents would still be read on the session's model."
+      },
+      {
+        "id": "d",
+        "text": "Define a log-scanning subagent that runs on Haiku, keeping Opus for the main work",
+        "reason": "Correct: subagents can control costs by routing tasks to faster, lower-cost models like Haiku, and they keep verbose output out of the main context."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Route routine, verbose side tasks to a subagent on a cheaper model.",
+    "explanation": "Subagents run in their own context and can set their own model; the docs list controlling costs by routing tasks to faster, lower-cost models like Haiku as a benefit. A log scanner that returns a short summary fits that exactly, while the main session keeps Opus (D). Turning it into a skill (C) is tempting, but a skill runs in the main conversation on the main model.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-main-conversation-for-quick-iteration",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Subagents",
+    "stem": "A developer is polishing a small UI component with lots of quick back-and-forth. A teammate suggests delegating every step to a fresh subagent to keep the main context clean. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delegate each step to a new subagent, so the main conversation never sees any code",
+        "reason": "Each fresh subagent starts without the conversation and must gather context again, which slows a quick iterative task."
+      },
+      {
+        "id": "b",
+        "text": "Keep the work in the main conversation, since quick back-and-forth changes fit there best",
+        "reason": "Correct: the docs recommend the main conversation for frequent back-and-forth and quick, targeted changes; a non-fork subagent starts fresh."
+      },
+      {
+        "id": "c",
+        "text": "Turn the UI work into a skill, so it runs in an isolated context of its own",
+        "reason": "Skills run in the main conversation by default, and packaging a one-off task as a skill adds overhead for no gain."
+      },
+      {
+        "id": "d",
+        "text": "Switch to plan mode for every change, so Claude proposes each tweak before editing",
+        "reason": "Plan mode suits exploring before larger changes; for small, familiar tweaks it adds steps without benefit."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Quick, iterative, context-sharing work stays in the main conversation; isolate verbose side tasks.",
+    "explanation": "The subagent guide says to use the main conversation for frequent back-and-forth, phases that share context and quick targeted changes, because a subagent starts fresh and may need time to gather context. Polishing one component is that kind of work (B). Delegating every step (A) is tempting because it keeps context clean, but it pays the setup cost on every small change.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-permission-lists-merge",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Settings precedence",
+    "stem": "Your user settings let Claude run the linter without asking. A project you work in adds its own allow list in the shared settings for its test command. You worry the project's list will replace yours there. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy your linter rule into the project's shared settings, so it survives being replaced",
+        "reason": "The rule doesn't need copying, and adding a personal rule to the shared file changes it for every teammate."
+      },
+      {
+        "id": "b",
+        "text": "Move both rules into managed settings, so neither file can override the other",
+        "reason": "Managed settings are organization policy deployed by admins, not a fix for an override that doesn't happen."
+      },
+      {
+        "id": "c",
+        "text": "Leave both as they are, since allow lists from different settings files are combined",
+        "reason": "Correct: when the same list key, such as permissions.allow, appears in several files, Claude Code combines the lists instead of picking one."
+      },
+      {
+        "id": "d",
+        "text": "Put your rule in the project's local settings file, which wins over the shared one",
+        "reason": "The local file does outrank the shared one for single values, but lists merge, so your user-level rule already applies."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Scalar settings override by precedence; list settings like permission rules merge.",
+    "explanation": "Settings precedence decides single values, but list keys such as permissions.allow are combined across files, so each file can add entries without removing another file's. Your user rule and the project's rule both apply (C). The local settings file (D) is tempting because it outranks the shared file, but that precedence only matters for keys that don't merge.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-ask-rule-beats-personal-allow",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission rules",
+    "stem": "The project's shared settings have an ask rule for pushing to git. A developer keeps choosing \"Yes, and don't ask again\" but is still prompted before every push. They want fewer prompts. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add an allow rule for pushing to their user settings, which applies across every project",
+        "reason": "Any matching ask rule prompts even when an allow rule also matches, whichever file the allow rule is in."
+      },
+      {
+        "id": "b",
+        "text": "Switch to auto mode for the session, so the classifier approves the pushes instead",
+        "reason": "Explicit ask rules still force a prompt in auto mode, so the pushes keep prompting."
+      },
+      {
+        "id": "c",
+        "text": "Keep answering \"Yes, and don't ask again\", since the approval takes effect after a few tries",
+        "reason": "Each answer saves an allow rule to the local file, and an allow rule there doesn't outrank an ask rule from the project."
+      },
+      {
+        "id": "d",
+        "text": "Ask the team to change the project's ask rule, since a personal allow rule can't outrank it",
+        "reason": "Correct: rules are evaluated deny, then ask, then allow, so the shared ask rule wins until the team changes it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Deny, then ask, then allow: a personal allow rule never silences a shared ask rule.",
+    "explanation": "Permission rules are evaluated in a fixed order, deny then ask then allow, and an allow rule saved to the local file doesn't outrank an ask rule from a project or managed file. That is why the repeated approvals never stick. The real fix is a team decision to change the shared ask rule (D). Auto mode (B) is tempting as a way around prompts, but explicit ask rules still prompt there.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-headless-structured-output-missing",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "A nightly CI job runs Claude Code headlessly with a JSON schema and passes the structured result to the next step. Occasionally that step crashes because the structured result isn't there. Which two changes fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check that the structured result is present before the next step uses it",
+        "reason": "Correct: if a run ends without valid structured output, for example because Claude declined, the field is absent, so scripts should check for it first."
+      },
+      {
+        "id": "b",
+        "text": "Drop the schema and parse the plain text result with a regular expression instead",
+        "reason": "This gives up schema-checked output for fragile parsing and still leaves the missing-result case unhandled."
+      },
+      {
+        "id": "c",
+        "text": "Move the schema into the prompt text, so Claude is more likely to follow it",
+        "reason": "Instructions in the prompt are weaker than the schema option, and runs can still end without valid structured output."
+      },
+      {
+        "id": "d",
+        "text": "Re-run the same prompt in a loop until a structured result finally appears",
+        "reason": "Unbounded retries can spin forever on a request Claude declines, and they hide why the result was missing."
+      },
+      {
+        "id": "e",
+        "text": "Check the run's exit status too, since a failed run exits with a non-zero code",
+        "reason": "Correct: Claude Code exits with code 0 on success and non-zero when the run fails, so scripts can branch on the exit status."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "In headless runs, guard the structured result and the exit code before passing anything downstream.",
+    "explanation": "The headless guide warns that a run can end without valid structured output, for example when Claude declines, and then the structured field is missing, so check for it (A). It also documents that Claude Code exits non-zero when a run fails, which scripts can branch on (E). Re-running until a result appears (D) is tempting, but it can loop on a declined request and hides the cause.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-side-question-btw",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Session management",
+    "stem": "Deep in a debugging session, you want a quick answer about what an unrelated build-tool option does, without adding the exchange to the conversation Claude is working from. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask it as a side question with `/btw`, which doesn't add to the conversation",
+        "reason": "Correct: the side-question command asks about the current session without adding to the conversation."
+      },
+      {
+        "id": "b",
+        "text": "Clear the conversation, ask the question, then resume the debugging session afterward",
+        "reason": "Clearing and resuming is a roundabout way to do what a side question does in one step."
+      },
+      {
+        "id": "c",
+        "text": "Ask it as a normal message, then compact the conversation to squeeze the answer away",
+        "reason": "The exchange enters the conversation first, and compaction may also summarize away debugging details you need."
+      },
+      {
+        "id": "d",
+        "text": "Start a second Claude Code session in another terminal just to ask the one question",
+        "reason": "This works, but it is heavier than needed and the new session doesn't see the current context."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Quick tangent mid-task? Ask a side question so the main conversation stays clean.",
+    "explanation": "Claude Code's side-question command lets you ask something about the current session without adding to the conversation, which is exactly the requirement (A). A second session (D) also keeps the conversation clean, which makes it tempting, but it is heavier and starts without the context of what you are debugging.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/commands",
+      "title": "Commands",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-resume-launch-options",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Session management",
+    "stem": "A developer started a session with a one-off settings override passed on the command line. After continuing that session the next day, the override no longer applies. Which two approaches fix this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Branch the session, so the copy picks up the original launch options",
+        "reason": "Branching copies the conversation history; it doesn't restore launch options that weren't carried over."
+      },
+      {
+        "id": "b",
+        "text": "Pass the same override again when resuming, since such launch options aren't restored",
+        "reason": "Correct: a resumed session doesn't restore every launch flag; options such as a command-line settings override must be passed again."
+      },
+      {
+        "id": "c",
+        "text": "Rename the session, so it is treated as new and reads its original options again",
+        "reason": "A name is a handle for finding the session; it has nothing to do with which options apply."
+      },
+      {
+        "id": "d",
+        "text": "Move the setting into a settings file, which is re-read every time Claude Code starts",
+        "reason": "Correct: standard settings files are re-read at launch, so configuration kept in them doesn't need to be passed again."
+      },
+      {
+        "id": "e",
+        "text": "Compact the conversation, so the session reloads its configuration from the start",
+        "reason": "Compaction summarizes history; it doesn't reload command-line options from the original launch."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Resuming restores the conversation, not every launch flag: re-pass them, or keep config in settings files.",
+    "explanation": "A resumed session restores history, model, agent and, in most cases, the permission mode, but not every launch option: things like a command-line settings override, extra MCP config or added directories must be passed again (B). Settings files are re-read at launch, so moving the setting there makes it stick (D). Branching (A) is tempting because it feels like a fresh start, but it only copies the conversation.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-trusted-infrastructure-auto-mode",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Auto mode",
+    "stem": "In auto mode, the classifier keeps blocking pushes to your company's internal package registry, a normal part of your workflow, and the session keeps falling back to permission prompts. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to bypassPermissions for the rest of the work, so nothing gets blocked",
+        "reason": "Bypass removes every check and is meant for isolated containers and VMs, not for a routine workflow on a developer machine."
+      },
+      {
+        "id": "b",
+        "text": "Tell Claude in chat each time that publishing to the registry is allowed",
+        "reason": "A stated approval covers one named action, so the next push is blocked again unless you keep repeating it."
+      },
+      {
+        "id": "c",
+        "text": "Have an administrator configure the registry as trusted infrastructure for auto mode",
+        "reason": "Correct: repeated blocks usually mean the classifier is missing context about your infrastructure; the docs point to configuring trusted infrastructure."
+      },
+      {
+        "id": "d",
+        "text": "Add an allow rule for every shell command, so the classifier no longer sees the pushes",
+        "reason": "Blanket shell allow rules are dropped when auto mode starts, so the classifier still reviews the commands."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Auto mode blocking routine internal targets? Teach it your infrastructure instead of turning checks off.",
+    "explanation": "The classifier treats anything outside the working directory and configured remotes as external until you configure trusted infrastructure, and the docs say repeated blocks usually mean it lacks that context. Configuring the registry as trusted fixes the routine case without lowering safety (C). Bypass mode (A) is tempting because it ends the blocks, but it removes all checks and is meant for isolated environments.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-auto-mode-drops-blanket-allow",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Auto mode",
+    "stem": "A developer's settings allow every shell command so Claude never asks. After switching to auto mode, the classifier reviews their shell commands anyway. They want routine commands to keep flowing. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more blanket rules, such as allowing every interpreter, so the classifier has less to review",
+        "reason": "Wildcarded interpreter rules are among the broad rules auto mode drops, so they don't help either."
+      },
+      {
+        "id": "b",
+        "text": "Allow the specific routine commands instead, since auto mode drops blanket shell allow rules",
+        "reason": "Correct: on entering auto mode, broad allow rules that grant arbitrary code execution, like a blanket shell rule, are dropped; narrower rules still resolve directly."
+      },
+      {
+        "id": "c",
+        "text": "Switch back to Manual mode, since that is the only mode where allow rules apply",
+        "reason": "Allow rules apply in auto mode too; only the broad, arbitrary-execution ones are dropped."
+      },
+      {
+        "id": "d",
+        "text": "Turn on bypassPermissions, so their allow-everything rule takes effect again",
+        "reason": "Bypass skips all checks rather than honoring the rule, and it is meant only for isolated environments."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Auto mode ignores allow-everything rules; list the specific commands you trust.",
+    "explanation": "When a session enters auto mode, Claude Code drops broad allow rules that would grant arbitrary code execution, such as a blanket shell rule or wildcarded interpreters, so the classifier reviews those commands. Specific allow rules still resolve immediately, so listing the routine commands restores the flow (B). Switching back to Manual mode (C) is tempting, but it gives up auto mode rather than fixing the rules.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-log-instruction-loading",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Hooks",
+    "stem": "A path-scoped rule for API files sometimes seems not to apply. The team wants a record of which CLAUDE.md and rules files load during real sessions, and when and why each one loads. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check the context view at the start of each session, which lists every file Claude will load",
+        "reason": "The context view shows files loaded at launch; on-demand files such as path-scoped rules load later and don't appear there."
+      },
+      {
+        "id": "b",
+        "text": "Move the rule into the root CLAUDE.md, so there is no question about whether it loaded",
+        "reason": "That removes the path scoping the team chose and adds the rule's cost to every session."
+      },
+      {
+        "id": "c",
+        "text": "Ask Claude at the end of each session which rules and instruction files it read",
+        "reason": "Claude's answer isn't a reliable log, and it can't tell you exactly when or why each file loaded."
+      },
+      {
+        "id": "d",
+        "text": "Add a hook on the instructions-loaded event that logs each file as it loads",
+        "reason": "Correct: the memory guide suggests the InstructionsLoaded hook to log which CLAUDE.md and rules files load, when and why, for debugging path-scoped rules."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "To see when lazily loaded rules actually load, log them with an instructions-loaded hook.",
+    "explanation": "Path-scoped rules and subdirectory CLAUDE.md files load on demand, so a launch-time view doesn't show them. The memory guide recommends the InstructionsLoaded hook for logging which instruction files load, when they load and why, which is the record the team wants (D). Checking the context view (A) is tempting because it lists memory files, but only those loaded at launch.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-hooks-merge-across-scopes",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Hooks",
+    "stem": "Your user settings run a formatter hook after every file edit. A project you join defines its own hook on the same event to run its linter. You want both to run in that project. What should you do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Nothing extra, because hooks from every source merge and all matching hooks fire",
+        "reason": "Correct: hooks merge; all registered hooks fire for their matching events regardless of which settings file defined them."
+      },
+      {
+        "id": "b",
+        "text": "Combine both scripts into one hook in the project file, since only one hook per event runs",
+        "reason": "There is no one-hook-per-event limit; merging scripts adds work and puts your personal formatter in the team's file."
+      },
+      {
+        "id": "c",
+        "text": "Disable your user hook in that project, so the project's linter hook is allowed to run",
+        "reason": "Your hook doesn't block the project's; disabling it loses your formatter for no reason."
+      },
+      {
+        "id": "d",
+        "text": "Copy your formatter hook into the project's local settings, which outrank user settings",
+        "reason": "Precedence doesn't matter here, because hooks combine rather than override each other."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Hooks add up across scopes; skills and subagents override by name.",
+    "explanation": "The extension guide explains how features layer when defined at several levels: CLAUDE.md files add together, skills and subagents override by name, and hooks merge, so every registered hook fires for its matching event. Your formatter and the project's linter both run (A). Copying the hook into local settings (D) is tempting if you think in precedence terms, but hooks don't override.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-plugin-skill-namespacing",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Plugins",
+    "stem": "Two plugins your team installed each ship a skill called \"review\", and developers aren't sure which one runs when they ask for a review. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Uninstall one of the two plugins, since two skills can't share a name",
+        "reason": "Both can stay: plugin skills are namespaced, which is how several plugins coexist."
+      },
+      {
+        "id": "b",
+        "text": "Rename the skill inside a local copy of one plugin, so the names no longer clash",
+        "reason": "Editing a plugin's files forks it from its source and loses updates; the namespace already separates them."
+      },
+      {
+        "id": "c",
+        "text": "Invoke each review by its plugin-qualified name, since plugin skills are namespaced",
+        "reason": "Correct: plugin skills are namespaced, like /my-plugin:review, so multiple plugins can coexist."
+      },
+      {
+        "id": "d",
+        "text": "Let Claude pick between them each time, since it reads both descriptions and chooses the best fit",
+        "reason": "When descriptions overlap, Claude may load the wrong skill; naming the one you want removes the guesswork."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Same skill name in two plugins? Call it by its plugin namespace.",
+    "explanation": "Plugins package skills under the plugin's name, so `/plugin-a:review` and `/plugin-b:review` are distinct and can coexist. Invoking the qualified name makes the choice explicit (C). Letting Claude choose (D) is tempting, but the docs note that vague or overlapping descriptions can make Claude load the wrong skill.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-skill-in-headless-run",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Non-interactive mode",
+    "stem": "Your nightly script runs Claude Code headlessly and should use the team's release-notes skill, which developers normally run by typing its slash command. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste the skill's full text into the script's prompt each night, so the run has the steps",
+        "reason": "This duplicates the skill, so the copy drifts whenever the team updates the original."
+      },
+      {
+        "id": "b",
+        "text": "Start the headless prompt with the skill's slash command, which expands before the run",
+        "reason": "Correct: in non-interactive mode, user-invoked skills and custom commands work; include the skill name in the prompt and Claude Code expands it."
+      },
+      {
+        "id": "c",
+        "text": "Turn the skill into a hook on session start, so it runs automatically in every session",
+        "reason": "A hook runs a command or prompt on an event for every session, not a release-notes workflow you want on demand."
+      },
+      {
+        "id": "d",
+        "text": "Run the job in an interactive session instead, since skills only work when a person types them",
+        "reason": "Skills do work in non-interactive runs, so the scheduled job can stay headless."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Headless runs can still use your skills: put the skill's command in the prompt.",
+    "explanation": "The headless guide says user-invoked skills and custom commands work in non-interactive mode: include the skill's name in the prompt string and Claude Code expands it before running. The nightly job can call the same skill developers use (B). Pasting the skill text (A) is tempting because it obviously works, but it creates a second copy that drifts.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/headless",
+      "title": "Run Claude Code programmatically",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-plan-mode-project-default",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Permission modes",
+    "stem": "A team wants every terminal session in its high-risk payments repository to start in plan mode, so Claude researches and proposes a plan before it edits anything. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set plan as the default permission mode in the project's shared settings",
+        "reason": "Correct: to make plan mode the default for a project's terminal sessions, set the default mode to plan in the project's settings file."
+      },
+      {
+        "id": "b",
+        "text": "Add a line to CLAUDE.md telling Claude to always make a plan before editing",
+        "reason": "CLAUDE.md is guidance Claude may not follow every time; plan mode blocks edits until a plan is approved."
+      },
+      {
+        "id": "c",
+        "text": "Ask each developer to remember to switch to plan mode when they start a session",
+        "reason": "This depends on everyone remembering every time, which is what a default is for."
+      },
+      {
+        "id": "d",
+        "text": "Ask an administrator to make plan mode the default in managed settings for the company",
+        "reason": "This changes every repository in the organization to fix one, which over-reaches."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A per-repository default mode such as plan belongs in the project's shared settings.",
+    "explanation": "The permission-modes guide shows how to make plan mode the default for a project's terminal sessions: set the default mode to plan in the project's settings file, which everyone gets through the repository (A). A CLAUDE.md instruction (B) is tempting because it is easy, but it is guidance, while plan mode itself keeps edits blocked until a plan is approved.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/permission-modes",
+      "title": "Choose a permission mode",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-manual-skills-context-cost",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Skills",
+    "stem": "Your team has 40 workflow skills that people only ever run by typing their names. Each session starts with less free context, even though most of these skills never run. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Merge all 40 workflows into one large skill, so only a single description is loaded",
+        "reason": "One giant skill loads its whole body whenever it is used and makes it hard to pick the right workflow."
+      },
+      {
+        "id": "b",
+        "text": "Move the workflows into CLAUDE.md, so they sit in one place instead of 40 skills",
+        "reason": "CLAUDE.md loads in full in every session, so this would cost far more context than the descriptions do."
+      },
+      {
+        "id": "c",
+        "text": "Delete the skills nobody used last month, so fewer descriptions are loaded",
+        "reason": "The team still runs these workflows; deleting them removes tools people need."
+      },
+      {
+        "id": "d",
+        "text": "Mark them as user-invoked only, which keeps their descriptions out of context until run",
+        "reason": "Correct: setting a skill so Claude can't invoke it on its own keeps its description out of Claude's context; nothing loads until you invoke it."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Skills only people trigger should be user-invoked only: zero context cost until used.",
+    "explanation": "Model-invocable skills put their names and descriptions in every request so Claude knows they exist. For skills only people trigger, the guide recommends turning off model invocation, which keeps the description out of context until someone runs the skill (D). Moving them to CLAUDE.md (B) is tempting as a tidy-up, but CLAUDE.md loads in full every session.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-shell-model-variable-override",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Settings",
+    "stem": "A developer's sessions start on a different model than the one their settings files name, in every project. They find that their shell profile exports the model environment variable from an old experiment. What should they do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set the model again in their user settings, so the file value takes priority over the shell",
+        "reason": "The exported model variable applies over the model key from any file, so editing the file changes nothing."
+      },
+      {
+        "id": "b",
+        "text": "Remove or update that export, since the variable overrides the model set in any settings file",
+        "reason": "Correct: an exported ANTHROPIC_MODEL applies over the model key from any settings file; the pairing is decided per variable, not by settings level."
+      },
+      {
+        "id": "c",
+        "text": "Set the model in the project's local settings file, which outranks every other settings file",
+        "reason": "Environment variables aren't a level in the settings stack; this variable wins over the file regardless."
+      },
+      {
+        "id": "d",
+        "text": "Ask an administrator to set the model in managed settings, since only managed values beat the shell",
+        "reason": "This involves the whole organization in a one-person problem caused by their own shell profile."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Some environment variables override settings files outright: check your shell before your JSON.",
+    "explanation": "Environment variables are not a level in the settings precedence stack: each pairs with its key on its own terms, and an exported model variable applies over the model key from any file. Removing the stale export lets the settings files work again (B). Moving the value to the local file (C) is tempting because that file outranks the others, but it still loses to the exported variable.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-conflicting-claude-md-rules",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "CLAUDE.md",
+    "stem": "The root CLAUDE.md says to use two-space indentation, while a package's CLAUDE.md says four spaces for the same files. Claude switches between the two unpredictably. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the root rule bold and add \"this overrides everything\", so Claude follows it consistently",
+        "reason": "Emphasis doesn't remove the contradiction; both files still load and both instructions still compete."
+      },
+      {
+        "id": "b",
+        "text": "Rely on load order, since the file closer to the working directory always wins any conflict",
+        "reason": "Closer files are read later, but conflicting instructions can still be picked arbitrarily; load order isn't a reliable tie-break."
+      },
+      {
+        "id": "c",
+        "text": "Resolve the contradiction so only one file states the indentation rule for those files",
+        "reason": "Correct: if two instructions contradict each other, Claude may pick one arbitrarily; the guide says to review the files and remove conflicts."
+      },
+      {
+        "id": "d",
+        "text": "Move both rules into separate skills, so Claude loads the right one for each task",
+        "reason": "Skills are for on-demand workflows and reference material; splitting a conflict into two skills keeps the conflict."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "CLAUDE.md files add together; contradictions between them make Claude pick arbitrarily, so remove them.",
+    "explanation": "All discovered CLAUDE.md files are concatenated rather than one overriding another, and the memory guide warns that if two instructions contradict, Claude may pick one arbitrarily. The fix is to remove the conflict so the rule is stated once (C). Relying on load order (B) is tempting because nearer files are read last, but the guide doesn't promise that order settles conflicts.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-cc-dynamic-workflow-audit",
+    "domainId": "claude-code",
+    "subSkillId": "cc-operation",
+    "topic": "Dynamic workflows",
+    "stem": "You want Claude Code to audit the entire codebase for unsafe SQL, with a second set of agents cross-checking every finding before you see it. A handful of subagents won't cover it. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask for a dynamic workflow, so a script Claude writes runs many subagents and returns one result",
+        "reason": "Correct: dynamic workflows suit jobs that outgrow a handful of subagents or need findings cross-checked, such as a codebase-wide audit."
+      },
+      {
+        "id": "b",
+        "text": "Start one subagent per directory by hand, then compare their answers yourself afterward",
+        "reason": "This does the orchestration and cross-checking manually, which is the work a dynamic workflow automates."
+      },
+      {
+        "id": "c",
+        "text": "Run the whole audit in one long main session, compacting whenever the context fills up",
+        "reason": "Reading the whole codebase in one context invites lost detail at each compaction and gives no independent cross-check."
+      },
+      {
+        "id": "d",
+        "text": "Write the audit steps as a skill, so Claude follows the same checklist on every file",
+        "reason": "A skill gives Claude instructions but runs in the current context; it doesn't fan out work or cross-check findings."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Work too big for a few subagents, or findings that need cross-checking: ask for a dynamic workflow.",
+    "explanation": "The extension guide separates subagents, where Claude decides turn by turn what runs next, from dynamic workflows, where a script Claude writes runs many subagents in the background and returns one result. Its examples include a codebase-wide audit with a second set of agents verifying each finding, which matches the stem (A). Starting subagents by hand (B) is tempting, but it puts the orchestration and cross-checking on you.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]
