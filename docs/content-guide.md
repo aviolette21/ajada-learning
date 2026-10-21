@@ -454,3 +454,13 @@ Practice → **Domain quizzes** runs a 25-question quiz per exam domain (`src/st
 - Every one is a **scenario** in the §12 style: a concrete situation with its constraint, then a direct decision question. No definition questions.
 - Sub-skills are split by blueprint weight within the domain (e.g. Applications and Integration: requirements 3, systems life cycle 2, API mechanics 5, SWE foundations 6, application design 6, configuration 3).
 - About 3–4 per domain are multiple-response.
+
+## 14. Best-approach format (October 21 2026: applies to every question)
+
+The learner's research, matching the official samples: the exam is almost entirely **"here is a scenario, choose the best approach."** It is not "which definition, term or syntax is correct." Every question in the bank follows this shape:
+
+- **Stem:** a realistic situation with a goal and a deciding constraint (cost, latency, safety, compliance, scale, team workflow, or a failure someone observed), ending in a decision question: "What is the best approach?", "What should the team do?", "Which approach best meets the requirement?", "What should they change first?", "What is the most likely cause, and the fix?"
+- **Choices are courses of action in plain English:** what to do, with a short because/so-that clause where it helps ("Send the jobs through the Batches API, since results aren't needed until morning"). Name features in words ("prompt caching", "a PreToolUse hook", "project-scope settings"). A choice is never a config line, flag spelling, JSON fragment, header syntax, command string or API field name to pick between. Use at most one short code span per choice, and only when unavoidable.
+- **Distractors are plausible but worse approaches:** they fix the wrong layer, ignore the stated constraint, over-engineer, are less safe, or would work at a worse cost or latency. Several may "work"; exactly one is clearly **best** for the stated constraint, and each wrong choice's reason says why it is worse *here*.
+- **Never:** "What is X?", "Which statement about X is true?", "What does <doc/post> call this pattern?", stems that cite a source ("Per Anthropic's guide…"), or snippet-syntax reading. A snippet (trace, log, config) may appear only as evidence in a scenario whose question is still "what should they do".
+- Multiple-response items keep the "Which two actions…" form; each correct choice is an independently good action.
