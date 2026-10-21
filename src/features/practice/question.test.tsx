@@ -80,10 +80,12 @@ describe('QuestionRunner', () => {
     );
     expect(await screen.findByText('Quiz · 1 / 2')).toBeInTheDocument();
     await userEvent.click(choice(/Right answer q-alpha-1/));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Continue' }));
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-beta-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
-    expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2, missedIds: ['q-beta-1'] });
+    expect(onFinish).toHaveBeenCalledWith({ correct: 1, total: 2, missedIds: ['q-beta-1'], answers: { 'q-alpha-1': 'a', 'q-beta-1': 'b' } });
     await waitFor(async () => expect(await db.getAttempts()).toHaveLength(2));
   });
 
@@ -92,6 +94,7 @@ describe('QuestionRunner', () => {
     vi.spyOn(db, 'recordAttempt').mockRejectedValue(new Error('quota exceeded'));
     await renderWithApp(<QuestionRunner questions={[q1]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />, { db });
     await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByRole('alert')).toHaveTextContent(SAVE_FAILED);
     expect(screen.getByRole('button', { name: 'Finish' })).toBeInTheDocument();
   });
@@ -101,6 +104,7 @@ describe('QuestionRunner', () => {
       <QuestionRunner questions={[q1]} mode="lesson" title="Check" onFinish={() => {}} onExit={() => {}} />,
     );
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByText(/Not quite/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Read the lesson/ })).toBeNull();
   });
@@ -110,6 +114,7 @@ describe('QuestionRunner', () => {
       <QuestionRunner questions={[q1, content.questionById.get('q-beta-1')!]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />,
     );
     await userEvent.click(await screen.findByRole('button', { name: /Wrong one q-alpha-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: /Read the lesson/ }));
     expect(await screen.findByRole('dialog', { name: 'Lesson: Alpha lesson' })).toBeInTheDocument();
     await userEvent.click(screen.getAllByRole('button', { name: /Back to quiz/ })[0]);
@@ -132,12 +137,12 @@ describe('multiple-response questions', () => {
     await userEvent.click(choice(/Multi wrong e/)); // a third pick is ignored until one is unpicked
     expect(choice(/Multi wrong e/)).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByText('Correct: why b is right')).toBeNull();
-    await userEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByText(/Not quite. The answers are B and D./)).toBeInTheDocument();
     expect(choice(/Multi right d/)).toHaveTextContent('you missed this one');
     expect(choice(/Multi wrong c/)).toHaveClass('choice-wrong');
     await userEvent.click(screen.getByRole('button', { name: 'Finish' }));
-    expect(onFinish).toHaveBeenCalledWith({ correct: 0, total: 1, missedIds: ['q-alpha-multi'] });
+    expect(onFinish).toHaveBeenCalledWith({ correct: 0, total: 1, missedIds: ['q-alpha-multi'], answers: { 'q-alpha-multi': ['b', 'c'] } });
     await waitFor(async () => expect(await db.getAttempts()).toMatchObject([{ chosen: ['b', 'c'], correct: false }]));
   });
 
@@ -145,7 +150,7 @@ describe('multiple-response questions', () => {
     await renderWithApp(<QuestionRunner questions={[multi]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />);
     await userEvent.click(await screen.findByRole('button', { name: /Multi right d/ }));
     await userEvent.click(choice(/Multi right b/));
-    await userEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByText('Correct!')).toBeInTheDocument();
   });
 });

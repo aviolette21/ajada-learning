@@ -21,7 +21,10 @@ export const IconBack = () => <Svg><path d="M15 5l-7 7 7 7" /></Svg>;
 export const IconFlag = ({ filled = false }: { filled?: boolean }) => (
   <Svg><path d="M5 21V4h11l-2 4 2 4H5" fill={filled ? 'currentColor' : 'none'} /></Svg>
 );
-export const IconClock = () => <Svg><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Svg>;
+export const IconBookmark = ({ filled = false }: { filled?: boolean }) => (
+  <Svg><path d="M6 3h12v18l-6-4-6 4z" fill={filled ? 'currentColor' : 'none'} /></Svg>
+);
+export const IconClock =() => <Svg><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></Svg>;
 export const IconCheck = () => <Svg><path d="M5 12l5 5 9-10" /></Svg>;
 export const IconX = () => <Svg><path d="M7 7l10 10M17 7L7 17" /></Svg>;
 export const IconChevron = () => <Svg><path d="M9 5l7 7-7 7" /></Svg>;

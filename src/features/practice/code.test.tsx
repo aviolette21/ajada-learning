@@ -31,6 +31,7 @@ describe('CodeDrillPage', () => {
     expect(screen.getByText('Python')).toBeInTheDocument();
     expect(screen.getByText(/gizmo = make_gizmo\(\)/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Right answer q-alpha-2/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
   });

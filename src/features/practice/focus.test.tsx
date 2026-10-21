@@ -41,6 +41,7 @@ describe('FocusDrillPage', () => {
       const right = await screen.findByRole('button', { name: /Right answer q-/ });
       seen.push(right.textContent ?? '');
       await userEvent.click(right);
+      await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
       await userEvent.click(await screen.findByRole('button', { name: i === 1 ? 'Finish' : 'Continue' }));
     }
     expect(seen.join(' ')).toMatch(/q-alpha-1/);

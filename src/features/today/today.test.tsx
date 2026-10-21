@@ -33,6 +33,7 @@ describe('SessionPage', () => {
     expect(await screen.findByText('Today · 1 / 4')).toBeInTheDocument();
     for (let i = 0; i < 4; i++) {
       await userEvent.click(await screen.findByRole('button', { name: /Right answer/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
       await userEvent.click(await screen.findByRole('button', { name: i === 3 ? 'Finish' : 'Continue' }));
     }
     expect(await screen.findByText('4 / 4')).toBeInTheDocument();

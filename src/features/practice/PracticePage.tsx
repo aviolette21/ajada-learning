@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useContent } from '../../app/ContentContext';
 import { useProgress } from '../../app/ProgressProvider';
+import { DOMAIN_QUIZ_SIZE } from '../../study/domainQuiz';
 import { QUIZ_SIZE, QUIZ_SIZES } from '../../study/quiz';
 import { missedQuestionIds } from '../../study/weakSpots';
 import { IconChevron, IconClock } from '../../ui/icons';
@@ -13,7 +14,7 @@ export function PracticePage() {
   const navigate = useNavigate();
   const { domains, questions, focus, practiceSets } = useContent();
   const [size, setSize] = useState<string>(String(QUIZ_SIZE));
-  const { attempts, mockSessions } = useProgress();
+  const { attempts, mockSessions, saved } = useProgress();
   const [selected, setSelected] = useState<string[]>(() => domains.map((d) => d.id));
   const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const missed = missedQuestionIds(attempts).length;
@@ -22,6 +23,14 @@ export function PracticePage() {
 
   return (
     <Screen title="Practice">
+      <Link className="panel panel-link" to="/practice/domains">
+        <span className="grow"><h2>Domain quizzes</h2><span className="muted">{DOMAIN_QUIZ_SIZE} exam-style scenario questions for each of the {domains.length} exam domains · weighted by skill</span></span>
+        <span className="chev"><IconChevron /></span>
+      </Link>
+      <Link className="panel panel-link" to="/practice/saved">
+        <span className="grow"><h2>🔖 Saved for review</h2><span className="muted">{saved.length > 0 ? `${saved.length} question${saved.length === 1 ? '' : 's'} you saved to look up` : 'Tap 🔖 on any question to keep it here'}</span></span>
+        <span className="chev"><IconChevron /></span>
+      </Link>
       <section className="panel">
         <button type="button" className="panel-link" onClick={() => navigate(`/practice/quiz?n=${size}&d=${selected.join(',')}`)}>
           <span className="grow"><h2>Practice quiz</h2><span className="muted">{size} questions · explanation after each · {questions.length} in the bank</span></span>

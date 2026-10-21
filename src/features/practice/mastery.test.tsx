@@ -13,6 +13,7 @@ describe('guess or know', () => {
     const { db } = await renderWithApp(<QuizPage />, { route: '/practice/quiz?d=beta', path: '/practice/quiz' });
     await userEvent.click(await screen.findByRole('button', { name: /Mark as a guess/ }));
     await userEvent.click(screen.getByRole('button', { name: /Right answer q-beta-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByText(/Correct, but a guess/)).toBeInTheDocument();
     await waitFor(async () => expect(await db.getAttempts()).toMatchObject([{ questionId: 'q-beta-1', correct: true, confident: false }]));
     await userEvent.click(screen.getByRole('button', { name: 'Finish' }));

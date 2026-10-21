@@ -51,6 +51,7 @@ describe('NeedsDrillPage', () => {
     await renderWithApp(<NeedsDrillPage />, { route: '/needs-improvement/drill?topic=gizmo-wiring', path: '/needs-improvement/drill' });
     const right = await screen.findByRole('button', { name: /Right answer q-alpha-1/ });
     await userEvent.click(right);
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Back to Needs improvement' }));

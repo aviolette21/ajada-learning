@@ -32,6 +32,7 @@ describe('PracticeSetPage', () => {
     const { db } = await renderWithApp(<PracticeSetPage />, { route: '/practice/set/sample-set', path: '/practice/set/:setId' });
     expect(await screen.findByText('Set stem?')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Set wrong one/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     expect(await screen.findByText(/says so\./)).toBeInTheDocument();
     expect(screen.queryByText(/In one line/)).not.toBeInTheDocument();
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));

@@ -14,6 +14,8 @@ import { MockIntroPage } from '../features/mock/MockIntroPage';
 import { MockResultsPage } from '../features/mock/MockResultsPage';
 import { NeedsDrillPage, NeedsImprovementPage } from '../features/needs/NeedsImprovementPage';
 import { CodeDrillPage } from '../features/practice/CodeDrillPage';
+import { DomainQuizPage, DomainQuizzesPage } from '../features/practice/DomainQuizPage';
+import { SavedDrillPage, SavedPage } from '../features/practice/SavedPage';
 import { FocusDrillPage, FocusPage } from '../features/practice/FocusPage';
 import { PracticePage } from '../features/practice/PracticePage';
 import { PracticeSetPage } from '../features/practice/PracticeSetPage';
@@ -37,7 +39,7 @@ import { TermsProvider } from './Terms';
 const systemNow = () => new Date();
 
 /** Full-screen flows hide the tab bar. */
-const FULLSCREEN = /^\/(session|needs-improvement\/drill|practice\/(quiz|weak|mistakes|code|focus\/[^/]+$|set\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
+const FULLSCREEN = /^\/(session|needs-improvement\/drill|practice\/(quiz|weak|mistakes|code|saved\/drill|focus\/[^/]+$|set\/[^/]+$|domains\/[^/]+$)|practice\/mock\/[^/]+$|learn\/lesson\/[^/]+\/check)/;
 
 export function Shell() {
   const location = useLocation();
@@ -56,6 +58,10 @@ export function Shell() {
           <Route path="/practice/progress" element={<ProgressPage />} />
           <Route path="/practice/code" element={<CodeDrillPage />} />
           <Route path="/practice/set/:setId" element={<PracticeSetPage />} />
+          <Route path="/practice/domains" element={<DomainQuizzesPage />} />
+          <Route path="/practice/domains/:domainId" element={<DomainQuizPage />} />
+          <Route path="/practice/saved" element={<SavedPage />} />
+          <Route path="/practice/saved/drill" element={<SavedDrillPage />} />
           <Route path="/practice/focus" element={<FocusPage />} />
           <Route path="/practice/focus/:areaId" element={<FocusDrillPage />} />
           {/* Flashcards were replaced by Vocabulary; old links land there. */}

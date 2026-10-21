@@ -49,6 +49,7 @@ describe('LessonCheckPage', () => {
     const { db } = await renderWithApp(<LessonCheckPage />, { route: '/learn/lesson/l-alpha/check', path: '/learn/lesson/:lessonId/check' });
     for (let i = 0; i < 3; i++) {
       await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
       await userEvent.click(await screen.findByRole('button', { name: i === 2 ? 'Finish' : 'Continue' }));
     }
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();
@@ -60,6 +61,7 @@ describe('LessonCheckPage', () => {
     await renderWithApp(<LessonCheckPage />, { db, route: '/learn/lesson/l-alpha/check', path: '/learn/lesson/:lessonId/check' });
     for (let i = 0; i < 3; i++) {
       await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
       await userEvent.click(await screen.findByRole('button', { name: i === 2 ? 'Finish' : 'Continue' }));
     }
     expect(await screen.findByText('3 / 3')).toBeInTheDocument();

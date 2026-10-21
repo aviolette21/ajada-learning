@@ -17,6 +17,8 @@ export interface Progress {
   cardStates: Map<string, StoredCardState>;
   lessonsDone: Set<string>;
   flags: Map<string, Flag>;
+  /** Questions the learner saved to look up later ("need help on this"), oldest first. */
+  saved: string[];
   mockSessions: MockSession[];
   settings: Settings;
 }
@@ -27,6 +29,7 @@ export interface ProgressApi extends Progress {
   recordAnswer(question: Question, chosen: Chosen, mode: AttemptMode, guessed?: boolean): Promise<void>;
   markLessonDone(lessonId: string): Promise<void>;
   toggleFlag(itemId: string, kind: Flag['kind']): Promise<void>;
+  toggleSaved(questionId: string): Promise<void>;
   updateSettings(patch: Partial<Settings>): Promise<void>;
   saveMockSession(session: MockSession): Promise<void>;
   submitMock(session: MockSession): Promise<MockSession>;
@@ -40,6 +43,8 @@ export interface ProgressApi extends Progress {
 }
 
 const SETTINGS_KEY = 'settings';
+/** Kept in kv, so backups carry it without a new store. */
+const SAVED_KEY = 'saved';
 const ProgressContext = createContext<ProgressApi | null>(null);
 
 export function useProgress(): ProgressApi {
@@ -63,14 +68,16 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
   const submits = useRef(new Map<string, Promise<MockSession>>());
 
   const load = useCallback(async () => {
-    const [attempts, cardStates, lessonsDone, flags, mockSessions, settings] = await Promise.all([
+    const [attempts, cardStates, lessonsDone, flags, mockSessions, settings, saved] = await Promise.all([
       db.getAttempts(), db.getCardStates(), db.getLessonsDone(), db.getFlags(), db.getMockSessions(), db.getKv<Settings>(SETTINGS_KEY),
+      db.getKv<unknown>(SAVED_KEY),
     ]);
     setState({
       attempts,
       cardStates: new Map(cardStates.map((s) => [s.key, s])),
       lessonsDone: new Set(lessonsDone.map((l) => l.lessonId)),
       flags: new Map(flags.map((f) => [f.itemId, f])),
+      saved: Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : [],
       mockSessions,
       settings: { ...DEFAULT_SETTINGS, ...settings },
     });
@@ -123,6 +130,12 @@ export function ProgressProvider({ db, children }: { db: AppDb; children: ReactN
           await db.putFlag(flag);
           setState((p) => p && { ...p, flags: new Map(p.flags).set(itemId, flag) });
         }
+      }),
+      toggleSaved: reported(async (questionId: string) => {
+        const was = current().saved;
+        const saved = was.includes(questionId) ? was.filter((id) => id !== questionId) : [...was, questionId];
+        await db.setKv(SAVED_KEY, saved);
+        setState((p) => p && { ...p, saved });
       }),
       updateSettings: reported(saveSettings),
       saveMockSession: reported(async (session: MockSession) => {

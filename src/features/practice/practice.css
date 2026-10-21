@@ -70,3 +70,25 @@
 .topic-name { font-weight: 650; }
 .topic-row .muted { font-size: 12.5px; }
 .topic-row .chip { flex: none; text-decoration: none; }
+.qv-actions { display: flex; align-items: center; gap: 4px; }
+.save-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 6px 11px; }
+.save-chip svg { width: 15px; height: 15px; }
+.save-chip.on { color: var(--warning); border-color: var(--warning); background: transparent; }
+.verdict-save { display: flex; justify-content: center; margin: 4px 0 10px; }
+/* The submit bar sits on the page background so choices scrolling beneath it don't show through. */
+.check-bar { padding-top: 8px; background: linear-gradient(transparent, var(--bg) 8px); }
+.review-item { padding: 0; }
+.review-item > summary { display: flex; gap: 10px; align-items: flex-start; padding: 14px; cursor: pointer; list-style: none; }
+.review-item > summary::-webkit-details-marker { display: none; }
+.review-item > summary .grow { flex: 1; min-width: 0; font-size: 14px; line-height: 1.4; }
+.review-item[open] > summary .chev { transform: rotate(90deg); }
+.review-body { padding: 0 14px 14px; }
+.review-mark { flex: none; font-size: 13px; font-weight: 800; }
+.review-mark.right { color: var(--success-text); }
+.review-mark.wrong { color: var(--error-text); }
+.review-mark.saved { color: var(--warning); }
+.dq-weight { font-size: 12px; font-weight: 750; color: var(--accent-text); }
+.dq-actions { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 8px; }
+.review-head { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.review-head h3 { margin: 0; }
+.panel .score { font-size: 44px; font-weight: 800; color: var(--accent-text); }

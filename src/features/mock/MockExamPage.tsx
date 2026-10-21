@@ -125,7 +125,7 @@ export function MockExamPage() {
         <p className="mock-tally muted">✓ {rightSoFar} of {revealedIds.length} checked so far right</p>
       )}
       {question && (
-        <QuestionView question={question} chosen={session.answers[qid] ?? null} mode={revealed ? 'answer' : 'exam'} revealed={revealed} showReportFlag={false}
+        <QuestionView question={question} chosen={session.answers[qid] ?? null} mode={revealed ? 'answer' : 'exam'} revealed={revealed} showReportFlag={false} showSave={false}
           onChoose={(id: ChoiceId) => pick(question, id)} />
       )}
       {canCheck && question && (

@@ -18,7 +18,8 @@ test.beforeEach(async ({ page }) => {
 test('answering a question shows every reason and the verdict sheet', async ({ page }) => {
   await page.getByRole('link', { name: 'Practice' }).click();
   await page.getByRole('button', { name: /Practice quiz/ }).click();
-  if ((await pickChoices(page)) > 1) await page.getByRole('button', { name: 'Check answer' }).click();
+  await pickChoices(page);
+  await page.getByRole('button', { name: 'Submit' }).click();
   await expect(page.getByRole('dialog', { name: 'Answer explanation' })).toBeVisible();
   await expect(page.locator('.choice-reason')).toHaveCount(await page.locator('.choice').count());
 });

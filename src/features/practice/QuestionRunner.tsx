@@ -11,8 +11,8 @@ import { ProgressBar } from '../../ui/ProgressBar';
 import { QuestionView } from './QuestionView';
 import { VerdictSheet } from './VerdictSheet';
 
-/** missedIds: questions answered wrong or guessed, for a one-tap retry. */
-export interface RunSummary { correct: number; total: number; missedIds: string[] }
+/** missedIds: questions answered wrong or guessed, for a one-tap retry. answers: what was picked, by question id. */
+export interface RunSummary { correct: number; total: number; missedIds: string[]; answers: Record<string, Chosen> }
 
 export function QuestionRunner({ questions, mode, title, onFinish, onExit, record = true }: {
   questions: Question[];
@@ -30,6 +30,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   const [guessing, setGuessing] = useState(false);
   const [missedIds, setMissedIds] = useState<string[]>([]);
   const [correct, setCorrect] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, Chosen>>({});
   const question = questions[index];
 
   if (!question) {
@@ -48,6 +49,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   const reveal = (answer: Chosen) => {
     setChosen(answer);
     setRevealed(true);
+    setAnswers((m) => ({ ...m, [question.id]: answer }));
     const right = isCorrect(question, answer);
     if (right) setCorrect((c) => c + 1);
     if (!right || guessing) setMissedIds((m) => [...m, question.id]);
@@ -56,10 +58,11 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   const multiple = isMultiple(question);
   const need = selectCount(question);
   const picked = chosenIds(chosen);
+  // A tap only selects; nothing is checked until Submit, so a stray tap can be changed.
   const choose = (id: ChoiceId) => {
     if (revealed) return;
     if (!multiple) {
-      reveal(id);
+      setChosen(id);
       return;
     }
     // Toggle; once the required number is picked, further picks wait until one is unpicked.
@@ -68,7 +71,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   };
   const next = () => {
     if (isLast) {
-      onFinish({ correct, total: questions.length, missedIds });
+      onFinish({ correct, total: questions.length, missedIds, answers });
       return;
     }
     setIndex((i) => i + 1);
@@ -98,10 +101,10 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
           <QuestionView question={question} chosen={chosen} onChoose={choose} mode="answer" revealed={revealed} />
         </motion.div>
       </AnimatePresence>
-      {multiple && !revealed && (
+      {!revealed && (
         <div className="check-bar">
-          <Button block disabled={picked.length !== need} onClick={() => reveal(picked)}>
-            {picked.length === need ? 'Check answer' : `Pick ${need - picked.length} more`}
+          <Button block disabled={picked.length !== need} onClick={() => reveal(multiple ? picked : picked[0])}>
+            {picked.length === need ? 'Submit' : multiple ? `Pick ${need - picked.length} more` : 'Pick an answer'}
           </Button>
         </div>
       )}

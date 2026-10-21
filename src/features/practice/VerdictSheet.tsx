@@ -11,6 +11,7 @@ import { Disclosure } from '../../ui/Disclosure';
 import { IconCheck, IconChevron, IconX } from '../../ui/icons';
 import { renderInline } from '../../ui/inline';
 import { Sheet } from '../../ui/Sheet';
+import { SaveButton } from '../shared/SaveButton';
 import { Explanation } from './Explanation';
 
 export function VerdictSheet({ question, chosen, guessed = false, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
@@ -48,6 +49,7 @@ export function VerdictSheet({ question, chosen, guessed = false, open, onContin
           </button>
         )}
         <a className="source" href={question.source.url} target="_blank" rel="noreferrer">📎 Source: {question.source.title}</a>
+        <div className="verdict-save"><SaveButton questionId={question.id} /></div>
         <Button block onClick={onContinue}>{continueLabel}</Button>
       </div>
     </Sheet>

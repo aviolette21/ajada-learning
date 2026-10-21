@@ -28,6 +28,7 @@ describe('QuizPage', () => {
     await renderWithApp(<QuizPage />, { route: '/practice/quiz?d=beta', path: '/practice/quiz' });
     expect(await screen.findByText('Stem for q-beta-1?')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Right answer q-beta-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(await screen.findByText('1 / 1')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Done' }));

@@ -6,6 +6,7 @@ import type { ChoiceId, Chosen, Question, Snippet } from '../../content/schema';
 import { IconCheck, IconX } from '../../ui/icons';
 import { renderInline } from '../../ui/inline';
 import { FlagButton } from '../shared/FlagButton';
+import { SaveButton } from '../shared/SaveButton';
 import './practice.css';
 
 /** answer: pick, then annotated once revealed · exam: pick/change freely, no feedback · review: read-only, annotated */
@@ -25,7 +26,7 @@ export function SnippetBlock({ snippet }: { snippet: Snippet }) {
   );
 }
 
-export function QuestionView({ question, chosen, onChoose, mode, revealed, showReportFlag = true }: {
+export function QuestionView({ question, chosen, onChoose, mode, revealed, showReportFlag = true, showSave = true }: {
   question: Question;
   chosen: Chosen | null;
   /** Called with the tapped choice; the parent decides whether that selects, toggles or is ignored. */
@@ -34,6 +35,8 @@ export function QuestionView({ question, chosen, onChoose, mode, revealed, showR
   /** Answer mode: whether the explanation is showing. Defaults to "a complete answer has been picked". */
   revealed?: boolean;
   showReportFlag?: boolean;
+  /** The "Save for review" bookmark; off where the screen has its own flag (the mock exam). */
+  showSave?: boolean;
 }) {
   const { domainById } = useContent();
   const newLinks = useTermLinks();
@@ -47,7 +50,10 @@ export function QuestionView({ question, chosen, onChoose, mode, revealed, showR
     <article className="qv">
       <div className="qv-top">
         <span className="tag">{domainById.get(question.domainId)?.name}</span>
-        {showReportFlag && <FlagButton itemId={question.id} kind="question" />}
+        <span className="qv-actions">
+          {showSave && <SaveButton questionId={question.id} />}
+          {showReportFlag && <FlagButton itemId={question.id} kind="question" />}
+        </span>
       </div>
       <h2 className="qv-stem">{renderInline(question.stem, links)}</h2>
       {question.snippet && <SnippetBlock snippet={question.snippet} />}
