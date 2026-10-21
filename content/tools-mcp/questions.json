@@ -8230,5 +8230,1004 @@
       "c-tool-definition"
     ],
     "lessonId": "l-tool-implementation"
+  },
+  {
+    "id": "q-dq-tools-forced-tool-skips-thinking",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "tool_choice",
+    "stem": "On a model that supports forced tool use, your app forces Claude to call its review-submission tool on every request. Reviews come back shallow: each response starts straight with the tool call and has no thinking. You want Claude to reason before it submits. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep forcing the tool but raise the effort setting so it reasons more deeply",
+        "reason": "Forcing a tool skips thinking on every model that accepts forced tool use, whatever the effort level."
+      },
+      {
+        "id": "b",
+        "text": "Leave tool choice on auto and ask in the user message for the review tool",
+        "reason": "Correct: the docs say to use auto with an explicit instruction in a user message when you want Claude to think before calling the tool."
+      },
+      {
+        "id": "c",
+        "text": "Add 'think carefully before answering' to the tool's description field",
+        "reason": "The description can't override forcing. A forced call still starts with the tool_use block and no thinking."
+      },
+      {
+        "id": "d",
+        "text": "Switch from forcing that one tool to forcing any tool from the list instead",
+        "reason": "Requiring any tool is still forced tool use, so thinking is still skipped."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Forced tool use skips thinking; to get reasoning before the call, use auto plus a clear instruction.",
+    "explanation": "When tool choice forces a tool, the API makes the response start with the tool call, so there's no thinking block. The docs' route to thinking first is auto tool choice with an instruction in the user message to use the tool. Choice d is tempting because it loosens the forcing, but requiring any tool is still forcing.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-never-called-collision",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Troubleshooting tool use",
+    "stem": "Your agent loads tools from two internal libraries. Claude never calls your new `search` tool, though its description reads well to the team. Which two steps should they take first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check the combined tool list for another tool with the same name",
+        "reason": "Correct: the troubleshooting guide lists a tool name collision as a likely cause when Claude never calls a tool."
+      },
+      {
+        "id": "b",
+        "text": "Cut the description down to one line so the tool stands out from the rest",
+        "reason": "Shorter descriptions make tool choice worse. The docs ask for detailed descriptions."
+      },
+      {
+        "id": "c",
+        "text": "Add input examples that show concrete calls to the new search tool",
+        "reason": "Correct: for a never-called tool with an overly generic schema, the guide suggests adding input_examples to make the intended use concrete."
+      },
+      {
+        "id": "d",
+        "text": "Set tool choice to none for other tools' turns so search gets picked more",
+        "reason": "Tool choice none stops Claude using any tools on that request, including search."
+      },
+      {
+        "id": "e",
+        "text": "Return longer, richer results from search so that Claude prefers it",
+        "reason": "Results only arrive after a call, so they can't explain why the tool is never called."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "If Claude never calls a tool, look for duplicate names first, then make its use concrete with input examples.",
+    "explanation": "The troubleshooting table pairs 'Claude never calls your tool' with two causes: a name collision or an overly generic schema. The fixes are checking for duplicate names (a) and adding input examples (c). Choice e is tempting because better results make a tool more useful, but Claude never sees them if it never calls the tool.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-oversized-enum",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Troubleshooting tool use",
+    "stem": "Your region-setting tool takes a `region` enum with several hundred values, and Claude sometimes sends values that aren't in it. Strict tool use isn't an option for this schema. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste the full list of allowed regions into the system prompt as well",
+        "reason": "Repeating a huge list adds tokens without making the valid choices any clearer."
+      },
+      {
+        "id": "b",
+        "text": "Force Claude to call the region tool on every turn so it uses it more carefully",
+        "reason": "Forcing the tool decides whether it's called, not which values Claude passes."
+      },
+      {
+        "id": "c",
+        "text": "Shrink the enum, or add input examples that show valid region choices",
+        "reason": "Correct: for values outside the enum, the guide suggests shrinking a too-large enum or adding input_examples showing valid choices."
+      },
+      {
+        "id": "d",
+        "text": "Raise the output token limit so Claude has room to consider every option",
+        "reason": "The output limit caps reply length. It doesn't help Claude pick valid enum values."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Values outside an enum? Shrink the enum or show valid choices with input examples (or use strict mode where you can).",
+    "explanation": "The troubleshooting guide lists 'parameter values outside your enum' with two causes: missing strict mode or a too-large enum. With strict mode ruled out, the fix is a smaller enum or input examples that show valid values. Choice a is tempting because it surfaces the list again, but a several-hundred-item list is the problem, not the cure.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-held-out-eval",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Evaluating tools",
+    "stem": "Your team pasted eval transcripts into Claude Code to rewrite its tool descriptions, and all 30 eval tasks now pass. Before shipping the new tools, which two steps should the team take?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ship now, since passing all of the eval tasks shows the tools are ready",
+        "reason": "Gains on the tasks you tuned against can be overfitting. The guide checks them on held-out tasks."
+      },
+      {
+        "id": "b",
+        "text": "Confirm the gains on a held-out test set the descriptions weren't tuned on",
+        "reason": "Correct: the tool-writing guide uses held-out test sets to make sure improvements aren't overfit to the training tasks."
+      },
+      {
+        "id": "c",
+        "text": "Add a dedicated tool for each task, so every task has a perfect match",
+        "reason": "More tools don't always help; the guide warns against piling on tools and favors fewer, well-chosen ones."
+      },
+      {
+        "id": "d",
+        "text": "Track tool-call counts, token use and tool errors, and read the transcripts",
+        "reason": "Correct: the guide's evaluations track runtime, tool calls, token consumption and tool errors, and read transcripts to find rough edges."
+      },
+      {
+        "id": "e",
+        "text": "Strip error messages from tool responses to save tokens on every call",
+        "reason": "The guide wants error messages that explain how to fix the problem, not fewer messages."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "When Claude improves your tools, verify on held-out tasks and watch efficiency metrics, not just pass rate.",
+    "explanation": "Anthropic's tool-writing process is prototype, evaluate, then collaborate with Claude on improvements. It checks gains on held-out test sets (b) and tracks metrics beyond accuracy such as tool calls, tokens and errors (d). Choice a is tempting after a perfect score, but the score was earned on the same tasks the descriptions were tuned against.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-absolute-paths",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool design",
+    "stem": "Your coding agent's file tools take paths relative to the current directory. After the agent changes directory partway through a task, its edits land in the wrong files. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the file tools require absolute paths, so that mistake can't happen",
+        "reason": "Correct: Anthropic's SWE-bench agent made exactly this relative-path mistake, and requiring absolute paths fixed it."
+      },
+      {
+        "id": "b",
+        "text": "Tell the agent in its system prompt never to change directory during a task",
+        "reason": "A prompt rule is easy to break. Changing the tool's arguments makes the error impossible."
+      },
+      {
+        "id": "c",
+        "text": "Return a clear 'file not found' error whenever a relative path fails to resolve",
+        "reason": "Wrong-directory paths often resolve to real files, so many bad edits wouldn't error at all."
+      },
+      {
+        "id": "d",
+        "text": "Add a tool that reports the current directory so the agent can check it first",
+        "reason": "That relies on the agent remembering to check, instead of making the mistake impossible."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Poka-yoke your tools: change the arguments (e.g. absolute paths) so a mistake can't be made.",
+    "explanation": "Building effective agents recommends 'poka-yoke' tool design: change the arguments so mistakes are harder to make. Its own example is relative file paths failing after the agent left the root directory, fixed by requiring absolute paths. Choice b is tempting, but it asks the model not to err instead of removing the chance to.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-format-overhead",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool design",
+    "stem": "Your edit tool asks Claude for a unified diff with exact line counts in every hunk header. Many edits are rejected as malformed, although the code changes themselves are right. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Validate diffs more strictly and send each rejected diff back to Claude to try again",
+        "reason": "Stricter checks catch the same errors faster but keep the format that causes them."
+      },
+      {
+        "id": "b",
+        "text": "Ask for the diff as a string inside a JSON object, so it parses more reliably",
+        "reason": "Code inside JSON needs escaping, which the post lists as another formatting overhead to avoid."
+      },
+      {
+        "id": "c",
+        "text": "Lower the output token limit so each diff stays short and simpler to count",
+        "reason": "Shorter outputs don't remove the counting burden, and they risk truncating edits."
+      },
+      {
+        "id": "d",
+        "text": "Switch to an edit format without line counting, close to text Claude sees naturally",
+        "reason": "Correct: the post advises formats close to naturally occurring text, without overhead like counting lines in diff headers."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Pick tool formats Claude finds natural; avoid overhead like line counts or code escaped inside JSON.",
+    "explanation": "Building effective agents notes that some formats are much harder for a model to write, such as diffs that require knowing line counts in the hunk header, or code escaped inside JSON. Since the changes are right and only the format fails, change the format. Choice b is tempting because JSON sounds structured, but escaping code inside JSON is exactly the overhead the post warns about.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-image-in-tool-result",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool result formatting",
+    "stem": "Your chart tool renders a PNG. Your code base64-encodes the image into the tool result's text string, and Claude describes the chart wrongly or says it can't see it. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send the image in its own user message just before the tool result block",
+        "reason": "Tool result blocks must immediately follow the tool use and come first in the user message, so this breaks the format."
+      },
+      {
+        "id": "b",
+        "text": "Upload the PNG somewhere and put its link in the tool result's text",
+        "reason": "A link in text is just a string. Claude isn't shown the image."
+      },
+      {
+        "id": "c",
+        "text": "Return the PNG as an image content block inside the tool result's content",
+        "reason": "Correct: a tool result's content can be a list of blocks, including image blocks, which Claude sees as images."
+      },
+      {
+        "id": "d",
+        "text": "Drop the image and describe the chart's values in a sentence of text instead",
+        "reason": "It loses the visual the tool exists to show, when an image block would pass it directly."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Return images from tools as image blocks inside the tool_result content, not as base64 text.",
+    "explanation": "A tool result's content can be a string or a list of content blocks, and those blocks can be text, image or document types. Base64 pasted into a text string is just characters to Claude. Choice a is tempting because it sends a real image, but nothing may come before the tool result blocks in that user message.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-no-tool-for-translation",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "When to use tools",
+    "stem": "A team wrapped every translation request in a translate tool whose handler just calls Claude again with the same text. Responses got slower and quality didn't improve. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Drop the tool and let Claude translate directly, saving the extra round trip",
+        "reason": "Correct: the tool-use guide says tasks the model can do from training, such as translation, don't need a tool, and each tool call adds a round trip."
+      },
+      {
+        "id": "b",
+        "text": "Mark the translate tool strict so its inputs always match the schema",
+        "reason": "Strict mode makes inputs schema-valid. It doesn't remove the pointless round trip."
+      },
+      {
+        "id": "c",
+        "text": "Let Claude call the translate tool in parallel for each paragraph of a text",
+        "reason": "Parallel calls still add round trips for work the model can do in a single response."
+      },
+      {
+        "id": "d",
+        "text": "Replace the handler with a faster translation API so the tool returns sooner",
+        "reason": "That might be faster, but it swaps in an outside system for work Claude already does well."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Don't use a tool for what the model can do from text alone; every tool call is an extra round trip.",
+    "explanation": "The tool-use guide says tools fit actions, fresh data, guaranteed-shape outputs and existing systems, but not tasks like summarization or translation that the model can do from training. Every tool call is at least one extra round trip. Choice d is tempting because it fixes the speed, but it adds an outside dependency for work Claude does directly.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-regex-means-tool",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "When to use tools",
+    "stem": "Your app asks Claude in prose whether each refund should be approved or denied, then pulls the decision out with a regex. Every phrasing change breaks the parsing. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the regex more forgiving so it matches more ways of phrasing the decision",
+        "reason": "Each new phrasing can still slip through. The guide treats this regex as a sign of the wrong design."
+      },
+      {
+        "id": "b",
+        "text": "Make the decision a tool call whose schema holds the outcome, and read it from there",
+        "reason": "Correct: the guide says that if you're writing a regex to pull a decision from model output, that decision should have been a tool call."
+      },
+      {
+        "id": "c",
+        "text": "Tell Claude to write its decision in capital letters at the very end of every reply",
+        "reason": "Formatting requests make parsing easier but still leave you parsing free-form text."
+      },
+      {
+        "id": "d",
+        "text": "Run a second Claude call that reads the prose and extracts the final decision",
+        "reason": "That adds cost and latency and is still parsing prose, when a schema can carry the decision."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Regex over model prose to find a decision is a smell: put the decision in a tool schema.",
+    "explanation": "How tool use works says a clear sign you should be using tools is writing a regex to extract a decision from model output; the structure belongs in the schema. A tool call gives a typed outcome your code reads directly. Choice d is tempting because it's robust to phrasing, but it doubles the calls to keep parsing prose.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/how-tool-use-works",
+      "title": "How tool use works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-explanation-not-reasoning",
+    "domainId": "tools-mcp",
+    "subSkillId": "tool-implementation",
+    "topic": "Tool definitions",
+    "stem": "Your escalation tool has a required parameter asking Claude to write out its full step-by-step reasoning for each escalation. Some of these calls now end in refusals. You still want to know why each ticket was escalated. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry each refused call on the same model until one of the attempts goes through",
+        "reason": "Re-sending a refused request to the same model usually earns another refusal."
+      },
+      {
+        "id": "b",
+        "text": "Make the reasoning parameter optional, so Claude can leave it out",
+        "reason": "That may cut refusals but also loses the record of why each ticket was escalated."
+      },
+      {
+        "id": "c",
+        "text": "Ask for the reasoning inside XML tags instead of a tool parameter",
+        "reason": "Asking for reasoning in a fixed format is itself a known cause of reasoning-extraction refusals."
+      },
+      {
+        "id": "d",
+        "text": "Ask for a short explanation or the supporting evidence, not the reasoning",
+        "reason": "Correct: the define-tools guide says to ask for a short explanation or evidence, because a parameter asking for the model's reasoning may cause a refusal."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In tool parameters, ask for a brief explanation or evidence, never the model's step-by-step reasoning.",
+    "explanation": "The define-tools guide warns that a parameter asking for the model's thinking or step-by-step reasoning may lead to a reasoning_extraction refusal. Asking for a short explanation or the supporting evidence keeps the 'why' without that risk. Choice b is tempting because it stops forcing the field, but it throws away the escalation reasons the team wants.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-mcp-resource-template",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP resources",
+    "stem": "Your MCP server provides weather forecasts as context for any city and date. A teammate plans to register a separate fixed resource for every city and date pair. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Offer one resource template whose URI takes city and date parameters",
+        "reason": "Correct: resource templates are dynamic URIs with parameters, such as a forecast URI with city and date, for flexible queries."
+      },
+      {
+        "id": "b",
+        "text": "Register a separate tool for every city so the model can call each one directly",
+        "reason": "Thousands of near-identical tools bloat the tool list. The data is context, which is what resources are for."
+      },
+      {
+        "id": "c",
+        "text": "Expose a single resource holding every forecast for every city at once",
+        "reason": "One huge resource forces the app to load far more data than any request needs."
+      },
+      {
+        "id": "d",
+        "text": "Publish a prompt for each city that tells the model to recall the forecast",
+        "reason": "Prompts are user-invoked templates; they don't supply forecast data."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Parameterized data in MCP: use a resource template, not one fixed resource per value.",
+    "explanation": "MCP resources come in two discovery patterns: direct resources with fixed URIs, and resource templates with parameters for flexible queries. A forecast for any city and date is the template case. Choice c is tempting because it's a single resource, but it pushes every forecast into context when one is needed.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/learn/server-concepts",
+      "title": "Understanding MCP servers",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-mcp-list-changed",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP notifications",
+    "stem": "Your MCP server unlocks extra tools when a user upgrades their plan mid-session. Connected clients keep offering the old tool list until they restart. What should the server do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Restart the server after each upgrade so every client reconnects and lists again",
+        "reason": "Restarting disrupts every client to fix one change. MCP has notifications for exactly this."
+      },
+      {
+        "id": "b",
+        "text": "Return the new tool definitions inside the result of the next tool call",
+        "reason": "Tool results carry a call's output. Clients discover tools through listing, not results."
+      },
+      {
+        "id": "c",
+        "text": "Support tool list change notifications and send one when the tools change",
+        "reason": "Correct: a server that declares listChanged can notify subscribed clients when its tools change, and the client then requests the updated list."
+      },
+      {
+        "id": "d",
+        "text": "Rename the existing tools so clients treat them as new and fetch them again",
+        "reason": "Renaming doesn't tell clients anything changed, and it breaks references to the old names."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "When an MCP server's tools change at run time, send a list-changed notification so clients re-list.",
+    "explanation": "MCP supports real-time notifications: a server that advertises listChanged for tools can tell subscribed clients when its tool list changes, and clients then call tools/list again. That fits tools that appear mid-session. Choice a is tempting because a restart forces rediscovery, but it disrupts everyone when a notification would do.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-mcp-elicitation",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "MCP client features",
+    "stem": "Your MCP server's trip-booking tool sometimes hits a price change and needs the user to confirm before it completes. The server must not guess on the user's behalf. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Fail the call and let the model decide whether the new price is fine",
+        "reason": "That hands the decision to the model, which is the guessing the server must avoid."
+      },
+      {
+        "id": "b",
+        "text": "Use elicitation so the server asks the user for confirmation via the client",
+        "reason": "Correct: elicitation lets servers request more information from users or ask them to confirm an action."
+      },
+      {
+        "id": "c",
+        "text": "Publish the new price as a resource the user can look at if they want to",
+        "reason": "A resource is passive context. It doesn't pause the booking for a confirmation."
+      },
+      {
+        "id": "d",
+        "text": "Request a model completion through sampling to judge whether to proceed",
+        "reason": "Sampling asks a model, not the user, and it is deprecated in the current protocol."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Need the user's input or confirmation mid-tool? MCP elicitation asks the user through the client.",
+    "explanation": "Elicitation is the MCP client feature that lets a server request more information from the user or ask for confirmation of an action. A price change that needs the user's go-ahead is exactly that. Choice d is tempting because it also asks for input, but sampling asks a model, not the person.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-mcp-local-prototype",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "Prototyping tools",
+    "stem": "You're designing new tools for an agent and want to see quickly how Claude actually uses them before you invest in production infrastructure. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Deploy a remote HTTP MCP server with OAuth first, so tests match production",
+        "reason": "That's production work before you know the tools are right. The guide prototypes locally first."
+      },
+      {
+        "id": "b",
+        "text": "Write a full evaluation suite before building any version of the tools",
+        "reason": "The guide builds a quick prototype first, then evaluates it, so evals test real tools."
+      },
+      {
+        "id": "c",
+        "text": "Describe the planned tools in a chat message and ask Claude how it would use them",
+        "reason": "Claude's prediction about tools isn't the same as watching it call working ones."
+      },
+      {
+        "id": "d",
+        "text": "Wrap prototype tools in a local MCP server and try them in Claude Code",
+        "reason": "Correct: the tool-writing guide suggests wrapping quick prototypes in a local MCP server or Desktop extension and testing them in Claude Code or Claude Desktop."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Prototype tools fast: a local MCP server tried in Claude Code or Desktop, then evaluate.",
+    "explanation": "Anthropic's process for writing tools starts with a quick prototype: wrap the tools in a local MCP server or Desktop extension and test them in Claude Code or Claude Desktop, then run evaluations. That gives real usage feedback before heavy investment. Choice a is tempting because it mirrors production, but it front-loads work before the tool design is proven.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+      "title": "Writing effective tools for agents — with agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-mcp-tasks-extension",
+    "domainId": "tools-mcp",
+    "subSkillId": "mcp-server-dev",
+    "topic": "Long-running MCP requests",
+    "stem": "Your MCP server's audit-report tool can take a long time to finish, and clients time out while waiting for its result. You want clients to start the work and pick up the result later. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use MCP's Tasks extension, returning a handle the client polls for the result",
+        "reason": "Correct: the Tasks extension lets servers return a durable handle for long-running requests, so clients can poll for status and fetch the result later."
+      },
+      {
+        "id": "b",
+        "text": "Move the server to the stdio transport so the connection never times out",
+        "reason": "Transport choice doesn't make a long operation finish sooner or let the client come back later."
+      },
+      {
+        "id": "c",
+        "text": "Split the report into a prompt the user runs and fills in step by step",
+        "reason": "Prompts are user-invoked templates; they don't run the audit in the background."
+      },
+      {
+        "id": "d",
+        "text": "Make the tool return a partial report straight away and drop the rest",
+        "reason": "That avoids the timeout by giving up the full report the users need."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Long-running MCP work: return a durable handle (Tasks extension) and let the client poll.",
+    "explanation": "MCP's optional Tasks extension lets a server return a durable handle for a long-running request, so the client can poll for status and retrieve the result later. That matches 'start now, collect later'. Choice b is tempting because it changes the connection, but the transport doesn't change how long the work takes.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://modelcontextprotocol.io/docs/learn/architecture",
+      "title": "Architecture overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-output-style",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "In Claude Code you keep asking Claude to be shorter. For some sessions you want terse answers, for others full explanations, and you want to switch easily. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add 'always be concise' to the project CLAUDE.md file so every session gets it",
+        "reason": "CLAUDE.md is always loaded and holds project facts and rules, so you can't switch it off per session."
+      },
+      {
+        "id": "b",
+        "text": "Write a hook that trims Claude's replies to a set length before you read them",
+        "reason": "Cutting text mechanically loses content; length and format are an instruction matter."
+      },
+      {
+        "id": "c",
+        "text": "Set an output style for response length, and switch styles when you need more",
+        "reason": "Correct: an output style sets Claude's response format for a session, one style is active at a time, and you can switch whenever you want."
+      },
+      {
+        "id": "d",
+        "text": "Create a skill holding writing rules, then invoke it at the start of each session",
+        "reason": "That works, but it adds a manual step each time when output styles exist for exactly this."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "How Claude responds (length, tone, format) belongs in an output style; project facts belong in CLAUDE.md.",
+    "explanation": "Claude Code separates what Claude should know (CLAUDE.md, always loaded) from how it responds (output styles, one active at a time and switchable). A length preference you want to flip between sessions is an output style. Choice a is tempting because it's the familiar place for rules, but it can't be turned off per session.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-code-intelligence",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Choosing extensions",
+    "stem": "On a large TypeScript repo, Claude reads many files just to find where a symbol is defined or used. It's slow and fills context. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a file map of the whole repository to CLAUDE.md so Claude always knows where code lives",
+        "reason": "A big map loads into every session and goes stale, and still doesn't resolve symbols."
+      },
+      {
+        "id": "b",
+        "text": "Write a skill that lists the most important files for each area of the codebase",
+        "reason": "File lists help orientation but can't answer where a given symbol is defined or used."
+      },
+      {
+        "id": "c",
+        "text": "Route each symbol search through a subagent so the file reads stay out of context",
+        "reason": "That protects context but still reads many files slowly, when a language server answers directly."
+      },
+      {
+        "id": "d",
+        "text": "Install a code intelligence plugin, so Claude can look symbols up in a language server",
+        "reason": "Correct: Claude Code suggests a code intelligence plugin when Claude reads many files to find where a symbol is defined or used."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Symbol lookups in typed codebases: a code intelligence (language server) plugin beats reading files.",
+    "explanation": "Claude Code's code intelligence connects Claude to a language server for symbol-level navigation, and its trigger is exactly 'Claude reads many files to find where a symbol is defined or used'. Symbol lookups often replace broad reads, so context use can drop. Choice c is tempting because it keeps the main context clean, but the subagent still does the slow reading.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-prebuilt-xlsx-skill",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Agent Skills",
+    "stem": "Your Messages API app must turn analysis results into Excel workbooks with charts. A teammate plans to write and host a custom spreadsheet-generation tool for it. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build and host the custom tool, since the API has no built-in way to create files",
+        "reason": "The API offers pre-built document skills, so building one yourself is extra work."
+      },
+      {
+        "id": "b",
+        "text": "Use the pre-built Excel Agent Skill through the code execution tool",
+        "reason": "Correct: Anthropic's pre-built xlsx skill creates spreadsheets with charts, and API skills run with the code execution tool."
+      },
+      {
+        "id": "c",
+        "text": "Have Claude write CSV text, then convert it into a workbook in your own code",
+        "reason": "That loses the charts unless you rebuild them in code, which the skill already handles."
+      },
+      {
+        "id": "d",
+        "text": "Connect an MCP server for spreadsheets, because skills only work in Claude Code",
+        "reason": "Skills work on the API too, and the pre-built document skills aren't even available in Claude Code."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Need Excel, Word, PowerPoint or PDF output on the API? Start with the pre-built Agent Skills.",
+    "explanation": "Anthropic provides pre-built Agent Skills for PowerPoint, Excel, Word and PDF on the Claude API; you reference them in the container alongside the code execution tool. That covers workbooks with charts without hosting anything. Choice d is tempting if you've only met skills in Claude Code, but the document skills are an API and claude.ai feature.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-prompt-based-stop-hook",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Hooks",
+    "stem": "You want Claude Code to keep working whenever it tries to stop before every item in its task list is truly done. Deciding 'done' needs judgment about the conversation, not a fixed rule. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a prompt-based Stop hook, so a Claude model judges whether to let it stop",
+        "reason": "Correct: prompt-based hooks hand the decision to a Claude model; on Stop, a 'not ok' answer feeds the reason back so Claude keeps working."
+      },
+      {
+        "id": "b",
+        "text": "Add a command hook on Stop that greps the transcript for the word 'done'",
+        "reason": "A keyword check is a fixed rule, and the stem says this needs judgment."
+      },
+      {
+        "id": "c",
+        "text": "Add a CLAUDE.md rule asking Claude not to stop until every item is complete",
+        "reason": "An instruction is a request, not a check that runs every time Claude tries to stop."
+      },
+      {
+        "id": "d",
+        "text": "Write a skill describing what 'done' means, and hope Claude loads it when relevant",
+        "reason": "Claude decides whether to load a skill, so nothing guarantees the check happens at each stop."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Hook decisions that need judgment: use a prompt-based (or agent-based) hook instead of a shell command.",
+    "explanation": "Hooks run deterministically at lifecycle events, and for decisions that need judgment Claude Code offers prompt-based hooks, where a Claude model returns ok or not ok. On a Stop event, not ok feeds the reason back to Claude so it keeps working. Choice b is tempting because it's a real hook, but a keyword grep is the fixed rule the stem rules out.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/hooks-guide",
+      "title": "Automate actions with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-skill-spawns-subagents",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Combining extensions",
+    "stem": "You want a single `/audit` command in Claude Code that runs security, performance and style reviews in parallel, each in its own isolated context, then reports back to you. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write three hooks that each run one review whenever a file is edited",
+        "reason": "Hooks fire on events, not on demand, and they don't run reasoning-heavy reviews in isolated contexts."
+      },
+      {
+        "id": "b",
+        "text": "Put all three review checklists into CLAUDE.md so they're always loaded",
+        "reason": "That adds every checklist to every session and runs nothing in parallel or in isolation."
+      },
+      {
+        "id": "c",
+        "text": "Write an audit skill that kicks off a subagent for each kind of review",
+        "reason": "Correct: Claude Code's Skill + Subagent pattern has an audit skill start security, performance and style subagents that work in isolated context."
+      },
+      {
+        "id": "d",
+        "text": "Connect a separate MCP server for each review type and call them in turn",
+        "reason": "MCP connects external services. It doesn't give you isolated reviewers, and calling them in turn isn't parallel."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "One command, several isolated parallel workers: a skill that spawns subagents.",
+    "explanation": "Claude Code's features combine: a skill gives you an invocable workflow, and subagents give isolated, parallel workers. The docs' own example is an audit skill that kicks off security, performance and style subagents. Choice a is tempting because hooks automate things, but they fire on events and don't provide isolated reviewers.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-hook-plus-mcp",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Combining extensions",
+    "stem": "Every time Claude Code modifies a file under `billing/`, the team's Slack channel must get a notice, with no exceptions. A Slack MCP server is already connected. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Write a skill with the team's Slack message rules and the billing file paths",
+        "reason": "Claude decides when to use a skill, so the notice isn't guaranteed on every edit."
+      },
+      {
+        "id": "b",
+        "text": "Add a CLAUDE.md rule telling Claude to post to Slack after billing changes",
+        "reason": "An instruction is a request Claude may miss, not a guarantee."
+      },
+      {
+        "id": "c",
+        "text": "Assign a subagent to watch the billing folder and post when anything changes",
+        "reason": "Subagents run tasks when spawned; they don't watch files or fire on every edit."
+      },
+      {
+        "id": "d",
+        "text": "Add a post-edit hook that sends the Slack notice through MCP for billing files",
+        "reason": "Correct: Claude Code's Hook + MCP pattern is a post-edit hook that sends a Slack notification when Claude modifies critical files."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Must-happen-every-time actions are hooks; a hook can drive an external system through MCP.",
+    "explanation": "A hook fires on its event without Claude deciding, which suits 'no exceptions'. Combined with the Slack MCP server, a post-edit hook sends the notice whenever a matching file changes, the Hook + MCP pattern in the docs. Choice a is tempting because skills pair well with MCP, but a skill only runs when Claude chooses to use it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-managed-web-allowlist",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Built-in vs custom tools",
+    "stem": "Your Claude Managed Agents session needs to read pages from your vendor's documentation site, and must never fetch from the wider web. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build a custom MCP fetch server that only returns pages from the vendor's domain",
+        "reason": "That works, but you'd build and run a server the built-in tool already covers."
+      },
+      {
+        "id": "b",
+        "text": "Use the built-in web fetch tool, restricted to an allowlist of the vendor's domains",
+        "reason": "Correct: Managed Agents' built-in web search and fetch can be restricted to an allowlist or blocklist of domains."
+      },
+      {
+        "id": "c",
+        "text": "Tell the agent in its system prompt to fetch only from the vendor's site",
+        "reason": "An instruction is guidance the agent may not follow. A domain allowlist enforces the limit."
+      },
+      {
+        "id": "d",
+        "text": "Let the agent fetch pages with curl in Bash, and review all of its commands in the logs later",
+        "reason": "Reviewing afterwards doesn't stop a fetch from the wider web at the moment it happens."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Before building a custom tool, check whether a built-in one can be configured to fit (e.g. a domain allowlist).",
+    "explanation": "Managed Agents includes built-in web search and fetch tools that can be limited to an allowlist or blocklist of domains. That enforces 'vendor docs only' with no extra infrastructure. Choice a is tempting because it also enforces the limit, but it means building and running a server the built-in tool makes unnecessary.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-projects-vs-skills",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skills vs Projects",
+    "stem": "A launch team on claude.ai needs one workspace holding the launch brief and research documents as background, plus a reusable press-release procedure they'll apply in many different chats. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Put both the background documents and the procedure into a single skill",
+        "reason": "A skill is for procedures, not a workspace's background knowledge and chat history."
+      },
+      {
+        "id": "b",
+        "text": "Put both into a Project so that everything lives in one shared workspace",
+        "reason": "A Project gives background for one body of work, but the procedure should be reusable across chats."
+      },
+      {
+        "id": "c",
+        "text": "Keep the background in a Project, and write the procedure as a skill",
+        "reason": "Correct: Projects say 'here's what you need to know' while Skills say 'here's how to do things', so each piece goes where it fits."
+      },
+      {
+        "id": "d",
+        "text": "Connect the documents through MCP and paste the procedure into each chat",
+        "reason": "MCP connects external systems, and pasting the procedure each time is what a skill replaces."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Projects hold what to know for one body of work; Skills hold how to do something, reusable anywhere.",
+    "explanation": "Anthropic's comparison puts it simply: Projects say 'here's what you need to know', and Skills say 'here's how to do things'. The launch background belongs in a Project; the repeatable press-release procedure belongs in a skill. Choice b is tempting because it keeps everything in one place, but it ties the procedure to one workspace.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://claude.com/blog/skills-explained",
+      "title": "Skills explained: How Skills compares to prompts, Projects, MCP, and subagents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-skill-distribution",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Skill availability",
+    "stem": "Your team's internal app calls the Claude API, and everyone in the workspace should get one custom contract-check skill. Some teammates also want the same skill when they chat in claude.ai. Which two actions should the team take?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Upload the skill once through the Skills API, so the whole workspace can use it",
+        "reason": "Correct: custom skills uploaded through the API are shared workspace-wide."
+      },
+      {
+        "id": "b",
+        "text": "Upload it once in claude.ai settings and rely on it syncing over to the API",
+        "reason": "Custom skills don't sync across surfaces; a claude.ai upload isn't available on the API."
+      },
+      {
+        "id": "c",
+        "text": "Have each claude.ai user upload the skill in their own settings",
+        "reason": "Correct: on claude.ai custom skills are individual, so each person uploads it separately."
+      },
+      {
+        "id": "d",
+        "text": "Commit it to the repo's skills folder so the API and claude.ai both find it",
+        "reason": "Claude Code's filesystem skills are separate from both the API and claude.ai."
+      },
+      {
+        "id": "e",
+        "text": "Ask an admin to push the claude.ai upload to the whole organization",
+        "reason": "claude.ai doesn't support central admin management or org-wide distribution of custom skills."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Custom skills don't sync: upload once via the API for a workspace, and per user on claude.ai.",
+    "explanation": "Custom skills live separately on each surface. Through the Skills API they're shared workspace-wide (a); on claude.ai they're individual, so each user uploads their own copy (c). Choice b is the common assumption, but skills uploaded to one surface aren't automatically available on others.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview",
+      "title": "Agent Skills",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-tools-sdk-custom-tool",
+    "domainId": "tools-mcp",
+    "subSkillId": "agentic-customisation",
+    "topic": "Custom tools vs MCP",
+    "stem": "Your Agent SDK service needs one tool that calls a function in its own codebase. No other application will ever use the tool, and the team would rather not run another process. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Define it as an SDK custom tool on the in-process MCP server inside your app",
+        "reason": "Correct: the SDK's custom tools run on an in-process MCP server inside your application, not as a separate process."
+      },
+      {
+        "id": "b",
+        "text": "Build a standalone stdio MCP server for the function and launch it with the agent",
+        "reason": "That works, but it adds a separate process the team wants to avoid, for a tool no one else uses."
+      },
+      {
+        "id": "c",
+        "text": "Deploy a remote HTTP MCP server so the tool can be shared later if needed",
+        "reason": "Hosting a remote server for a single-app tool is over-engineering for a need that doesn't exist."
+      },
+      {
+        "id": "d",
+        "text": "Let the agent call the function by running a script through the Bash tool",
+        "reason": "Shell access is broader than needed and gives Claude no typed schema for the function."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "One app's own functions: SDK custom tools (in-process). Tools shared across apps: a separate MCP server.",
+    "explanation": "Agent SDK custom tools wrap your own functions in an in-process MCP server, so Claude can call them without a separate process. A standalone or remote MCP server pays off when other applications need the same tools. Choice b is tempting because MCP servers are the standard way to add tools, but here it adds a process for no benefit.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/custom-tools",
+      "title": "Give Claude custom tools",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]

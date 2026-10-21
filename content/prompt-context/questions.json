@@ -5226,5 +5226,1004 @@
       "c-compaction"
     ],
     "lessonId": "l-course-context-budget"
+  },
+  {
+    "id": "q-dq-prompt-compaction-threshold",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Compaction",
+    "stem": "Your support agent's conversations often grow long. The team wants the API to manage context inside its ordinary requests, compacting automatically once input reaches a size they set, without writing any summarization loop. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn on compaction at a token threshold, a single setting on ordinary requests",
+        "reason": "Correct: with threshold compaction the API compacts when input tokens reach your trigger, and the only code is one parameter on your ordinary requests."
+      },
+      {
+        "id": "b",
+        "text": "Use compaction on demand, with a loop that requests each summary and swaps it in",
+        "reason": "On-demand compaction means you decide when and write the compaction loop, which the team wants to avoid."
+      },
+      {
+        "id": "c",
+        "text": "Write a client-side summarizer that rewrites the history once it grows too long",
+        "reason": "Your own summarizer means writing the summarization call, its prompt and the history rewrite yourself."
+      },
+      {
+        "id": "d",
+        "text": "Clear old tool results with context editing once input passes the size they set",
+        "reason": "Context editing clears content by rule rather than summarizing, so older conversation turns still pile up."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Want the API to compact automatically inside normal requests? Threshold compaction. Want to control when? On demand.",
+    "explanation": "The compaction overview splits the options by who decides when: on demand (you, with a loop), at a token threshold (the API, through one parameter), or your own summarizer. The stem asks for automatic compaction inside ordinary requests with no loop. Choice b is tempting because on-demand compaction covers more use cases, but it needs a loop you write.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-clear-at-least-cache",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context editing",
+    "stem": "Your agent clears old tool results with context editing and also uses prompt caching. Costs rose: each clearing invalidates the cached prefix, and the strategy fires often while removing only a little each time. What should the team change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn off prompt caching, since clearing tool results always defeats it",
+        "reason": "Caching still pays off between clearings. The docs suggest making each clearing worth the invalidation instead."
+      },
+      {
+        "id": "b",
+        "text": "Lower the clearing trigger so that clearing starts even earlier in each conversation",
+        "reason": "Clearing earlier and more often adds even more cache invalidations."
+      },
+      {
+        "id": "c",
+        "text": "Require a minimum amount to be cleared each time, so each invalidation is worth it",
+        "reason": "Correct: the docs say to clear enough tokens to make the cache invalidation worthwhile, using the minimum-clear setting."
+      },
+      {
+        "id": "d",
+        "text": "Keep more of the recent tool results after each clearing, so less is removed",
+        "reason": "Keeping more makes each clearing remove even less, the opposite of what's needed."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Tool result clearing breaks the cache each time it runs, so make every clearing remove enough to pay for that.",
+    "explanation": "Tool result clearing invalidates cached prompt prefixes whenever it removes content. When clearing fires often and removes little, you pay the cache penalty again and again for little gain. The docs' fix is a minimum clear amount per activation. Choice a is tempting, but dropping caching throws away the savings between clearings.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-exclude-tool-from-clearing",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context editing",
+    "stem": "Tool result clearing keeps your agent's context lean, but it also clears the result of a policy lookup the agent needs for the whole task, so the agent keeps calling that tool again. Other old results should still be cleared. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn off tool result clearing for the whole agent so that nothing important is lost",
+        "reason": "That stops the repeat calls but brings back the context growth clearing was there to control."
+      },
+      {
+        "id": "b",
+        "text": "Exclude the policy tool from clearing, so its calls and results are never removed",
+        "reason": "Correct: the clearing strategy accepts a list of tool names whose uses and results are never cleared."
+      },
+      {
+        "id": "c",
+        "text": "Raise the clearing threshold so results stay in context longer before they're cleared",
+        "reason": "This only delays clearing. The policy result still goes eventually, and other results stay longer than needed."
+      },
+      {
+        "id": "d",
+        "text": "Also clear tool inputs, so less of each policy lookup is left taking up context",
+        "reason": "Clearing inputs removes more, not less, and the policy result still disappears."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Keep a must-have tool result through context editing by excluding that tool from clearing.",
+    "explanation": "Context editing's tool result clearing lets you name tools whose uses and results are never cleared. The stem needs one result kept while others are still cleared, which is exactly that exclusion. Choice a is tempting because it stops the repeat calls at once, but it gives up the context savings for everything else.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-memory-before-clearing",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context editing",
+    "stem": "Your long-running agent uses tool result clearing and sometimes loses details from results that were cleared before it had noted them anywhere. It already has the memory tool enabled. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn off clearing and rely on the large context window to hold every tool result",
+        "reason": "Results would pile up in context again, which is what clearing was there to prevent."
+      },
+      {
+        "id": "b",
+        "text": "Copy each tool result into the system prompt so that clearing never touches it",
+        "reason": "That bloats every request and rebuilds the context growth clearing was meant to stop."
+      },
+      {
+        "id": "c",
+        "text": "Tell the agent at the start of the task to remember every result in full",
+        "reason": "Once a result is cleared from context, it's gone unless it was saved somewhere outside."
+      },
+      {
+        "id": "d",
+        "text": "Prompt it to save key details to memory when it's warned clearing is near",
+        "reason": "Correct: with the memory tool, Claude gets an automatic warning near the clearing threshold so it can save important information before results are cleared."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Pair tool result clearing with the memory tool: Claude is warned before clearing and can save what matters.",
+    "explanation": "When context editing and the memory tool are combined, Claude receives an automatic warning as context nears the clearing threshold, so it can write important results to memory before they're removed. This agent already has the memory tool, so it just needs to use that moment. Choice a is tempting, but it abandons clearing and lets context grow without bound.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-fresh-window-orient",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Multi-window work",
+    "stem": "Your coding agent works across many context windows. Its summaries after compaction keep missing details, but the agent already keeps progress notes, a tests file and git history in the repo. What is the best approach to try?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Start each window fresh, telling Claude to read the notes, tests file and git log first",
+        "reason": "Correct: Anthropic notes Claude is very effective at discovering state from the filesystem, so a fresh window with a prescriptive start can beat compaction."
+      },
+      {
+        "id": "b",
+        "text": "Compact more often, so that each summary covers fewer turns and drops less detail",
+        "reason": "More compaction still relies on the summaries that are losing details."
+      },
+      {
+        "id": "c",
+        "text": "Paste the previous window's entire transcript into the start of the next window",
+        "reason": "That refills the new window with old content, the cost compaction exists to avoid."
+      },
+      {
+        "id": "d",
+        "text": "Delete the progress files so they can't conflict with what the summary says",
+        "reason": "Those files are exactly the state a fresh window can recover from."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "With good on-disk state (notes, tests, git), a fresh window plus a prescriptive startup can beat compaction.",
+    "explanation": "The prompting guide suggests that when a context window is cleared, you can start a brand-new window instead of compacting, because Claude discovers state from the local filesystem very well. Be prescriptive about the start: review the progress notes, the tests file and the git logs. Choice b is tempting, but it doubles down on the summaries that are losing details.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-thinking-clearing-tradeoff",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Context editing",
+    "stem": "Your agent runs with thinking on across many turns. Old thinking blocks are crowding out room for tool results, and the team still wants as many prompt cache hits as it can get. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Clear thinking from every earlier turn, since clearing thinking has no cost for caching",
+        "reason": "Clearing thinking blocks invalidates the cache at the point where the clearing happens."
+      },
+      {
+        "id": "b",
+        "text": "Keep every thinking block and turn caching off, since kept thinking breaks the cache",
+        "reason": "It's the reverse: thinking blocks that stay in context preserve the cache."
+      },
+      {
+        "id": "c",
+        "text": "Keep only the last few turns of thinking, accepting a cache miss where clearing happens",
+        "reason": "Correct: thinking clearing can keep the last N turns. Kept blocks preserve the cache; clearing invalidates it at that point."
+      },
+      {
+        "id": "d",
+        "text": "Move earlier thinking into the system prompt so it's cached with the static content",
+        "reason": "Thinking blocks are model output from earlier turns, not system prompt content you can relocate."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Kept thinking preserves the cache; cleared thinking frees space but invalidates the cache where it's cleared.",
+    "explanation": "Thinking block clearing lets you keep the last N turns of thinking or keep all of it. Kept blocks preserve the prompt cache, while clearing invalidates it at the point where clearing occurs. So the team can free room by keeping only recent thinking, as long as it expects that cache miss. Choice a is tempting, but it assumes clearing is free for caching, which the docs say it isn't.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-editing",
+      "title": "Context editing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-compact-keep-recent",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Compaction",
+    "stem": "You compact long conversations on demand, but the last few turns often hold exact figures that the next answer must quote word for word, and the summary paraphrases them. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Compact in the background so the summary is written while the work carries on",
+        "reason": "Background compaction changes when the summary is written, not whether recent turns stay word for word."
+      },
+      {
+        "id": "b",
+        "text": "Use compaction that keeps recent turns, so only older turns are summarized",
+        "reason": "Correct: the overview lists compaction that keeps recent turns for when the last few turns must reach Claude word for word."
+      },
+      {
+        "id": "c",
+        "text": "Compact less often, so the figures are less likely to be caught in a summary",
+        "reason": "Whenever compaction does run, the recent figures are still paraphrased."
+      },
+      {
+        "id": "d",
+        "text": "Clear old thinking blocks instead of compacting, to free up the same amount of room",
+        "reason": "Clearing thinking removes reasoning blocks only. It doesn't replace older conversation turns the way compaction does."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "When recent turns must reach Claude verbatim, use compaction that keeps recent turns.",
+    "explanation": "The compaction overview offers 'Compaction that keeps recent turns' for when the last few turns must reach Claude word for word; the summary then covers only older turns. Choice a is tempting because it's another on-demand option, but background compaction changes timing, not what is kept verbatim.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-precompact-archive",
+    "domainId": "prompt-context",
+    "subSkillId": "context-engineering",
+    "topic": "Compaction",
+    "stem": "Compliance needs the full, unsummarized transcript of every Agent SDK session, but automatic compaction replaces older messages with a summary as context fills up. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a CLAUDE.md rule telling Claude never to compact the conversation",
+        "reason": "The SDK compacts when context nears its limit. An instruction doesn't stop that, and the window would overflow anyway."
+      },
+      {
+        "id": "b",
+        "text": "Log every tool result from a PostToolUse hook and keep that as the transcript",
+        "reason": "Tool results are only part of a session. Prompts and Claude's own messages would be missing."
+      },
+      {
+        "id": "c",
+        "text": "Rebuild the transcript later from the summary that follows each compaction boundary",
+        "reason": "A summary is lossy by design, so the original messages can't be recovered from it."
+      },
+      {
+        "id": "d",
+        "text": "Register a PreCompact hook that archives the transcript before compaction",
+        "reason": "Correct: the agent loop docs give archiving the full transcript as a use of the PreCompact hook."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Need the full record despite compaction? Archive it in a PreCompact hook before summarizing happens.",
+    "explanation": "Automatic compaction summarizes older history when context nears its limit, so early messages don't survive in the session. A PreCompact hook runs before compaction, and the docs name archiving the full transcript as its use. Choice b is tempting because PostToolUse is a common audit hook, but it only sees tool results, not the conversation.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-overthinking",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Prompt adjustment",
+    "stem": "On hard problems your agent explores widely and keeps revisiting its approach. Its answers are already good, but thinking tokens and latency are far above budget. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude to choose an approach and commit to it, revisiting only if new facts contradict it",
+        "reason": "Correct: the prompting guide gives this instruction to curb excessive revisiting and extensive thinking."
+      },
+      {
+        "id": "b",
+        "text": "Add 'If in doubt, use the search tool' so that it settles open questions faster",
+        "reason": "The guide names 'If in doubt, use [tool]' as over-prompting that causes overtriggering."
+      },
+      {
+        "id": "c",
+        "text": "Add examples that show exhaustive exploration of every option before answering",
+        "reason": "That teaches more of the behavior the team is trying to cut."
+      },
+      {
+        "id": "d",
+        "text": "Lower the effort setting, which reduces overall thinking and token use",
+        "reason": "Correct: the guide says lowering effort reduces overall thinking and token usage."
+      },
+      {
+        "id": "e",
+        "text": "Raise the output token limit so long reasoning no longer gets cut short",
+        "reason": "A higher limit allows even more thinking. It doesn't reduce it."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Rein in overthinking with an instruction to commit to an approach, and lower effort if needed.",
+    "explanation": "The prompting guide says newer models can explore and think extensively, inflating thinking tokens and slowing responses. Its fixes are an instruction to choose an approach and commit to it (a) and a lower effort setting (d). Choice b sounds decisive, but 'If in doubt, use [tool]' is the guide's own example of over-prompting that causes overtriggering.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-temp-file-cleanup",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Agentic coding prompts",
+    "stem": "Your coding agent leaves helper scripts and scratch files around the repo after each task. They seem to help it work, but reviewers want a clean working tree once it finishes. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Forbid the agent from creating any new files at all while it works on a task",
+        "reason": "The guide notes that temporary files can improve outcomes in agentic coding, so a ban gives that up."
+      },
+      {
+        "id": "b",
+        "text": "Lower the effort setting so the agent iterates less and writes fewer scratch files",
+        "reason": "Effort trades reasoning depth for cost and speed. It isn't a cleanup control."
+      },
+      {
+        "id": "c",
+        "text": "Tell it to remove any temporary files or scripts it created at the end of the task",
+        "reason": "Correct: the guide's suggested prompt asks Claude to clean up temporary files, scripts and helpers at the end of the task."
+      },
+      {
+        "id": "d",
+        "text": "Have a reviewer delete the stray files by hand after every task the agent completes",
+        "reason": "It works, but it adds manual work that a one-line instruction avoids."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Let Claude use scratch files, but ask it to clean them up when the task is done.",
+    "explanation": "Claude may create temporary files as a scratchpad while it works, which can improve agentic coding results. The guide's fix for a messy tree is an instruction to remove those files at the end, not a ban. Choice a is tempting because it guarantees a clean tree, but it gives up the benefit of scratch files.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-post-tool-summary",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Communication style",
+    "stem": "After a model upgrade, users of your agent say it jumps from one tool call to the next without saying what it did. They want a brief recap after tool-heavy work. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the output token limit so the agent has more room to write longer replies",
+        "reason": "Room isn't the problem. Newer models are less verbose by default and may skip summaries after tool calls."
+      },
+      {
+        "id": "b",
+        "text": "Ask for a quick summary of the work done after tasks that involve tools",
+        "reason": "Correct: the guide notes newer models may skip summaries after tool calls and suggests exactly this instruction."
+      },
+      {
+        "id": "c",
+        "text": "Switch back to the older model, whose replies used to include such a recap",
+        "reason": "That gives up the upgrade's gains when one instruction brings the recap back."
+      },
+      {
+        "id": "d",
+        "text": "Ask users to type 'summarize' after each task whenever they want a recap",
+        "reason": "That pushes onto users something a standing instruction handles."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Newer models may skip post-tool summaries; ask for a quick recap explicitly.",
+    "explanation": "Claude's latest models are more concise and may jump straight to the next action instead of summarizing after tool calls. The guide's fix is a prompt asking for a quick summary after tasks that use tools. Choice a is tempting, but the limit was never what stopped the recap.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-model-identity",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Model self-knowledge",
+    "stem": "Users of your app ask the assistant which model they're talking to, and its answers are inconsistent. Your app runs on a specific Opus model and you want accurate answers. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Leave the prompt as it is, since the model can reliably report its own version",
+        "reason": "The guide offers a sample prompt for this precisely because you should tell the model its identity."
+      },
+      {
+        "id": "b",
+        "text": "Filter out any reply that mentions a model name before it reaches users",
+        "reason": "That hides the question instead of answering it correctly."
+      },
+      {
+        "id": "c",
+        "text": "Detect model questions in code and answer them with a canned reply instead",
+        "reason": "Keyword matching misses rephrasings, while one line in the system prompt covers every phrasing."
+      },
+      {
+        "id": "d",
+        "text": "State in the system prompt that it's Claude by Anthropic, and name the model",
+        "reason": "Correct: the guide's model self-knowledge prompt states that the assistant is Claude, created by Anthropic, and names the current model."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "If Claude should name itself or its model correctly, say so in the system prompt.",
+    "explanation": "The prompting guide has a short model self-knowledge prompt: 'The assistant is Claude, created by Anthropic. The current model is …'. Putting that in the system prompt makes identity answers consistent. Choice c is tempting because it's deterministic, but it only catches the phrasings you anticipate.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-parallel-tool-calls",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Parallel tool calling",
+    "stem": "Your research agent reads files one at a time, even when the reads don't depend on each other, so tasks run slowly. Your loop already returns all tool results in a single user message. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude to make independent tool calls in parallel and dependent ones in sequence",
+        "reason": "Correct: the guide's sample prompt asks for parallel calls when there are no dependencies, sequential calls when there are, and no guessed parameters."
+      },
+      {
+        "id": "b",
+        "text": "Replace the file tool with one that returns every file in the repository at once",
+        "reason": "That floods context with files the task may not need. Parallel calling is steerable with a prompt."
+      },
+      {
+        "id": "c",
+        "text": "Tell Claude to read the whole repository at the start of every single task",
+        "reason": "Reading everything wastes context. The goal is reading the needed files together, not reading all of them."
+      },
+      {
+        "id": "d",
+        "text": "Turn thinking off so that each turn is shorter and the agent moves along faster",
+        "reason": "Shorter turns don't make the reads run together."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Parallel tool calling is steerable: tell Claude to batch independent calls and sequence dependent ones.",
+    "explanation": "Claude's latest models run independent tool calls in parallel, and the behavior is steerable with a prompt that asks for parallel calls when there are no dependencies. The stem rules out a message-formatting cause, so the prompt is the lever. Choice b is tempting because it collapses the reads, but it trades speed for a flood of unneeded context.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-subagent-overuse",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Subagent orchestration",
+    "stem": "Your orchestrator, newly moved to a recent Opus model, spawns subagents for small jobs that a single grep would solve, adding latency and cost. You still want subagents for big parallel work. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the subagent tool so the orchestrator has to handle every task directly",
+        "reason": "That ends the overuse but also loses the parallel work you want to keep."
+      },
+      {
+        "id": "b",
+        "text": "Add 'If in doubt, delegate to a subagent' so its delegation choices become consistent",
+        "reason": "That pushes toward even more delegation, the problem you already have."
+      },
+      {
+        "id": "c",
+        "text": "Add guidance on when subagents are warranted and when to work directly",
+        "reason": "Correct: the guide's sample prompt says to use subagents for parallel, isolated or independent work and to work directly on simple tasks."
+      },
+      {
+        "id": "d",
+        "text": "Raise the effort setting so the orchestrator thinks harder before it delegates",
+        "reason": "Higher effort tends to bring more up-front exploration. The guide's fix is explicit guidance on when to delegate."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "If Claude over-delegates, tell it when subagents are warranted and when to just do the work.",
+    "explanation": "The prompting guide warns that recent Opus models delegate to subagents readily, even when a direct grep is faster. Its fix is explicit guidance: subagents for parallel, isolated or independent work, direct work for simple tasks. Choice a is tempting because it stops the overuse immediately, but it throws away the parallel work the team wants.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-structured-research",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Research prompts",
+    "stem": "Your agent researches market questions across many sources, but its reports settle on one conclusion early and give no sense of how certain it is. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask it for a single definitive answer, so readers aren't confused by alternatives",
+        "reason": "That reinforces the early settling that makes the reports weak."
+      },
+      {
+        "id": "b",
+        "text": "Set success criteria, and ask it to verify sources and weigh competing hypotheses",
+        "reason": "Correct: the guide suggests clear success criteria, cross-source verification and competing hypotheses with tracked confidence for complex research."
+      },
+      {
+        "id": "c",
+        "text": "Restrict it to one trusted source so that sources never contradict each other",
+        "reason": "The guide encourages verifying information across multiple sources, not narrowing to one."
+      },
+      {
+        "id": "d",
+        "text": "Raise the sampling temperature so it explores a wider range of possible conclusions",
+        "reason": "Random variation isn't structured research and doesn't add any sense of confidence."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For complex research, give success criteria and ask for cross-source checks, competing hypotheses and confidence tracking.",
+    "explanation": "For research, the prompting guide recommends defining what a successful answer looks like, asking Claude to verify information across sources, and having it develop competing hypotheses while tracking confidence. The stem's reports settle early with no certainty, which those steps address. Choice c is tempting because it avoids conflicts, but the guide pushes toward more verification, not less.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-conservative-default",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Instruction clarity",
+    "stem": "Your code-review assistant should advise, not act. When a developer's intent is unclear it must not touch files, but it should make edits when it's explicitly asked to. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove its file-editing tools so it can never change code by accident",
+        "reason": "Then it can't edit even when explicitly asked, which the requirement needs."
+      },
+      {
+        "id": "b",
+        "text": "Tell it to implement changes by default and infer the most useful action",
+        "reason": "That is the guide's proactive default, the opposite of what this product needs."
+      },
+      {
+        "id": "c",
+        "text": "Ask developers to start every request with 'Don't change anything unless I say so'",
+        "reason": "It shifts the burden onto every user instead of setting the default once."
+      },
+      {
+        "id": "d",
+        "text": "In the system prompt, default to recommendations and edit only when asked",
+        "reason": "Correct: the guide's conservative prompt defaults to research and recommendations and proceeds with edits only when explicitly requested."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Set Claude's default for action in the system prompt: proactive or conservative, to match the product.",
+    "explanation": "The prompting guide offers two standing defaults: implement by default, or hold back and only act when explicitly asked. An advise-first review assistant needs the conservative one, set once in the system prompt. Choice a is tempting because it's a hard guarantee, but it also blocks the explicit edit requests the assistant must honor.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-first-window-setup",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Multi-window work",
+    "stem": "Your agent will build a service over many context windows. Every window gets the same prompt and dives straight into features, and each new window wastes time working out how to run the tests and the server. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use a different first-window prompt that sets up tests and setup scripts, then iterate",
+        "reason": "Correct: the guide suggests using the first context window to set up a framework, such as tests and setup scripts, and later windows to iterate on a todo list."
+      },
+      {
+        "id": "b",
+        "text": "Give every window a longer version of the same prompt, with more detail on each feature",
+        "reason": "More feature detail doesn't create the setup scripts that later windows need."
+      },
+      {
+        "id": "c",
+        "text": "Have each window work out the run commands from the codebase so they stay current",
+        "reason": "That is the repeated work that setup scripts are meant to prevent."
+      },
+      {
+        "id": "d",
+        "text": "Run the whole build in a single window by raising the output token limit",
+        "reason": "An output limit doesn't make a long, multi-window build fit into one context window."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Use the first context window to build the scaffolding (tests, setup scripts); later windows iterate.",
+    "explanation": "For work across several context windows, the prompting guide recommends a different prompt for the very first window: set up tests and quality-of-life scripts like an init script, then iterate on a todo list in later windows. That removes the repeated rediscovery in the stem. Choice c is tempting because it keeps commands current, but it's exactly the repeated work to avoid.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-structured-state",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "State tracking",
+    "stem": "Your agent tracks the status of 200 tests in free-form progress notes, and across sessions it miscounts which tests pass and which are still failing. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep everything in free-form notes, but ask Claude to reread them more carefully",
+        "reason": "The guide recommends structured formats such as JSON for structured state like test results."
+      },
+      {
+        "id": "b",
+        "text": "Keep test status only in the conversation, so it never has to be written down",
+        "reason": "Conversation context doesn't carry across sessions the way files and git history do."
+      },
+      {
+        "id": "c",
+        "text": "Track test status in a JSON file, keep notes as free text, and use git checkpoints",
+        "reason": "Correct: the guide's state advice is structured formats for status, free text for progress notes, and git for history and checkpoints."
+      },
+      {
+        "id": "d",
+        "text": "Rewrite the whole progress file from scratch at the start of every new session it runs",
+        "reason": "Rewriting risks losing state. The guide favors structured status, incremental notes and git history."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Structured state (test status) in JSON, narrative progress in text, and git as the checkpoint log.",
+    "explanation": "The prompting guide's state management advice is to use JSON or other structured formats for structured data such as test status, free-form text for progress notes, and git for a log and restorable checkpoints. Free-form notes are the wrong tool for counting 200 statuses. Choice d is tempting as a fresh start, but rewriting from scratch risks losing exactly the state you need.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-frontend-aesthetics",
+    "domainId": "prompt-context",
+    "subSkillId": "prompt-engineering",
+    "topic": "Prompt adjustment",
+    "stem": "Your app generates landing pages with Claude, and customers say every page looks the same: generic fonts, purple gradients and predictable layouts. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the sampling temperature so each generation varies more at random",
+        "reason": "Random variation doesn't supply design direction, so pages still converge on the same look."
+      },
+      {
+        "id": "b",
+        "text": "Add design guidance on fonts, color, motion and backgrounds, naming clichés to avoid",
+        "reason": "Correct: the guide's frontend prompt steers typography, color, motion and backgrounds and lists generic patterns to avoid."
+      },
+      {
+        "id": "c",
+        "text": "Ask for 'a clean, modern design' in each request so the tone is always set",
+        "reason": "Vague direction is what lets output converge on generic, 'on distribution' choices."
+      },
+      {
+        "id": "d",
+        "text": "Switch page generation to a smaller model so that its output differs more",
+        "reason": "Model size isn't a style control and would likely cost quality."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Without direction, frontend output converges on generic patterns; give explicit aesthetic guidance.",
+    "explanation": "The prompting guide says models default to generic patterns in frontend work, the 'AI slop' aesthetic, unless guided. Its sample system prompt directs typography, color and theme, motion and backgrounds, and names clichés such as purple gradients to avoid. Choice c is tempting because it asks for good design, but vague direction is what produces the sameness.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-schema-property-order",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Structured outputs",
+    "stem": "Your report job gets JSON through structured outputs and writes CSV columns in the order the keys arrive. Optional fields keep landing after all the required ones instead of where the schema lists them. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "List the optional properties first in the schema so they come out first",
+        "reason": "Required properties always come first, whatever order the schema lists them in."
+      },
+      {
+        "id": "b",
+        "text": "Mark every property as required, so the schema's order is kept",
+        "reason": "Correct: the docs say to mark all properties as required if property order matters."
+      },
+      {
+        "id": "c",
+        "text": "Add 'keep this exact key order' to the description of each field",
+        "reason": "Ordering is how structured outputs build the object; descriptions don't change it."
+      },
+      {
+        "id": "d",
+        "text": "Retry any reply whose keys arrive in a different order from the schema",
+        "reason": "Required-first ordering is how structured outputs behave, so retries come back the same way."
+      },
+      {
+        "id": "e",
+        "text": "Write CSV columns by key name instead of the order keys arrive in",
+        "reason": "Correct: the docs' other option is to account for the reordering in your parsing logic."
+      }
+    ],
+    "answer": [
+      "b",
+      "e"
+    ],
+    "takeaway": "Structured outputs put required properties first; make all required or don't depend on key order.",
+    "explanation": "Structured outputs keep your schema's property order with one caveat: required properties appear first, followed by optional ones. You can mark every property required (b) or stop depending on key order when you parse (e). Choice d is tempting as a quick patch, but the reordering is expected behavior, so a retry won't change it.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/structured-outputs",
+      "title": "Structured outputs",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-pydantic-modelretry",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Validating model output",
+    "stem": "Your PydanticAI agent returns a typed invoice, but some runs report a total that doesn't equal the sum of the line items, a rule the type alone can't express. You want the model to correct these itself. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add an output validator that asks for a retry naming the problem, so the model fixes it",
+        "reason": "Correct: PydanticAI output validators can raise ModelRetry, which asks the model to try again and uses the run's output retry budget."
+      },
+      {
+        "id": "b",
+        "text": "Rely on the typed output alone, trusting Pydantic validation to catch the mismatch",
+        "reason": "Type validation checks the shape and field types, not a cross-field rule like the total matching the lines."
+      },
+      {
+        "id": "c",
+        "text": "Switch to the prompted output mode so the model gets more freedom to fix its totals",
+        "reason": "Prompted output still validates against the schema; it adds no check of the total."
+      },
+      {
+        "id": "d",
+        "text": "Recompute the total in code after each run and overwrite the model's value quietly",
+        "reason": "That patches one field but hides the error and never lets the model correct its output."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "In PydanticAI, put business rules in an output validator that raises ModelRetry, so the model retries.",
+    "explanation": "PydanticAI validates structured output against the type, and output validators let you add checks the type can't express. Raising ModelRetry tells the model to try again, using the run's output retry budget. Choice d is tempting because it guarantees a correct total, but it hides the problem instead of letting the model fix its output as the stem asks.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://pydantic.dev/docs/ai/core-concepts/output/",
+      "title": "Output",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-refusal-detect-route",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Refusal handling",
+    "stem": "Your service sends refused requests to a human review queue. Today it parses the refusal's explanation text for keywords, and routing broke after the wording changed. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Detect refusals from the stop reason rather than from the explanation text",
+        "reason": "Correct: the docs say to branch on stop_reason or stop_details.type, not on content or the inner explanation fields."
+      },
+      {
+        "id": "b",
+        "text": "Update the keyword list each time the wording of the explanation changes",
+        "reason": "The explanation text isn't stable, so this approach keeps breaking."
+      },
+      {
+        "id": "c",
+        "text": "Show the explanation to reviewers as display text, without parsing it",
+        "reason": "Correct: the explanation is human-readable but unstable, so the docs say to display it rather than parse it."
+      },
+      {
+        "id": "d",
+        "text": "Treat any reply with empty content as a refusal and send it to the queue",
+        "reason": "The docs say to branch on the stop reason, not on content, and empty content can have other causes."
+      },
+      {
+        "id": "e",
+        "text": "Watch for 4xx status codes, so refusals are caught before the parser runs",
+        "reason": "A refusal is a successful HTTP 200 response, so it never shows up as a 4xx error."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Detect refusals by stop reason; treat the explanation as display text, since its wording can change.",
+    "explanation": "A refusal is an HTTP 200 with a refusal stop reason, and its explanation is human-readable text that isn't stable. So routing should key on the stop reason (a) and the explanation should only be displayed (c). Choice d is tempting because refusals before output have empty content, but the docs say to branch on the stop reason, not on content.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-batch-refusal-check",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Refusal handling",
+    "stem": "Your nightly Message Batches job treats every result marked succeeded as done and stores its text. Some of the stored outputs turn out to be empty. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep trusting the succeeded status and treat an empty output as a short answer",
+        "reason": "A refused batch item also comes back as succeeded, with a refusal stop reason."
+      },
+      {
+        "id": "b",
+        "text": "Add server-side fallback to every batch request so that refusals are retried for you",
+        "reason": "Server-side fallback isn't available for batches; a request that includes it produces an errored result."
+      },
+      {
+        "id": "c",
+        "text": "Resubmit the empty items to the same model in the next night's batch",
+        "reason": "Re-sending a refused request to the same model usually earns another refusal."
+      },
+      {
+        "id": "d",
+        "text": "Check each result for a refusal stop reason and resubmit those on a fallback model",
+        "reason": "Correct: refused batch items come back as succeeded with stop_reason refusal; collect them and resubmit on a fallback model."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "In batches, 'succeeded' can still be a refusal; check the stop reason and retry refused items on another model.",
+    "explanation": "A refused request in a Message Batch comes back as succeeded with a refusal stop reason, so the succeeded status alone isn't proof of usable output. The docs say to collect refused items and resubmit them on a fallback model. Choice b is tempting because server-side fallback automates this for normal requests, but it isn't available for batches.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-subagent-verbatim",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Subagent output",
+    "stem": "Your SDK app's security-review subagent writes a precise findings list, but users see only the main agent's loose paraphrase of it, and some findings get merged away. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give the subagent the parent's whole conversation so its findings fit the wider context",
+        "reason": "The subagent's report is already precise. The loss happens when the parent summarizes it."
+      },
+      {
+        "id": "b",
+        "text": "Instruct the main agent's prompt to include the subagent's report verbatim",
+        "reason": "Correct: the SDK docs say the parent may summarize a subagent's report, and to keep it verbatim you instruct the parent in its prompt or system prompt."
+      },
+      {
+        "id": "c",
+        "text": "Raise the subagent's turn limit so it has room to write an even longer report",
+        "reason": "Length isn't the issue. The parent rewrites whatever report it receives."
+      },
+      {
+        "id": "d",
+        "text": "Have the subagent write each finding in capital letters so the parent keeps it",
+        "reason": "Emphasis doesn't stop the parent from summarizing. An explicit instruction to the parent does."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "A parent agent may summarize subagent reports; tell it explicitly to pass them through verbatim.",
+    "explanation": "In the Agent SDK, the parent receives a subagent's final report but may summarize it in its own response. The docs' fix is an instruction in the main query's prompt or system prompt to preserve the subagent's output verbatim. Choice a is tempting because context sounds helpful, but the report is already precise; the loss happens one step later.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-prompt-preamble-no-prefill",
+    "domainId": "prompt-context",
+    "subSkillId": "output-handling",
+    "topic": "Prefill migration",
+    "stem": "Your summarizer used to prefill the assistant turn to skip intro text. The current model doesn't accept prefill, and some replies now open with 'Here is the summary…'. Your UI shows replies as they are. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep sending the prefilled assistant turn, expecting the newer model to ignore it",
+        "reason": "On models without prefill support, a prefilled last assistant turn returns a 400 error."
+      },
+      {
+        "id": "b",
+        "text": "Go back to an older model that still accepts prefill and keep the old setup",
+        "reason": "Older models do accept prefill, but this gives up the newer model to dodge a simple, documented fix."
+      },
+      {
+        "id": "c",
+        "text": "Ask for no preamble in the system prompt, and strip any that slips through",
+        "reason": "Correct: the guide's migration advice is a direct no-preamble instruction, with post-processing to strip the occasional preamble."
+      },
+      {
+        "id": "d",
+        "text": "Raise the output token limit so the preamble takes up a smaller share of replies",
+        "reason": "The preamble is still there in every affected reply."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Without prefill, ask for no preamble in the system prompt and strip the occasional one in post-processing.",
+    "explanation": "Newer models don't support prefilling the last assistant turn, so the old trick for skipping intros returns an error. The guide's migration for preambles is a system-prompt instruction to respond directly, and stripping any preamble that still slips through. Choice b is tempting because it restores the old behavior, but it gives up the newer model for no good reason.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]

@@ -2188,5 +2188,1028 @@
       "c-stop-reason"
     ],
     "lessonId": "l-course-failure-handling"
+  },
+  {
+    "id": "q-dq-eval-spend-cap-429",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Spend cap vs rate limit",
+    "stem": "A nightly job starts failing every request with the 429 below, and the response has no retry-after header. Its handler has been retrying with exponential backoff for hours. Which two actions should the team take?",
+    "snippet": {
+      "language": "json",
+      "code": "{\n  \"type\": \"error\",\n  \"error\": {\n    \"type\": \"rate_limit_error\",\n    \"message\": \"You have reached your API usage\n      limits ... You will regain access on\n      the 1st at 00:00 UTC.\",\n    \"details\": {\n      \"error_code\":\n        \"enforced_spend_limit_reached\"\n    }\n  }\n}"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Stop retrying this error and alert someone until access resumes",
+        "reason": "Correct: a spend-cap 429 has no retry-after header, and retrying, including the SDK's own retries, fails until access resumes."
+      },
+      {
+        "id": "b",
+        "text": "Request a higher tier or spend cap to restore access sooner",
+        "reason": "Correct: the rate limits page says moving to a higher tier restores access."
+      },
+      {
+        "id": "c",
+        "text": "Lengthen the backoff and keep retrying until one of the requests succeeds",
+        "reason": "No amount of waiting inside the job helps before access resumes, so the retries just burn time."
+      },
+      {
+        "id": "d",
+        "text": "Wait for the number of seconds in the retry-after header before retrying",
+        "reason": "Spend-cap 429s never carry a retry-after header, so there's nothing to wait for."
+      },
+      {
+        "id": "e",
+        "text": "Rotate the API key in case this key has been blocked by mistake",
+        "reason": "The cap applies to the organization, not to one key, so a new key fails the same way."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "A 429 with the spend-limit error code isn't a rate limit: stop retrying and fix the cap.",
+    "explanation": "This 429 shares the rate_limit_error type with ordinary rate limits, but its error code says the tier's monthly spend cap was reached, and it has no retry-after header. Usage stays paused until access resumes, so the job should stop retrying and alert (a), and the org can request a higher tier (b). Choice c is tempting because backoff is the usual 429 fix, but it can't outlast a monthly cap.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-self-set-spend-limit-400",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Error type identification",
+    "stem": "Every request from your staging service suddenly fails with `400 invalid_request_error`, saying you have reached your specified workspace API usage limits. Nothing in the code or requests changed. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise or remove the workspace spend limit; the requests are fine",
+        "reason": "Correct: when usage reaches a spend limit you set, requests return a 400 invalid_request_error with this message; raising or removing the limit restores access."
+      },
+      {
+        "id": "b",
+        "text": "Retry each request with exponential backoff, since this kind of 400 clears up on its own",
+        "reason": "The limit lasts until access resumes or someone changes it, so retries keep failing."
+      },
+      {
+        "id": "c",
+        "text": "Inspect the request bodies for a malformed field, since a 400 means the format is wrong",
+        "reason": "Usually true for a 400, but this message names the spend limit, and the requests haven't changed."
+      },
+      {
+        "id": "d",
+        "text": "Switch the service to a different model so its requests count against another limit",
+        "reason": "A workspace spend limit covers the workspace's usage, not one model."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Read the message, not just the code: a 400 can mean your own spend limit was reached.",
+    "explanation": "The errors and rate limits pages note that a spend limit you set returns 400 invalid_request_error, with a message saying you've reached your specified usage limits. The fix is the limit, not the request. Choice c is tempting because a 400 normally means a malformed request, but the message and the unchanged code point elsewhere.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-acceleration-limits",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Rate limits",
+    "stem": "On launch day your traffic jumps from a steady low volume to many times that within minutes, and you get 429 errors even though you're below your tier's published limits. What is the best approach for the next launch?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Spread the traffic across several API keys so each key stays under its own limit",
+        "reason": "Limits are set at the organization level, so more keys don't add capacity."
+      },
+      {
+        "id": "b",
+        "text": "Retry every 429 immediately in a tight loop until each request gets through",
+        "reason": "Instant retries add load during the spike and make the 429s worse."
+      },
+      {
+        "id": "c",
+        "text": "Ramp traffic up gradually and keep usage steady to avoid acceleration limits",
+        "reason": "Correct: a sharp increase in usage can trigger 429s from acceleration limits, and the docs say to ramp up gradually."
+      },
+      {
+        "id": "d",
+        "text": "Lower the output token limit on every request so each one counts for less",
+        "reason": "Output limits don't address the sudden ramp that triggers acceleration limits."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "429s during a sudden spike, under your limits? Acceleration limits: ramp traffic up gradually.",
+    "explanation": "Besides the per-minute limits, the API applies acceleration limits when an organization's usage rises sharply, which shows up as 429s even below published limits. The docs' fix is to ramp up gradually and keep usage consistent. Choice a is tempting because it sounds like adding capacity, but limits apply to the organization, not per key.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-billing-error-402",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Error type identification",
+    "stem": "Overnight, every Claude API call from all of your services starts failing with `402 billing_error`. The on-call engineer is paged. What should they do first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry every failed call with exponential backoff until the API recovers",
+        "reason": "A billing error isn't a transient fault, so retries keep failing until billing is fixed."
+      },
+      {
+        "id": "b",
+        "text": "Check and fix the organization's payment details in the Claude Console",
+        "reason": "Correct: a 402 billing_error means there's an issue with billing or payment information, and the docs say to check payment details in the Console."
+      },
+      {
+        "id": "c",
+        "text": "Rotate the API keys, since the keys may have expired during the night",
+        "reason": "An expired or revoked key gives a 401 authentication_error, not a 402."
+      },
+      {
+        "id": "d",
+        "text": "Contact support with request IDs to report an outage on Anthropic's side",
+        "reason": "Internal failures show up as 5xx errors. A 402 points to your own billing."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "402 is billing: fix payment details, don't retry or rotate keys.",
+    "explanation": "The errors page maps each status to its cause: 401 for key problems, 402 for billing or payment information, 5xx for problems on Anthropic's side. A 402 across every service points to the organization's billing. Choice c is tempting because it's also an account-wide failure, but an expired key returns 401, not 402.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-truncation-notice",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "stop_reason diagnosis",
+    "stem": "Your report UI must warn readers whenever Claude's output was cut off. Today it only checks the HTTP status, and some reports end mid-sentence with no warning. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep checking HTTP status, since truncated responses come back as errors",
+        "reason": "Stop reasons are part of successful responses. A truncated reply is still an HTTP 200."
+      },
+      {
+        "id": "b",
+        "text": "Warn whenever the stop reason is anything other than a normal end of turn",
+        "reason": "That would also flag tool calls, stop sequences and refusals, which aren't truncation."
+      },
+      {
+        "id": "c",
+        "text": "Warn whenever the last character of the text isn't a punctuation mark",
+        "reason": "A guess from the text misses truncated replies that end cleanly and flags complete ones."
+      },
+      {
+        "id": "d",
+        "text": "Warn when the stop reason shows a token or context-window limit was hit",
+        "reason": "Correct: the docs treat both max_tokens and model_context_window_exceeded as truncated output and suggest appending a notice."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Truncation lives in stop_reason (token limit or context window), not in the HTTP status.",
+    "explanation": "The stop reasons page says to treat both max_tokens and model_context_window_exceeded as truncated, and its example appends a notice so readers know the output is incomplete. Both arrive on HTTP 200 responses. Choice b is tempting because it's simple, but it lumps tool use, stop sequences and refusals in with truncation.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-monitor-refusals",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Refusal monitoring",
+    "stem": "Your dashboards alert on error rates and 5xx responses. After moving to a model with safety classifiers, users report occasional empty answers, yet the dashboards show nothing wrong. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Emit an event per refusal and per fallback reply; alert on the gap",
+        "reason": "Correct: a refusal is an HTTP 200, so error-rate monitoring never sees it; the docs say to count refusals and fallback-served responses and alert on the gap."
+      },
+      {
+        "id": "b",
+        "text": "Lower the error-rate alert threshold so that smaller spikes trigger a page",
+        "reason": "Refusals aren't errors at all, so a lower threshold still never fires for them."
+      },
+      {
+        "id": "c",
+        "text": "Start alerting on 4xx responses too, so client-side failures show up",
+        "reason": "A refusal is a successful 200 response, not a 4xx."
+      },
+      {
+        "id": "d",
+        "text": "Have someone read a sample of transcripts each week to look for empty answers",
+        "reason": "Manual sampling is slow and misses most cases a simple per-refusal event would count."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Refusals are HTTP 200s: instrument them as their own signal, not through error rates.",
+    "explanation": "Safety-classifier refusals come back as normal HTTP 200 responses with a refusal stop reason, so monitoring built on errors or 5xx never sees them. The refusals guide says to emit one event per refusal and one per fallback-served response and alert on the gap. Choice c is tempting because it widens error coverage, but refusals aren't 4xx either.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-fallback-not-for-overload",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Recovery strategy",
+    "stem": "Your team turns on server-side fallback for every request and proposes deleting the client's retry-with-backoff code, since 'the API handles failures now'. What should they do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delete the retry code, since fallback now retries failed requests on another model",
+        "reason": "Fallback only retries safety-classifier declines. Rate limits, overloads and server errors come back as-is."
+      },
+      {
+        "id": "b",
+        "text": "Replace the retry code with a longer list of named fallback models",
+        "reason": "More fallback models still only handle refusals, not overloads or server errors."
+      },
+      {
+        "id": "c",
+        "text": "Keep the backoff retries for rate limits, overloads and server errors",
+        "reason": "Correct: only a safety classifier decline triggers fallback; a rate limit, overload or server error on the requested model is returned to you as-is."
+      },
+      {
+        "id": "d",
+        "text": "Keep the retry code, but point it at refusals so they are retried on the same model",
+        "reason": "Re-sending a refused request to the same model usually earns another refusal."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Server-side fallback covers refusals only; keep backoff retries for 429, 529 and 5xx.",
+    "explanation": "Server-side fallback reruns a request on another model only when a safety classifier declines it. A rate limit, overload or server error on the requested model is returned to you as-is, so the client still needs its own backoff retries. Choice a is tempting because the feature sounds like general failover, but it isn't.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-fallback-every-path",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Recovery strategy",
+    "stem": "Fallback is set on your agent's main request path, yet some refused requests still reach users unhandled. The agent also re-sends failed calls from an error handler, and some of its tools call Claude for sub-agent work. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Configure fallback on requests the error handler re-sends",
+        "reason": "Correct: the docs warn that a handler that re-issues a request without fallback loses the protection on the requests most likely to need it."
+      },
+      {
+        "id": "b",
+        "text": "Give the model calls made inside tool execution their own fallback setting",
+        "reason": "Correct: the fallback setting doesn't propagate into model calls made from inside tool execution, so sub-agent calls need their own."
+      },
+      {
+        "id": "c",
+        "text": "Turn fallback on through one shared global flag that every code path checks",
+        "reason": "The docs warn that shared flags can drift out of sync; fallback should be a property of each request."
+      },
+      {
+        "id": "d",
+        "text": "Retry each refused request once more on the same model before showing an error",
+        "reason": "Re-sending to the same model usually earns another refusal."
+      },
+      {
+        "id": "e",
+        "text": "Turn off streaming, since fallback only works on non-streaming requests",
+        "reason": "Fallback works on streaming requests too; the retry happens on the same stream."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Fallback must be set on every request path: retries, error branches and sub-agent calls included.",
+    "explanation": "The refusals guide's pitfalls include retry handlers that re-issue requests without fallback, and model calls inside tool execution, where the fallback setting doesn't propagate. Configuring fallback on both paths (a, b) closes the gaps. Choice c is tempting as a single switch, but the guide says ambient flags can drift and leave requests silently unprotected.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-server-tool-pending-400",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "In one turn Claude called the built-in web search and your own account-lookup tool. Your next request failed as shown in the trace. What is the best fix?",
+    "snippet": {
+      "language": "text",
+      "code": "resp 1  stop_reason=tool_use\n  server_tool_use  web_search (no result yet)\n  tool_use         get_account  id=toolu_7\nreq 2  user content:\n  tool_result  toolu_7  {...}\n  text  \"Also check the refund policy\"\n-> 400 invalid_request_error\n   ... was found without a corresponding\n   web_search_tool_result block"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add an empty web search result block of your own so the server tool looks finished",
+        "reason": "You never construct results for server tools; the API runs the pending search itself."
+      },
+      {
+        "id": "b",
+        "text": "Send only the tool result now; ask the extra question after the turn ends",
+        "reason": "Correct: that user message must contain nothing but the tool results; text after them ends the turn, and for a server tool the request fails with a 400."
+      },
+      {
+        "id": "c",
+        "text": "Remove web search from the tools list on the follow-up request so it isn't expected",
+        "reason": "The resume request must keep the same tools; dropping the server tool causes its own error."
+      },
+      {
+        "id": "d",
+        "text": "Retry the same request with exponential backoff, since this 400 is usually transient",
+        "reason": "The request is malformed, so an identical retry fails the same way."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With a server tool still pending, reply with only tool_result blocks and the same tools; send extra text later.",
+    "explanation": "When Claude calls a server tool alongside a client tool, the server call isn't finished until you return the client results. That reply must contain only tool_result blocks with the same tools array; added text ends the turn and fails with this 400. Choice c is tempting because the error names web search, but removing the tool triggers a different error.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-cache-miss-every-request",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "Your agent caches its long system prompt and tools, but every request in a conversation is a cache miss, as the usage log shows. The prompt content itself doesn't change. Which two changes should the team make?",
+    "snippet": {
+      "language": "text",
+      "code": "req  tool_choice  effort  cache_read  cache_write\n 1   auto         high         0        18400\n 2   tool         high         0        18400\n 3   auto         low          0        18400\n 4   auto         high         0        18400"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the tool choice setting the same on every request in the conversation",
+        "reason": "Correct: the troubleshooting guide names a varying tool_choice as a cause of every request missing the cache."
+      },
+      {
+        "id": "b",
+        "text": "Hold the thinking setup and effort level constant across the conversation",
+        "reason": "Correct: the guide says to hold the thinking configuration and effort level constant for the life of a cached conversation."
+      },
+      {
+        "id": "c",
+        "text": "Add more cache breakpoints near the end of each request's messages",
+        "reason": "More breakpoints don't help when settings that change between requests invalidate the cache."
+      },
+      {
+        "id": "d",
+        "text": "Switch to the longer cache lifetime so entries survive between requests",
+        "reason": "These requests are back to back; lifetime isn't why the cache is missed."
+      },
+      {
+        "id": "e",
+        "text": "Move the tool definitions after the messages so they don't affect the cache",
+        "reason": "The prompt order is fixed, and tool definitions come first; that isn't the cause here."
+      }
+    ],
+    "answer": [
+      "a",
+      "b"
+    ],
+    "takeaway": "Cache misses on unchanged prompts? Look for request settings that vary: tool choice, thinking, effort.",
+    "explanation": "The log shows tool choice and effort changing between requests while cache reads stay at zero. The troubleshooting guide lists exactly these variations as causes and says to keep tool choice stable (a) and hold thinking and effort constant (b). Choice d is tempting because lifetime is a common cache issue, but back-to-back requests aren't expiring.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-otel-content-mode",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "You export Claude API traces to your observability platform with the default settings. One agent run failed, but its spans show only IDs, timing, status and token counts, so you can't tell why. Your organization has no data-handling restriction. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Turn on SDK debug logging so every prompt is printed into your application logs",
+        "reason": "That spreads prompts into app logs outside the trace, when the tracing setup already offers content capture."
+      },
+      {
+        "id": "b",
+        "text": "Use the Usage API to look up that run's token counts in more detail",
+        "reason": "Usage figures say how much was used, not why the run failed."
+      },
+      {
+        "id": "c",
+        "text": "Re-run the request locally many times until the failure happens again",
+        "reason": "Runs vary, so it may never reproduce, and you still won't see the original conversation."
+      },
+      {
+        "id": "d",
+        "text": "Switch that destination to full content mode, so spans include prompts",
+        "reason": "Correct: metadata-only is the default; full content adds prompts and responses so you can see why a run failed."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Default traces are metadata only; switch to full content when you need to see why a run failed.",
+    "explanation": "OpenTelemetry export has two content modes. The default, metadata only, includes identifiers, timing, status and token counts; full content adds prompts and responses, which the docs say lets you see why a run failed. Choice a is tempting because it shows the prompts, but it scatters them into app logs instead of using the trace's own setting.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-otel-double-count",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "Your token dashboard sums the usage on every span in each trace and reports about three times what billing shows. A typical request's spans are below. What is the best fix?",
+    "snippet": {
+      "language": "text",
+      "code": "span                           in_tok  out_tok\nanthropic.messages.create\n  (SDK, CLIENT)                  1200      340\n  anthropic.messages.create\n    (API, SERVER)                1200      340\n    anthropic.model_request      1200      340"
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Count each request once, from a single source of spans",
+        "reason": "Correct: the docs say to sum one source per request, and for API spans either the create spans or their model request spans, not both."
+      },
+      {
+        "id": "b",
+        "text": "Divide the dashboard total by three so it lines up with the invoice",
+        "reason": "The overlap varies with each trace's shape, for example with compaction or tool spans, so a fixed divisor drifts."
+      },
+      {
+        "id": "c",
+        "text": "Turn off SDK tracing so that only the API's spans are left in each trace",
+        "reason": "You'd lose client spans and still double count if you keep summing both API levels."
+      },
+      {
+        "id": "d",
+        "text": "Add the cache read and write tokens on top of each span's input tokens",
+        "reason": "Input tokens already include cache reads and writes, so this would overcount even more."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Usage repeats across span levels; sum one source per request to count each token once.",
+    "explanation": "A request can have an SDK client span, an API server span and model request spans, and some usage attributes repeat across those levels. The docs say to sum only one source per request, choosing either the API create spans or their model request spans. Choice b is tempting because the ratio looks steady, but trace shapes vary, so a fixed divisor won't stay right.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-unknown-stream-events",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Integration errors",
+    "stem": "Your hand-written SSE client starts crashing with 'unknown event type' on streams that otherwise look normal. The crash began after the API added a new kind of stream event. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pin an older API version so the new event type is never sent to you",
+        "reason": "New event types can be added under the versioning policy, so pinning doesn't remove the need to handle them."
+      },
+      {
+        "id": "b",
+        "text": "Retry each stream from the start whenever the client crashes on an event",
+        "reason": "The same event arrives again on retry, so the crash repeats."
+      },
+      {
+        "id": "c",
+        "text": "Make the client skip event types it doesn't recognize",
+        "reason": "Correct: the streaming docs say new event types may be added and your code should handle unknown event types gracefully."
+      },
+      {
+        "id": "d",
+        "text": "Move every call to non-streaming requests so that events never appear",
+        "reason": "That gives up streaming's benefits, and long non-streaming requests risk timeouts."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Stream parsers must tolerate unknown event types; new ones can appear without notice.",
+    "explanation": "The streaming guide says that, under the versioning policy, new event types may be added and code should handle unknown events gracefully. The crash is in your integration layer, not in the model's output. Choice a is tempting because it sounds like freezing the format, but the docs expect new event types regardless.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming",
+      "title": "Streaming messages",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-otpm-max-tokens",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Rate limits",
+    "stem": "Your service keeps hitting its output-tokens-per-minute limit. A teammate proposes halving the output token limit on every request to bring usage down, though replies are rarely near that limit. What is the best response?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Halve the limit, since output rate limits count each request's maximum tokens",
+        "reason": "The docs say the output limit setting doesn't factor into output rate limits."
+      },
+      {
+        "id": "b",
+        "text": "Skip that change: the output rate counts tokens actually generated",
+        "reason": "Correct: output rate limits are evaluated in real time on generated tokens, and the output token limit doesn't factor in."
+      },
+      {
+        "id": "c",
+        "text": "Turn on prompt caching so the replies use fewer output tokens",
+        "reason": "Caching affects input tokens, not the tokens Claude generates."
+      },
+      {
+        "id": "d",
+        "text": "Switch to streaming responses so output tokens stop counting toward limits",
+        "reason": "Streamed tokens are still generated tokens and count the same way."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "OTPM counts tokens actually generated; lowering max_tokens doesn't reduce it.",
+    "explanation": "The rate limits page says output-tokens-per-minute limits are evaluated in real time as tokens are produced, counting only actual tokens, and that the output token limit setting doesn't factor in. Since replies rarely approach that limit, halving it changes nothing but risks truncation. Choice c is tempting because caching helps input rate limits, but it does nothing for output.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/rate-limits",
+      "title": "Rate limits",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-concurrent-subagent-cap",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "Your SDK orchestrator spawns eight reviewer subagents at once for a big pull request. Its trace shows most spawns failing as below, and the final review misses several files. What is the best fix?",
+    "snippet": {
+      "language": "text",
+      "code": "assistant: Agent(reviewer) x 8\ntool_result 1-2: completed\ntool_result 3-8:\n  \"Concurrent subagent limit reached\""
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell the orchestrator in its prompt to trust tool results and stop inventing failures",
+        "reason": "The failures are real: the harness refused the spawns. This isn't a model-output problem."
+      },
+      {
+        "id": "b",
+        "text": "Raise the query's spend cap so that more subagents can be started at once",
+        "reason": "A spend cap returns a budget message, not this one. The limit hit here is concurrency."
+      },
+      {
+        "id": "c",
+        "text": "Retry the whole query with exponential backoff, since these are API rate limits",
+        "reason": "This message comes from the SDK's concurrency limit, not from an API 429."
+      },
+      {
+        "id": "d",
+        "text": "Raise the concurrency limit, or have reviewers spawned in smaller waves",
+        "reason": "Correct: the harness refuses new subagents with this message until the running count drops below the concurrency limit."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Read the tool result: 'Concurrent subagent limit reached' is a harness cap, fixed in configuration.",
+    "explanation": "The Agent SDK caps how many subagents run at once and returns 'Concurrent subagent limit reached' as the Agent tool's result when a spawn exceeds it. The origin is the harness configuration, not the model or the API. Choice c is tempting because 'limit reached' sounds like a rate limit, but the message and its source say otherwise.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-permission-denied-gives-up",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Integration vs model",
+    "stem": "An unattended SDK agent stops and says it couldn't run the tests. Its trace shows the test command came back as a rejection message, and the run uses the default permission mode with no allow rule for that command and no approval callback. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add an allow rule for the test command; permissions caused the denial",
+        "reason": "Correct: in default mode a call needing approval with no allow rule and no callback is denied, and Claude gets the rejection as its tool result."
+      },
+      {
+        "id": "b",
+        "text": "Rewrite the system prompt to tell Claude never to give up on running tests",
+        "reason": "The model behaved reasonably after a denial; the configuration blocked the command."
+      },
+      {
+        "id": "c",
+        "text": "Switch the agent to bypass-permissions mode so that nothing is ever blocked",
+        "reason": "That fixes this run by approving everything, which is far broader and less safe than one allow rule."
+      },
+      {
+        "id": "d",
+        "text": "Raise the agent's turn limit so it has more turns to find a way around it",
+        "reason": "More turns won't get past a denial; the same command would be refused again."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When an agent 'gives up' after a rejection message, check permissions before blaming the model.",
+    "explanation": "In default mode, a tool call that needs approval and matches no allow rule goes to the approval callback, and with no callback it's denied. Claude then receives a rejection message and typically reports that it couldn't proceed, which is what the trace shows. Choice c is tempting because it unblocks the run, but it approves every tool when one scoped allow rule would do.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-strict-regex-400",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Error type identification",
+    "stem": "After adding a strict tool whose schema has a regex pattern with a lookahead, every request fails with 400 'Unsupported regex feature in pattern field'. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Retry the failing requests with backoff, since grammar compilation can time out",
+        "reason": "The 400 names an unsupported feature in your schema, so retries fail identically."
+      },
+      {
+        "id": "b",
+        "text": "Turn strict mode off for every tool so the pattern is simply ignored",
+        "reason": "That removes schema guarantees across all tools to avoid simplifying one pattern."
+      },
+      {
+        "id": "c",
+        "text": "Simplify the pattern to supported features such as anchors, classes and groups",
+        "reason": "Correct: the guide says strict mode can't compile lookarounds and similar features, and to simplify the pattern to supported ones."
+      },
+      {
+        "id": "d",
+        "text": "Describe the pattern in the field's description instead of the schema",
+        "reason": "That might avoid the error, but it trades a guaranteed constraint for a hint Claude may not follow."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A 400 naming your schema is a request to fix, not retry: simplify unsupported regex in strict tools.",
+    "explanation": "This 400 comes from strict mode refusing a regex feature it can't compile, such as a lookaround or backreference. The troubleshooting guide's fix is to simplify the pattern: anchored patterns with basic quantifiers, character classes and groups are supported. Choice b is tempting because it ends the error fastest, but it throws away schema guarantees for every tool.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-sdk-timeout-stream",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Long requests",
+    "stem": "You raised the output token limit very high for long reports, and the SDK now refuses your non-streaming calls before sending them, warning they may exceed its timeout. You don't need output to arrive incrementally. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the SDK's timeout and keep sending the requests without streaming",
+        "reason": "Networks can drop idle connections on long non-streaming requests; the docs steer long requests to streaming or batches."
+      },
+      {
+        "id": "b",
+        "text": "Use the SDK's streaming helper and take the final message it assembles",
+        "reason": "Correct: the SDK can consume the stream for you and return the complete message, identical to a non-streaming call."
+      },
+      {
+        "id": "c",
+        "text": "Lower the output token limit until the SDK's warning goes away",
+        "reason": "That avoids the check by risking truncated reports."
+      },
+      {
+        "id": "d",
+        "text": "Send each request again whenever the SDK refuses it at first",
+        "reason": "The SDK checks the request before sending, so an identical retry is refused again."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Long outputs: stream (the SDK can assemble the final message for you) rather than fight non-streaming timeouts.",
+    "explanation": "The SDKs check that non-streaming requests aren't expected to exceed their timeout, and the docs recommend streaming or batches for long requests. If you don't need incremental events, the SDK can consume the stream and return the complete message. Choice a is tempting because it keeps the code unchanged, but long idle connections are what the check protects against.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/api/errors",
+      "title": "Claude API errors",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-empty-result-marked-error",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Integration vs model",
+    "stem": "Customers who have no orders are told the order search is broken. The trace for one of them is below. What is the best fix?",
+    "snippet": {
+      "language": "text",
+      "code": "tool_use  search_orders {\"customer\": \"C-88\"}\ntool_result  is_error=true\n  content: \"0 results\"\nassistant: \"Sorry, the order search is\n  failing right now.\""
+    },
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude in the system prompt to stay positive about search results",
+        "reason": "Claude read the error flag correctly. The wrong signal came from your tool handler."
+      },
+      {
+        "id": "b",
+        "text": "Rewrite the search tool's description to explain what an empty result means",
+        "reason": "Better descriptions help, but the handler still flags a normal empty result as a failure."
+      },
+      {
+        "id": "c",
+        "text": "Retry the search whenever it comes back with zero results, in case it was flaky",
+        "reason": "Zero orders is a correct answer, so retries return the same result."
+      },
+      {
+        "id": "d",
+        "text": "Return empty results as normal results, flagging only real failures as errors",
+        "reason": "Correct: the error flag is for tool execution errors; a successful search with no matches is a normal result."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Locate the fault: if the tool result says 'error', Claude will report an error. Flag only real failures.",
+    "explanation": "The trace shows the handler marking a successful search with zero matches as an error, and Claude then apologizing for a failure, as it would for any tool execution error. The problem originates in the integration layer, not in model output. Choice b is tempting because it helps Claude interpret results, but the error flag would still say the call failed.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/handle-tool-calls",
+      "title": "Handle tool calls",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-reasoning-extraction-refusal",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Recovery strategy",
+    "stem": "Requests to your contract analyzer are refused with the category `reasoning_extraction`. Its system prompt asks Claude to fill a scratchpad section with its full reasoning before answering. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask for a short explanation or evidence instead of the full reasoning",
+        "reason": "Correct: this refusal usually comes from prompts asking for the model's reasoning in the output, and the category has no recommended fallback, so change the prompt."
+      },
+      {
+        "id": "b",
+        "text": "Turn on server-side fallback so refused requests are rerun on another model",
+        "reason": "This category has no recommended fallback model, so the docs say to change the prompt rather than retry."
+      },
+      {
+        "id": "c",
+        "text": "Retry each refused request on the same model a few more times",
+        "reason": "Re-sending a refused request to the same model usually earns another refusal."
+      },
+      {
+        "id": "d",
+        "text": "Remove the system prompt entirely so nothing in it can trigger the refusal",
+        "reason": "That discards all your instructions when only the reasoning request needs to change."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "reasoning_extraction refusals are fixed in the prompt: ask for an explanation, not the model's reasoning.",
+    "explanation": "A reasoning_extraction refusal usually comes from a prompt asking the model to put its thinking in the output, such as a scratchpad section. The category has no recommended fallback, so the guide says to change the prompt, for example to a short explanation or evidence. Choice b is tempting because fallback handles most refusals, but not this one.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-sticky-fallback-routing",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "After one turn of a conversation was served by a fallback model, your logs show later turns of that conversation also answered by the fallback model, without the requested model running first. A teammate wants to open an outage incident. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Open an incident, since the requested model is evidently down for these users",
+        "reason": "The behavior is expected routing after a fallback, not a sign that the requested model is down."
+      },
+      {
+        "id": "b",
+        "text": "Remove fallbacks from these requests so the requested model answers every turn",
+        "reason": "That pays for attempts likely to be declined again, and loses the protection fallback gives."
+      },
+      {
+        "id": "c",
+        "text": "Treat it as expected sticky routing, and still handle the requested model",
+        "reason": "Correct: after a conversation falls back, later requests with fallbacks go straight to that model, best effort, so code must still handle the requested model being tried again."
+      },
+      {
+        "id": "d",
+        "text": "Hard-code all later turns of any fallen-back conversation to the fallback model",
+        "reason": "The API already routes these turns, and hard-coding it ignores that the routing is best effort and temporary."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "After a fallback, later turns may go straight to the fallback model (sticky routing); that's expected, not an outage.",
+    "explanation": "Server-side fallback records which model served a conversation, and later requests that include fallbacks go directly to that model to avoid paying for a predictable decline. The routing is best effort and temporary, so code must handle the requested model being tried again. Choice b is tempting because it 'restores' the primary, but it gives up the protection and pays for refusals.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-fallback-usage-iterations",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "Your billing dashboard reads only the top-level usage of each response. For requests served by server-side fallback, the dashboard's costs come out lower than the invoice. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a fixed percentage to every fallback request's cost to cover the gap",
+        "reason": "Which attempts are billed depends on when and why each one declined, so a fixed markup won't match."
+      },
+      {
+        "id": "b",
+        "text": "Sum every attempt's entry in the per-attempt usage record of each response",
+        "reason": "Correct: usage.iterations records every attempt and is the per-attempt record of billing; top-level usage covers only the attempt that produced the message."
+      },
+      {
+        "id": "c",
+        "text": "Leave refused attempts out entirely, since refusals are never billed to you",
+        "reason": "Some refusals are billed, such as mid-stream ones and certain categories before output."
+      },
+      {
+        "id": "d",
+        "text": "Count only the fallback model's tokens and ignore the model that was requested",
+        "reason": "That drops the declined attempt, which can be billed too."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "With fallback, top-level usage covers only the serving attempt; sum usage.iterations for the full bill.",
+    "explanation": "When fallback runs, each attempt is billed by its own rules and recorded in the response's per-attempt usage list. The top-level usage describes only the attempt that produced the returned message. Choice c is tempting because many refusals before output aren't billed, but mid-stream refusals and some categories are.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback",
+      "title": "Refusals and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-leaked-key-usage-api",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Trace analysis",
+    "stem": "Security suspects an API key has leaked and needs a full picture of that key's usage over the last week. A teammate plans to reconstruct it from your OpenTelemetry spans. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Reconstruct it from the spans, since every single API request produces a span",
+        "reason": "Span delivery is best effort and callers can turn off sampling, so spans aren't a complete record."
+      },
+      {
+        "id": "b",
+        "text": "Search your application logs for request IDs sent with that key",
+        "reason": "Your logs only show your own app's calls, not ones an attacker made with the leaked key."
+      },
+      {
+        "id": "c",
+        "text": "Rotate the key and close the issue, since usage can't be known anyway",
+        "reason": "Rotating is right, but per-key usage is available, and security needs it."
+      },
+      {
+        "id": "d",
+        "text": "Pull that key's usage from the Usage API, which counts requests without spans",
+        "reason": "Correct: the OpenTelemetry docs point to the Usage API to track each key's usage, for example to spot a leaked key."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Traces are for debugging, not an audit trail; per-key usage comes from the Usage API.",
+    "explanation": "Exported spans aren't guaranteed to be a complete record: delivery is best effort and callers can turn off sampling. The docs say to use the Usage API to track each API key's usage, such as spotting a leaked key, because it counts requests without spans. Choice b is tempting, but an attacker's calls never touch your app's logs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/opentelemetry",
+      "title": "OpenTelemetry for the Claude API",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-all-tools-deferred",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "Error type identification",
+    "stem": "To save context, a developer marks every tool for deferred loading behind tool search. Now every request fails with a 400 saying all tools have deferred loading turned on. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep at least one tool, and the tool search tool itself, loaded up front",
+        "reason": "Correct: at least one tool must be immediately loaded, and the tool search tool itself must never be deferred."
+      },
+      {
+        "id": "b",
+        "text": "Retry the requests with backoff, since tool search may still be warming up",
+        "reason": "The request is invalid as configured, so retries fail the same way."
+      },
+      {
+        "id": "c",
+        "text": "Remove tool search and send every tool definition up front again",
+        "reason": "That fixes the error but gives up the context savings the developer was after."
+      },
+      {
+        "id": "d",
+        "text": "Defer a random half of the tools so the request is no longer all-deferred",
+        "reason": "It might pass, but if the tool search tool is in the deferred half it still breaks."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Tool search needs something visible: keep at least one tool, and the search tool itself, loaded.",
+    "explanation": "The troubleshooting guide lists this 400 as 'no tools visible to the model': at least one tool must be loaded immediately, and the tool search tool must never be deferred. It's a request to fix, not a fault to retry. Choice c is tempting because it ends the error, but it throws away the reason for using tool search.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/troubleshooting-tool-use",
+      "title": "Troubleshooting tool use",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-eval-empty-end-turn-continue",
+    "domainId": "eval-testing",
+    "subSkillId": "debugging-errors",
+    "topic": "stop_reason diagnosis",
+    "stem": "Your loop already sends tool results with nothing after them, yet Claude occasionally returns an empty response with an end-of-turn stop reason. The handler resends the same messages and gets the same empty reply. What is the best next step?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Append the empty assistant reply to the history and resend the conversation",
+        "reason": "Sending Claude's completed response back without adding anything keeps it done."
+      },
+      {
+        "id": "b",
+        "text": "Retry with exponential backoff, treating the empty reply as a server error",
+        "reason": "It isn't an error; Claude decided the turn was complete, and identical retries won't change that."
+      },
+      {
+        "id": "c",
+        "text": "Send a new user message asking Claude to continue, not the same messages",
+        "reason": "Correct: if empty responses persist after fixing message structure, the docs say to add a continuation prompt in a new user message."
+      },
+      {
+        "id": "d",
+        "text": "Add a text block after the tool results telling Claude to keep going",
+        "reason": "Text right after tool results is a known cause of empty responses, not a cure."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Empty end_turn after tool results: fix message structure first, then use a continuation prompt as a last resort.",
+    "explanation": "Empty end_turn responses usually come from text after tool results or resending a completed response unchanged. With structure already fixed, the docs' last resort is a new user message such as 'Please continue', not a retry of the same messages. Choice d is tempting because it also says 'keep going', but text after tool results teaches Claude to end its turn.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons",
+      "title": "Stop reasons and fallback",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]
