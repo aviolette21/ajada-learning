@@ -1,9 +1,9 @@
 import { AnimatePresence, motion, useDragControls } from 'motion/react';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import { sheetSpring } from './motion';
 
 /**
- * A bottom sheet. With onClose, pulling the grip strip down dismisses it; only the strip starts a drag, so long
+ * A bottom sheet. With onClose, pulling the grip strip down (or tapping it) dismisses it; only the strip starts a drag, so long
  * content inside the sheet still scrolls normally.
  */
 export function Sheet({ open, label, onClose, children }: { open: boolean; label: string; onClose?: () => void; children: ReactNode }) {
@@ -20,7 +20,9 @@ export function Sheet({ open, label, onClose, children }: { open: boolean; label
               if (info.offset.y > 80 || info.velocity.y > 500) onClose();
             },
           })}>
-          <div className={onClose ? 'sheet-handle' : undefined} onPointerDown={onClose ? (e) => controls.start(e) : undefined}>
+          <div className={onClose ? 'sheet-handle' : undefined} onPointerDown={onClose ? (e) => controls.start(e) : undefined}
+            {...(onClose && { role: 'button', tabIndex: 0, 'aria-label': 'Collapse', onClick: onClose,
+              onKeyDown: (e: KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClose(); } } })}>
             <div className="sheet-grip" aria-hidden="true" />
           </div>
           {children}

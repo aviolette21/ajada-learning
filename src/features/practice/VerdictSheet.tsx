@@ -14,12 +14,14 @@ import { Sheet } from '../../ui/Sheet';
 import { SaveButton } from '../shared/SaveButton';
 import { Explanation } from './Explanation';
 
-export function VerdictSheet({ question, chosen, guessed = false, open, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
+export function VerdictSheet({ question, chosen, guessed = false, open, onClose, onContinue, continueLabel = 'Continue', showLessonLink = true }: {
   question: Question;
   chosen: Chosen | null;
   /** The learner marked the answer as a guess, so a right answer still comes back for review. */
   guessed?: boolean;
   open: boolean;
+  /** Pulling the sheet down only hides it, so the learner can look back at the question; it never moves on. */
+  onClose: () => void;
   onContinue: () => void;
   continueLabel?: string;
   /** Off during a lesson check, where leaving for the lesson would abandon the check. */
@@ -33,7 +35,7 @@ export function VerdictSheet({ question, chosen, guessed = false, open, onContin
   const answers = correctIds(question);
   return (
     <>
-    <Sheet open={open} label="Answer explanation" onClose={onContinue}>
+    <Sheet open={open} label="Answer explanation" onClose={onClose}>
       <div className={`verdict ${correct ? 'ok' : 'bad'}`}>
         <p className="verdict-line">
           {correct ? <><IconCheck /> {guessed ? 'Correct, but a guess: it stays in your mistakes.' : 'Correct!'}</> : <><IconX /> Not quite. The answer{answers.length > 1 ? 's are' : ' is'} {formatIds(answers)}.</>}

@@ -446,3 +446,11 @@ The learner screenshotted every quiz and checkpoint in the official Skilljar cou
 - **Never:** arithmetic, exact limits, flag or option spellings, version boundaries, or a second subtle fact that flips the answer. Everything turns on one decision rule the course teaches.
 
 Questions written in this shape carry the `course-checkpoints` focus area in `content/focus.json`, so the learner can drill them on their own.
+
+## 13. Domain quizzes (October 2026)
+
+Practice → **Domain quizzes** runs a 25-question quiz per exam domain (`src/study/domainQuiz.ts`). Its questions are ordinary bank questions in the domain's `questions.json` whose id starts with `q-dq-` (`q-dq-apps-…`, `q-dq-model-…`, `q-dq-agents-…`, `q-dq-prompt-…`, `q-dq-tools-…`, `q-dq-sec-…`, `q-dq-cc-…`, `q-dq-eval-…`). A domain with fewer than 25 is topped up from the rest of the domain.
+
+- Every one is a **scenario** in the §12 style: a concrete situation with its constraint, then a direct decision question. No definition questions.
+- Sub-skills are split by blueprint weight within the domain (e.g. Applications and Integration: requirements 3, systems life cycle 2, API mechanics 5, SWE foundations 6, application design 6, configuration 3).
+- About 3–4 per domain are multiple-response.

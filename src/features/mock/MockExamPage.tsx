@@ -180,7 +180,7 @@ export function MockExamPage() {
       </Sheet>
       {question && revealed && (
         <VerdictSheet question={question} chosen={session.answers[qid] ?? null} guessed={guessed} open={verdictOpen}
-          onContinue={afterVerdict} continueLabel={isLast ? 'Review & submit' : 'Next question'} />
+          onClose={() => setVerdictOpen(false)} onContinue={afterVerdict} continueLabel={isLast ? 'Review & submit' : 'Next question'} />
       )}
     </div>
   );

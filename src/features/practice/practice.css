@@ -92,3 +92,4 @@
 .review-head { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
 .review-head h3 { margin: 0; }
 .panel .score { font-size: 44px; font-weight: 800; color: var(--accent-text); }
+.after-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

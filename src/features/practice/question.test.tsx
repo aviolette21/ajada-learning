@@ -51,7 +51,7 @@ describe('QuestionView', () => {
 describe('VerdictSheet', () => {
   it('explains a wrong answer with why, takeaway, terms, diagram, memory tip, lesson and source', async () => {
     const onContinue = vi.fn();
-    await renderWithApp(<VerdictSheet question={q1} chosen="b" open onContinue={onContinue} />);
+    await renderWithApp(<VerdictSheet question={q1} chosen="b" open onClose={() => {}} onContinue={onContinue} />);
     expect(await screen.findByText(/Not quite\. The answer is A\./)).toBeInTheDocument();
     expect(screen.getByText(/Why alpha: the/)).toBeInTheDocument();
     expect(screen.getByText('Takeaway q-alpha-1')).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('VerdictSheet', () => {
   });
 
   it('celebrates a right answer', async () => {
-    await renderWithApp(<VerdictSheet question={q1} chosen="a" open onContinue={() => {}} />);
+    await renderWithApp(<VerdictSheet question={q1} chosen="a" open onClose={() => {}} onContinue={() => {}} />);
     expect(await screen.findByText('Correct!')).toBeInTheDocument();
   });
 });

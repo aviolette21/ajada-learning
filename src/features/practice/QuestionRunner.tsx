@@ -27,6 +27,8 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<Chosen | null>(null);
   const [revealed, setRevealed] = useState(false);
+  /** The explanation sheet; collapsing it leaves the answered question on screen rather than moving on. */
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [guessing, setGuessing] = useState(false);
   const [missedIds, setMissedIds] = useState<string[]>([]);
   const [correct, setCorrect] = useState(0);
@@ -49,6 +51,7 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
   const reveal = (answer: Chosen) => {
     setChosen(answer);
     setRevealed(true);
+    setSheetOpen(true);
     setAnswers((m) => ({ ...m, [question.id]: answer }));
     const right = isCorrect(question, answer);
     if (right) setCorrect((c) => c + 1);
@@ -77,11 +80,13 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
     setIndex((i) => i + 1);
     setChosen(null);
     setRevealed(false);
+    setSheetOpen(false);
     setGuessing(false);
   };
+  const continueLabel = isLast ? 'Finish' : 'Continue';
 
   return (
-    <div className={`runner ${revealed ? 'has-sheet' : ''}`}>
+    <div className={`runner ${sheetOpen ? 'has-sheet' : ''}`}>
       <header className="runner-head">
         <button type="button" className="icon-btn" aria-label="Close" onClick={onExit}><IconClose /></button>
         <span className="runner-count">{title} · {index + 1} / {questions.length}</span>
@@ -108,7 +113,14 @@ export function QuestionRunner({ questions, mode, title, onFinish, onExit, recor
           </Button>
         </div>
       )}
-      <VerdictSheet question={question} chosen={chosen} guessed={guessing} open={revealed} onContinue={next} continueLabel={isLast ? 'Finish' : 'Continue'} showLessonLink={mode !== 'lesson'} />
+      {revealed && !sheetOpen && (
+        <div className="check-bar after-bar">
+          <Button variant="secondary" onClick={() => setSheetOpen(true)}>See explanation</Button>
+          <Button onClick={next}>{continueLabel}</Button>
+        </div>
+      )}
+      <VerdictSheet question={question} chosen={chosen} guessed={guessing} open={sheetOpen} onClose={() => setSheetOpen(false)}
+        onContinue={next} continueLabel={continueLabel} showLessonLink={mode !== 'lesson'} />
     </div>
   );
 }

@@ -71,3 +71,21 @@ describe('Domain quizzes', () => {
     expect(within(saved as HTMLElement).getByLabelText('Saved')).toBeInTheDocument();
   });
 });
+
+describe('collapsing the answer sheet', () => {
+  it('hides the explanation but stays on the question until Continue', async () => {
+    const q2 = content.questionById.get('q-beta-1')!;
+    await renderWithApp(<QuestionRunner questions={[q1, q2]} mode="quiz" title="Quiz" onFinish={() => {}} onExit={() => {}} />);
+    await userEvent.click(await screen.findByRole('button', { name: /Right answer q-alpha-1/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Collapse' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Answer explanation' })).toBeNull());
+    expect(screen.getByText('Quiz · 1 / 2')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'See explanation' }));
+    expect(await screen.findByRole('dialog', { name: 'Answer explanation' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Collapse' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Answer explanation' })).toBeNull());
+    await userEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('Quiz · 2 / 2')).toBeInTheDocument();
+  });
+});
