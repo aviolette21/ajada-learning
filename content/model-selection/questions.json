@@ -6908,5 +6908,1004 @@
       "c-cache-control"
     ],
     "lessonId": "l-prompt-caching"
+  },
+  {
+    "id": "q-dq-model-rag-not-fine-tuning",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "RAG",
+    "stem": "A team wants Claude to answer questions from its 2,000-page product documentation, which changes every month. Their plan is to fine-tune Claude on the documentation through the Claude API. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Fine-tune through the Claude API each month, so the model always holds the latest docs",
+        "reason": "The Claude API does not currently offer fine-tuning, and retraining monthly would still lag behind the docs."
+      },
+      {
+        "id": "b",
+        "text": "Rely on the model's training data, since product documentation like this is usually public",
+        "reason": "Training data is fixed and may not include this company's docs at all, let alone this month's changes."
+      },
+      {
+        "id": "c",
+        "text": "Retrieve the relevant passages at request time and pass them to Claude with the question",
+        "reason": "Correct: retrieval augmented generation passes relevant documents into the context at runtime, grounding answers in up-to-date, domain-specific information."
+      },
+      {
+        "id": "d",
+        "text": "Ask Claude to say when it is unsure, and let users look the rest up in the documentation",
+        "reason": "Admitting uncertainty reduces wrong answers but doesn't give Claude the documentation, so most questions still go unanswered."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Need answers from your own, changing documents? Retrieve them into context (RAG) instead of trying to retrain the model.",
+    "explanation": "RAG retrieves relevant knowledge at query time and passes it into the context window, which suits information that is domain-specific and changes often. The stem's plan fails on two counts: the Claude API doesn't currently offer fine-tuning, and monthly changes would outrun any retraining. Option B is tempting because Claude knows a lot, but its training data can't include this month's docs.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-wrap-examples-in-tags",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Few-shot prompting",
+    "stem": "Your ticket-routing prompt pastes three sample tickets and their correct queues straight into the instructions. Now and then Claude routes one of the sample tickets instead of the real one. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Wrap the samples in example tags, so Claude can tell them apart from the instructions and the input",
+        "reason": "Correct: the guide says to wrap examples in example tags (several in an examples tag) so Claude can distinguish them from instructions."
+      },
+      {
+        "id": "b",
+        "text": "Remove the samples and describe the queues in words instead, so nothing can be mistaken for input",
+        "reason": "Examples are one of the most reliable ways to steer output format and accuracy; dropping them gives that up to fix a structure problem."
+      },
+      {
+        "id": "c",
+        "text": "Add ten more samples, so the real ticket stands out against a larger set of examples",
+        "reason": "More unmarked samples make the confusion more likely, not less; the problem is that nothing marks them as examples."
+      },
+      {
+        "id": "d",
+        "text": "Move the samples to the very end of the prompt, after the ticket to be routed",
+        "reason": "Moving them doesn't mark them as examples, and placing them after the real ticket makes it even harder to tell which one to route."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Examples work best when they are relevant, diverse and wrapped in tags that set them apart from the real input.",
+    "explanation": "Few-shot examples improve accuracy and consistency, but only if Claude can tell them from the instructions and the real input. The guide's rule is to wrap them in example tags, which directly fixes Claude routing a sample (A). Removing the examples (B) is tempting as a quick fix, but it throws away one of the most reliable steering tools.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-explain-the-why",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Prompting fundamentals",
+    "stem": "Your app's replies are read aloud by a text-to-speech engine. The prompt says \"NEVER use ellipses\", yet Claude still writes other symbols the engine mispronounces. What is the best change to the prompt?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "List every banned symbol in capital letters at the top of the prompt, so the rule is impossible to miss",
+        "reason": "A longer list of rules still leaves out symbols nobody thought of; Claude does better when it knows the goal behind them."
+      },
+      {
+        "id": "b",
+        "text": "Explain that replies are read aloud by a speech engine, so Claude avoids anything it can't pronounce",
+        "reason": "Correct: giving the reason behind an instruction helps Claude understand the goal and generalize, as in the guide's text-to-speech example."
+      },
+      {
+        "id": "c",
+        "text": "Repeat the rule three times in the prompt, so Claude gives it more weight",
+        "reason": "Repetition doesn't tell Claude why the rule exists, so it still can't generalize to the other symbols."
+      },
+      {
+        "id": "d",
+        "text": "Strip ellipses from the output in code, so the speech engine never receives them",
+        "reason": "This fixes ellipses only; the other mispronounced symbols still reach the engine."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Tell Claude why a rule exists; it generalizes from the reason better than from a list.",
+    "explanation": "The guide's own example is a text-to-speech app: \"NEVER use ellipses\" works less well than explaining that the response will be read aloud. With the reason, Claude can avoid other unpronounceable symbols too (B). Option A is tempting because it feels thorough, but any fixed list misses cases the motivation would have covered.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-general-not-prescriptive-thinking",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Prompting with thinking",
+    "stem": "A team using a model with thinking on wrote a 15-step reasoning procedure into its prompt for financial analyses. A short draft that simply asked Claude to think thoroughly scored better on their evals. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more steps to the procedure, so it covers the cases where the short draft did better",
+        "reason": "More prescriptive steps move further from what worked; Claude's own reasoning often exceeds a hand-written plan."
+      },
+      {
+        "id": "b",
+        "text": "Keep the procedure but turn thinking off, so the written steps replace Claude's own reasoning",
+        "reason": "Turning thinking off removes the very capability that made the short draft score well on complex analysis."
+      },
+      {
+        "id": "c",
+        "text": "Raise max_tokens, so the 15-step procedure has more room to play out on each request",
+        "reason": "Room isn't the problem; the evals show the general instruction beats the prescribed steps."
+      },
+      {
+        "id": "d",
+        "text": "Use the general instruction to think thoroughly and drop the step-by-step procedure",
+        "reason": "Correct: the guide says to prefer general instructions over prescriptive steps, because Claude's reasoning frequently exceeds what a human would prescribe."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "With thinking on, \"think thoroughly\" usually beats a hand-written step-by-step plan.",
+    "explanation": "The prompting guide's thinking advice is to prefer general instructions over prescriptive steps: a prompt like \"think thoroughly\" often produces better reasoning than a hand-written plan. The team's own evals agree, so keeping the short instruction is the best move (D). Turning thinking off (B) looks like a way to make the procedure matter, but it gives up the reasoning that scored better.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-reasoning-in-tags-declined",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Prompting with thinking",
+    "stem": "To cut cost on the newest Opus model, a developer adds \"write out your reasoning in <thinking> tags before answering\" to the prompt and plans to parse it. Some requests are now declined. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Drop the instruction and rely on the model's built-in thinking, at a lower effort if cost matters",
+        "reason": "Correct: on the newest models the guide says to rely on thinking at a lower effort; a prompt asking the model to write out its reasoning in tags may be declined."
+      },
+      {
+        "id": "b",
+        "text": "Rename the tags to <reasoning>, so the instruction no longer looks like a request for thinking",
+        "reason": "The issue is asking the model to write out its reasoning, not the tag's name, so renaming keeps the same risk."
+      },
+      {
+        "id": "c",
+        "text": "Move the instruction into the system prompt, so it carries more weight than a user message",
+        "reason": "The request is the same wherever it sits; moving it doesn't change that asking for written-out reasoning may be declined."
+      },
+      {
+        "id": "d",
+        "text": "Ask for the reasoning in a second request after the answer, so the first request never declines",
+        "reason": "This doubles the requests and still asks the model to write out its reasoning, so cost goes up and the risk stays."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "On the newest models, let built-in thinking do the reasoning and steer cost with effort, not with \"think in tags\" prompts.",
+    "explanation": "Manual chain-of-thought in tags is a fallback for when thinking is off. On the newest Opus and Sonnet models, the guide says to rely on thinking instead, lowering effort if cost or latency matters, because prompts that ask for written-out reasoning may be declined (A). Renaming the tags (B) is tempting, but it changes the label, not the request.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-low-effort-subagent-tool-calls",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Effort",
+    "stem": "A subagent looks up order status for a parent agent. The task is simple, yet each run makes many tool calls with long explanations, plans and detailed summaries. What is the best first change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the effort level, so the subagent plans better and needs fewer tool calls overall on each run",
+        "reason": "Higher effort tends to mean more tool calls, explaining the plan first and detailed summaries: the behavior you want less of."
+      },
+      {
+        "id": "b",
+        "text": "Set a very low max_tokens, so the long explanations get cut off before they finish",
+        "reason": "A hard cap cuts responses off part-way instead of making the subagent do less work per call."
+      },
+      {
+        "id": "c",
+        "text": "Run the subagent at low effort, which leads to fewer, terser tool calls on simple tasks",
+        "reason": "Correct: effort affects all tokens, including tool calls; lower effort combines operations, makes fewer calls and uses terse confirmations, and low suits subagents."
+      },
+      {
+        "id": "d",
+        "text": "Give the subagent the whole order database in its context, so it needs no tool calls",
+        "reason": "This over-engineers a simple lookup and floods the context; the behavior to change is how much work the subagent does per call."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Effort shapes every output token, tool calls included: simple subagent work belongs at low effort.",
+    "explanation": "Effort applies to the whole response, not only thinking: at lower levels Claude makes fewer tool calls, combines operations and skips preamble, and the effort table lists simple tasks such as subagents under low. That matches a simple lookup that is over-explaining (C). Raising effort (A) is the tempting misreading; higher levels add plans, calls and summaries.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-kept-thinking-blocks-context",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "Context windows",
+    "stem": "After moving a long multi-turn assistant to a newer model, conversations reach the context limit far sooner. Logs show that earlier turns' thinking blocks are now kept in the history instead of being stripped. Which two changes address this?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Clear thinking blocks from earlier turns with context editing, so they stop counting toward the window",
+        "reason": "Correct: thinking block clearing overrides the model's default and manages thinking blocks from earlier turns."
+      },
+      {
+        "id": "b",
+        "text": "Remove the signatures from old thinking blocks before sending them back, so each block takes less of the window",
+        "reason": "The API verifies thinking blocks with cryptographic signatures, and a modified thinking block returns an error."
+      },
+      {
+        "id": "c",
+        "text": "Use server-side compaction, so older turns are summarized and the conversation stays within the window",
+        "reason": "Correct: compaction is the primary strategy for long conversations, summarizing earlier parts so the conversation can continue past the limit."
+      },
+      {
+        "id": "d",
+        "text": "Raise max_tokens on each request, so the conversation has a larger window to fill",
+        "reason": "max_tokens limits the output of one response; it doesn't enlarge the context window that the history fills."
+      },
+      {
+        "id": "e",
+        "text": "Start every turn as a new conversation with no history, so no thinking accumulates",
+        "reason": "Dropping the history removes the conversation itself, so Claude loses what was said earlier."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "On models that keep earlier thinking, plan for it: clear old thinking blocks or compact the conversation.",
+    "explanation": "On newer models the API keeps earlier thinking blocks by default, and they count toward the window like other input. The context-window guide gives two levers: thinking block clearing through context editing (A) and server-side compaction for long conversations (C). Trimming signatures (B) is the tempting shortcut, but any change to a signed thinking block makes the request fail.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-rag-retrieval-quality",
+    "domainId": "model-selection",
+    "subSkillId": "llm-fundamentals",
+    "topic": "RAG",
+    "stem": "Your RAG assistant gives wrong answers whenever the retrieval step returns passages unrelated to the question. A teammate wants to switch to a more capable model to fix it. What should the team fix first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to the most capable model, since a stronger model can answer well from weak passages",
+        "reason": "A model can only ground its answer in what it is given; better reasoning doesn't supply the missing facts."
+      },
+      {
+        "id": "b",
+        "text": "Improve the retrieval step, so the passages that reach Claude are relevant to each question",
+        "reason": "Correct: RAG's effectiveness depends on the quality and relevance of the knowledge base and of what is retrieved at runtime."
+      },
+      {
+        "id": "c",
+        "text": "Retrieve many more passages per question, so the relevant one is more likely to be somewhere in the prompt",
+        "reason": "More irrelevant passages add noise and cost; the fix is retrieving the right passages, not more of the wrong ones."
+      },
+      {
+        "id": "d",
+        "text": "Tell Claude to answer from its own knowledge when the passages look unrelated",
+        "reason": "This gives up grounding in your sources, which is the point of RAG, and invites answers your documents don't support."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "RAG is only as good as what it retrieves: fix retrieval before changing models.",
+    "explanation": "Retrieval augmented generation grounds answers in documents passed into the context at query time, so its quality depends on how relevant those retrieved documents are. The stem ties the wrong answers to unrelated passages, which points at retrieval, not the model (B). Switching models (A) is tempting, but no model can ground an answer in facts it never receives.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/glossary",
+      "title": "Glossary",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-raw-response-headers",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "Your Python service wants to slow itself down by reading the rate-limit headers on each Claude response, but the SDK's normal create call returns only the parsed message. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace the SDK with hand-written HTTP calls, so the service can read every response header itself",
+        "reason": "This gives up the SDK's retries, typing and error classes just to reach headers the SDK can already expose."
+      },
+      {
+        "id": "b",
+        "text": "Estimate the remaining capacity from token counts, so the headers aren't needed at all",
+        "reason": "An estimate drifts from what the API actually reports; the headers carry the real numbers."
+      },
+      {
+        "id": "c",
+        "text": "Turn on the SDK's debug logging and parse the headers out of the log output",
+        "reason": "Parsing logs is fragile and meant for debugging, not for logic that runs on every request."
+      },
+      {
+        "id": "d",
+        "text": "Use the SDK's raw-response access to read the headers, then parse the message from that response",
+        "reason": "Correct: the Python SDK's raw response access exposes headers and metadata, and parse() returns the same object the normal call would."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Need headers from an SDK call? Use its raw-response access, not a rewrite or a log scrape.",
+    "explanation": "The Python SDK lets you access the raw HTTP response, which is the documented way to read response headers, and then parse it into the usual message object. That meets the requirement without losing the SDK's other features (D). Hand-written HTTP (A) is tempting because it obviously exposes headers, but it trades away retries and typed errors for no gain.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-granular-timeouts",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Timeouts",
+    "stem": "A Python service asks Claude for long reports that legitimately take many minutes. When the API host can't be reached, calls hang a long time before failing. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set a short connect timeout and a generous overall one, so unreachable hosts fail fast",
+        "reason": "Correct: the SDK accepts a granular timeout object with separate connect, read and write values, so connection failures can fail quickly without cutting off long reports."
+      },
+      {
+        "id": "b",
+        "text": "Set one short timeout for every request, so any failure always surfaces within a few seconds",
+        "reason": "A single short timeout would also kill the long reports that legitimately take many minutes."
+      },
+      {
+        "id": "c",
+        "text": "Disable timeouts entirely, so long reports are never interrupted",
+        "reason": "With no timeout, calls to an unreachable host can hang indefinitely, which makes the stated problem worse."
+      },
+      {
+        "id": "d",
+        "text": "Wrap every call in your own retry loop, so a hung call is eventually replaced",
+        "reason": "The SDK already retries some failures by default; extra retries don't shorten how long each attempt hangs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Different failure modes need different timeouts: fail fast on connect, stay patient on long work.",
+    "explanation": "One timeout value can't serve both needs in the stem: fast failure when the host is unreachable and patience for multi-minute reports. The Python SDK accepts a granular timeout with its own connect, read and write limits, so the connect step can be short while the rest stays generous (A). Option B is tempting for its simplicity, but it breaks the legitimate long reports.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-stream-batch-results",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Batch results",
+    "stem": "A nightly job downloads the results of a very large Message Batch into memory as one blob before parsing it, and the worker keeps running out of memory. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give the worker much more memory, so the whole results file fits at once",
+        "reason": "This raises cost and fails again as batches grow; the results are designed to be processed incrementally."
+      },
+      {
+        "id": "b",
+        "text": "Stream the results and process them one line at a time, so memory stays flat",
+        "reason": "Correct: results come as a .jsonl file, one result per line, and the guide recommends streaming them rather than downloading them all at once."
+      },
+      {
+        "id": "c",
+        "text": "Split future work into many tiny batches, so each results file is small",
+        "reason": "It would work, but it multiplies batches to manage and poll; streaming fixes the memory problem with the same batch."
+      },
+      {
+        "id": "d",
+        "text": "Request each result individually by its custom ID, so nothing large is downloaded",
+        "reason": "There is no need to fetch results one request at a time; streaming the results file is the documented approach."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Batch results are JSONL: stream them line by line instead of loading the whole file.",
+    "explanation": "Because batch results can be very large, the batch guide recommends streaming them back rather than downloading them all at once, and the SDKs iterate one result per line. That fixes the memory problem without changing the batch (B). Splitting into tiny batches (C) also works, which makes it tempting, but it adds overhead the streaming approach avoids.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/batch-processing",
+      "title": "Batch processing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-proxy-keep-sdk-defaults",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "To route Claude calls through a corporate proxy, a developer passes the Python SDK an HTTP client they built from scratch. Since then, long requests time out much sooner than before. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the proxy and call the API directly, so the SDK goes back to its own client",
+        "reason": "That breaks the requirement to go through the corporate proxy."
+      },
+      {
+        "id": "b",
+        "text": "Wrap each call in your own retry loop, so any request that times out early is attempted again later",
+        "reason": "Retries repeat the same short timeout; they don't restore the defaults the custom client lost."
+      },
+      {
+        "id": "c",
+        "text": "Build it from the SDK's default HTTP client class with the proxy set, so its defaults are kept",
+        "reason": "Correct: the SDK docs say to use its default HTTP client classes so the SDK's default configuration, such as timeouts and connection limits, is preserved."
+      },
+      {
+        "id": "d",
+        "text": "Lower max_tokens on long requests, so they finish before the new timeout is reached",
+        "reason": "This shortens the reports to fit a misconfigured client instead of fixing the client."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Customizing the SDK's HTTP client? Start from its default client class so timeouts and limits stay intact.",
+    "explanation": "The Python SDK lets you pass your own HTTP client for proxies and transports, but recommends its default client classes so the SDK's default timeouts and connection limits are kept. A client built from scratch loses them, which explains the early timeouts (C). Lowering max_tokens (D) is tempting because it makes the symptom go away, at the cost of cutting the reports short.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-sse-connection-limit",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Server-sent events",
+    "stem": "Your dashboard opens a server-sent events stream in each browser tab to show Claude job progress. Users with many tabs open find that new tabs never start streaming. Your server only speaks HTTP/1.1. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch every tab to a WebSocket, since server-sent events can't carry progress updates",
+        "reason": "Server-sent events suit one-way updates like progress; the problem is a connection limit, not what SSE can carry."
+      },
+      {
+        "id": "b",
+        "text": "Poll the server every second from each tab, so no long-lived connection is needed",
+        "reason": "Polling adds load and delay to work around a limit that serving over HTTP/2 removes."
+      },
+      {
+        "id": "c",
+        "text": "Add more worker threads on the server, so it can accept more streaming connections",
+        "reason": "The cap is in the browser, per browser and domain, so extra server capacity doesn't let new tabs connect."
+      },
+      {
+        "id": "d",
+        "text": "Serve the streams over HTTP/2, since browsers cap SSE connections per domain over HTTP/1",
+        "reason": "Correct: over HTTP/1, SSE is limited to a very low number of open connections per browser and domain; over HTTP/2 the stream limit is negotiated and much higher."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "SSE over HTTP/1 hits a small per-browser connection cap; HTTP/2 lifts it.",
+    "explanation": "MDN documents that, when not used over HTTP/2, SSE is limited to a small number of open connections per browser and domain, shared across tabs. New tabs stalling while others stream matches that limit, so serving over HTTP/2 is the targeted fix (D). Switching to WebSockets (A) is tempting, but SSE is the right tool for one-way progress updates; only the transport version is the problem.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/EventSource",
+      "title": "EventSource",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-sdk-major-version-api-version",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "API versioning",
+    "stem": "Your CI installs the newest Python SDK on every build. After a new major SDK version shipped, some requests began failing, though your own code didn't change. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Pin the SDK major version and upgrade on purpose, following its API version's migration guide",
+        "reason": "Correct: each major SDK version sends one API version by default, and a new major version comes with each new API version, so upgrades need the matching migration steps."
+      },
+      {
+        "id": "b",
+        "text": "Override the API version header on the new SDK, so it sends the old version again",
+        "reason": "The SDK warns that overriding default headers may result in incorrect types and other undefined behavior."
+      },
+      {
+        "id": "c",
+        "text": "Replace the SDK with raw HTTP calls, so SDK releases can never change behavior again",
+        "reason": "This drops the SDK's retries and typed errors; managing the SDK version deliberately solves the problem."
+      },
+      {
+        "id": "d",
+        "text": "Turn off the SDK's automatic retries, since the new major version retries failed requests differently",
+        "reason": "Retries aren't what changed; the new major version sends a newer API version by default."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "A new major SDK version can mean a new API version: upgrade deliberately, with the migration guide.",
+    "explanation": "The Python SDK ties each major version to one API version and ships a new major version with each new API version. Installing the newest SDK on every build therefore changed the API version underneath unchanged code. Controlling the upgrade and following the migration guide fixes it (A). Overriding the version header (B) looks like a quick rollback, but the SDK warns it can break types and behavior.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-multi-workspace-key-header",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Authentication",
+    "stem": "You replaced a legacy workspace key with a personal key that can reach several workspaces. Every request from your service now fails with a 400 error saying a workspace ID is required. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Go back to the legacy workspace key, since identity-backed keys don't work for services",
+        "reason": "Identity-backed keys work for services; workspace keys are legacy, and the fix is telling the API which workspace to use."
+      },
+      {
+        "id": "b",
+        "text": "Switch the service to a key with organization-wide access, so every workspace is reachable",
+        "reason": "Broader access isn't needed; the error asks which workspace the request acts in, which scoping the key or sending the ID answers."
+      },
+      {
+        "id": "c",
+        "text": "Scope the key to the service's one workspace, or send that workspace's ID with every request",
+        "reason": "Correct: a key not scoped to a workspace must send the workspace ID header on each request; a key created for one workspace can omit it."
+      },
+      {
+        "id": "d",
+        "text": "Retry the failing requests, since the workspace is picked automatically after the first few calls",
+        "reason": "The 400 repeats on every request; nothing picks a workspace for a multi-workspace key automatically."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A key that can reach several workspaces must say which one each request acts in, or be scoped to one.",
+    "explanation": "Personal and service account keys can be created for one workspace or for several. A multi-workspace key must send the workspace ID on every request, while a single-workspace key can omit it, which is why the service now fails (C). Going back to the workspace key (A) is tempting because it worked before, but workspace keys are legacy and identity-backed keys are preferred.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/manage-claude/authentication",
+      "title": "Authentication",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-aiohttp-async-backend",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Async clients",
+    "stem": "Your asyncio service already uses the SDK's async client and runs thousands of concurrent Claude calls. Profiling shows the HTTP layer, not the API, is now the bottleneck. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch to the sync client and run each call in its own thread, so calls don't share an event loop",
+        "reason": "Moving to threads adds overhead and complexity in an asyncio service; the SDK offers a faster async backend instead."
+      },
+      {
+        "id": "b",
+        "text": "Switch the async client to the aiohttp HTTP backend the SDK supports, for better concurrency",
+        "reason": "Correct: the Python SDK can use aiohttp instead of its default HTTP backend for improved async performance and concurrency."
+      },
+      {
+        "id": "c",
+        "text": "Run each call in a separate process, so the HTTP layer is spread across CPU cores",
+        "reason": "This over-engineers the fix; a different async HTTP backend addresses the bottleneck inside the existing service."
+      },
+      {
+        "id": "d",
+        "text": "Raise the SDK's retry count, so slow calls are retried before they become a bottleneck",
+        "reason": "Retries add more traffic to the slow layer rather than making it faster."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For heavy async concurrency in Python, the SDK's aiohttp backend is the documented performance option.",
+    "explanation": "The Python SDK supports an aiohttp HTTP backend for improved async performance, which fits a service that is already async and bottlenecked in the HTTP layer (B). The other options change the architecture or add load: threads (A) and processes (C) are heavier than swapping the backend, and more retries (D) only add traffic.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-extra-body-untrusted",
+    "domainId": "model-selection",
+    "subSkillId": "technical-fundamentals",
+    "topic": "Client SDKs",
+    "stem": "To let power users tweak requests, your app forwards a JSON object that users type straight into the SDK's extra request-body option. A security review flags it. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep forwarding the object but log every one, so misuse can be investigated later",
+        "reason": "Logging records the problem after the fact; users can still override any documented parameter in the meantime."
+      },
+      {
+        "id": "b",
+        "text": "Only accept the object when it comes from the app's own frontend, so other clients can't send it",
+        "reason": "The users typing the JSON are using that frontend, so the untrusted input still arrives the same way."
+      },
+      {
+        "id": "c",
+        "text": "Escape the JSON as a string before passing it on, so it can't inject code",
+        "reason": "The risk isn't code injection; extra options override documented parameters of the same name, which escaping doesn't prevent."
+      },
+      {
+        "id": "d",
+        "text": "Let through only specific, validated settings, since extra options override documented ones",
+        "reason": "Correct: the SDK warns that extra parameters override documented ones of the same name and, for security reasons, should only be used with trusted input."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "SDK escape hatches like extra body fields are for trusted input only: allowlist what users may set.",
+    "explanation": "The SDK's extra request options exist for undocumented parameters, and they override documented parameters with the same name, so the docs restrict them to trusted input. Forwarding whatever users type lets them change any request field. Allowing only specific, validated settings fixes that (D). Escaping (C) is tempting because it sounds like standard input hygiene, but it doesn't stop the overrides.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/cli-sdks-libraries/sdks/python",
+      "title": "Python SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-forced-tool-choice-newest-models",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "After moving an extraction service to the newest Opus model, every request that forces a specific tool call fails with a 400 error. The service still needs schema-valid output on every request. Which two approaches fit?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep forcing the named tool and retry the 400 errors, since they usually clear after a few attempts",
+        "reason": "Forced tool use returns a 400 on these models every time, so retrying never succeeds."
+      },
+      {
+        "id": "b",
+        "text": "Let Claude choose tools automatically and mark the tool strict, so its inputs match the schema",
+        "reason": "Correct: the guide's replacement on these models is automatic tool choice with strict tool use, which guarantees schema-valid tool inputs."
+      },
+      {
+        "id": "c",
+        "text": "Force \"use any tool\" instead of naming one, since only named tools are rejected",
+        "reason": "Both forced options fail on these models; only automatic and none tool choice still work."
+      },
+      {
+        "id": "d",
+        "text": "Use structured outputs, so the response itself comes back in a fixed JSON shape",
+        "reason": "Correct: when you need a response in a fixed JSON shape, the guide points to structured outputs as the alternative to forcing a tool."
+      },
+      {
+        "id": "e",
+        "text": "Drop tools and parse JSON out of free-text replies with a regular expression",
+        "reason": "This throws away schema guarantees and adds fragile parsing, the opposite of what the service needs."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Newest models reject forced tool choice: use automatic choice with strict tools, or structured outputs.",
+    "explanation": "The define-tools guide lists the newest Opus and Sonnet models as rejecting forced tool use with a 400, and gives two replacements: automatic tool choice with strict tool use for schema-valid tool inputs (B), or structured outputs for a response in a fixed JSON shape (D). Switching to \"any\" (C) is the tempting half-fix, but it is also a forced option and fails the same way.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-sampling-params-removed",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Breaking changes",
+    "stem": "A marketing team upgrades its copy generator to a newer Claude model. Its requests, which set temperature to get more varied slogans, now fail with 400 errors. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the sampling parameters and ask for the variety you want in the prompt",
+        "reason": "Correct: the deprecations page lists temperature, top_p and top_k as rejected with a 400 and recommends omitting them and using prompting to guide behavior."
+      },
+      {
+        "id": "b",
+        "text": "Switch from temperature to top_p, which newer models still accept for varied output",
+        "reason": "top_p is deprecated alongside temperature and top_k, so it fails the same way."
+      },
+      {
+        "id": "c",
+        "text": "Stay on the older model permanently, so the temperature setting keeps working",
+        "reason": "Older models are eventually deprecated and retired, so this only postpones the change."
+      },
+      {
+        "id": "d",
+        "text": "Retry each failed request with a smaller temperature value until one succeeds",
+        "reason": "Non-default values are rejected and the newest API version removes the parameter entirely, so tuning the value doesn't help."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Newer models reject sampling parameters: steer variety and style through the prompt instead.",
+    "explanation": "Anthropic deprecated temperature, top_p and top_k for current models: requests that set them return a 400, and the recommended replacement is to omit them and guide behavior through prompting (A). Swapping to top_p (B) is the tempting workaround, but it is on the same deprecation list, so it fails just like temperature.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-default-effort-shift",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Model migration",
+    "stem": "You moved a hard-reasoning workload to the newest Opus release without other code changes. Its default effort is one level lower than the previous Opus's, and answers on hard cases are now shallower. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move back to the previous Opus release, since the new one reasons less deeply on the hard cases you care about",
+        "reason": "The difference comes from the default effort level, not a weaker model, so moving back skips an easy fix."
+      },
+      {
+        "id": "b",
+        "text": "Add \"think harder\" to every prompt, so the model reasons more without changing settings",
+        "reason": "On these models effort is the primary control for how much the model reasons; prompting around it is less direct."
+      },
+      {
+        "id": "c",
+        "text": "Set effort explicitly and run an effort sweep on your evals, rather than relying on the default",
+        "reason": "Correct: the guide says to set effort explicitly and run an effort sweep on your own evals instead of carrying settings over from an earlier model."
+      },
+      {
+        "id": "d",
+        "text": "Raise max_tokens only, so the model has more room for its answers on hard cases",
+        "reason": "More room helps only if the model chooses to use it; the lower default effort is what reduced the reasoning."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Defaults change between releases: set effort explicitly and re-sweep it on your evals after a migration.",
+    "explanation": "The newest Opus defaults to a lower effort than the release before it, so a request that omits effort runs one level lower than it used to. The effort guide's advice is to set effort explicitly and run a fresh sweep on your evals (C). Moving back (A) is tempting because the old behavior was fine, but the cause is a default you can override.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-thinking-capability-check",
+    "domainId": "model-selection",
+    "subSkillId": "model-tradeoffs",
+    "topic": "Breaking changes",
+    "stem": "Your platform turns thinking off for quick lookups on every model it serves. After you add the newest Sonnet, those requests fail with 400 errors. Other models still accept the setting. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Remove the newest Sonnet from the platform, since it can't serve quick lookups",
+        "reason": "It can serve them; it just doesn't accept that particular setting, so dropping the model over-reacts."
+      },
+      {
+        "id": "b",
+        "text": "Keep a hand-written list of which model IDs accept the setting, guessed from their names",
+        "reason": "Guesses go stale as models are added; the Models API reports this capability for each model directly."
+      },
+      {
+        "id": "c",
+        "text": "Retry the failed requests without the setting, so thinking turns on only when a request fails",
+        "reason": "Every request to that model fails first and is then resent, adding latency and cost to each lookup."
+      },
+      {
+        "id": "d",
+        "text": "Read each model's thinking capabilities from the Models API and send a setting it supports",
+        "reason": "Correct: the Models API capabilities object reports whether a model accepts turning thinking off, and the newest Sonnet supports a different lowest setting."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Settings that worked on one model can be rejected by the next: check capabilities instead of assuming.",
+    "explanation": "The Models API reports each model's capabilities, including whether it accepts turning thinking off. For the newest Sonnet that setting returns a 400, while a different lowest thinking setting is supported, so the platform should read capabilities and send what each model accepts (D). The hand-written list (B) is tempting because it works today, but the Models API already reports the capability for every model, so guesses aren't needed.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-cache-below-minimum",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching",
+    "stem": "Your support bot marks its short system prompt for caching, but usage shows zero cache writes and zero cache reads on every request, and no error is returned. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Switch the cache to the one-hour lifetime, so the entry survives between requests",
+        "reason": "Nothing is being written to the cache at all, so a longer lifetime has nothing to keep."
+      },
+      {
+        "id": "b",
+        "text": "Place the breakpoint after a larger stable prefix that meets the minimum length, or skip caching",
+        "reason": "Correct: prompts shorter than the model's minimum cacheable length are processed without caching and no error is returned; both cache counters at 0 is the sign."
+      },
+      {
+        "id": "c",
+        "text": "Add a second cache breakpoint inside the system prompt, so part of it is cached",
+        "reason": "A smaller cached segment is even further below the minimum length, so it can't be cached either."
+      },
+      {
+        "id": "d",
+        "text": "Contact support, because a request marked for caching should always return an error if caching fails",
+        "reason": "Below the minimum, the request is simply processed without caching and no error is returned; this is expected behavior."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Zero cache writes and reads with no error usually means the prefix is below the model's minimum cacheable length.",
+    "explanation": "Caching only applies above a per-model minimum length; shorter prompts marked with cache control are processed normally and no error is returned. The guide's diagnostic is both cache counters at 0, exactly what the stem shows. So either cache a larger stable prefix that meets the minimum or don't rely on caching (B). A longer lifetime (A) is tempting, but nothing was ever written to keep.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-effort-changes-break-cache",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Caching and effort",
+    "stem": "A long-running chat relies on prompt caching. To save money, the app switches the top-level effort between low and high from turn to turn, and its model doesn't support per-message effort. Cache reads have dropped sharply. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add more cache breakpoints, so some part of each request still matches the cache",
+        "reason": "Top-level effort shapes the rendered prompt, so changing it invalidates cached message blocks regardless of how many breakpoints you add."
+      },
+      {
+        "id": "b",
+        "text": "Move the cache to the one-hour lifetime, so entries stay alive between effort changes",
+        "reason": "The entries aren't expiring; each effort change makes the prompt different, so a longer lifetime doesn't help."
+      },
+      {
+        "id": "c",
+        "text": "Keep top-level effort constant within the conversation, and vary it across workloads instead",
+        "reason": "Correct: changing top-level effort between requests invalidates prompt caching, so the guide says to hold it constant within cached conversations."
+      },
+      {
+        "id": "d",
+        "text": "Turn thinking off, since effort only changes cost when thinking is active",
+        "reason": "Effort affects all output tokens with or without thinking, and turning thinking off doesn't restore the cache."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Changing top-level effort mid-conversation resets the cache: pick a level per workload, or use per-message effort where supported.",
+    "explanation": "Top-level effort shapes the rendered prompt, so changing it between requests means later requests no longer match the cached prefix. The effort guide says to hold top-level effort constant within conversations that rely on caching, or use per-message effort on models that support it (C). Adding breakpoints (A) is tempting, but every breakpoint sits behind the changed effort setting.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/effort",
+      "title": "Effort",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-output-heavy-nightly-cost",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Cost levers",
+    "stem": "A nightly job writes long product reports, and its bill is dominated by output tokens. Nobody reads the reports until the next morning. Which two changes cut cost without switching models?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send the job through the Batches API, since batch requests are billed at a discount",
+        "reason": "Correct: Batch API requests are 50% off, and the overnight deadline means nobody needs results in real time."
+      },
+      {
+        "id": "b",
+        "text": "Cache the system prompt, since cache reads cost only a fraction of the base input price",
+        "reason": "Cache reads do cost a fraction of base input, but the bill here is dominated by output tokens, which caching doesn't reduce."
+      },
+      {
+        "id": "c",
+        "text": "Stream each response, so the reports cost less as they are generated",
+        "reason": "Streaming changes how output arrives, not the per-token price."
+      },
+      {
+        "id": "d",
+        "text": "Ask in the prompt for more concise reports, so each one uses fewer output tokens",
+        "reason": "Correct: the models guide says to adjust prompts to guide output length when you want more concise responses, and fewer output tokens cut an output-heavy bill."
+      },
+      {
+        "id": "e",
+        "text": "Raise max_tokens, so reports finish in one pass instead of needing continuations",
+        "reason": "A higher cap allows longer output; it doesn't lower the cost of the tokens the reports already use."
+      }
+    ],
+    "answer": [
+      "a",
+      "d"
+    ],
+    "takeaway": "Output-heavy and not urgent? Batch it, and prompt for shorter output; caching only discounts input.",
+    "explanation": "Two facts in the stem decide this: output tokens dominate the bill, and the results aren't needed until morning. Batch requests are 50% off (A), and prompting for concision reduces the output tokens themselves (D). Caching the system prompt (B) is the tempting choice because it is the best-known cost lever, but it only discounts input, which isn't where this job spends.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/models/overview",
+      "title": "Models overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-model-stable-key-order-cache",
+    "domainId": "model-selection",
+    "subSkillId": "cost-tokens",
+    "topic": "Prompt caching",
+    "stem": "A Go service rebuilds each conversation's history from maps before every request, then marks it for caching. The content is the same from turn to turn, yet cache reads stay near zero. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Move the cache to the one-hour lifetime, so entries last long enough between turns",
+        "reason": "The prefix doesn't match from one turn to the next, so no lifetime gives it a hit."
+      },
+      {
+        "id": "b",
+        "text": "Add more cache breakpoints across the history, so at least some segments are reused",
+        "reason": "Every segment built from the reordered maps differs too, so more breakpoints don't create matches."
+      },
+      {
+        "id": "c",
+        "text": "Switch to automatic caching, which tolerates small differences in the prompt",
+        "reason": "Cache hits require 100% identical prompt segments up to the breakpoint, whichever way the breakpoint is placed."
+      },
+      {
+        "id": "d",
+        "text": "Serialize the tool-use blocks with a stable key order, since a hit needs a byte-identical prefix",
+        "reason": "Correct: the caching guide warns that some languages, Go among them, randomize key order during JSON conversion, which breaks caches; keys must be ordered stably."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Caching matches exact bytes: if your language randomizes JSON key order, fix the serialization first.",
+    "explanation": "Prompt cache hits require identical prompt segments up to the breakpoint. The caching guide specifically warns that languages such as Go and Swift randomize key order when converting to JSON, so tool-use blocks rebuilt from maps differ on every turn even when their content doesn't (D). Automatic caching (C) is tempting because it moves the breakpoint for you, but it still needs an identical prefix.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching",
+      "title": "Prompt caching",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]

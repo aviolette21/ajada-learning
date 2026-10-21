@@ -4384,5 +4384,1004 @@
       "c-frameworks-advice"
     ],
     "lessonId": "l-agent-patterns"
+  },
+  {
+    "id": "q-dq-agents-rainbow-deploys",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Deploying long-running agents",
+    "stem": "Your research agents run for up to an hour and keep state across many tool calls. Every time you deploy new agent code, runs in progress break partway and users lose their work. What is the best approach to rolling out updates?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Hold every deploy until no session is active anywhere, then switch all servers to the new code at once",
+        "reason": "Waiting for zero active sessions rarely happens with steady traffic, and a single cut-over is what breaks runs. The post shifts traffic gradually instead."
+      },
+      {
+        "id": "b",
+        "text": "Restart each interrupted run from the beginning on the new code so every run finishes on the latest version",
+        "reason": "Restarting throws away completed work. The same post stresses that errors compound in stateful agents, so it resumes rather than restarts."
+      },
+      {
+        "id": "c",
+        "text": "Shift traffic to the new version gradually, running old and new side by side until runs finish",
+        "reason": "Correct: this is the rainbow deployment Anthropic uses, so agents already running keep their version while traffic moves over."
+      },
+      {
+        "id": "d",
+        "text": "Raise the agents' turn limit so interrupted runs have enough turns left to recover once the new code is live",
+        "reason": "A turn limit caps how long a run may go. It does nothing to stop a deploy from breaking a run midway."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Long-running agents need gradual (rainbow) deploys: old and new versions run side by side until in-flight runs finish.",
+    "explanation": "Stateful agents can be anywhere in a long run when you deploy, so a hard cut-over breaks them. The deciding detail is that runs last an hour and hold state. Anthropic's research system uses rainbow deployments, shifting traffic gradually while both versions run. Choice b is tempting, but restarting throws away completed work, which the same post warns against.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-lead-plan-memory",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Lead agent context",
+    "stem": "Your lead research agent writes a plan, then spends many turns coordinating subagents that send back long reports. On the biggest questions its context passes the window limit, early turns are truncated and the research drifts off course. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have the lead save its plan to external memory so the plan survives truncation",
+        "reason": "Correct: Anthropic's lead agent saves its plan to memory because context past the window gets truncated, and losing the plan loses the research direction."
+      },
+      {
+        "id": "b",
+        "text": "Have every subagent return its full transcript, so the lead never loses a detail of the research",
+        "reason": "Full transcripts fill the lead's context even faster, which is the cause of the truncation."
+      },
+      {
+        "id": "c",
+        "text": "Restart the lead agent with an empty context whenever it gets close to the window limit",
+        "reason": "A blank restart discards the plan as well, which is exactly what is going missing."
+      },
+      {
+        "id": "d",
+        "text": "Raise the lead agent's output token limit so each response can restate the full plan",
+        "reason": "The output limit caps reply length. It doesn't keep the plan's original turn from being truncated out of the input."
+      },
+      {
+        "id": "e",
+        "text": "Have subagents store long outputs externally and pass back lightweight references to the lead",
+        "reason": "Correct: the post describes subagents writing outputs to external systems and passing references back, which preserves detail and cuts the coordinator's token load."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "Keep a lead agent's context lean (references, not full outputs) and persist its plan outside the window.",
+    "explanation": "Context beyond the window is truncated, so anything that exists only in early turns can vanish. Saving the plan to memory protects the research direction (a), and having subagents pass references instead of full outputs slows the growth that causes truncation (e). Choice b looks thorough, but it speeds up the overflow.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-show-planning-steps",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent transparency",
+    "stem": "Ops staff who review your autonomous agent's work can't see why it took the actions it did, so they don't trust its results and redo much of the work by hand. The agent's results are usually right. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Replace the agent with a fixed workflow so that its actions never vary between runs",
+        "reason": "The problem is visibility, not variability. A fixed workflow gives up the flexibility the task needed and still explains nothing."
+      },
+      {
+        "id": "b",
+        "text": "Give the agent more tools so it can finish tasks without human review at all",
+        "reason": "More tools don't explain decisions, and dropping review adds risk instead of building trust."
+      },
+      {
+        "id": "c",
+        "text": "Lower the sampling temperature so the agent's actions are steadier and need less explaining",
+        "reason": "Sampling settings don't make the agent's reasoning visible to reviewers."
+      },
+      {
+        "id": "d",
+        "text": "Show the agent's planning steps, so reviewers can follow how it reached each action",
+        "reason": "Correct: prioritizing transparency by explicitly showing the agent's planning steps is one of Anthropic's three core principles for agents."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Transparency is a core agent principle: show the planning steps so people can follow and trust the agent.",
+    "explanation": "Anthropic's three principles for agents are simplicity, transparency through visible planning steps, and a carefully designed agent-computer interface. Reviewers here can't follow the agent's reasoning, which is a transparency gap. Choice a is tempting, but swapping to a fixed workflow throws away flexibility instead of fixing visibility.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-support-agent-fit",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Workflows vs agents",
+    "stem": "A retailer's support chats vary: one needs an order lookup, another a help article, another a refund, in no fixed order. Each conversation's resolution is easy to measure. Which approach best meets the requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build a fixed chain that always runs an order lookup, then an article search, then a refund check",
+        "reason": "The steps differ per chat, so a fixed sequence wastes calls and can't adapt to what each customer needs."
+      },
+      {
+        "id": "b",
+        "text": "Build an agent with tools for orders, help articles and refunds, judged on resolutions",
+        "reason": "Correct: Anthropic names customer support as a natural agent fit: conversation plus tools for data and actions such as refunds, with success measured by resolutions."
+      },
+      {
+        "id": "c",
+        "text": "Use one well-prompted call with the whole help center pasted in and no tools available",
+        "reason": "Without tools it can't look up orders or issue refunds, which these chats need."
+      },
+      {
+        "id": "d",
+        "text": "Route each chat to a category-specific prompt that answers in text and takes no actions",
+        "reason": "Routing is a real pattern for distinct categories, but text-only answers still can't issue the refunds."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Open-ended conversations that need lookups and actions, with measurable success, suit a tool-using agent.",
+    "explanation": "Building effective agents describes customer support as a strong agent use case: a conversation that needs outside information and real actions, where success is clear. The steps vary per chat, which rules out the fixed chain in a. Choice d is tempting because routing is a valid pattern, but without tools it can't act on refunds.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-citation-agent",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Multi-agent roles",
+    "stem": "Your multi-agent research system writes strong reports, but reviewers struggle to trace claims back to their sources. Today the lead agent drafts the claims and attaches sources in the same pass. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a separate citation agent that attaches a source to each claim in the finished report",
+        "reason": "Correct: Anthropic's research system hands the findings to a separate citation agent that attaches sources to claims."
+      },
+      {
+        "id": "b",
+        "text": "Have the lead agent rerun every search itself before it writes each claim",
+        "reason": "This repeats the subagents' work and floods the lead's context."
+      },
+      {
+        "id": "c",
+        "text": "Tell subagents to stop returning source links, so the lead agent has fewer details to keep track of",
+        "reason": "Dropping sources makes claims harder to trace, which is the opposite of what reviewers need."
+      },
+      {
+        "id": "d",
+        "text": "Spawn more subagents per question so each claim has several sources to choose from",
+        "reason": "More sources don't solve attribution. Something still has to map each claim to its source."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Give attribution its own specialist: a citation agent maps each claim to its source after the research is done.",
+    "explanation": "In Anthropic's research system, subagents gather findings, the lead synthesizes them, and a separate citation agent attaches sources to claims. Splitting attribution into its own step is the decision rule here. Choice d is tempting, but more sources make the mapping problem bigger, not smaller.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-dynamic-workflow",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Orchestrating many agents",
+    "stem": "In Claude Code you want a codebase-wide audit: many agents each review part of the repo, and a second set checks every finding before you see it. Steering that many subagents turn by turn from your conversation is unwieldy. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Ask for a dynamic workflow, so a script runs many subagents and returns one result",
+        "reason": "Correct: Claude Code recommends a dynamic workflow when work outgrows a handful of subagents or findings should be cross-checked, such as a codebase-wide audit."
+      },
+      {
+        "id": "b",
+        "text": "Use a single forked subagent that reads the whole repository and reviews it alone",
+        "reason": "One worker loses both the parallel review and the separate verification pass the audit needs."
+      },
+      {
+        "id": "c",
+        "text": "Write the audit checklist as a skill and load it into the main conversation",
+        "reason": "A skill adds instructions to your main context. It doesn't run many workers or verify their findings."
+      },
+      {
+        "id": "d",
+        "text": "Open several terminal sessions by hand and pass findings between them with cross-session messages",
+        "reason": "Cross-session messaging suits a few sessions you run yourself, not dozens of coordinated reviewers."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "When work outgrows a handful of subagents, or findings need cross-checking, use a dynamic workflow.",
+    "explanation": "With subagents, Claude decides turn by turn what runs next; in a dynamic workflow, a script runs many subagents in the background and returns one result. The scale and the second verification pass are the deciding details. Choice d sounds parallel, but cross-session messaging is for passing a finding between sessions you run yourself.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/features-overview",
+      "title": "Extend Claude Code",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-feature-list-premature-done",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Long-running agents",
+    "stem": "Your coding agent builds an app across many sessions. Later sessions see lots of finished code and declare the project done, though many features are missing or untested. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Let each session rewrite the feature list freely in Markdown as its understanding grows",
+        "reason": "Anthropic chose JSON because the model is less likely to inappropriately change or overwrite it than Markdown. Free rewrites invite exactly that."
+      },
+      {
+        "id": "b",
+        "text": "Have a first session write a full feature list in JSON, every feature marked not passing",
+        "reason": "Correct: the initializer expands the request into a comprehensive feature list where each feature starts as failing, so later sessions can see what is left."
+      },
+      {
+        "id": "c",
+        "text": "Tell the agent it may stop once most of the listed features appear to be implemented",
+        "reason": "That writes the premature 'done' the team is trying to stop into the instructions."
+      },
+      {
+        "id": "d",
+        "text": "Have each session take one feature, test it end to end, then mark it passing",
+        "reason": "Correct: one feature per session, tested end to end before its status changes, addressed both overreach and untested 'done' features."
+      },
+      {
+        "id": "e",
+        "text": "Hand each new session the previous session's full transcript instead of any progress notes",
+        "reason": "Whole transcripts burn context. The harness uses a progress file and git history to bring a fresh session up to speed."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "Long projects need an explicit feature list with pass/fail status, and one tested feature per session.",
+    "explanation": "Anthropic saw agents declare victory early and mark features done without end-to-end testing. The fix was a JSON feature list where every feature starts failing (b), and sessions that each take one feature, test it like a user, then mark it passing (d). Choice a fails because Markdown is easier for the model to overwrite inappropriately, which is why the article chose JSON.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+      "title": "Effective harnesses for long-running agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-ground-truth-each-step",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-architecture",
+    "topic": "Agent feedback loops",
+    "stem": "Your coding agent marks each step complete based on what it expects its edit to do, without running anything. Errors pile up, and by the end several steps are broken. What should the team change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Have it plan the whole task up front, then execute without intermediate checks to save turns",
+        "reason": "That removes feedback entirely. The post says agents should check the environment as they go."
+      },
+      {
+        "id": "b",
+        "text": "Switch to the most capable model so its predictions about each edit are more reliable",
+        "reason": "A stronger model still guesses. Nothing replaces feedback from actually running the code."
+      },
+      {
+        "id": "c",
+        "text": "Require a human to approve every step before the agent moves on to the next one",
+        "reason": "Human checkpoints help at blockers, but approving every step doesn't scale and still doesn't run the code."
+      },
+      {
+        "id": "d",
+        "text": "Have it run the code or tests after each step and check the result before marking it done",
+        "reason": "Correct: Building effective agents says agents must gain ground truth from the environment at each step, such as tool results or code execution."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Agents should check reality after each action (tool results, test runs), not assume their edits worked.",
+    "explanation": "During execution an agent should gain ground truth from the environment at each step, such as tool call results or code execution, to assess its progress. This agent only predicts results, so errors compound unseen. Choice c is tempting, but human checkpoints are for blockers and key decisions, not a substitute for environment feedback at every step.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/building-effective-agents",
+      "title": "Building effective agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-managed-zdr",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Managed Agents fit",
+    "stem": "Your company's agreement with Anthropic includes zero data retention (ZDR), and legal says every agent workload must stay within it. A team wants Claude Managed Agents for a long-running coding agent because they'd need no harness of their own. What should you advise?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use Managed Agents with a self-hosted sandbox, so tools run on your own servers and the work stays in ZDR",
+        "reason": "The overview says Managed Agents isn't currently ZDR-eligible. Where the sandbox runs doesn't change that."
+      },
+      {
+        "id": "b",
+        "text": "Choose another path: Managed Agents keeps sessions server-side and isn't currently ZDR-eligible",
+        "reason": "Correct: Managed Agents is stateful by design and isn't currently eligible for zero data retention, so it conflicts with legal's rule."
+      },
+      {
+        "id": "c",
+        "text": "Use Managed Agents and delete each session as soon as it ends, so nothing is kept afterwards",
+        "reason": "Deleting sessions is supported, but it is data control after the fact, not ZDR eligibility."
+      },
+      {
+        "id": "d",
+        "text": "Use Managed Agents as planned, since the ZDR agreement covers every feature on your account",
+        "reason": "ZDR doesn't cover every feature. The overview states Managed Agents isn't currently eligible."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Managed Agents stores sessions server-side, so it isn't currently ZDR-eligible; ZDR-bound workloads need another path.",
+    "explanation": "Managed Agents keeps conversation history, sandbox state and outputs server-side so sessions can resume, and for that reason it isn't currently eligible for ZDR. Legal's requirement in the stem therefore rules it out. Choice c is tempting because deleting sessions is supported, but deletion after the fact is not the same as zero data retention.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-managed-self-hosted-sandbox",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Managed Agents environments",
+    "stem": "A bank wants Anthropic to run the agent loop for its long-running reconciliation agents, but compliance requires that the agents' commands and files stay on infrastructure the bank controls. Which approach best meets the requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use Managed Agents in Anthropic's cloud sandbox, with the agents' web access limited to an allowlist",
+        "reason": "An allowlist limits browsing, but commands and files would still run in Anthropic's cloud sandbox."
+      },
+      {
+        "id": "b",
+        "text": "Build the bank's own agent loop on the Messages API and run every tool on bank servers",
+        "reason": "This keeps execution in-house, but the bank wanted Anthropic to run the harness, not build its own."
+      },
+      {
+        "id": "c",
+        "text": "Use Managed Agents with a self-hosted sandbox running on the bank's own infrastructure",
+        "reason": "Correct: a Managed Agents environment can be a self-hosted sandbox on your infrastructure, which the overview lists for compliance and data residency."
+      },
+      {
+        "id": "d",
+        "text": "Call the MCP connector on the Messages API, pointed at a tool server inside the bank",
+        "reason": "The connector reaches MCP tools, but the bank would still have to build and run the agent loop itself."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Managed harness plus your own execution: use a Managed Agents self-hosted sandbox for compliance or residency.",
+    "explanation": "A Managed Agents environment sets where sessions run: Anthropic's cloud sandbox or a self-hosted sandbox on your infrastructure. The bank wants the managed loop but needs execution in-house, which is the self-hosted case. Choice b keeps execution in-house too, but it means building the harness the bank wanted Anthropic to run.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-go-service-cli",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Choosing a wiring path",
+    "stem": "Your platform team writes only Go. It wants Claude Code's agent loop, built-in tools and permissions inside a Go service it operates itself, but the Agent SDK comes for Python and TypeScript. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run the Claude Code CLI as a subprocess with JSON output, and parse its result",
+        "reason": "Correct: to drive the same agent loop from another language, the SDK overview says to run the CLI as a subprocess with JSON output."
+      },
+      {
+        "id": "b",
+        "text": "Use the Go client SDK, since it bundles the same built-in tools and agent loop as Claude Code",
+        "reason": "Client SDKs give direct API access. You write the tool loop yourself or use the beta tool runner, without Claude Code's tools."
+      },
+      {
+        "id": "c",
+        "text": "Rewrite the service in TypeScript first, so the team can use the Agent SDK directly",
+        "reason": "That would work, but a full rewrite is far more effort than the documented subprocess route."
+      },
+      {
+        "id": "d",
+        "text": "Move the agent to Managed Agents, since Claude Code's loop can't run inside a Go process",
+        "reason": "Managed Agents is hosted by Anthropic, not a process the team operates, and the CLI can be driven from Go."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For Claude Code's loop from a language without an Agent SDK, run the CLI headless as a subprocess and parse its JSON.",
+    "explanation": "The Agent SDK embeds Claude Code's loop in Python or TypeScript; for other languages the overview says to run the CLI as a subprocess with JSON output. The team needs the loop in a Go process it operates. Choice b is the tempting one, but a client SDK only gives raw API access, so the team would be writing the loop and tools itself.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/overview",
+      "title": "Agent SDK overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-hooks-independent",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK hooks",
+    "stem": "Your SDK agent has three PreToolUse hooks: an authorization check, an input validator and an audit logger. The logger reads a flag the authorization hook sets, to record whether each call was denied, but some log entries show the wrong decision. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Register the logger after the authorization hook so that it always runs second",
+        "reason": "Matching hooks run in parallel, so registration order doesn't make the logger run second."
+      },
+      {
+        "id": "b",
+        "text": "Add a short delay at the start of the logger so the authorization check finishes first",
+        "reason": "A delay only makes the race less likely. Completion order stays non-deterministic."
+      },
+      {
+        "id": "c",
+        "text": "Make each hook self-contained, e.g. the auth hook logs its own decision",
+        "reason": "Correct: matching hooks run in parallel and finish in no fixed order, so the docs say to write each hook to act independently."
+      },
+      {
+        "id": "d",
+        "text": "Have the logger return an allow decision so its result settles any conflict between hooks",
+        "reason": "Permission results merge with the most restrictive winning, so an allow settles nothing, and the race remains."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Hooks on one event run in parallel with no fixed order; write each one to stand alone.",
+    "explanation": "When an event fires, the SDK runs all matching hooks in parallel and their completion order is non-deterministic. A logger that depends on another hook's flag will sometimes read it too early. Choice b is tempting because it often works in testing, but it only narrows the race instead of removing it.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-hook-matcher-bash-gap",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK hooks",
+    "stem": "A PreToolUse hook matching the Write and Edit tools denies any write to `.env`. In testing, Claude still creates `.env` by running an echo command through Bash. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Change the hook's matcher to a file pattern for `.env` so it catches the file however it's written",
+        "reason": "Tool hook matchers match tool names, not file paths, so a file pattern won't work."
+      },
+      {
+        "id": "b",
+        "text": "Block Bash writes to the file through the sandbox's filesystem rules",
+        "reason": "Correct: the hooks docs warn that a Write|Edit hook doesn't run for Bash writes and point to sandbox configuration for blocking them."
+      },
+      {
+        "id": "c",
+        "text": "Add a system-prompt rule telling Claude never to write `.env` through the shell",
+        "reason": "A prompt rule is a request Claude may not follow; the docs rely on hooks and the sandbox to block operations."
+      },
+      {
+        "id": "d",
+        "text": "Add a PreToolUse hook matching Bash that denies commands touching `.env`",
+        "reason": "Correct: a matcher of Bash runs the hook for Bash commands, and a PreToolUse hook can deny the call before it executes."
+      },
+      {
+        "id": "e",
+        "text": "Move the check into a PostToolUse hook so it can inspect the file once it exists",
+        "reason": "PostToolUse runs after the tool has executed, so the write has already happened."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "A tool-name matcher only guards those tools; the same effect through Bash needs its own control.",
+    "explanation": "SDK hook matchers filter on the tool name, so a Write|Edit hook never sees a Bash command. You can close the Bash path with the sandbox (b) or with a Bash-matched PreToolUse hook that inspects the command (d). Choice e is tempting because it sees the result, but PostToolUse fires after the write, too late to block it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-async-hook-cant-block",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK hooks",
+    "stem": "To keep the agent fast, a developer changed a policy-check PreToolUse hook to return an async output at once and finish its check in the background. Since then, commands the check should reject sometimes run. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Raise the async timeout so the background check has enough time to finish",
+        "reason": "The timeout only bounds the background work. The agent still moves on without waiting for the result."
+      },
+      {
+        "id": "b",
+        "text": "Make the check synchronous again; keep async outputs for side effects like logging",
+        "reason": "Correct: async outputs can't block, modify or add context because the agent has already moved on, so they suit only side effects."
+      },
+      {
+        "id": "c",
+        "text": "Have the background check stop the agent when it finds a violation",
+        "reason": "By the time the background check finishes, the command has already run."
+      },
+      {
+        "id": "d",
+        "text": "Move the policy check into a PostToolUse hook so that it no longer slows down each tool call",
+        "reason": "PostToolUse runs after the tool executes, so it can't stop a forbidden command either."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Async hooks are for side effects like logging; anything that must block or modify a call has to be synchronous.",
+    "explanation": "By default the agent waits for a hook to return; an async output tells it to continue immediately. That is why the docs say async outputs can't block, modify or inject context. Choice c is tempting, but by the time a background check reaches a verdict, the tool call has already gone ahead.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-readonly-hint-parallel",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK custom tools",
+    "stem": "Your Agent SDK agent often asks for four calls to your custom price-lookup tool in one turn. The tool only reads data, yet the calls run one after another and turns are slow. What should the team change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a system-prompt instruction telling Claude to call the price tool in parallel",
+        "reason": "Claude already requests the calls together in one turn. The SDK is what runs them one at a time."
+      },
+      {
+        "id": "b",
+        "text": "Move the tool to a separate MCP server process so its calls can run concurrently",
+        "reason": "In-process custom tools can run in parallel once annotated, so a new server adds work without need."
+      },
+      {
+        "id": "c",
+        "text": "Annotate the tool as read-only so the SDK can run those calls concurrently",
+        "reason": "Correct: custom tools default to sequential execution, and setting readOnlyHint lets a side-effect-free tool run concurrently."
+      },
+      {
+        "id": "d",
+        "text": "Combine the four lookups by forcing Claude to call the price tool on every turn",
+        "reason": "Forcing a tool picks which tool is called. It doesn't change how the SDK schedules execution."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "SDK custom tools run sequentially by default; mark read-only ones with readOnlyHint so they can run in parallel.",
+    "explanation": "The SDK runs read-only tools concurrently and state-changing tools sequentially, and custom tools count as sequential unless annotated. The stem says the tool only reads data, so the read-only annotation is the targeted fix. Choice a is tempting, but the requests already arrive together; the bottleneck is execution, not Claude's choice.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/agent-loop",
+      "title": "How the agent loop works",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-dontask-locked-down",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "SDK permissions",
+    "stem": "A headless Agent SDK job summarizes repositories and must only ever read. Today it pre-approves Read, Glob and Grep and quietly relies on having no approval callback. You want an explicit, fixed tool surface. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the three tools pre-approved and use the don't-ask mode, which denies any other call",
+        "reason": "Correct: the permissions guide pairs allowed tools with dontAsk for a locked-down agent: listed tools run and anything that would prompt is denied."
+      },
+      {
+        "id": "b",
+        "text": "Keep the pre-approved list and switch to the bypass-permissions mode, so only listed tools can run",
+        "reason": "The allowed list doesn't constrain bypassPermissions. Every tool, including Bash and Write, would be approved."
+      },
+      {
+        "id": "c",
+        "text": "Add an approval callback that allows every call, so the job never waits on anyone",
+        "reason": "That approves everything that reaches the callback, the opposite of a fixed read-only surface."
+      },
+      {
+        "id": "d",
+        "text": "Switch to the accept-edits mode, so file changes never stall the job on an approval",
+        "reason": "acceptEdits auto-approves file edits, which a read-only job must never make."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "For a locked-down headless agent: pre-approve exactly what may run, plus dontAsk to deny everything else.",
+    "explanation": "The dontAsk mode turns any would-be prompt into a denial, so only pre-approved tools and calls that need no approval run. The guide recommends it over silently relying on a missing approval callback. Choice b is the classic trap: allowed tools pre-approve but don't restrict bypassPermissions, which approves everything.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/permissions",
+      "title": "Configure permissions",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-managed-scheduled",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-construction",
+    "topic": "Managed Agents fit",
+    "stem": "Each night, a team wants an agent to triage new issues in a sandbox for about an hour, running shell commands and editing files. They don't want to operate any servers, schedulers or sandboxes themselves. Which approach best meets the requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Run an Agent SDK script on a small server of their own, started each night by a cron job",
+        "reason": "It would work, but it means running a server and a scheduler, which the team wants to avoid."
+      },
+      {
+        "id": "b",
+        "text": "Send a nightly batch of plain Messages API requests, one for each new issue",
+        "reason": "Plain Messages API requests are direct prompting; the team would still have to build the loop, tool execution and sandbox."
+      },
+      {
+        "id": "c",
+        "text": "Leave a Claude Code session running overnight in a terminal on a spare laptop",
+        "reason": "An interactive session on a laptop is neither scheduled nor managed, and it's still hardware they look after."
+      },
+      {
+        "id": "d",
+        "text": "Use Managed Agents with a scheduled deployment that runs the agent on a cron schedule",
+        "reason": "Correct: Managed Agents supplies the harness and sandbox, and scheduled deployments run recurring agent sessions on a cron schedule."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Recurring agent runs with no infrastructure to operate: Managed Agents scheduled deployments.",
+    "explanation": "Managed Agents is built for long-running work with minimal infrastructure, and its overview lists scheduled execution through scheduled deployments. The deciding constraint is that the team won't run servers, schedulers or sandboxes. Choice a would work technically but breaks that constraint.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/managed-agents/overview",
+      "title": "Claude Managed Agents overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-strands-graph",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Strands multi-agent patterns",
+    "stem": "In your Strands app, a reviewer agent may send a refund claim back to an intake agent for missing data, possibly several times, then branch to approve or escalate. Developers must define every allowed path in advance. Which approach best meets the requirement?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Use a Workflow, so the agents run as a fixed task graph with independent tasks in parallel",
+        "reason": "A Workflow is a DAG that doesn't allow cycles, and this process loops back to intake."
+      },
+      {
+        "id": "b",
+        "text": "Use a Graph: developers define the edges and an LLM picks the path at each node",
+        "reason": "Correct: Graph suits conditional branching and loops on developer-defined edges, and it allows cycles."
+      },
+      {
+        "id": "c",
+        "text": "Use a Swarm, so each agent hands the claim to whichever peer it judges best suited next",
+        "reason": "In a Swarm the agents choose the path themselves, but here developers must fix the allowed paths."
+      },
+      {
+        "id": "d",
+        "text": "Use Agents as Tools, so one orchestrator calls each specialist whenever a claim seems to fit",
+        "reason": "That gives an orchestrator free choice of specialists, not a defined flowchart with loops."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Strands: predefined paths with branching and loops, Graph; fixed DAG, Workflow; autonomous handoffs, Swarm.",
+    "explanation": "Strands compares Graph, Swarm and Workflow by who controls the path and whether cycles are allowed. Developer-defined edges plus a loop back to intake point to Graph. Choice a is tempting because the paths are fixed up front, but a Workflow is acyclic, so it can't send a claim back.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/",
+      "title": "Coordinate multiple agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-strands-workflow",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Strands multi-agent patterns",
+    "stem": "A nightly report always runs the same tasks: three independent data pulls, then a merge, then a summary. The team wants it packaged as one reusable tool, the pulls run in parallel, and a failed pull should stop the steps that depend on it. What is the best approach in Strands?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build it as a Swarm, so the agents hand the report work to each other as each step finishes",
+        "reason": "A Swarm runs autonomous handoffs one agent at a time, and nothing fixes the order of these steps."
+      },
+      {
+        "id": "b",
+        "text": "Build it as a Graph, so an LLM decision at every node chooses which step runs next",
+        "reason": "A Graph could do it, but per-node LLM routing adds cost and variability to a process that never changes."
+      },
+      {
+        "id": "c",
+        "text": "Give one agent all the tools and let it run the pulls, merge and summary itself",
+        "reason": "One agent loses the guaranteed parallel pulls and the built-in halt on a failed dependency."
+      },
+      {
+        "id": "d",
+        "text": "Build it as a Workflow: a fixed task graph run as one tool, with the pulls in parallel",
+        "reason": "Correct: Strands' Workflow runs a fixed DAG as a single reusable tool, runs independent tasks in parallel, and halts downstream tasks when one fails."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "A repeatable process with fixed dependencies belongs in a Strands Workflow: parallel where possible, halts on failure.",
+    "explanation": "Strands describes Workflow as a fixed task graph run as one reusable tool, with deterministic, parallel execution and a failed task halting downstream tasks. Every requirement in the stem matches. Choice b is tempting because a Graph is also developer-defined, but it puts an LLM decision at each node, which this never-changing report doesn't need.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/",
+      "title": "Coordinate multiple agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-swarm-handoff-limits",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Strands multi-agent patterns",
+    "stem": "In your Strands swarm, a billing agent and a refunds agent sometimes keep handing the same task back and forth and never finish. The team likes that agents choose their own handoffs and wants to keep that. What should they do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Set timeouts and handoff limits on the swarm, so runaway handoffs stop",
+        "reason": "Correct: Strands lists timeouts and handoff limits as how a Swarm prevents loops while agents still decide their own handoffs."
+      },
+      {
+        "id": "b",
+        "text": "Rebuild it as a Graph with developer-defined error edges between the two agents",
+        "reason": "Error edges are Graph's error handling, and rebuilding as a Graph gives up the autonomous handoffs the team wants to keep."
+      },
+      {
+        "id": "c",
+        "text": "Remove the shared context so neither agent can see the other's earlier handoffs",
+        "reason": "The swarm's shared task history helps agents coordinate. Hiding it doesn't bound the handoffs."
+      },
+      {
+        "id": "d",
+        "text": "Give both agents the same system prompt so they agree on which one owns each task",
+        "reason": "Identical prompts erase the specialization a swarm depends on, and they still don't bound handoffs."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Swarms let agents choose their handoffs, so bound them with timeouts and handoff limits.",
+    "explanation": "In a Swarm the agents decide who works next, which can produce ping-pong handoffs. Strands' comparison lists timeouts and handoff limits as Swarm's guard against loops. Choice b is tempting because explicit edges sound safer, but it abandons the autonomy the team wants to keep.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/",
+      "title": "Coordinate multiple agents",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-start-wide-then-narrow",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Research agent prompting",
+    "stem": "Your research subagents open every task with long, highly specific search queries. They get few results back and miss relevant sources. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Spawn more subagents, so that more of these specific queries run in parallel",
+        "reason": "Parallelism multiplies the narrow queries. It doesn't fix the search strategy."
+      },
+      {
+        "id": "b",
+        "text": "Move all searching to the lead agent so the subagents only summarize what it finds",
+        "reason": "That removes the parallel exploration subagents provide and loads the lead's context."
+      },
+      {
+        "id": "c",
+        "text": "Raise the number of results each search returns so the narrow queries find more",
+        "reason": "Narrow queries still match little. The post's fix is the order: broad first, then specific."
+      },
+      {
+        "id": "d",
+        "text": "Prompt subagents to begin with short, broad queries and then narrow their focus",
+        "reason": "Correct: the post recommends short, broad queries first and narrowing down, instead of starting with long, specific ones."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Search like an expert: start broad to see the landscape, then narrow.",
+    "explanation": "Anthropic's research system prompts agents to begin with short, broad queries and narrow down, instead of starting with long, specific ones that return little. The symptom in the stem matches that pattern exactly. Choice a is tempting because parallel search helped speed elsewhere, but more narrow queries still miss the landscape.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-interleaved-thinking",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Research agent prompting",
+    "stem": "Your research subagents run search after search without judging whether each result was useful, so they keep chasing weak sources. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give each subagent a larger tool set so it can choose among more search options",
+        "reason": "More tools add choice, not judgment about the results already in hand."
+      },
+      {
+        "id": "b",
+        "text": "Run every search in parallel at once so no single weak source holds a subagent up",
+        "reason": "Firing all searches at once removes the chance to learn from each result before the next."
+      },
+      {
+        "id": "c",
+        "text": "Use interleaved thinking so each subagent assesses a result before its next step",
+        "reason": "Correct: the post says interleaved thinking helps subagents assess results after each tool call."
+      },
+      {
+        "id": "d",
+        "text": "Add a stricter output schema to the report each subagent sends to the lead",
+        "reason": "An output schema shapes the final report, not the judgment between searches."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Interleaved thinking lets an agent assess each tool result before choosing its next action.",
+    "explanation": "Anthropic's research system uses extended thinking as a planning scratchpad and interleaved thinking so subagents assess results after each tool call. The gap in the stem is exactly that missing assessment. Choice b is tempting because parallel calls sped up research, but they don't make an agent judge result quality.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+      "title": "How we built our multi-agent research system",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-defer-for-async-approval",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "Human-in-the-loop",
+    "stem": "Your SDK agent must get a finance manager's approval in Slack before any refund tool call, and replies can take hours. You'll decide in a PreToolUse hook, but don't want a hook or callback blocked for that long. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Return an ask decision, so the call waits for the manager's approval inside the running turn",
+        "reason": "ask routes the call to approval inside the current run. The docs give defer as the way to resume a call later."
+      },
+      {
+        "id": "b",
+        "text": "Return a defer decision, ending the turn until approval arrives, then resume the call",
+        "reason": "Correct: a defer decision ends the turn with a tool_deferred stop reason, so you can resume the call later."
+      },
+      {
+        "id": "c",
+        "text": "Deny the call with a reason telling Claude to try the refund again tomorrow",
+        "reason": "A deny blocks the call, and Claude has no way to know when approval actually arrives."
+      },
+      {
+        "id": "d",
+        "text": "Allow the call, rewriting its input to flag the refund as pending approval",
+        "reason": "An allow lets the refund call run now, which is exactly what must wait."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "For approvals that arrive much later, defer the tool call and resume it once approval comes in.",
+    "explanation": "PreToolUse hooks can allow, deny, ask or defer. Defer ends the turn with a tool_deferred stop reason so the call can be resumed later, which fits an approval that may take hours. Choice a is tempting because ask is the approval decision, but it keeps the decision inside the running turn.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/hooks",
+      "title": "Intercept and control agent behavior with hooks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-dynamic-subagent-config",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "SDK subagents",
+    "stem": "Your PR-review agent delegates to one security-reviewer subagent. High-risk repositories need a strict prompt and the most capable model; routine ones should stay cheap. What is the best approach in your Agent SDK app?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Build the subagent definition per query with a factory that picks its prompt and model",
+        "reason": "Correct: the SDK docs show creating agent definitions dynamically, for example choosing Opus for strict reviews and Sonnet otherwise."
+      },
+      {
+        "id": "b",
+        "text": "Leave the subagent's model unset and ask it in the prompt to try harder on risky repositories",
+        "reason": "Prompt wording doesn't change which model runs. The definition's model field does."
+      },
+      {
+        "id": "c",
+        "text": "Run the whole query on the most capable model, so every subagent inherits it for every repository",
+        "reason": "That works for quality but makes routine reviews expensive, which breaks the cost goal."
+      },
+      {
+        "id": "d",
+        "text": "Run two separate queries for every pull request and keep whichever review looks stricter",
+        "reason": "Doubling every review raises cost on all repositories instead of matching the model to the risk."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "SDK subagent definitions can be built per request, so prompt and model can match the stakes.",
+    "explanation": "An SDK agent definition includes a model override, and because definitions are passed at query time you can generate them from runtime conditions. The docs' own example uses a stricter prompt and Opus for strict security reviews. Choice c is tempting because it guarantees quality, but it ignores the requirement that routine repositories stay cheap.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-agents-fork-subagent",
+    "domainId": "agents-workflows",
+    "subSkillId": "agent-patterns",
+    "topic": "SDK subagents",
+    "stem": "After a long planning discussion, you want a subagent to try one risky implementation approach that depends on everything already said, without that attempt filling your main conversation. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Start a fresh custom subagent and rely on it reading the parent's conversation as it works",
+        "reason": "A non-fork subagent starts fresh. Only the Agent tool's prompt string passes from the parent."
+      },
+      {
+        "id": "b",
+        "text": "Start a fresh subagent and paste the key decisions from the discussion into its prompt",
+        "reason": "This can work, but you'd have to rebuild the whole discussion by hand and might leave something out."
+      },
+      {
+        "id": "c",
+        "text": "Start a fork, which copies the conversation so far but keeps its work out of your thread",
+        "reason": "Correct: a fork copies the conversation instead of starting fresh, and only its final message returns to the parent."
+      },
+      {
+        "id": "d",
+        "text": "Try the approach in the main conversation, then compact the history once it's done",
+        "reason": "That fills the main context with the attempt, the thing you wanted to avoid, and compaction may lose detail."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Need the conversation so far in an isolated worker? Fork. Otherwise a subagent starts fresh with only its prompt.",
+    "explanation": "SDK subagents start fresh unless they are forks; a fork copies the conversation so far. Either way, intermediate work stays inside the subagent and only its final message returns. Choice b is the workable fallback, but rebuilding a long discussion by hand is error-prone when a fork carries it over exactly.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/agent-sdk/subagents",
+      "title": "Subagents in the SDK",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]

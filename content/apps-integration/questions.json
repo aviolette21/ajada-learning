@@ -12105,5 +12105,1004 @@
       "c-eval-grading-methods"
     ],
     "lessonId": "l-course-evals-judges"
+  },
+  {
+    "id": "q-dq-apps-success-criteria-voice",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Success criteria",
+    "stem": "A team is writing success criteria for a voice assistant that answers callers in real time on a fixed monthly budget. Their draft measures only answer accuracy on a test set. Which two criteria should they add first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add a latency target, because callers hear silence while each reply is being generated",
+        "reason": "Correct: latency is a standard success criterion, and its target depends on the real-time needs of the application, which a live phone call makes strict."
+      },
+      {
+        "id": "b",
+        "text": "Add the model's context window size as a criterion, so the longest prompts always fit",
+        "reason": "Context window size is a property of the model you pick, not a measure of whether the assistant succeeds for callers."
+      },
+      {
+        "id": "c",
+        "text": "Add a price criterion that caps the cost per call, so the budget is part of what counts as success",
+        "reason": "Correct: price is a standard success criterion (cost per call, model size, usage), and the fixed budget makes it a deciding constraint."
+      },
+      {
+        "id": "d",
+        "text": "Add a fixed temperature setting to the criteria, so every reply is generated the same way",
+        "reason": "A sampling setting is an implementation choice. Success criteria describe the outcome you need, such as consistency, not the knob used to reach it."
+      },
+      {
+        "id": "e",
+        "text": "Add the number of prompt revisions as a criterion, so the team iterates enough times",
+        "reason": "How many drafts the team writes says nothing about whether the assistant meets callers' needs; criteria should be specific, measurable outcomes."
+      }
+    ],
+    "answer": [
+      "a",
+      "c"
+    ],
+    "takeaway": "Most use cases need several success criteria; the stem's constraints (real time, budget) tell you which dimensions to add.",
+    "explanation": "Good success criteria are multidimensional: task fidelity alone misses what makes this product work. The stem names two constraints, real-time calls and a fixed budget, which map to the latency and price criteria (A and C). Context window size (B) and a temperature value (D) are implementation choices rather than outcomes, and revision counts (E) measure the team, not the assistant.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/define-success",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-achievable-target",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Success criteria",
+    "stem": "A VP wants the success criterion for a new contract-clause classifier to be \"never misclassify anything.\" The team already has results from a prototype run on a labeled sample. What is the best way to set the criterion?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep the zero-error goal, because a strict target pushes the team toward the best possible prompt",
+        "reason": "Targets should be achievable. A goal that current frontier models can't meet gives no useful pass/fail signal for launch."
+      },
+      {
+        "id": "b",
+        "text": "Set a measurable accuracy target grounded in the prototype results and benchmarks, so it is realistic",
+        "reason": "Correct: criteria should be specific and measurable, and achievable targets are based on benchmarks, prior experiments or expert knowledge."
+      },
+      {
+        "id": "c",
+        "text": "Leave the criterion qualitative, such as \"performs well\", so it can be adjusted after launch",
+        "reason": "Vague criteria are the opposite of the guidance: \"good performance\" should become something specific and measurable."
+      },
+      {
+        "id": "d",
+        "text": "Pick the most capable model instead of setting a target, since capability replaces the need for criteria",
+        "reason": "Model choice doesn't tell you whether the classifier is good enough; you still need a criterion to judge it against."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Success criteria must be specific, measurable and achievable: base the target on experiments, not on wishes.",
+    "explanation": "The guide asks for criteria that are specific, measurable, achievable and relevant, with targets based on benchmarks or prior experiments. The prototype results are exactly that evidence, so B turns the VP's wish into a usable target. The tempting option is A: it sounds rigorous, but a target no current model can meet never tells the team whether to ship.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/define-success",
+      "title": "Define success criteria and build evaluations",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-live-inventory-requirement",
+    "domainId": "apps-integration",
+    "subSkillId": "requirements",
+    "topic": "Functional requirements",
+    "stem": "A retailer's assistant must quote current stock levels, which change many times an hour, from the company's inventory service. A teammate proposes putting last night's inventory export into the system prompt. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Paste the nightly export into the system prompt, since Claude reads it on every request",
+        "reason": "The export is hours old by mid-morning, so answers would quote stock levels that have already changed; the requirement is current data."
+      },
+      {
+        "id": "b",
+        "text": "Ask Claude to estimate stock from recent sales trends whenever it isn't sure of a level",
+        "reason": "An estimate is not the current stock level, and asking Claude to guess invites confident wrong numbers."
+      },
+      {
+        "id": "c",
+        "text": "Give Claude a tool that queries the inventory service at request time, so each answer uses live data",
+        "reason": "Correct: tool use lets Claude call a function you define; your application runs the lookup and returns the result for Claude to answer from."
+      },
+      {
+        "id": "d",
+        "text": "Switch to the most capable model, because it knows more about the retailer's products and their stock",
+        "reason": "No model knows a store's stock as of this hour; the data has to reach Claude at request time, which is what a tool does."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "A requirement for live data is a requirement for a tool or retrieval call at request time.",
+    "explanation": "The deciding detail is that stock changes many times an hour, so any copy loaded in advance goes stale. Tool use connects Claude to your own APIs: Claude asks for the lookup and your code returns the current value (C). The nightly export (A) is the tempting option because it is easy, but it fails the \"current\" requirement for most of the day.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview",
+      "title": "Tool use with Claude",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-legacy-model-status",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Model lifecycle",
+    "stem": "The model behind your internal report tool is now listed as Legacy. It still works, and nothing about it is due this quarter. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Treat it as an outage and switch models today, because requests to it will start failing at once",
+        "reason": "Failing requests describe a retired model. A legacy model is still available; it just no longer receives updates."
+      },
+      {
+        "id": "b",
+        "text": "Do nothing, because legacy models keep receiving updates and stay supported indefinitely",
+        "reason": "Legacy means the model will no longer receive updates and may be deprecated in the future, so \"indefinitely\" is wrong."
+      },
+      {
+        "id": "c",
+        "text": "Wait for the provider to move the tool onto a newer model automatically",
+        "reason": "Applications relying on Anthropic models may need occasional updates to keep working; migrating is the customer's job, with a recommended replacement."
+      },
+      {
+        "id": "d",
+        "text": "Plan a migration and test a replacement on your evals now, before any retirement date is set",
+        "reason": "Correct: the guidance is to test applications with newer models well before a retirement date and move workloads to active models."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Legacy is the early warning: no more updates, deprecation may follow. Start testing a replacement while there is no deadline.",
+    "explanation": "The lifecycle runs active, legacy, deprecated, retired, and only retired models reject requests. Legacy means no further updates and possible deprecation later, so the calm, correct move is to start evaluating a replacement now (D). Option A confuses legacy with retired; option C assumes an automatic upgrade that the deprecation guidance never promises.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+      "title": "Model deprecations",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-canary-control-group",
+    "domainId": "apps-integration",
+    "subSkillId": "systems-lifecycle",
+    "topic": "Staged rollout",
+    "stem": "Your team sends a revised prompt to 5% of traffic on Saturday and compares its error rate with last week's weekday numbers. The canary looks better, so they plan a full rollout on Monday. What should they change first?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Compare the canary with the other 95% over the same period, so changes over time affect both alike",
+        "reason": "Correct: a canary is evaluated against a control running at the same time, because time is one of the biggest sources of change in metrics."
+      },
+      {
+        "id": "b",
+        "text": "Run the canary longer with the same comparison, because more days of data cancel out the weekday gap",
+        "reason": "A longer before/after comparison is still a before/after comparison; weekday versus weekend traffic keeps adding noise."
+      },
+      {
+        "id": "c",
+        "text": "Roll out to everyone now, since a better canary result is enough evidence to proceed",
+        "reason": "The \"better\" result may come from Saturday traffic, not the prompt, so the evidence doesn't yet show the change is safe."
+      },
+      {
+        "id": "d",
+        "text": "Judge the canary on CPU usage instead, because resource metrics are steadier than error rates",
+        "reason": "Request failures and latency are usually better signals than resource metrics such as CPU, which can move without affecting users."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Canary vs control at the same time, never this week vs last week.",
+    "explanation": "Canarying works like an A/B test: the canary and the control run concurrently, so anything that changes over time hits both. Comparing Saturday traffic with last week's weekdays (the current plan) mixes the prompt change with the calendar. B is tempting because more data feels safer, but it keeps the flawed before/after design.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://sre.google/workbook/canarying-releases/",
+      "title": "Canarying Releases",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-label-multiple-images",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Vision inputs",
+    "stem": "Your claims app sends four photos of a damaged car in one request and asks which ones show the rear bumper. Adjusters say answers such as \"the second image\" don't always match their order, and follow-up questions get confused. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send each photo in its own request, so Claude never has to tell the images apart",
+        "reason": "This throws away joint analysis: Claude can compare several images in one request, which the adjusters need."
+      },
+      {
+        "id": "b",
+        "text": "Put a short text label such as \"Image 1:\" before each photo, so prompts can name it",
+        "reason": "Correct: the guide recommends labeling each image (Image 1:, Image 2:) so you can refer to them by name in the prompt and in later turns."
+      },
+      {
+        "id": "c",
+        "text": "Raise the resolution of every photo, so Claude sees enough detail to keep them in order",
+        "reason": "Resolution affects detail and token cost, not how the images are referred to; the confusion is about naming, not clarity."
+      },
+      {
+        "id": "d",
+        "text": "Re-send all four photos in every follow-up turn, so Claude can find them again",
+        "reason": "Claude already has access to every image from earlier turns, so re-sending only adds payload without fixing the naming problem."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Several images in one request? Label each one (\"Image 1:\") so everyone can refer to it.",
+    "explanation": "Multiple images in one request are analyzed jointly, and the guide's fix for referring to them is a short text label before each image. The stem's symptom is a naming problem across turns, which labels solve directly (B). Re-sending the photos (D) is tempting, but Claude already sees earlier images; it just has no shared names for them.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-bedrock-image-source",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Claude in Amazon Bedrock",
+    "stem": "Your vision feature sends product images as URL references on the Claude API. The company is moving the workload to Amazon Bedrock, and the first test requests with the same payloads fail. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send the images base64-encoded in the request body, because Bedrock currently accepts only that source",
+        "reason": "Correct: the vision guide notes that on Amazon Bedrock and Google Cloud only base64-encoded image sources are currently available."
+      },
+      {
+        "id": "b",
+        "text": "Upload the images once with the Files API and send their file IDs, so payloads stay small",
+        "reason": "On Bedrock only base64 sources are currently available for images, so file references are not the way to send them there."
+      },
+      {
+        "id": "c",
+        "text": "Shorten the image URLs with a CDN, since Bedrock rejects long image URLs",
+        "reason": "The failure is the source type, not the URL length; URL references aren't an available image source on Bedrock."
+      },
+      {
+        "id": "d",
+        "text": "Run every image through an OCR step first, so the requests don't need image blocks at all",
+        "reason": "This over-engineers the fix and loses the visual content Claude was analyzing; switching the source type is enough."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Moving to a cloud platform? Check which request features it supports; on Bedrock, images go in as base64.",
+    "explanation": "Feature support differs by platform, and the vision guide states it directly: Bedrock and Google Cloud currently take only base64 image sources. The payload that worked with URL sources on the Claude API fails for that reason, so re-encoding the images fixes it (A). The Files API (B) is tempting because it is the usual way to shrink payloads, but it isn't the image source Bedrock accepts.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/vision",
+      "title": "Vision",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-files-api-update-doc",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Files API",
+    "stem": "Your support bot references the company handbook by a Files API file ID in every request. Legal just revised two sections, and from now on the bot must answer only from the new text. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Edit the stored file in place, so the existing file ID starts serving the revised handbook",
+        "reason": "Files can't be modified or renamed after upload, so there is no in-place edit to make."
+      },
+      {
+        "id": "b",
+        "text": "Keep the old file ID and send the two revised sections as extra text alongside it",
+        "reason": "The outdated sections would still be in context next to the new ones, so the bot could answer from either version."
+      },
+      {
+        "id": "c",
+        "text": "Upload the revised handbook as a new file, point requests at its ID, then delete the old file",
+        "reason": "Correct: to change a file's content you upload a new file and delete the old one; requests then reference the new file ID."
+      },
+      {
+        "id": "d",
+        "text": "Wait for the stored copy to refresh, which happens automatically a few minutes after the source changes",
+        "reason": "Uploaded files don't sync with your source documents; a file persists until you delete it or it reaches its expiry."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Files API files are immutable: new content means a new file ID, then delete the old one.",
+    "explanation": "The Files API is upload-once, reference-many, and uploaded files can't be edited. Changing the handbook therefore means uploading a new file, switching to its ID and deleting the old file (C). Option B is tempting because it avoids re-uploading, but it leaves the superseded sections in every request, which breaks the \"only the new text\" requirement.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/files",
+      "title": "Files API",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-batch-refusal-succeeded",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Batch results",
+    "stem": "A nightly Message Batch summarizes support tickets. Your code saves every result whose type is succeeded and resubmits only the errored ones. Some saved summaries turn out to be empty. Which two changes should the team make?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Check the stop reason on every succeeded result, because a refused request comes back as succeeded",
+        "reason": "Correct: a refused request in a Message Batch is returned as a succeeded result with a stop reason of refusal, not as an errored one."
+      },
+      {
+        "id": "b",
+        "text": "Treat the empty summaries as a batch outage and resubmit the whole batch the next night",
+        "reason": "Most results were fine; resubmitting everything repeats paid work and doesn't address why some requests were declined."
+      },
+      {
+        "id": "c",
+        "text": "Move the job to real-time Messages calls, because batches don't report refusals",
+        "reason": "Batches do report refusals, through the stop reason on succeeded results, so switching APIs only adds cost."
+      },
+      {
+        "id": "d",
+        "text": "Raise max_tokens on every request, since empty output means the reply was cut off",
+        "reason": "These succeeded results were declined, as their stop reason shows; giving a refused request more output tokens doesn't change that."
+      },
+      {
+        "id": "e",
+        "text": "Retry the refused requests on a different Claude model instead of resubmitting them unchanged",
+        "reason": "Correct: re-sending a refused request to the same model usually gets another refusal; the guidance is to retry on a fallback model."
+      }
+    ],
+    "answer": [
+      "a",
+      "e"
+    ],
+    "takeaway": "In batches, \"succeeded\" means the request ran, not that Claude answered: branch on the stop reason too.",
+    "explanation": "Refusals are responses, not errors, so they show up as succeeded batch results with a refusal stop reason. The fix has two parts: detect them by checking the stop reason (A), then retry those requests on a fallback model, because the same model usually refuses again (E). Raising max_tokens (D) is the tempting trap: truncation is a different stop reason, and these results were declined rather than cut off.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/handle-streaming-refusals",
+      "title": "Handle streaming refusals",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-thinking-with-tool-results",
+    "domainId": "apps-integration",
+    "subSkillId": "api-mechanics",
+    "topic": "Thinking with tools",
+    "stem": "Your agent runs with thinking on and calls tools. To save tokens, the code drops the thinking block from Claude's turn before sending back the tool result, and those requests now fail. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Send Claude's turn back unchanged, thinking block included, along with the tool result",
+        "reason": "Correct: when you post tool results you must include the entire unmodified thinking block that accompanies the tool request, signature included."
+      },
+      {
+        "id": "b",
+        "text": "Rewrite the thinking block as a shorter summary in your own words before sending it back",
+        "reason": "The API verifies thinking blocks with cryptographic signatures, and a modified thinking block returns an error."
+      },
+      {
+        "id": "c",
+        "text": "Turn thinking off on tool-calling turns, because thinking can't be combined with tool use",
+        "reason": "Thinking and tool use work together, including thinking between tool calls; the failure comes from the missing block, not the combination."
+      },
+      {
+        "id": "d",
+        "text": "Send the tool result in a new conversation, so the earlier thinking isn't needed",
+        "reason": "A fresh conversation loses the tool request and its context, so Claude can't use the result to finish the task."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "Inside a tool-use cycle, return the thinking block exactly as you got it; edits or omissions fail.",
+    "explanation": "The context-window guide names one case where you must return thinking blocks: with the tool results that follow them, unmodified and with their signatures. Dropping the block breaks that rule, so the fix is to send the turn back intact (A). Rewriting it shorter (B) looks like a fair compromise on tokens, but any change to a signed thinking block makes the API return an error.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/context-windows",
+      "title": "Context windows",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-foreach-async",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Async programming",
+    "stem": "A Node script summarizes 200 tickets with `forEach` and an async callback that awaits a Claude call for each one. It logs \"done\" and exits before most summaries are saved. What is the best fix?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Give each Claude call a longer timeout, so the calls finish before the script exits",
+        "reason": "The calls aren't timing out; the script simply never waits for them, so a longer timeout changes nothing."
+      },
+      {
+        "id": "b",
+        "text": "Use for...of with await, or map the tickets to promises and await them all",
+        "reason": "Correct: forEach expects a synchronous function and does not wait for promises, so use a construct that awaits them (sequentially or concurrently)."
+      },
+      {
+        "id": "c",
+        "text": "Put await in front of the forEach call, so the script waits for every callback to finish",
+        "reason": "forEach returns undefined and discards each callback's return value, so awaiting it doesn't wait for the async callbacks."
+      },
+      {
+        "id": "d",
+        "text": "Wrap each callback in try/catch, so a failed call no longer ends the script early",
+        "reason": "Errors aren't ending the script; it finishes because nothing awaits the promises the callbacks create."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "forEach doesn't wait for promises: use for...of with await, or Promise composition.",
+    "explanation": "MDN is explicit that forEach expects a synchronous function and does not wait for promises, which is why \"done\" prints while summaries are still pending. Awaiting each call in a for...of loop, or collecting the promises and awaiting them together, makes the script wait (B). Option C looks like the natural fix, but forEach returns undefined, so there is nothing meaningful to await.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach",
+      "title": "Array.prototype.forEach()",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-rebase-shared-branch",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Version control",
+    "stem": "A developer wants a tidy history on the team's shared feature branch, which three teammates have already pulled and built on. He plans to rebase it and force-push. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Rebase and force-push anyway, then ask teammates to delete their local copies of the branch",
+        "reason": "Rewriting commits others built on forces them to re-merge their work, and old copies pushed back reintroduce the rewritten commits."
+      },
+      {
+        "id": "b",
+        "text": "Rebase onto main every day, because frequent rewrites keep the shared history smaller",
+        "reason": "Repeating the rewrite multiplies the problem: every rebase abandons commits that teammates have based work on."
+      },
+      {
+        "id": "c",
+        "text": "Squash the whole branch into one commit and force-push it, since squashing keeps the shared history intact",
+        "reason": "Squashing also replaces the existing commits with new ones, so it rewrites shared history just as a rebase does."
+      },
+      {
+        "id": "d",
+        "text": "Merge instead, and rebase only commits he hasn't pushed yet, so teammates' work isn't rewritten",
+        "reason": "Correct: the rule is never to rebase commits that exist outside your repository and that people may have based work on; rebasing local work before pushing is fine."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Rebase local commits to tidy up; never rebase what others have already pulled.",
+    "explanation": "Git's rule is to not rebase commits that exist outside your repository and that others may have based work on, because rebasing abandons those commits for new ones. Here three teammates have built on the branch, so merging and limiting rebases to unpushed local work is the safe path (D). Squashing (C) feels gentler, but it rewrites the same shared commits.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://git-scm.com/book/en/v2/Git-Branching-Rebasing",
+      "title": "Git - Rebasing",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-small-reviewable-changes",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Code review",
+    "stem": "Claude Code produced one 1,800-line pull request that renames modules across the codebase and also adds a new retry feature. Reviewers keep missing problems in it. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Split it into a refactoring change and a separate feature change, each small and self-contained",
+        "reason": "Correct: small changes are reviewed more quickly and thoroughly, and refactorings are best done in a separate change from feature work."
+      },
+      {
+        "id": "b",
+        "text": "Assign two more reviewers to the same pull request, so more eyes catch what was missed",
+        "reason": "Large changes produce heavy back-and-forth where important points get missed; more reviewers on the same diff doesn't fix its size."
+      },
+      {
+        "id": "c",
+        "text": "Merge it now and fix issues afterward, since a large change is easy to roll back if needed",
+        "reason": "Large changes are harder to roll back, because they touch files that change between submission and rollback."
+      },
+      {
+        "id": "d",
+        "text": "Have Claude write a long summary in the description, so reviewers can skip most of the diff",
+        "reason": "A summary can help, but skipping the diff is how problems get missed; the change itself is still too big to review well."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "One self-contained change per review, and keep refactors apart from features.",
+    "explanation": "Small changes are reviewed faster and more thoroughly, are less likely to introduce bugs and are simpler to roll back. Mixing a codebase-wide rename with a new feature is exactly the case the guidance says to split (A). Adding reviewers (B) is tempting, but the problem is the size and mix of the change, not the number of people reading it.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://google.github.io/eng-practices/review/developer/small-cls.html",
+      "title": "Small CLs",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-strangler-legacy",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Large-scale refactoring",
+    "stem": "A team will use Claude Code to replace a 15-year-old billing system. Leadership proposes rewriting it all and switching every user over in one weekend next year, but users also need new features soon. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Freeze new features until the full rewrite is done, so the old and new systems never differ",
+        "reason": "A long rewrite with no new features is the failure mode the strangler approach avoids: users can't wait that long."
+      },
+      {
+        "id": "b",
+        "text": "Have Claude rewrite everything in one pass, then cut over all users on the same weekend",
+        "reason": "Big-bang replacements of large systems most often fail, and one cutover concentrates all the risk in a single event."
+      },
+      {
+        "id": "c",
+        "text": "Have Claude reproduce every legacy behavior first, since the new system must match the old exactly",
+        "reason": "Much legacy behavior isn't really wanted, so rebuilding all of it is waste; extract the business needs that matter."
+      },
+      {
+        "id": "d",
+        "text": "Replace the system piece by piece, moving behavior into new components that deliver value early",
+        "reason": "Correct: the strangler fig approach grows the new system alongside the old, replacing small components first so the business gets value sooner with less risk."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Strangle, don't big-bang: replace a legacy system in small slices that each ship value.",
+    "explanation": "The strangler fig pattern builds new components beside the legacy system and moves behavior over gradually, because big-bang rewrites usually fail and users can't wait years for features. The stem's two constraints, risk and the need for new features soon, both point to incremental replacement (D). Option C sounds thorough, but copying every old behavior wastes effort on things nobody needs.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://martinfowler.com/bliki/StranglerFigApplication.html",
+      "title": "Strangler Fig",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-create-task-reference",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "Async programming",
+    "stem": "An asyncio service starts a background task with `asyncio.create_task` to log each Claude reply, but doesn't keep the returned task anywhere. Some log writes silently never happen. What should the team do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Call the logging coroutine directly without create_task, since a coroutine starts running once it is created",
+        "reason": "Simply calling a coroutine doesn't schedule it to run, so the log writes would never happen at all."
+      },
+      {
+        "id": "b",
+        "text": "Add a short sleep after each create_task call, so the event loop has time to finish the write",
+        "reason": "Sleeping guesses at timing; the task can still be garbage collected because nothing holds a reference to it."
+      },
+      {
+        "id": "c",
+        "text": "Move the logging into a new thread per reply, because asyncio can't run background work",
+        "reason": "asyncio runs background tasks fine; the problem is the missing reference, and threads add complexity without addressing it."
+      },
+      {
+        "id": "d",
+        "text": "Keep a strong reference to each task, or start them in a TaskGroup, so they aren't garbage collected",
+        "reason": "Correct: the event loop keeps only weak references to tasks, so an unreferenced task can disappear mid-execution; a set of tasks or a TaskGroup keeps them alive."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Fire-and-forget tasks need a home: save the task (or use a TaskGroup) or it may vanish.",
+    "explanation": "The asyncio docs warn that the event loop holds only weak references to tasks, so a task nobody references can be garbage collected before it finishes. That matches log writes that silently never happen. Keeping each task in a collection, or using a TaskGroup that also surfaces exceptions, fixes it (D). The sleep in B is tempting because it sometimes \"works\", but it leaves the real cause in place.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://docs.python.org/3/library/asyncio-task.html",
+      "title": "Coroutines and tasks",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-get-side-effect",
+    "domainId": "apps-integration",
+    "subSkillId": "swe-foundations",
+    "topic": "REST APIs",
+    "stem": "Your internal tool exposes `GET /tickets/{id}/close`, which closes a ticket and has Claude email the customer a summary. Tickets keep closing when someone pastes the link in chat and a preview is generated. What should the team change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Show a confirmation dialog before anyone follows a ticket link from chat",
+        "reason": "Preview services and crawlers fetch the URL without a person clicking, so a dialog in front of people doesn't stop them."
+      },
+      {
+        "id": "b",
+        "text": "Add caching headers to the GET response, so repeated previews don't close the same ticket a second time",
+        "reason": "The first preview already closes the ticket; caching doesn't change that a GET is causing a state change."
+      },
+      {
+        "id": "c",
+        "text": "Make closing a POST request and keep GET read-only, since clients may call GET without asking",
+        "reason": "Correct: GET is a safe method, so browsers prefetch and crawlers call it freely; the application must not let GET requests alter its state."
+      },
+      {
+        "id": "d",
+        "text": "Block the chat app's preview service by IP address, so only people can call the endpoint",
+        "reason": "This patches one caller; prefetching browsers and other crawlers rely on GET being safe too, so the endpoint stays unsafe."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "GET must be safe: anything that changes state, like closing a ticket, belongs in POST.",
+    "explanation": "A safe HTTP method doesn't alter server state, and clients such as browsers and crawlers rely on that to prefetch GET URLs without harm. Here a GET closes tickets and sends email, so any preview triggers it. Moving the action to POST and keeping GET read-only fixes the design (C). Blocking the preview service (D) is tempting, but it fixes one symptom while every other safe-method caller can still trigger it.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://developer.mozilla.org/en-US/docs/Glossary/Safe/HTTP",
+      "title": "Safe (HTTP Methods)",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-server-compaction",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Context management",
+    "stem": "Your long-running research chat on the Claude API is nearing the context window. The current code deletes the oldest messages, and Claude then forgets decisions made early in the conversation. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep deleting old messages, but in larger chunks, so the limit is reached less often",
+        "reason": "Deleting more at a time loses even more early decisions; the problem is losing content, not how often it happens."
+      },
+      {
+        "id": "b",
+        "text": "Use compaction, so older turns are replaced by a summary Claude writes and early decisions survive",
+        "reason": "Correct: compaction replaces older turns with a server-written summary, keeping a long conversation inside the window and the active context small."
+      },
+      {
+        "id": "c",
+        "text": "Move to a model with a larger context window, since more room keeps the conversation accurate",
+        "reason": "More room delays the problem, and response quality degrades as a conversation grows, so a bigger window alone isn't the fix."
+      },
+      {
+        "id": "d",
+        "text": "Send the full history every turn and let the API decide what to drop once the conversation no longer fits",
+        "reason": "Nothing summarizes the history in this plan, so it keeps growing until it no longer fits; compaction is the API's way to handle that."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Long conversation near the limit? Compact (summarize older turns) instead of silently deleting them.",
+    "explanation": "Compaction exists for exactly this case: it replaces older turns with a summary Claude writes on the server, so the conversation stays inside the window without your own summarization code. Deleting messages is what made Claude forget early decisions, so a summary that keeps them is the fix (B). A larger window (C) is tempting, but quality degrades as context grows, so it only postpones the problem.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/compaction",
+      "title": "Compaction overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-disable-unused-plugins",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Plugin management",
+    "stem": "A developer has eight Claude Code plugins enabled but regularly uses only two. Every session starts with less free context, even in sessions where the other six never run. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Keep all eight enabled, because a plugin adds nothing to context until one of its skills runs",
+        "reason": "An enabled plugin is part of every session: the names and descriptions of its model-invocable skills and agents are in context on every turn."
+      },
+      {
+        "id": "b",
+        "text": "Turn off Claude Code's built-in tools instead, so the plugins have more room",
+        "reason": "The built-in tools are what make Claude Code work; removing them doesn't address the plugins' per-turn cost."
+      },
+      {
+        "id": "c",
+        "text": "Reinstall all eight at project scope, so they load only for teammates and not for this developer",
+        "reason": "Scope decides who gets a plugin, not its context cost; the unused plugins would still load for whoever has them enabled."
+      },
+      {
+        "id": "d",
+        "text": "Disable the six unused plugins, because each enabled plugin puts its descriptions in context every turn",
+        "reason": "Correct: disabling a plugin stops it without uninstalling it, removing its per-turn context cost until it's needed again."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Enabled plugins cost context every turn, used or not: disable the ones you don't need.",
+    "explanation": "An enabled plugin adds the names and descriptions of its skills, agents and commands to Claude's context on every turn, even in sessions where none of them runs. The deciding detail is that six plugins are never used, so disabling them recovers context with no loss (D). Option A is the tempting misconception: full skill text loads only when used, but the descriptions are always there.",
+    "difficulty": "easy",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins",
+      "title": "Plugins overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-append-system-prompt-ci",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Interfaces",
+    "stem": "A CI script runs Claude Code headlessly on every pull request. The team wants one security rule delivered at system-prompt level in these runs, rather than as project context in the conversation. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the rule to CLAUDE.md, because CLAUDE.md content is sent as part of the system prompt",
+        "reason": "CLAUDE.md content is delivered as a user message after the system prompt, not as part of it, so this doesn't meet the requirement."
+      },
+      {
+        "id": "b",
+        "text": "Append the rule to the system prompt when the script launches Claude Code",
+        "reason": "Correct: for instructions at the system prompt level, Claude Code takes an append-to-system-prompt option at launch, which suits scripts and automation."
+      },
+      {
+        "id": "c",
+        "text": "Save the rule as an auto memory note, so it loads before every session starts",
+        "reason": "Auto memory is context Claude reads like CLAUDE.md, not system-prompt text, and it is machine-local, so CI runners wouldn't have it."
+      },
+      {
+        "id": "d",
+        "text": "Put the rule at the top of each pull request description, so Claude reads it first",
+        "reason": "A pull request description is task input in the conversation, not the system prompt, and each author would have to remember to add it."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "CLAUDE.md is project context in the conversation; system-prompt-level rules for scripts go in at launch.",
+    "explanation": "Claude Code delivers CLAUDE.md as a user message after the system prompt, so it shapes behavior as context rather than as system instructions. For rules you want at the system prompt level, the docs point to appending to the system prompt at launch, which fits scripted CI runs (B). Option A is tempting because CLAUDE.md feels like the system prompt, but that's exactly the misconception the docs correct.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-tool-param-explanation",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Schema design",
+    "stem": "Your `issue_refund` tool has a required `step_by_step_reasoning` parameter so auditors can see why each refund was made. Since adding it, some tool calls are refused. What should the team change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Make the parameter optional, so Claude can leave it out on calls it would otherwise refuse",
+        "reason": "Auditors would lose the record on exactly the calls that matter, and the parameter would still ask for reasoning."
+      },
+      {
+        "id": "b",
+        "text": "Move the reasoning request into the system prompt, so the tool schema looks simpler",
+        "reason": "The request for step-by-step reasoning is still there, just elsewhere, so the cause of the refusals remains."
+      },
+      {
+        "id": "c",
+        "text": "Replace it with a parameter asking for a short explanation or the supporting evidence",
+        "reason": "Correct: the tool-definition guidance says to ask for an explanation, not reasoning; a parameter that asks for the model's step-by-step reasoning may be refused."
+      },
+      {
+        "id": "d",
+        "text": "Force a tool call on every turn, so Claude can't decline to fill in the parameter",
+        "reason": "Forcing a tool changes whether a tool is called, not what the parameter asks for, and the newest models reject forced tool use anyway."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Need a \"why\" in a tool call? Ask for a short explanation or evidence, not the model's reasoning.",
+    "explanation": "The guidance for tool definitions is to ask for an explanation, not reasoning: a parameter that asks for the model's thinking or step-by-step reasoning may lead to a refusal. Auditors still get a record if the parameter asks for a short explanation or the supporting evidence (C). Option D is tempting because it sounds forceful, but it targets whether the tool is called rather than the wording that triggers refusals.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools",
+      "title": "Define tools",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-tell-claude-about-compaction",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Session hygiene",
+    "stem": "Your agent harness compacts context automatically as it nears the limit, but on long tasks Claude starts wrapping up early and leaves work unfinished. What is the best first change?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Tell Claude in the prompt that its context gets compacted, so it should keep working",
+        "reason": "Correct: the guide says to tell Claude when the harness compacts context; otherwise it may naturally try to wrap up as it nears the limit."
+      },
+      {
+        "id": "b",
+        "text": "Turn off compaction, so Claude always sees the full history and has no reason to stop",
+        "reason": "Without compaction the task hits the context limit for real, which ends the work instead of fixing the early wrap-up."
+      },
+      {
+        "id": "c",
+        "text": "Lower the effort level, so Claude spends fewer tokens and reaches the limit later",
+        "reason": "This trades away capability to delay the symptom; Claude still doesn't know its context will be refreshed."
+      },
+      {
+        "id": "d",
+        "text": "Split every task into separate sessions that share no state, so no session gets long",
+        "reason": "Sessions with no shared state lose progress between them; the cheaper fix is telling Claude how the harness behaves."
+      }
+    ],
+    "answer": "a",
+    "takeaway": "If your harness compacts, say so in the prompt, or Claude may wind down as the window fills.",
+    "explanation": "The prompting guide notes that in a harness that compacts context or saves it externally, Claude may wrap up as it approaches the limit unless the prompt tells it the context will be refreshed. Adding that to the prompt is cheap and targets the cause (A). Turning compaction off (B) sounds like it removes the trigger, but it makes the limit real.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+      "title": "Prompting best practices",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-project-plugin-install",
+    "domainId": "apps-integration",
+    "subSkillId": "app-design",
+    "topic": "Plugin management",
+    "stem": "Your team enabled a review plugin at project scope and committed the settings. A new teammate cloned the repo, but the plugin's skill never appears in their sessions. What should the teammate do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy the plugin's skill files into the repository, so every clone carries them",
+        "reason": "This forks the plugin into the repo and loses updates from its marketplace; the plugin is already enabled for the project."
+      },
+      {
+        "id": "b",
+        "text": "Install the plugin on their own machine, because project scope enables it but each person installs it",
+        "reason": "Correct: project scope enables a plugin for everyone through the committed settings, and each collaborator still installs it on their own machine."
+      },
+      {
+        "id": "c",
+        "text": "Ask the team to switch the plugin to user scope, so it applies to everyone automatically",
+        "reason": "User scope enables a plugin for one person in every project on their computer, not for the whole team."
+      },
+      {
+        "id": "d",
+        "text": "Re-commit the settings file, since the first commit probably left out the plugin entry",
+        "reason": "The project setting is what tells the teammate's Claude Code to use the plugin; the missing piece is the install on their machine."
+      }
+    ],
+    "answer": "b",
+    "takeaway": "Project scope says \"this repo uses it\"; each teammate still installs the plugin locally.",
+    "explanation": "A plugin has to be present at three layers: enabled in settings, installed on disk and loaded in the session. Project scope handles the first through the committed settings, but each collaborator still installs the plugin on their own machine (B). Option C is the tempting misunderstanding: user scope is personal, so it can't roll a plugin out to the team.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/plugins",
+      "title": "Plugins overview",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-auto-mode-project-default",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Settings scopes",
+    "stem": "A team commits a project settings file that sets the default permission mode to auto, so every teammate starts hands-off. Sessions still start in another mode. Which two approaches get developers starting in auto mode?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Add the same setting to each developer's project-local settings file, which overrides the shared one",
+        "reason": "Auto doesn't take effect as a default from project or local settings files, so moving it to the local file changes nothing."
+      },
+      {
+        "id": "b",
+        "text": "Have each developer set auto as the default in their own user settings file",
+        "reason": "Correct: auto and bypassPermissions don't take effect from project or local settings; set them in user or managed settings instead."
+      },
+      {
+        "id": "c",
+        "text": "Restart the machine, because settings files are read only once at boot",
+        "reason": "Claude Code reloads most settings edits without a restart; the problem is which file can set this value."
+      },
+      {
+        "id": "d",
+        "text": "Pass the permission mode on the command line when each session is launched",
+        "reason": "Correct: for one session, passing the permission mode at launch is the documented alternative to a user or managed default."
+      },
+      {
+        "id": "e",
+        "text": "Write \"always start in auto mode\" in CLAUDE.md, since its instructions apply to every session",
+        "reason": "CLAUDE.md is context Claude reads, not configuration; it can't change which permission mode a session starts in."
+      }
+    ],
+    "answer": [
+      "b",
+      "d"
+    ],
+    "takeaway": "A repo can't switch its users into auto or bypass mode: those defaults come from user or managed settings, or a launch option.",
+    "explanation": "The settings guide lists this exact case: auto and bypassPermissions as a default mode don't take effect from project or local settings. That protects developers from a cloned repo lowering their safety checks. The working options are a user-level default (B) or the mode passed at launch for that session (D). The local file (A) is the tempting trap because it outranks the shared file for most keys, but not for this value.",
+    "difficulty": "hard",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-workspace-trust-allow",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "Workspace trust",
+    "stem": "Your team's committed project settings allow the test command to run without a prompt. A new teammate who just cloned the repo is still asked before every test run, though the project's deny rules already apply. What should the teammate do?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Copy the allow rule into managed settings, because project files can't allow commands",
+        "reason": "Project files can allow commands; their allow rules just wait for trust. Managed settings are for organization policy, not this."
+      },
+      {
+        "id": "b",
+        "text": "Ask the team to delete the deny rules, since any deny rule in a file stops its allow rules loading",
+        "reason": "Deny rules don't suppress allow rules from loading; they apply right away, while allow rules wait for the folder to be trusted."
+      },
+      {
+        "id": "c",
+        "text": "Approve each prompt with \"don't ask again\", because committed allow rules never apply to shell commands",
+        "reason": "Committed allow rules do apply to commands once the folder is trusted; answering prompts one by one works around the cause."
+      },
+      {
+        "id": "d",
+        "text": "Trust the project folder when Claude Code asks, since committed allow rules wait for workspace trust",
+        "reason": "Correct: permissions.allow rules in the shared settings apply only after each teammate trusts the folder; deny and ask rules apply immediately."
+      }
+    ],
+    "answer": "d",
+    "takeaway": "Committed allow rules wait for workspace trust; deny and ask rules don't.",
+    "explanation": "Some committed keys wait until each teammate trusts the folder, including allow rules, while deny and ask rules apply right away. That explains both symptoms: deny rules work, allow rules don't yet. Trusting the folder fixes it (D). Option C is tempting because it stops the prompts, but it builds personal approvals on top of a team rule that would already work.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings files and precedence",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
+  },
+  {
+    "id": "q-dq-apps-monorepo-exclude-claude-md",
+    "domainId": "apps-integration",
+    "subSkillId": "config-management",
+    "topic": "CLAUDE.md",
+    "stem": "In a monorepo, a developer works only in `services/payments`, but an ancestor CLAUDE.md written by another team keeps loading and conflicts with payments conventions. That team still needs its file. What is the best approach?",
+    "choices": [
+      {
+        "id": "a",
+        "text": "Delete the other team's CLAUDE.md, since only one CLAUDE.md can be active in a session",
+        "reason": "All discovered CLAUDE.md files are concatenated rather than one winning, and the other team still needs this file."
+      },
+      {
+        "id": "b",
+        "text": "Copy the payments conventions into the other team's file, so both sets load together",
+        "reason": "This puts conflicting instructions in one place and changes a file another team owns; conflicts can make Claude pick one arbitrarily."
+      },
+      {
+        "id": "c",
+        "text": "Exclude that file for yourself in your local settings, so it stops loading in your sessions only",
+        "reason": "Correct: the claudeMdExcludes setting skips specific CLAUDE.md files by path, and putting it in the local settings file keeps the exclusion on your machine."
+      },
+      {
+        "id": "d",
+        "text": "Start Claude Code from the repository root instead, so the nested payments file is read last",
+        "reason": "Starting at the root still loads the root file at launch, and the payments file then loads only on demand; the conflict remains."
+      }
+    ],
+    "answer": "c",
+    "takeaway": "Another team's CLAUDE.md in your path? Exclude it locally instead of editing or deleting it.",
+    "explanation": "CLAUDE.md files in the directory tree are concatenated, so an ancestor file meant for another team keeps shaping your sessions. The memory guide's fix for large monorepos is to exclude specific files by path, placed in your local settings so the change affects only you (C). Deleting the file (A) is tempting, but it breaks the other team and rests on the false idea that only one CLAUDE.md is active.",
+    "difficulty": "medium",
+    "source": {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "How Claude remembers your project",
+      "checkedOn": "2026-10-21"
+    },
+    "relatedCardIds": []
   }
 ]
